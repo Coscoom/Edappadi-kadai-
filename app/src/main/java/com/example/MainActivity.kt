@@ -1,0 +1,225 @@
+package com.example
+
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.webkit.JavascriptInterface
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.Toast
+import android.print.PrintManager
+import android.print.PrintAttributes
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
+import com.example.ui.theme.MyApplicationTheme
+
+class MainActivity : ComponentActivity() {
+
+    private var filePathCallback: ValueCallback<Array<Uri>>? = null
+    private var webView: WebView? = null
+
+    private val fileChooserLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data
+            val uris = WebChromeClient.FileChooserParams.parseResult(result.resultCode, data)
+            filePathCallback?.onReceiveValue(uris)
+        } else {
+            filePathCallback?.onReceiveValue(null)
+        }
+        filePathCallback = null
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            MyApplicationTheme {
+                Scaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .systemBarsPadding()
+                        .imePadding()
+                ) { innerPadding ->
+                    val padding = innerPadding // suppress unused variable warning if any
+                    
+                    AndroidView(
+                        modifier = Modifier.fillMaxSize(),
+                        factory = { context ->
+                            WebView(context).apply {
+                                this@MainActivity.webView = this
+                                layoutParams = android.view.ViewGroup.LayoutParams(
+                                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                                )
+                                
+                                // Clean WebView settings for Local PWA support
+                                settings.apply {
+                                    javaScriptEnabled = true
+                                    domStorageEnabled = true
+                                    databaseEnabled = true
+                                    allowFileAccess = true
+                                    allowContentAccess = true
+                                    mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                                    useWideViewPort = true
+                                    loadWithOverviewMode = true
+                                    cacheMode = WebSettings.LOAD_DEFAULT
+                                }
+
+                                // Handle native intent actions (tel, whatsapp)
+                                webViewClient = object : WebViewClient() {
+                                    override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                                        if (url == null) return false
+                                        if (url.startsWith("tel:") || url.startsWith("whatsapp:") || url.contains("wa.me")) {
+                                            try {
+                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                context.startActivity(intent)
+                                                return true
+                                            } catch (e: Exception) {
+                                                return true
+                                            }
+                                        }
+                                        return false
+                                    }
+                                }
+
+                                // OnShowFileChooser WebChromeClient override
+                                webChromeClient = object : WebChromeClient() {
+                                    override fun onShowFileChooser(
+                                        webView: WebView?,
+                                        filePathCallback: ValueCallback<Array<Uri>>?,
+                                        fileChooserParams: FileChooserParams?
+                                    ): Boolean {
+                                        this@MainActivity.filePathCallback?.onReceiveValue(null)
+                                        this@MainActivity.filePathCallback = filePathCallback
+
+                                        try {
+                                            val intent = fileChooserParams?.createIntent()
+                                            if (intent != null) {
+                                                fileChooserLauncher.launch(intent)
+                                            } else {
+                                                val fallbackIntent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                                                    type = "image/*"
+                                                    addCategory(Intent.CATEGORY_OPENABLE)
+                                                }
+                                                fileChooserLauncher.launch(fallbackIntent)
+                                            }
+                                            return true
+                                        } catch (e: Exception) {
+                                            this@MainActivity.filePathCallback?.onReceiveValue(null)
+                                            this@MainActivity.filePathCallback = null
+                                            return false
+                                        }
+                                    }
+                                }
+
+                                isFocusable = true
+                                isFocusableInTouchMode = true
+                                requestFocus()
+
+                                addJavascriptInterface(WebAppInterface(context), "AndroidStorage")
+
+                                loadUrl("file:///android_asset/index.html")
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        webView?.requestFocus()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            webView?.requestFocus()
+        }
+    }
+
+    override fun onDestroy() {
+        webView = null
+        super.onDestroy()
+    }
+
+    class WebAppInterface(private val context: Context) {
+        private val sharedPreferences = context.getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
+
+        @JavascriptInterface
+        fun saveData(key: String, value: String) {
+            sharedPreferences.edit().putString(key, value).apply()
+        }
+
+        @JavascriptInterface
+        fun getData(key: String, defaultValue: String): String {
+            return sharedPreferences.getString(key, defaultValue) ?: defaultValue
+        }
+
+        @JavascriptInterface
+        fun removeData(key: String) {
+            sharedPreferences.edit().remove(key).apply()
+        }
+
+        @JavascriptInterface
+        fun printHtml(htmlContent: String, jobName: String) {
+            (context as? Activity)?.runOnUiThread {
+                try {
+                    val printWebView = WebView(context)
+                    printWebView.apply {
+                        settings.apply {
+                            javaScriptEnabled = true
+                            domStorageEnabled = true
+                            defaultTextEncodingName = "UTF-8"
+                        }
+                    }
+                    printWebView.webViewClient = object : WebViewClient() {
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            try {
+                                val printManager = context.getSystemService(Context.PRINT_SERVICE) as? PrintManager
+                                val printAdapter = printWebView.createPrintDocumentAdapter(jobName)
+                                printManager?.print(jobName, printAdapter, PrintAttributes.Builder().build())
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Print error: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                    printWebView.loadDataWithBaseURL("file:///android_asset/", htmlContent, "text/html", "utf-8", null)
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Initial print error: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun shareText(title: String, text: String) {
+            try {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, title)
+                    putExtra(Intent.EXTRA_TEXT, text)
+                }
+                context.startActivity(Intent.createChooser(intent, title))
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
+    }
+}
+
