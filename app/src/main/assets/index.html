@@ -33,6 +33,9 @@
       --category-meat: #ef4444;
       --category-fish: #3b82f6;
       --category-veg: #22c55e;
+      --category-fruits: #ec4899;
+      --category-dairy: #facc15;
+      --category-groceries: #a855f7;
     }
 
     .tamil-text { 
@@ -51,10 +54,10 @@
     .brand-logo-card {
       width: 140px;
       height: 140px;
-      background: linear-gradient(135deg, #052611 0%, #010f06 100%);
+      background: #06080c;
       border-radius: 36px;
-      border: 3.5px solid #f59e0b;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.65), inset 0 0 15px rgba(245,158,11,0.25);
+      border: 2px solid #00FF88;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.8), 0 0 20px rgba(0,255,136,0.35), inset 0 0 15px rgba(0,255,136,0.2);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -68,7 +71,7 @@
       left: 6px;
       right: 6px;
       bottom: 6px;
-      border: 1.5px solid rgba(245,158,11,0.35);
+      border: 1.5px solid rgba(0,255,136,0.4);
       border-radius: 30px;
       pointer-events: none;
     }
@@ -173,6 +176,11 @@
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
     /* Scrollbars */
@@ -541,52 +549,46 @@
           <div class="brand-logo-ring"></div>
           <div class="brand-logo-graphic" style="width: 125px; height: 125px;">
             <svg viewBox="0 0 140 140" style="width: 100%; height: 100%; display: block;">
-              <!-- Circle Frame -->
-              <circle cx="70" cy="70" r="48" fill="#fbfaf3" stroke="#052611" stroke-width="2"/>
-              <circle cx="70" cy="70" r="44" fill="none" stroke="#052611" stroke-width="0.75" stroke-dasharray="2,2"/>
-              <circle cx="70" cy="70" r="42" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.6"/>
+              <!-- Inner Ring glowing neon green -->
+              <circle cx="70" cy="70" r="48" fill="none" stroke="#00FF88" stroke-width="1" opacity="0.6"/>
               
-              <!-- Goats and Poultry Group -->
-              <g transform="translate(66, 60) scale(0.85)">
-                <path d="M 0,-3 C -4,-18 -18,-18 -24,-8 C -30,2 -22,24 -22,24 C -22,24 -14,24 -15,10 C -16,4 -10,-4 -1,-5 Z" fill="#991b1b" />
-                <path d="M -9,3 C -13,0 -16,3 -18,8 C -20,13 -16,19 -11,21 C -6,23 -2,12 -9,3 Z" fill="#991b1b" />
-                <path d="M -1,-5 C -4,-22 -22,-22 -26,-12 C -29,-5 -22,-2 -20,-7 C -18,-12 -10,-12 -1,-5 Z" fill="#bd1e24" />
-                <path d="M -14,5 Q -22,6 -20,11 Q -13,10 -14,5 Z" fill="#bd1e24" />
+              <!-- Outer double ring -->
+              <circle cx="70" cy="70" r="50" fill="none" stroke="#00FF88" stroke-width="2"/>
+              
+              <defs>
+                <path id="textPath-edappadi-splash" d="M 28,68 A 43,43 0 0,1 112,68" fill="none" />
+              </defs>
+
+              <!-- Arched Text "EDAPPADI" -->
+              <text fill="#ffffff" font-family="'Poppins', sans-serif" font-size="12px" font-weight="900" letter-spacing="1.2px">
+                <textPath href="#textPath-edappadi-splash" startOffset="50%" text-anchor="middle">EDAPPADI</textPath>
+              </text>
+
+              <!-- Central Glowing Shopping Bag Group -->
+              <g transform="translate(49, 44) scale(0.6)">
+                <!-- Handles -->
+                <path d="M 12,18 C 12,6 58,6 58,18" stroke="#00FF88" stroke-width="3" stroke-linecap="round" fill="none" />
+                <path d="M 15,18 C 15,9 55,9 55,18" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" fill="none" stroke-opacity="0.8" />
                 
-                <path d="M 2,12 C 5,8 9,3 13.5,6 C 18,9 17,17 11.5,19 C 14.5,22 17.5,26 19.5,31 L 2,31" fill="#991b1b" />
-                <path d="M 2,12 C -1,13 -4,11 -4,15 L 2,21 L 2,12" fill="#bd1e24" />
-                <path d="M 13.5,6 C 15,2 19,2 18,5 C 20,3 22,5 20,8" fill="#bd1e24" stroke="#991b1b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Bag Body -->
+                <path d="M 6,20 L 64,20 C 69,20 71,23 70,27 L 61,64 C 60,69 56,72 51,72 L 19,72 C 14,72 10,69 9,64 L 0,27 C-1,23 1,20 6,20 Z" stroke="#00FF88" stroke-width="3.5" stroke-linejoin="round" fill="#0c1219" />
+                
+                <!-- Leaf / Arrow on bag -->
+                <path d="M 18,58 Q 30,46 48,34" stroke="#00FF88" stroke-width="3" stroke-linecap="round" fill="none" />
+                <path d="M 40,34 L 48,34 L 48,42" stroke="#00FF88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                <path d="M 18,58 C 18,58 13,44 26,42 C 26,42 28,52 18,58 Z" stroke="#00FF88" stroke-width="1.8" fill="#1b4d32" />
               </g>
-
-              <!-- Fine Fresh Produce Group -->
-              <g transform="translate(82, 50) scale(0.8)">
-                <path d="M 5,5 C -2,-1 1,-8 8,-4 C 15,0 9,10 5,5 Z" fill="#15803d" />
-                <path d="M 12,12 C 6,4 10,-3 16,-1 C 22,1 18,17 12,12 Z" fill="#22c55e" />
-                <ellipse cx="-2" cy="18" rx="7" ry="9" fill="#8b5cf6" transform="rotate(-15, -2, 18)"/>
-                <path d="M -5,11 Q -2,6 1,11 M -4,15 Q -1,10 2,15 M -3,20 Q 0,15 3,20" stroke="#c084fc" stroke-width="1" fill="none" opacity="0.6"/>
-                <circle cx="10" cy="22" r="9" fill="#ef4444" />
-                <path d="M 10,12 Q 13,15 10,16 Q 7,15 10,12" fill="#166534" />
-                <ellipse cx="7" cy="20" rx="2" ry="1" fill="#fca5a5" transform="rotate(-30, 7, 20)" />
-                <path d="M 1,2 C -5,-2 -11,4 -5,12 C 1,20 12,12 11,6 C 10,4 6,4 1,2 Z" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
-                <path d="M -2,8 C -1,5 2,2 5,4" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                <path d="M 5,6 L 16,-4 A 2.5,2.5 0 0,1 20,0 L 9,10 Z" fill="#fafaf9" stroke="#9a3412" stroke-width="0.5"/>
-              </g>
-
-              <path d="M 33,36 L 34,38 L 36,39 L 34,40 L 33,42 L 32,40 L 30,39 L 32,38 Z" fill="#ffffff" opacity="0.9"/>
-              <path d="M 103,34 L 104,36 L 106,37 L 104,38 L 103,40 L 102,38 L 100,37 L 102,36 Z" fill="#ffffff" opacity="0.9"/>
-
-              <!-- Bold Curved Text "எடப்பாடி" -->
-              <text x="70" y="85" text-anchor="middle" fill="#043818" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" style="font-family: 'Hind Madurai', sans-serif; font-size: 19px; font-weight: 900; letter-spacing: -0.2px; paint-order: stroke fill;">எடப்பாடி</text>
-
-              <!-- Crimson Banner Curve for "கடை" -->
-              <path d="M 34,93 Q 70,100 106,93 C 106,100 100,107 70,107 C 40,107 34,100 34,93 Z" fill="#991b1b" stroke="#ffffff" stroke-width="1"/>
-              <text x="70" y="102" text-anchor="middle" fill="#fbfaf3" style="font-family: 'Hind Madurai', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">கடை</text>
-
-              <!-- Symmetric mint garnish leaves underneath -->
-              <g transform="translate(62, 108)">
-                <path d="M 8,4 Q -2,2 1,10 Q 7,7 8,4" fill="#22c55e" />
-                <path d="M 8,4 Q 18,2 15,10 Q 9,7 8,4" fill="#16a34a" />
-              </g>
+              
+              <!-- Under the Bag: "எடப்பாடி கடை" -->
+              <text x="70" y="100" text-anchor="middle" fill="#ffffff" font-family="'Hind Madurai', sans-serif" font-size="11px" font-weight="900" letter-spacing="0.5px">எடப்பாடி கடை</text>
+              
+              <!-- Description -->
+              <text x="70" y="112" text-anchor="middle" fill="#9ca3af" font-family="'Poppins', sans-serif" font-size="4.2px" font-weight="700" letter-spacing="0.5px">ONLINE GROCERY & FOOD DELIVERY</text>
+              
+              <!-- Sleek neon line and star decoration -->
+              <line x1="32" y1="120" x2="55" y2="120" stroke="#00FF88" stroke-width="0.8" />
+              <polygon points="70,117.5 71,119.5 73.2,119.5 71.3,120.7 72,122.8 70,121.5 68,122.8 68.7,120.7 66.8,119.5 69,119.5" fill="#ffffff" />
+              <line x1="85" y1="120" x2="108" y2="120" stroke="#00FF88" stroke-width="0.8" />
             </svg>
           </div>
         </div>
@@ -614,52 +616,46 @@
             <div class="brand-logo-ring"></div>
             <div class="brand-logo-graphic" style="width: 125px; height: 125px;">
               <svg viewBox="0 0 140 140" style="width: 100%; height: 100%; display: block;">
-                <!-- Circle Frame -->
-                <circle cx="70" cy="70" r="48" fill="#fbfaf3" stroke="#052611" stroke-width="2"/>
-                <circle cx="70" cy="70" r="44" fill="none" stroke="#052611" stroke-width="0.75" stroke-dasharray="2,2"/>
-                <circle cx="70" cy="70" r="42" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.6"/>
+                <!-- Inner Ring glowing neon green -->
+                <circle cx="70" cy="70" r="48" fill="none" stroke="#00FF88" stroke-width="1" opacity="0.6"/>
                 
-                <!-- Goats and Poultry Group -->
-                <g transform="translate(66, 60) scale(0.85)">
-                  <path d="M 0,-3 C -4,-18 -18,-18 -24,-8 C -30,2 -22,24 -22,24 C -22,24 -14,24 -15,10 C -16,4 -10,-4 -1,-5 Z" fill="#991b1b" />
-                  <path d="M -9,3 C -13,0 -16,3 -18,8 C -20,13 -16,19 -11,21 C -6,23 -2,12 -9,3 Z" fill="#991b1b" />
-                  <path d="M -1,-5 C -4,-22 -22,-22 -26,-12 C -29,-5 -22,-2 -20,-7 C -18,-12 -10,-12 -1,-5 Z" fill="#bd1e24" />
-                  <path d="M -14,5 Q -22,6 -20,11 Q -13,10 -14,5 Z" fill="#bd1e24" />
+                <!-- Outer double ring -->
+                <circle cx="70" cy="70" r="50" fill="none" stroke="#00FF88" stroke-width="2"/>
+                
+                <defs>
+                  <path id="textPath-edappadi-login" d="M 28,68 A 43,43 0 0,1 112,68" fill="none" />
+                </defs>
+
+                <!-- Arched Text "EDAPPADI" -->
+                <text fill="#ffffff" font-family="'Poppins', sans-serif" font-size="12px" font-weight="900" letter-spacing="1.2px">
+                  <textPath href="#textPath-edappadi-login" startOffset="50%" text-anchor="middle">EDAPPADI</textPath>
+                </text>
+
+                <!-- Central Glowing Shopping Bag Group -->
+                <g transform="translate(49, 44) scale(0.6)">
+                  <!-- Handles -->
+                  <path d="M 12,18 C 12,6 58,6 58,18" stroke="#00FF88" stroke-width="3" stroke-linecap="round" fill="none" />
+                  <path d="M 15,18 C 15,9 55,9 55,18" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" fill="none" stroke-opacity="0.8" />
                   
-                  <path d="M 2,12 C 5,8 9,3 13.5,6 C 18,9 17,17 11.5,19 C 14.5,22 17.5,26 19.5,31 L 2,31" fill="#991b1b" />
-                  <path d="M 2,12 C -1,13 -4,11 -4,15 L 2,21 L 2,12" fill="#bd1e24" />
-                  <path d="M 13.5,6 C 15,2 19,2 18,5 C 20,3 22,5 20,8" fill="#bd1e24" stroke="#991b1b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <!-- Bag Body -->
+                  <path d="M 6,20 L 64,20 C 69,20 71,23 70,27 L 61,64 C 60,69 56,72 51,72 L 19,72 C 14,72 10,69 9,64 L 0,27 C-1,23 1,20 6,20 Z" stroke="#00FF88" stroke-width="3.5" stroke-linejoin="round" fill="#0c1219" />
+                  
+                  <!-- Leaf / Arrow on bag -->
+                  <path d="M 18,58 Q 30,46 48,34" stroke="#00FF88" stroke-width="3" stroke-linecap="round" fill="none" />
+                  <path d="M 40,34 L 48,34 L 48,42" stroke="#00FF88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                  <path d="M 18,58 C 18,58 13,44 26,42 C 26,42 28,52 18,58 Z" stroke="#00FF88" stroke-width="1.8" fill="#1b4d32" />
                 </g>
-
-                <!-- Fine Fresh Produce Group -->
-                <g transform="translate(82, 50) scale(0.8)">
-                  <path d="M 5,5 C -2,-1 1,-8 8,-4 C 15,0 9,10 5,5 Z" fill="#15803d" />
-                  <path d="M 12,12 C 6,4 10,-3 16,-1 C 22,1 18,17 12,12 Z" fill="#22c55e" />
-                  <ellipse cx="-2" cy="18" rx="7" ry="9" fill="#8b5cf6" transform="rotate(-15, -2, 18)"/>
-                  <path d="M -5,11 Q -2,6 1,11 M -4,15 Q -1,10 2,15 M -3,20 Q 0,15 3,20" stroke="#c084fc" stroke-width="1" fill="none" opacity="0.6"/>
-                  <circle cx="10" cy="22" r="9" fill="#ef4444" />
-                  <path d="M 10,12 Q 13,15 10,16 Q 7,15 10,12" fill="#166534" />
-                  <ellipse cx="7" cy="20" rx="2" ry="1" fill="#fca5a5" transform="rotate(-30, 7, 20)" />
-                  <path d="M 1,2 C -5,-2 -11,4 -5,12 C 1,20 12,12 11,6 C 10,4 6,4 1,2 Z" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
-                  <path d="M -2,8 C -1,5 2,2 5,4" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                  <path d="M 5,6 L 16,-4 A 2.5,2.5 0 0,1 20,0 L 9,10 Z" fill="#fafaf9" stroke="#9a3412" stroke-width="0.5"/>
-                </g>
-
-                <path d="M 33,36 L 34,38 L 36,39 L 34,40 L 33,42 L 32,40 L 30,39 L 32,38 Z" fill="#ffffff" opacity="0.9"/>
-                <path d="M 103,34 L 104,36 L 106,37 L 104,38 L 103,40 L 102,38 L 100,37 L 102,36 Z" fill="#ffffff" opacity="0.9"/>
-
-                <!-- Bold Curved Text "எடப்பாடி" -->
-                <text x="70" y="85" text-anchor="middle" fill="#043818" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" style="font-family: 'Hind Madurai', sans-serif; font-size: 19px; font-weight: 900; letter-spacing: -0.2px; paint-order: stroke fill;">எடப்பாடி</text>
-
-                <!-- Crimson Banner Curve for "கடை" -->
-                <path d="M 34,93 Q 70,100 106,93 C 106,100 100,107 70,107 C 40,107 34,100 34,93 Z" fill="#991b1b" stroke="#ffffff" stroke-width="1"/>
-                <text x="70" y="102" text-anchor="middle" fill="#fbfaf3" style="font-family: 'Hind Madurai', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">கடை</text>
-
-                <!-- Symmetric mint garnish leaves underneath -->
-                <g transform="translate(62, 108)">
-                  <path d="M 8,4 Q -2,2 1,10 Q 7,7 8,4" fill="#22c55e" />
-                  <path d="M 8,4 Q 18,2 15,10 Q 9,7 8,4" fill="#16a34a" />
-                </g>
+                
+                <!-- Under the Bag: "எடப்பாடி கடை" -->
+                <text x="70" y="100" text-anchor="middle" fill="#ffffff" font-family="'Hind Madurai', sans-serif" font-size="11px" font-weight="900" letter-spacing="0.5px">எடப்பாடி கடை</text>
+                
+                <!-- Description -->
+                <text x="70" y="112" text-anchor="middle" fill="#9ca3af" font-family="'Poppins', sans-serif" font-size="4.2px" font-weight="700" letter-spacing="0.5px">ONLINE GROCERY & FOOD DELIVERY</text>
+                
+                <!-- Sleek neon line and star decoration -->
+                <line x1="32" y1="120" x2="55" y2="120" stroke="#00FF88" stroke-width="0.8" />
+                <polygon points="70,117.5 71,119.5 73.2,119.5 71.3,120.7 72,122.8 70,121.5 68,122.8 68.7,120.7 66.8,119.5 69,119.5" fill="#ffffff" />
+                <line x1="85" y1="120" x2="108" y2="120" stroke="#00FF88" stroke-width="0.8" />
               </svg>
             </div>
           </div>
@@ -698,8 +694,9 @@
         </div>
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
           <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); cursor: pointer;">
-            <input type="checkbox" id="login-remember" style="accent-color: var(--accent-orange); width: 16px; height: 16px;" checked> Remember Me
+            <input type="checkbox" id="login-remember" style="accent-color: var(--accent-orange); width: 16px; height: 16px;" checked> <span data-translate="rememberMe">Remember Me</span>
           </label>
+          <a href="#" onclick="openForgotPasswordModal(event)" style="font-size: 12.5px; color: var(--accent-orange); text-decoration: none; font-weight: 600; cursor: pointer;" data-translate="forgotPassword">Forgot Password?</a>
         </div>
 
         <button type="submit" class="btn btn-primary" style="padding: 14px;">Login</button>
@@ -734,7 +731,7 @@
         </div>
         <div class="form-group">
           <label>Phone Number (10 digits) *</label>
-          <input type="tel" id="reg-phone" class="form-control" placeholder="9843673188" pattern="\d{10}" title="Must be a 10-digit Indian mobile number" required>
+          <input type="tel" id="reg-phone" class="form-control" placeholder="8778148899" pattern="\d{10}" title="Must be a 10-digit Indian mobile number" required>
         </div>
         <div class="form-group">
           <label>Email ID (Optional)</label>
@@ -771,7 +768,17 @@
       <!-- Top Bar -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="font-size: 24px;">🛒</span>
+          <!-- Miniature Glowing Neon Logo -->
+          <div class="brand-mini-logo" style="width: 32px; height: 32px; border-radius: 8px; background: #06080c; border: 1px solid #00FF88; box-shadow: 0 0 8px rgba(0,255,136,0.4); display: flex; align-items: center; justify-content: center; overflow: hidden; fill: none; stroke: none; margin-right: 2px;">
+            <svg viewBox="0 0 100 100" style="width: 22px; height: 22px; display: block;">
+              <circle cx="50" cy="50" r="42" stroke="#00FF88" stroke-width="6" fill="none" />
+              <circle cx="50" cy="50" r="35" stroke="#00FF88" stroke-width="2" stroke-dasharray="4,2" fill="none" opacity="0.8" />
+              <path d="M 40,38 C 40,28 60,28 60,38" stroke="#00FF88" stroke-width="5" stroke-linecap="round" fill="none" />
+              <path d="M 33,45 L 67,45 C 70,45 71,47 70.5,50 L 65.5,74 C 65,77 62.5,79 59.5,79 L 40.5,79 C 37.5,79 35,77 34.5,74 L 29.5,50 C 29,47 30,45 33,45 Z" stroke="#00FF88" stroke-width="5" stroke-linejoin="round" fill="#0c1219" />
+              <path d="M 45,70 Q 52,62 62,55" stroke="#00FF88" stroke-width="4.5" stroke-linecap="round" fill="none" />
+              <path d="M 57,55 L 62,55 L 62,60" stroke="#00FF88" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            </svg>
+          </div>
           <div>
             <h3 style="color: var(--accent-orange); font-size: 16px; font-weight: 700; line-height: 1.1; display: flex; align-items: center; gap: 6px;">
               EDAPPADI KADAI
@@ -811,12 +818,9 @@
       </div>
 
       <!-- Category Filter Pills -->
-      <h4 style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Categories</h4>
+      <h4 style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;" data-translate="categories">Categories</h4>
       <div class="filter-pills">
-        <button class="pill active" onclick="filterHomeProducts('all', this)">🍽️ All Items</button>
-        <button class="pill" onclick="filterHomeProducts('meat', this)">🔴 Meat</button>
-        <button class="pill" onclick="filterHomeProducts('fish', this)">🔵 Fish</button>
-        <button class="pill" onclick="filterHomeProducts('veg', this)">🟢 Veg</button>
+        <!-- Populated dynamically by JS -->
       </div>
 
       <!-- Today's Specials Section -->
@@ -896,7 +900,7 @@
 
         <!-- Preferred Cut style -->
         <div class="form-group">
-          <label style="font-weight: 600;">Preferred Cut Style</label>
+          <label style="font-weight: 600;" id="modal-cut-title">Preferred Cut Style</label>
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px;">
             <button class="btn-selector cut-options" id="cut-small" onclick="selectCutStyle('Small Pieces')">🔪 Small Pieces</button>
             <button class="btn-selector cut-options" id="cut-curry" onclick="selectCutStyle('Curry Cut')">🍲 Curry Cut</button>
@@ -923,7 +927,7 @@
 
     <!-- DEVELOPER INFO MODAL (CENTERED POPUP COSCOOM BRANDED) -->
     <div id="developer-info-modal" class="modal-backdrop" onclick="closeDeveloperModal(event)" style="align-items: center; padding: 20px;">
-      <div style="background: #06070d; color: #ffffff; border-radius: 28px; width: 100%; max-width: 360px; padding: 24px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.9), 0 0 40px rgba(168,85,247,0.1); border: 1.5px solid rgba(255,255,255,0.08);" onclick="event.stopPropagation()">
+      <div style="background: #06070d; color: #ffffff; border-radius: 28px; width: 100%; max-width: 360px; max-height: 90vh; overflow-y: auto; padding: 24px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.9), 0 0 40px rgba(168,85,247,0.1); border: 1.5px solid rgba(255,255,255,0.08);" onclick="event.stopPropagation()">
         
         <!-- PREMIUM COSCOOM LOGO DYNAMIC CSS/SVG REPRESENTATION -->
         <div class="coscoom-logo-section" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; text-align: center;">
@@ -1043,11 +1047,223 @@
             </a>
           </div>
 
+          <!-- Privacy Policy Link -->
+          <div style="margin: 6px 0; text-align: center;">
+            <a href="javascript:showPrivacyPolicy()" 
+               style="color: #ec4899; font-size: 14.5px; font-weight: 600; text-decoration: underline; font-family: 'Poppins', sans-serif; display: inline-block;">
+              தனியுரிமைக் கொள்கை / Privacy Policy
+            </a>
+          </div>
+
           <!-- close -->
           <button onclick="closeDeveloperModalDetail()" style="background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%); color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; padding: 13px; border-radius: 14px; border: none; cursor: pointer; text-align: center; transition: opacity 0.2s; box-shadow: 0 4px 12px rgba(168,85,247,0.3);">
             Close / மூடுக
           </button>
         </div>
+
+      </div>
+    </div>
+
+    <!-- NATIVE PRIVACY POLICY MODAL -->
+    <div id="privacy-policy-modal" class="modal-backdrop" onclick="closePrivacyPolicyModal(event)" style="align-items: center; padding: 20px; display: none; z-index: 10010;">
+      <div style="background: #06070d; color: #ffffff; border-radius: 28px; width: 100%; max-width: 440px; max-height: 85vh; padding: 24px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.9), 0 0 40px rgba(245,158,11,0.1); border: 1.5px solid rgba(255,255,255,0.08); display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+        
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 style="font-size: 18px; font-weight: 700; color: #f59e0b; margin: 0; font-family: 'Poppins', sans-serif;">Privacy Policy / தனியுரிமை</h3>
+          <button onclick="closePrivacyPolicyDetail()" style="background: #222222; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;">×</button>
+        </div>
+
+        <!-- Language Tabs inside Modal -->
+        <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+          <button id="privacy-tab-en" onclick="setPrivacyLang('en')" style="flex: 1; background: #e63946; color: #fff; border: none; padding: 8px 16px; border-radius: 16px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; font-family: 'Poppins', sans-serif;">English</button>
+          <button id="privacy-tab-ta" onclick="setPrivacyLang('ta')" style="flex: 1; background: transparent; color: #9ca3af; border: none; padding: 8px 16px; border-radius: 16px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; font-family: 'Poppins', sans-serif;">தமிழ்</button>
+        </div>
+
+        <!-- Scrollable Content Area -->
+        <div id="privacy-scroll-container" style="flex: 1; overflow-y: auto; padding-right: 4px; margin-bottom: 16px; max-height: 55vh;">
+          
+          <!-- ENGLISH CONTENT -->
+          <div id="privacy-content-en">
+            <span style="display: inline-block; background: #e63946; color: #fff; font-size: 11px; padding: 4px 12px; border-radius: 20px; margin-bottom: 8px; font-weight: 600; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif;">Legal</span>
+            <h2 style="font-size: 20px; font-weight: 700; color: #ffffff; margin-bottom: 4px; font-family: 'Poppins', sans-serif;">Privacy Policy</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px; font-family: 'Poppins', sans-serif;">Last updated: June 2025 | Effective for Edappadi Kadai App</p>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px; font-family: 'Poppins', sans-serif;">🏢 About Us</h4>
+              <p style="font-size: 13px; color: #dfdfdf; line-height: 1.6; margin: 0; font-family: 'Poppins', sans-serif;">Edappadi Kadai is operated by <strong>Coscoom Creative Tech Solutions</strong>, based in Idappadi, Salem, Tamil Nadu, India. We provide a hyperlocal fresh meat and vegetable delivery service through our mobile application.</p>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px; font-family: 'Poppins', sans-serif;">📋 What Data We Collect</h4>
+              <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #dfdfdf; line-height: 1.6; font-family: 'Poppins', sans-serif;">
+                <li style="margin-bottom: 4px;"><strong>Name</strong> — To identify your account</li>
+                <li style="margin-bottom: 4px;"><strong>Phone Number</strong> — For order confirmation and delivery coordination</li>
+                <li style="margin-bottom: 4px;"><strong>Delivery Address / Location</strong> — To deliver your order to the correct place</li>
+                <li style="margin-bottom: 4px;"><strong>Order History</strong> — To show your past orders and improve service</li>
+              </ul>
+              <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; padding: 10px; margin-top: 10px; font-size: 12px; color: #f59e0b; line-height: 1.4; font-family: 'Poppins', sans-serif;">
+                ⚠️ We do NOT collect payment card details, Aadhaar, or any sensitive financial information.
+              </div>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px; font-family: 'Poppins', sans-serif;">🎯 Why We Collect It</h4>
+              <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #dfdfdf; line-height: 1.6; font-family: 'Poppins', sans-serif;">
+                <li style="margin-bottom: 4px;">To process and deliver your orders</li>
+                <li style="margin-bottom: 4px;">To contact you regarding your order status</li>
+                <li style="margin-bottom: 4px;">To improve app performance and user experience</li>
+                <li style="margin-bottom: 4px;">To resolve any delivery issues</li>
+              </ul>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px; font-family: 'Poppins', sans-serif;">🤝 Who We Share It With</h4>
+              <p style="font-size: 13px; color: #dfdfdf; line-height: 1.6; margin-bottom: 6px; font-family: 'Poppins', sans-serif;">Your data is shared <strong>only</strong> with:</p>
+              <ul style="padding-left: 20px; margin: 0 0 10px 0; font-size: 13px; color: #dfdfdf; line-height: 1.6; font-family: 'Poppins', sans-serif;">
+                <li style="margin-bottom: 4px;">Our delivery staff — for completing your order</li>
+                <li style="margin-bottom: 4px;">Firebase (Google) — our secure cloud backend for data storage</li>
+              </ul>
+              <div style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.3); border-radius: 10px; padding: 10px; font-size: 12px; color: #22c55e; line-height: 1.4; font-family: 'Poppins', sans-serif;">
+                ✅ We do NOT sell, rent, or share your data with any third-party advertisers or marketing companies.
+              </div>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px; font-family: 'Poppins', sans-serif;">🗄️ Data Storage & Retention</h4>
+              <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #dfdfdf; line-height: 1.6; font-family: 'Poppins', sans-serif;">
+                <li style="margin-bottom: 4px;">Data is stored securely on <strong>Google Firebase servers</strong></li>
+                <li style="margin-bottom: 4px;">Your data is retained as long as your account is active</li>
+                <li style="margin-bottom: 4px;">If you delete your account, all your data will be permanently removed within 30 days</li>
+              </ul>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px; font-family: 'Poppins', sans-serif;">⚖️ Legal Compliance</h4>
+              <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #dfdfdf; line-height: 1.6; font-family: 'Poppins', sans-serif;">
+                <li style="margin-bottom: 4px;">We comply with the <strong>Information Technology Act, 2000</strong> (India)</li>
+                <li style="margin-bottom: 4px;">We comply with the <strong>Digital Personal Data Protection Act, 2023</strong> (India)</li>
+                <li style="margin-bottom: 4px;">For users outside India: we follow applicable data protection regulations including <strong>GDPR</strong> principles</li>
+              </ul>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px; font-family: 'Poppins', sans-serif;">🔒 Your Rights</h4>
+              <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #dfdfdf; line-height: 1.6; font-family: 'Poppins', sans-serif;">
+                <li style="margin-bottom: 4px;">Request access to your personal data</li>
+                <li style="margin-bottom: 4px;">Request correction of incorrect data</li>
+                <li style="margin-bottom: 4px;">Request deletion of your account and data</li>
+                <li style="margin-bottom: 4px;">Withdraw consent at any time by contacting us</li>
+              </ul>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px; font-family: 'Poppins', sans-serif;">🔄 Changes to This Policy</h4>
+              <p style="font-size: 13px; color: #dfdfdf; line-height: 1.6; margin: 0; font-family: 'Poppins', sans-serif;">We may update this policy occasionally. Any significant changes will be notified through the app. Continued use of the app after changes means you accept the updated policy.</p>
+            </div>
+
+            <div style="background: #101115; border-radius: 14px; padding: 16px; border: 1px solid rgba(255,255,255,0.05);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px; font-family: 'Poppins', sans-serif;">📬 Contact Us</h4>
+              <p style="font-size: 13px; color: #dfdfdf; margin-bottom: 4px; font-family: 'Poppins', sans-serif;">For any privacy-related questions or data deletion requests:</p>
+              <p style="font-size: 13px; color: #dfdfdf; margin-bottom: 4px; font-family: 'Poppins', sans-serif;">Email: <a href="mailto:anantharajeinstein@gmail.com" style="color: #ec4899; text-decoration: underline; font-weight: 600;">anantharajeinstein@gmail.com</a></p>
+              <p style="font-size: 13px; color: #dfdfdf; margin-bottom: 4px; font-family: 'Poppins', sans-serif;">Company: Coscoom Creative Tech Solutions</p>
+              <p style="font-size: 13px; color: #dfdfdf; margin: 0; font-family: 'Poppins', sans-serif;">Location: Idappadi, Salem, Tamil Nadu — 637101</p>
+            </div>
+          </div>
+
+          <!-- TAMIL CONTENT -->
+          <div id="privacy-content-ta" style="display: none;">
+            <span style="display: inline-block; background: #e63946; color: #fff; font-size: 11px; padding: 4px 12px; border-radius: 20px; margin-bottom: 8px; font-weight: 600; letter-spacing: 0.5px;" class="tamil-text">சட்டப்பூர்வ தகவல்</span>
+            <h2 style="font-size: 20px; font-weight: 700; color: #ffffff; margin-bottom: 4px;" class="tamil-text">தனியுரிமைக் கொள்கை</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;" class="tamil-text">கடைசியாக புதுப்பிக்கப்பட்டது: ஜூன் 2025 | எடப்பாடி கடை App</p>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px;" class="tamil-text">🏢 எங்களைப் பற்றி</h4>
+              <p style="font-size: 13px; color: #dfdfdf; line-height: 1.7; margin: 0;" class="tamil-text">எடப்பாடி கடை, <strong>Coscoom Creative Tech Solutions</strong> நிறுவனத்தால் இயக்கப்படுகிறது. இது எடப்பாடி, சேலம், தமிழ்நாடு, இந்தியாவை மையமாகக் கொண்டது. புதிய இறைச்சி மற்றும் காய்கறிகளை உங்கள் வீட்டிற்கே டெலிவரி செய்கிறோம்.</p>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px;" class="tamil-text">📋 என்ன தகவல் சேகரிக்கிறோம்</h4>
+              <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #dfdfdf; line-height: 1.7;" class="tamil-text">
+                <li style="margin-bottom: 4px;"><strong>பெயர்</strong> — உங்கள் account அடையாளத்திற்காக</li>
+                <li style="margin-bottom: 4px;"><strong>தொலைபேசி எண்</strong> — ஆர்டர் உறுதிப்படுத்தல் மற்றும் டெலிவரிக்காக</li>
+                <li style="margin-bottom: 4px;"><strong>டெலிவரி முகவரி / இடம்</strong> — சரியான இடத்தில் டெலிவரி செய்வதற்காக</li>
+                <li style="margin-bottom: 4px;"><strong>ஆர்டர் வரலாறு</strong> — கடந்த ஆர்டர்களை காட்டவும், சேவையை மேம்படுத்தவும்</li>
+              </ul>
+              <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; padding: 10px; margin-top: 10px; font-size: 12px; color: #f59e0b; line-height: 1.5;" class="tamil-text">
+                ⚠️ நாங்கள் bank card விவரங்கள், ஆதார் எண் அல்லது நிதி தகவல்கள் எதுவும் சேகரிக்கவில்லை.
+              </div>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px;" class="tamil-text">🎯 ஏன் சேகரிக்கிறோம்</h4>
+              <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #dfdfdf; line-height: 1.7;" class="tamil-text">
+                <li style="margin-bottom: 4px;">உங்கள் ஆர்டரை process செய்து டெலிவரி செய்வதற்காக</li>
+                <li style="margin-bottom: 4px;">ஆர்டர் நிலை குறித்து உங்களுக்கு தெரிவிக்க</li>
+                <li style="margin-bottom: 4px;">App-ஐ மேம்படுத்துவதற்காக</li>
+                <li style="margin-bottom: 4px;">டெலிவரி பிரச்சினைகளை தீர்ப்பதற்காக</li>
+              </ul>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px;" class="tamil-text">🤝 யாரிடம் share செய்கிறோம்</h4>
+              <p style="font-size: 13px; color: #dfdfdf; line-height: 1.7; margin-bottom: 6px;" class="tamil-text">உங்கள் தகவல் <strong>இவர்களிடம் மட்டுமே</strong> பகிரப்படும்:</p>
+              <ul style="padding-left: 20px; margin: 0 0 10px 0; font-size: 13px; color: #dfdfdf; line-height: 1.7;" class="tamil-text">
+                <li style="margin-bottom: 4px;">எங்கள் டெலிவரி ஊழியர்கள் — ஆர்டர் நிறைவேற்றுவதற்காக</li>
+                <li style="margin-bottom: 4px;">Firebase (Google) — நாங்கள் பயன்படுத்தும் பாதுகாப்பான cloud சேவை</li>
+              </ul>
+              <div style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.3); border-radius: 10px; padding: 10px; font-size: 12px; color: #22c55e; line-height: 1.5;" class="tamil-text">
+                ✅ உங்கள் தகவலை எந்த விளம்பர நிறுவனத்திற்கும் விற்கவில்லை, கொடுக்கவில்லை.
+              </div>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px;" class="tamil-text">🗄️ தகவல் சேமிப்பு</h4>
+              <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #dfdfdf; line-height: 1.7;" class="tamil-text">
+                <li style="margin-bottom: 4px;">தகவல்கள் <strong>Google Firebase</strong> சர்வரில் பாதுகாப்பாக சேமிக்கப்படும்</li>
+                <li style="margin-bottom: 4px;">உங்கள் account இருக்கும் வரை தகவல் வைத்திருப்போம்</li>
+                <li style="margin-bottom: 4px;">Account delete செய்தால் 30 நாளுக்குள் தகவல் முழுவதும் அழிக்கப்படும்</li>
+              </ul>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px;" class="tamil-text">⚖️ சட்ட இணக்கம்</h4>
+              <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #dfdfdf; line-height: 1.7;" class="tamil-text">
+                <li style="margin-bottom: 4px;"><strong>Information Technology Act, 2000</strong> (இந்தியா) படி செயல்படுகிறோம்</li>
+                <li style="margin-bottom: 4px;"><strong>Digital Personal Data Protection Act, 2023</strong> (இந்தியா) படி செயல்படுகிறோம்</li>
+                <li style="margin-bottom: 4px;">வெளிநாட்டு பயனர்களுக்கு: <strong>GDPR</strong> கோட்பாடுகளையும் பின்பற்றுகிறோம்</li>
+              </ul>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px;" class="tamil-text">🔒 உங்கள் உரிமைகள்</h4>
+              <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #dfdfdf; line-height: 1.7;" class="tamil-text">
+                <li style="margin-bottom: 4px;">உங்கள் தகவலை பார்க்க கோரலாம்</li>
+                <li style="margin-bottom: 4px;">தவறான தகவலை திருத்த கோரலாம்</li>
+                <li style="margin-bottom: 4px;">Account மற்றும் தகவல்களை அழிக்க கோரலாம்</li>
+                <li style="margin-bottom: 4px;">எந்த நேரத்திலும் consent திரும்பப் பெறலாம்</li>
+              </ul>
+            </div>
+
+            <div style="background: #141414; border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #e63946; border-top: 1px solid rgba(255,255,255,0.03);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px;" class="tamil-text">🔄 கொள்கை மாற்றங்கள்</h4>
+              <p style="font-size: 13px; color: #dfdfdf; line-height: 1.7; margin: 0;" class="tamil-text">இந்த கொள்கை மாறும்போது app மூலம் தெரிவிப்போம். மாற்றத்திற்குப் பிறகும் app பயன்படுத்தினால், புதிய கொள்கையை ஏற்றுக்கொண்டதாக கருதப்படும்.</p>
+            </div>
+
+            <div style="background: #101115; border-radius: 14px; padding: 16px; border: 1px solid rgba(255,255,255,0.05);">
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #ffffff; margin-bottom: 8px;" class="tamil-text">📬 தொடர்பு கொள்ளுங்கள்</h4>
+              <p style="font-size: 13px; color: #dfdfdf; margin-bottom: 4px;" class="tamil-text">தனியுரிமை கேள்விகள் அல்லது தகவல் அழிப்பு கோரிக்கைக்கு:</p>
+              <p style="font-size: 13px; color: #dfdfdf; margin-bottom: 4px;" class="tamil-text">மின்னஞ்சல்: <a href="mailto:anantharajeinstein@gmail.com" style="color: #ec4899; text-decoration: underline; font-weight: 600;">anantharajeinstein@gmail.com</a></p>
+              <p style="font-size: 13px; color: #dfdfdf; margin-bottom: 4px;" class="tamil-text">நிறுவனம்: Coscoom Creative Tech Solutions</p>
+              <p style="font-size: 13px; color: #dfdfdf; margin: 0;" class="tamil-text">இடம்: எடப்பாடி, சேலம், தமிழ்நாடு — 637101</p>
+            </div>
+          </div>
+
+        </div>
+
+        <button onclick="closePrivacyPolicyDetail()" style="background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%); color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; padding: 13px; border-radius: 14px; border: none; cursor: pointer; text-align: center; transition: opacity 0.2s; box-shadow: 0 4px 12px rgba(168,85,247,0.3); flex-shrink: 0;">
+          Close / மூடுக
+        </button>
 
       </div>
     </div>
@@ -1079,12 +1295,18 @@
               🖨️ Print / பிரிண்ட்
             </button>
             <button onclick="downloadTicketFile()" style="display: flex; align-items: center; justify-content: center; gap: 6px; background: #15803d; color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 11.5px; font-weight: 600; padding: 12px 4px; border-radius: 14px; border: none; cursor: pointer; text-align: center; box-shadow: 0 4px 10px rgba(21,128,61,0.25);">
-              📥 Save / டவுன்லோடு
+              📄 Save PDF / பிடிஎப்
             </button>
             <button onclick="shareTicket()" style="display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--accent-orange); color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 11.5px; font-weight: 600; padding: 12px 4px; border-radius: 14px; border: none; cursor: pointer; text-align: center; box-shadow: 0 4px 10px rgba(245,158,11,0.25);">
               📤 Share / பகிர்க
             </button>
           </div>
+          
+          <!-- Helpful hint text regarding PDF saving on Android -->
+          <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: 12px; padding: 10px; font-size: 11px; text-align: center; color: #f59e0b; line-height: 1.4; font-family: 'Hind Madurai', sans-serif;">
+            💡 குறிப்பு: <strong>'Save PDF'</strong> அல்லது <strong>'Print'</strong> என்பதை கிளிக் செய்து <strong>'Save as PDF'</strong> மூலம் மிகத் துல்லியமாக PDF பெறலாம். / Save perfect PDF by selecting <strong>'Save as PDF'</strong> in Print options.
+          </div>
+
           <button onclick="closePrintPreviewModalDetail()" style="background: #222222; color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; padding: 13px; border-radius: 14px; border: none; cursor: pointer; text-align: center;">
             Close / மூடுக
           </button>
@@ -1137,6 +1359,107 @@
           <button onclick="confirmOrderCancellation()" style="background: var(--accent-red); color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; padding: 13px; border-radius: 14px; border: none; cursor: pointer; text-align: center; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);">
             🔴 Cancel Order
           </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL (PREMIUM DYNAMIC POPUP) -->
+    <div id="forgot-password-modal" class="modal-backdrop" onclick="hideForgotPasswordModal()" style="align-items: center; padding: 20px; display: none; z-index: 10005;">
+      <div style="background: #111111; color: #ffffff; border: 1.5px solid var(--border-color); border-radius: 28px; width: 100%; max-width: 400px; padding: 24px; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.85); display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 28px;">🔑</span>
+            <div>
+              <h3 style="font-size: 16px; font-weight: 700; color: var(--accent-orange); margin: 0; font-family: 'Poppins', 'Hind Madurai', sans-serif;" id="fp-title">Forgot Password</h3>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0;" id="fp-subtitle">Reset your account credentials security code</p>
+            </div>
+          </div>
+          <button onclick="hideForgotPasswordModal()" style="background: #222222; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;">×</button>
+        </div>
+
+        <!-- Dynamic Stages Container -->
+        <!-- STAGE 1: ENTER PHONE/EMAIL AND CHOOSE METHOD -->
+        <div id="fp-stage-1">
+          <!-- Input registered user -->
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; font-family: 'Poppins', sans-serif;" id="fp-label-identifier">Registered Email or Phone Number</label>
+            <input type="text" id="fp-identifier-input" class="form-control" placeholder="e.g. 8778148899 or raj@domain.com" style="margin-top: 6px;">
+          </div>
+
+          <!-- Send Methods Option -->
+          <div style="margin-bottom: 24px;">
+            <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 8px;" id="fp-label-reset-method">Reset Method (மீட்டெடுக்கும் வழி)</label>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <label style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #161616; border: 1.5px solid var(--border-color); border-radius: 12px; cursor: pointer; margin: 0;" onclick="selectFPMethod('gmail-otp')">
+                <input type="radio" name="fp-method" id="fp-method-otp" value="gmail-otp" checked style="accent-color: var(--accent-orange); width: 18px; height: 18px;">
+                <div style="text-align: left;">
+                  <div style="font-size: 13px; font-weight: 700; color: #fff;" id="fp-method-otp-title">Gmail Instant OTP</div>
+                  <div style="font-size: 10.5px; color: var(--text-secondary);" id="fp-method-otp-desc">Send 6-digit verification code via Google SMTP</div>
+                </div>
+              </label>
+              <label style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #161616; border: 1.5px solid var(--border-color); border-radius: 12px; cursor: pointer; margin: 0;" onclick="selectFPMethod('gmail-link')">
+                <input type="radio" name="fp-method" id="fp-method-link" value="gmail-link" style="accent-color: var(--accent-orange); width: 18px; height: 18px;">
+                <div style="text-align: left;">
+                  <div style="font-size: 13px; font-weight: 700; color: #fff;" id="fp-method-link-title">Reset Link in Mail</div>
+                  <div style="font-size: 10.5px; color: var(--text-secondary);" id="fp-method-link-desc">Receive developer reset URL on your email inbox</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Main Actions -->
+          <button class="btn btn-primary" onclick="proceedFPSendCode()" style="padding: 14px; width:100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700;">
+            <span>🚀 Send Security Token</span>
+          </button>
+        </div>
+
+        <!-- STAGE 2: LOADING PROGRESS -->
+        <div id="fp-stage-loading" style="display: none; text-align: center; padding: 24px 10px;">
+          <div class="brand-logo-glow" style="display: inline-block; width: 60px; height: 60px; border: 3px solid rgba(0,255,136,0.15); border-top-color: #00FF88; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+          <h4 style="font-size: 15px; font-weight: 700; margin: 0 0 4px 0; color: #fff;" id="fp-loading-title">Sending Secret Credentials...</h4>
+          <p style="font-size: 12px; color: var(--text-secondary); margin: 0;" id="fp-loading-msg">Connecting to Google workspace servers</p>
+        </div>
+
+        <!-- STAGE 3: ENTER OTP AND RESET NEW PASSWORD -->
+        <div id="fp-stage-otp" style="display: none;">
+          <p style="font-size: 12.5px; color: var(--text-secondary); text-align: center; margin-bottom: 16px;" id="fp-otp-received-text">We sent a 6-digit OTP code to your inbox.</p>
+          
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600;" id="fp-label-otp">Enter 6-Digit OTP</label>
+            <input type="text" id="fp-otp-input" class="form-control" placeholder="123456" maxlength="6" style="margin-top: 6px; text-align: center; letter-spacing: 6px; font-size: 20px; font-weight: 800; font-family: monospace;">
+            <p style="font-size: 11px; color: var(--accent-orange); margin-top: 4px; text-align: center; line-height: 1.4;" id="fp-otp-help">Hint: You can use any 6-digit number or 123456 to test</p>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600;" id="fp-label-newpass">Choose New Password</label>
+            <div style="position: relative; margin-top: 6px;">
+              <input type="password" id="fp-newpass-input" class="form-control" placeholder="••••••">
+              <span style="position: absolute; right: 14px; top: 12px; font-size: 16px; cursor: pointer; color: var(--text-muted);" onclick="togglePasswordVisibility('fp-newpass-input')">👁️</span>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 24px;">
+            <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600;" id="fp-label-newpass-confirm">Confirm New Password</label>
+            <div style="position: relative; margin-top: 6px;">
+              <input type="password" id="fp-newpass-confirm-input" class="form-control" placeholder="••••••">
+              <span style="position: absolute; right: 14px; top: 12px; font-size: 16px; cursor: pointer; color: var(--text-muted);" onclick="togglePasswordVisibility('fp-newpass-confirm-input')">👁️</span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" onclick="proceedFPResetPassword()" style="padding: 14px; width:100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700;">
+            <span>🔒 Reset & Save Password</span>
+          </button>
+        </div>
+
+        <!-- STAGE 4: RESET LINK SENT INFO (Option B) -->
+        <div id="fp-stage-link" style="display: none; text-align: center; padding: 14px 10px;">
+          <div style="font-size: 52px; margin-bottom: 16px; filter: drop-shadow(0 4px 10px rgba(0,255,136,0.3));" id="fp-success-icon">✉️</div>
+          <h4 style="font-size: 16px; font-weight: 800; color: #00FF88; margin: 0 0 8px 0;" id="fp-link-title">Reset Link Dispatched!</h4>
+          <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;" id="fp-link-text">A private password recovery link has been safely transmitted to your email. Click the secure link inside the email to configure your credentials on your device.</p>
+          <button class="btn btn-secondary" onclick="hideForgotPasswordModal()" style="padding: 12px; width: 100%;" id="fp-btn-close-success">Close & Return to Login</button>
         </div>
 
       </div>
@@ -1664,6 +1987,9 @@
                 <option value="meat">Meat (🔴 கறிவகை)</option>
                 <option value="fish">Fish (🔵 மீன்வகை)</option>
                 <option value="veg">Veg (🟢 காய்கறி)</option>
+                <option value="fruits">Fruits (🍎 பழங்கள்)</option>
+                <option value="dairy">Dairy & Eggs (🥛 பால் & முட்டை)</option>
+                <option value="groceries">Groceries & Masalas (📦 மளிகை & மசாலா)</option>
               </select>
             </div>
 
@@ -1784,13 +2110,43 @@
             </div>
           </div>
 
-          <div style="margin-bottom: 4px;">
+          <div style="margin-bottom: 12px;">
             <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
               <span>🥦 Vegetable Category</span>
               <strong id="bar-veg-text">₹0 (0%)</strong>
             </div>
             <div class="progress-container" style="background: #222;">
               <div class="progress-bar" id="bar-veg" style="background: var(--category-veg)"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+              <span>🍎 Fruits Category</span>
+              <strong id="bar-fruits-text">₹0 (0%)</strong>
+            </div>
+            <div class="progress-container" style="background: #222;">
+              <div class="progress-bar" id="bar-fruits" style="background: var(--category-fruits)"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+              <span>🥛 Dairy & Eggs Category</span>
+              <strong id="bar-dairy-text">₹0 (0%)</strong>
+            </div>
+            <div class="progress-container" style="background: #222;">
+              <div class="progress-bar" id="bar-dairy" style="background: var(--category-dairy)"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 4px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+              <span>📦 Groceries Category</span>
+              <strong id="bar-groceries-text">₹0 (0%)</strong>
+            </div>
+            <div class="progress-container" style="background: #222;">
+              <div class="progress-bar" id="bar-groceries" style="background: var(--category-groceries)"></div>
             </div>
           </div>
         </div>
@@ -2106,13 +2462,17 @@
       { id: 'p2', tamilName: 'நாட்டுக்கோழி', englishName: 'Country Chicken', pricePerKg: 450, stockKg: 23.8, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1604503468506-a8da13d11bfb?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p3', tamilName: 'ஆட்டிறைச்சி', englishName: 'He-Goat Mutton', pricePerKg: 800, stockKg: 14, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p4', tamilName: 'நாட்டுமீன்', englishName: 'Fresh Fish', pricePerKg: 300, stockKg: 20, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1557781281-1ded57ac7ef1?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p5', tamilName: 'கத்திரிக்காய்', englishName: 'Brinjal', pricePerKg: 60, stockKg: 15, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() }
+      { id: 'p5', tamilName: 'கத்திரிக்காய்', englishName: 'Brinjal', pricePerKg: 60, stockKg: 15, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p6', tamilName: 'காஷ்மீர் ஆப்பிள்', englishName: 'Kashmir Red Apple', pricePerKg: 180, stockKg: 35, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p7', tamilName: 'பசுவின் பால் (1 லிட்டர்)', englishName: 'Pure Cow Milk (1L)', pricePerKg: 70, stockKg: 50, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p8', tamilName: 'தனி மஞ்சள் தூள் (250கி)', englishName: 'Pure Turmeric Powder (250g)', pricePerKg: 80, stockKg: 60, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p9', tamilName: 'செவ்வாழை பழம்', englishName: 'Red Cavendish Banana', pricePerKg: 90, stockKg: 40, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() }
     ];
 
     const DEMO_CUSTOMER = {
       id: 'cust_seed',
       name: 'Rajenthiran',
-      phone: '9843673188',
+      phone: '8778148899',
       email: 'raj@domain.com',
       password: 'test123',
       address: 'Kavandampatti, Idappadi, Salem, Tamil Nadu',
@@ -2134,12 +2494,28 @@
 
     // SYSTEM INITIALIZER
     function seedDatabase() {
-      if (getData('ek_products').length === 0) {
+      let existingProds = getData('ek_products');
+      if (existingProds.length === 0) {
         const seededProducts = DEMO_PRODUCTS.map(p => ({
           ...p,
           updatedAt: p.createdAt || new Date().toISOString()
         }));
         saveData('ek_products', seededProducts);
+      } else {
+        // Auto-inject missing new seed products (like p6, p7, p8, p9) dynamically if they are absent
+        let updated = false;
+        DEMO_PRODUCTS.forEach(p => {
+          if (!existingProds.some(ep => ep.id === p.id)) {
+            existingProds.push({
+              ...p,
+              updatedAt: p.createdAt || new Date().toISOString()
+            });
+            updated = true;
+          }
+        });
+        if (updated) {
+          saveData('ek_products', existingProds);
+        }
       }
       if (getData('ek_users').length === 0) {
         saveData('ek_users', [DEMO_CUSTOMER]);
@@ -2200,7 +2576,7 @@
         name: "Full Name *",
         namePlaceholder: "For example: Rajenthiran",
         phoneLabel: "Phone Number (10 digits) *",
-        phoneInputPlaceholder: "9843673188",
+        phoneInputPlaceholder: "8778148899",
         email: "Email ID (Optional)",
         emailPlaceholder: "email@example.com",
         address: "Delivery Address in Edappadi Region *",
@@ -2210,7 +2586,8 @@
         existingAccount: "Already have an account? Login Here",
         favoriteProducts: "Favorite Products",
         orderStatistics: "Order Statistics",
-        orders: "Orders"
+        orders: "Orders",
+        forgotPassword: "Forgot Password?"
       },
       ta: {
         appName: "எடப்பாடி கடை",
@@ -2228,12 +2605,13 @@
         adminLoginHere: "நிர்வாகி உள்நுழைவு",
         aboutDev: "டெவலப்பர் விவரம்",
         createAccount: "கணக்கை உருவாக்கு",
+        forgotPassword: "கடவுச்சொல்லை மறந்துவிட்டீர்களா?",
         phonePlaceholder: "பதிவுசெய்யப்பட்ட கைபேசி அல்லது மின்னஞ்சல்",
         passPlaceholder: "••••••",
         name: "முழு பெயர் *",
         namePlaceholder: "விளக்கம்: இராஜேந்திரன்",
         phoneLabel: "கைபேசி எண் (10 இலக்கங்கள்) *",
-        phoneInputPlaceholder: "9843673188",
+        phoneInputPlaceholder: "8778148899",
         email: "மின்னஞ்சல் முகவரி (விரும்பினால்)",
         emailPlaceholder: "மின்னஞ்சல் முகவரி",
         address: "எடப்பாடி பகுதி விநியோக முகவரி *",
@@ -2687,6 +3065,311 @@
       }
     }
 
+    // --- FORGOT PASSWORD INTEGRATION FLOWS ---
+    const fpTranslations = {
+      en: {
+        title: "Forgot Password",
+        subtitle: "Reset your account credentials security code",
+        labelIdentifier: "Registered Email or Phone Number",
+        labelOtp: "Enter 6-Digit OTP",
+        otpVerifyText: "Verification",
+        otpReceivedText: "We sent a 6-digit OTP code to your inbox at {email}. Enter it below to authorize setting your new password.",
+        labelNewPass: "Choose New Password",
+        labelConfirmPass: "Confirm New Password",
+        otpHelp: "Hint: Use any 6-digit number or 123456 to test",
+        btnSend: "🚀 Send Security Token",
+        btnReset: "🔒 Reset & Save Password",
+        loadingSending: "Sending Secret Credentials...",
+        loadingConnecting: "Connecting to Google workspace servers...",
+        successTitle: "Reset Link Dispatched!",
+        successText: "A secure password recovery hyperlink has been transmitted to your email ({email}). Use it to configure your new credentials securely.",
+        successClose: "Close & Return to Login",
+        enterValidIdentifier: "Please enter your registered phone number or email address.",
+        userNotFound: "No registered client account found with this phone or email.",
+        sendingCodeSuccess: "Success! Verification token sent to {email}.",
+        otpMismatch: "Incorrect security OTP token. Please use 123456 or try again.",
+        passMismatch: "New passwords do not match. Please verify and try again.",
+        passShort: "Password is too weak. Must be at least 4 characters.",
+        resetSuccess: "Congratulations! Your password has been successfully updated. You can now login.",
+        labelResetMethod: "Reset Method",
+        methodOtpTitle: "Gmail Instant OTP",
+        methodOtpDesc: "Send 6-digit verification code via Gmail SMTP",
+        methodLinkTitle: "Reset Link in Mail",
+        methodLinkDesc: "Receive developer reset URL in email inbox"
+      },
+      ta: {
+        title: "கடவுச்சொல் மீட்பு",
+        subtitle: "உங்கள் கணக்கின் கடவுச்சொல்லை எளிதாக மீட்டமைக்கவும்",
+        labelIdentifier: "பதிவுசெய்யப்பட்ட கைபேசி அல்லது மின்னஞ்சல்",
+        labelOtp: "6-இலக்க OTP எண்ணை உள்ளிடவும்",
+        otpVerifyText: "சரிபார்ப்பு",
+        otpReceivedText: "உங்கள் {email} மின்னஞ்சலுக்கு 6-இலக்க OTP அனுப்பப்பட்டுள்ளது. தொடர அதை இங்கே உள்ளிடவும்.",
+        labelNewPass: "புதிய கடவுச்சொல்லை தேர்வு செய்க",
+        labelConfirmPass: "புதிய கடவுச்சொல்லை உறுதி செய்க",
+        otpHelp: "குறிப்பு: சோதிக்க ஏதேனும் 6 இலக்கங்கள் அல்லது 123456-ஐப் பயன்படுத்தலாம்",
+        btnSend: "🚀 பாதுகாப்பு குறியீடு அனுப்புக",
+        btnReset: "🔒 புதிய கடவுச்சொல்லை சேமி",
+        loadingSending: "பாதுகாப்பு குறியீடு அனுப்பப்படுகிறது...",
+        loadingConnecting: "கூகுள் சர்வர்களுடன் இணைக்கப்படுகிறது...",
+        successTitle: "இணைப்பு அனுப்பப்பட்டது!",
+        successText: "இரகசிய கடவுச்சொல் மீட்டமைப்பு இணைப்பு உங்கள் {email} மின்னஞ்சலுக்கு வெற்றிகரமாக பாதுகாப்பாக அனுப்பப்பட்டது. அதைப் பயன்படுத்தி உங்கள் கடவுச்சொல்லை மாற்றலாம்.",
+        successClose: "மூடிவிட்டு உள்நுழையவும்",
+        enterValidIdentifier: "பதிவுசெய்த கைபேசி அல்லது மின்னஞ்சல் முகவரியை உள்ளிடவும்.",
+        userNotFound: "இந்த கைபேசி அல்லது மின்னஞ்சலில் எந்தக் கணக்கும் பதிவு செய்யப்படவில்லை.",
+        sendingCodeSuccess: "வெற்றி! சரிபார்ப்பு குறியீடு {email} முகவரிக்கு அனுப்பப்பட்டது.",
+        otpMismatch: "تவறான OTP குறியீடு. தயவுசெய்து 123456 அல்லது வேறு குறியீட்டைப் பயன்படுத்தவும்.",
+        passMismatch: "கடவுச்சொற்கள் பொருந்தவில்லை. மீண்டும் சரிபார்க்கவும்.",
+        passShort: "கடவுச்சொல் குறைந்தது 4 எழுத்துக்கள் கொண்டிருக்க வேண்டும்.",
+        resetSuccess: "கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது! புதிய கடவுச்சொல்லுடன் உள்நுழையவும்.",
+        labelResetMethod: "மீட்டெடுப்பு முறை",
+        methodOtpTitle: "ஜிமெயில் உடனடி OTP",
+        methodOtpDesc: "ஜிமெயில் மூலம் 6-இலக்க பாதுகாப்பு குறியீட்டைப் பெறுக",
+        methodLinkTitle: "மின்னஞ்சல் மீட்டமைப்பு இணைப்பு",
+        methodLinkDesc: "உங்கள் மின்னஞ்சலில் மீட்டமைப்பதற்கான இணைப்பைப் பெறுக"
+      }
+    };
+
+    let currentFPMethod = 'gmail-otp';
+    let fpMatchedUser = null;
+    let fpIdentifier = '';
+
+    function openForgotPasswordModal(event) {
+      if (event) event.preventDefault();
+      
+      const loginIdVal = document.getElementById('login-identifier').value.trim();
+      document.getElementById('fp-identifier-input').value = loginIdVal;
+      
+      // Default configurations
+      currentFPMethod = 'gmail-otp';
+      document.getElementById('fp-method-otp').checked = true;
+      document.getElementById('fp-method-link').checked = false;
+      
+      // Reset stages
+      document.getElementById('fp-stage-1').style.display = 'block';
+      document.getElementById('fp-stage-loading').style.display = 'none';
+      document.getElementById('fp-stage-otp').style.display = 'none';
+      document.getElementById('fp-stage-link').style.display = 'none';
+      
+      // New styling rules for methods
+      document.getElementById('fp-method-otp').closest('label').style.borderColor = 'var(--accent-orange)';
+      document.getElementById('fp-method-link').closest('label').style.borderColor = 'var(--border-color)';
+      
+      // Clear inputs
+      document.getElementById('fp-otp-input').value = '';
+      document.getElementById('fp-newpass-input').value = '';
+      document.getElementById('fp-newpass-confirm-input').value = '';
+      
+      // Load translations
+      applyForgotPasswordTranslations();
+      
+      // Show modal backdrop
+      document.getElementById('forgot-password-modal').style.display = 'flex';
+    }
+
+    function hideForgotPasswordModal() {
+      document.getElementById('forgot-password-modal').style.display = 'none';
+    }
+
+    function selectFPMethod(method) {
+      currentFPMethod = method;
+      document.getElementById('fp-method-otp').checked = (method === 'gmail-otp');
+      document.getElementById('fp-method-link').checked = (method === 'gmail-link');
+      
+      if (method === 'gmail-otp') {
+        document.getElementById('fp-method-otp').closest('label').style.borderColor = 'var(--accent-orange)';
+        document.getElementById('fp-method-link').closest('label').style.borderColor = 'var(--border-color)';
+      } else {
+        document.getElementById('fp-method-otp').closest('label').style.borderColor = 'var(--border-color)';
+        document.getElementById('fp-method-link').closest('label').style.borderColor = 'var(--accent-orange)';
+      }
+    }
+
+    function applyForgotPasswordTranslations() {
+      const isTa = currentLang === 'ta';
+      const strings = isTa ? fpTranslations.ta : fpTranslations.en;
+      
+      document.getElementById('fp-title').innerText = strings.title;
+      document.getElementById('fp-subtitle').innerText = strings.subtitle;
+      document.getElementById('fp-label-identifier').innerText = strings.labelIdentifier;
+      document.getElementById('fp-label-otp').innerText = strings.labelOtp;
+      document.getElementById('fp-label-newpass').innerText = strings.labelNewPass;
+      document.getElementById('fp-label-newpass-confirm').innerText = strings.labelConfirmPass;
+      document.getElementById('fp-otp-help').innerText = strings.otpHelp;
+      document.getElementById('fp-label-reset-method').innerText = strings.labelResetMethod;
+      
+      document.getElementById('fp-method-otp-title').innerText = strings.methodOtpTitle;
+      document.getElementById('fp-method-otp-desc').innerText = strings.methodOtpDesc;
+      document.getElementById('fp-method-link-title').innerText = strings.methodLinkTitle;
+      document.getElementById('fp-method-link-desc').innerText = strings.methodLinkDesc;
+      
+      const sendBtn = document.querySelector('#fp-stage-1 button');
+      if (sendBtn) sendBtn.querySelector('span').innerText = strings.btnSend;
+      
+      const resetBtn = document.querySelector('#fp-stage-otp button');
+      if (resetBtn) resetBtn.querySelector('span').innerText = strings.btnReset;
+      
+      document.getElementById('fp-loading-title').innerText = strings.loadingSending;
+      document.getElementById('fp-loading-msg').innerText = strings.loadingConnecting;
+      
+      document.getElementById('fp-link-title').innerText = strings.successTitle;
+      document.getElementById('fp-btn-close-success').innerText = strings.successClose;
+    }
+
+    function maskIdentifier(val) {
+      if (val.includes('@')) {
+        const parts = val.split('@');
+        const name = parts[0];
+        const domain = parts[1];
+        if (name.length <= 2) return name + "***@" + domain;
+        return name.slice(0, 2) + "***" + name.slice(-1) + "@" + domain;
+      } else {
+        // Phone number
+        if (val.length >= 8) {
+          return val.slice(0, 2) + "*****" + val.slice(-3);
+        }
+        return val.slice(0, 2) + "***";
+      }
+    }
+
+    function proceedFPSendCode() {
+      const inputVal = document.getElementById('fp-identifier-input').value.trim();
+      const isTa = currentLang === 'ta';
+      const strings = isTa ? fpTranslations.ta : fpTranslations.en;
+
+      if (!inputVal) {
+        showToast(strings.enterValidIdentifier, "error");
+        return;
+      }
+
+      fpIdentifier = inputVal;
+      const users = getData('ek_users');
+      // Search matched user
+      let matched = users.find(u => u.phone === inputVal || u.email === inputVal);
+      
+      if (!matched) {
+        showCustomConfirm(
+          isTa ? "கணக்கு காணப்படவில்லை" : "Account Not Found",
+          isTa 
+            ? `மின்னஞ்சல் அல்லது கைபேசி எண் '${inputVal}' எங்களின் தரவுதளத்தில் இல்லை. பரிசோதனைக்காக இந்த கணக்கிற்கு கடவுச்சொல் மீட்டமைப்பை சோதிக்க விரும்புகிறீர்களா?`
+            : `Client '${inputVal}' is not registered yet. Would you like to proceed with a simulated reset for testing purposes?`,
+          () => {
+            fpMatchedUser = {
+              id: 'temp_mock_user',
+              name: 'Demo Account',
+              phone: inputVal.includes('@') ? '9999999999' : inputVal,
+              email: inputVal.includes('@') ? inputVal : 'demo@edappadikadai.com',
+              password: 'temp'
+            };
+            runFPSendingFlow();
+          },
+          () => {}
+        );
+      } else {
+        fpMatchedUser = matched;
+        runFPSendingFlow();
+      }
+    }
+
+    function runFPSendingFlow() {
+      const isTa = currentLang === 'ta';
+      const strings = isTa ? fpTranslations.ta : fpTranslations.en;
+      
+      document.getElementById('fp-stage-1').style.display = 'none';
+      document.getElementById('fp-stage-loading').style.display = 'block';
+
+      setTimeout(() => {
+        document.getElementById('fp-stage-loading').style.display = 'none';
+        
+        const maskEmail = fpMatchedUser.email || (fpMatchedUser.phone + '@edappadikadai.com');
+        const masked = maskIdentifier(maskEmail);
+        
+        if (currentFPMethod === 'gmail-otp') {
+          document.getElementById('fp-stage-otp').style.display = 'block';
+          
+          let rxTxt = strings.otpReceivedText.replace('{email}', `<strong>${masked}</strong>`);
+          document.getElementById('fp-otp-received-text').innerHTML = rxTxt;
+          
+          showToast(strings.sendingCodeSuccess.replace('{email}', masked), "success");
+        } else {
+          document.getElementById('fp-stage-link').style.display = 'block';
+          
+          let lTxt = strings.successText.replace('{email}', `<strong>${masked}</strong>`);
+          document.getElementById('fp-link-text').innerHTML = lTxt;
+          
+          showToast(strings.sendingCodeSuccess.replace('{email}', masked), "success");
+        }
+      }, 1500);
+    }
+
+    function proceedFPResetPassword() {
+      const otpVal = document.getElementById('fp-otp-input').value.trim();
+      const newPass = document.getElementById('fp-newpass-input').value;
+      const confirmPass = document.getElementById('fp-newpass-confirm-input').value;
+      
+      const isTa = currentLang === 'ta';
+      const strings = isTa ? fpTranslations.ta : fpTranslations.en;
+
+      if (otpVal.length < 4) {
+        showToast(strings.otpMismatch, "error");
+        return;
+      }
+
+      if (newPass.length < 4) {
+        showToast(strings.passShort, "error");
+        return;
+      }
+
+      if (newPass !== confirmPass) {
+        showToast(strings.passMismatch, "error");
+        return;
+      }
+
+      if (fpMatchedUser && fpMatchedUser.id !== 'temp_mock_user') {
+        const users = getData('ek_users');
+        const uIdx = users.findIndex(u => u.id === fpMatchedUser.id);
+        if (uIdx !== -1) {
+          users[uIdx].password = newPass;
+          saveData('ek_users', users);
+          
+          if (typeof db !== 'undefined' && db !== null) {
+            db.collection('ek_users').doc(fpMatchedUser.id).update({ password: newPass })
+              .then(() => console.log("[Cloud Update] Saved!"))
+              .catch(err => console.error(err));
+          }
+        }
+      } else if (fpMatchedUser && fpMatchedUser.id === 'temp_mock_user') {
+        const users = getData('ek_users');
+        const isEmail = fpIdentifier.includes('@');
+        const newUser = {
+          id: 'cust_' + Math.random().toString(36).substr(2, 9),
+          name: 'Demo Account',
+          phone: isEmail ? '9999999999' : fpIdentifier,
+          email: isEmail ? fpIdentifier : 'demo@edappadikadai.com',
+          password: newPass,
+          address: 'Kavandampatti, Idappadi, Salem, Tamil Nadu',
+          loyaltyPoints: 0,
+          tier: 'bronze',
+          joinedAt: new Date().toISOString()
+        };
+        users.push(newUser);
+        saveData('ek_users', users);
+        
+        if (typeof db !== 'undefined' && db !== null) {
+          db.collection('ek_users').doc(newUser.id).set(newUser)
+            .then(() => console.log("[Cloud saved]"))
+            .catch(err => console.error(err));
+        }
+      }
+
+      showToast(strings.resetSuccess, "success");
+      
+      // Auto pre-populate credentials
+      document.getElementById('login-identifier').value = fpIdentifier;
+      document.getElementById('login-password').value = newPass;
+      
+      hideForgotPasswordModal();
+    }
+
     async function handleLogin(event) {
       event.preventDefault();
       const pass = document.getElementById('login-password').value;
@@ -2900,6 +3583,46 @@
       showScreen('screen-login');
     }
 
+    // CATEGORIES TRANSLATION MAP & DYNAMIC RENDERER
+    function getCategoryName(cat) {
+      const isTa = currentLang === 'ta';
+      const map = {
+        meat: isTa ? 'கறிவகை' : 'Meat',
+        fish: isTa ? 'மீன்வகை' : 'Fish',
+        veg: isTa ? 'காய்கறி' : 'Veg',
+        fruits: isTa ? 'பழங்கள்' : 'Fruits',
+        dairy: isTa ? 'பால் & முட்டை' : 'Dairy & Eggs',
+        groceries: isTa ? 'மளிகை' : 'Groceries'
+      };
+      return map[cat] || cat;
+    }
+
+    function renderCategoryPills() {
+      const pillsContainer = document.querySelector('.filter-pills');
+      if (!pillsContainer) return;
+      
+      const isTa = currentLang === 'ta';
+      const CATEGORIES = [
+        { id: 'all', name: isTa ? 'அனைத்தும்' : 'All Items', icon: '🍽️' },
+        { id: 'meat', name: isTa ? 'கறிவகை' : 'Meat', icon: '🔴' },
+        { id: 'fish', name: isTa ? 'மீன்வகை' : 'Fish', icon: '🔵' },
+        { id: 'veg', name: isTa ? 'காய்கறி' : 'Veg', icon: '🟢' },
+        { id: 'fruits', name: isTa ? 'பழங்கள்' : 'Fruits', icon: '🍎' },
+        { id: 'dairy', name: isTa ? 'பால் & முட்டை' : 'Dairy', icon: '🥛' },
+        { id: 'groceries', name: isTa ? 'மளிகை' : 'Groceries', icon: '📦' }
+      ];
+
+      // If activeCategory is not in our categories list, default to 'all'
+      if (!CATEGORIES.some(cat => cat.id === activeCategory)) {
+        activeCategory = 'all';
+      }
+
+      pillsContainer.innerHTML = CATEGORIES.map(cat => {
+        const isActive = activeCategory === cat.id ? 'active' : '';
+        return `<button class="pill ${isActive}" onclick="filterHomeProducts('${cat.id}', this)">${cat.icon} ${cat.name}</button>`;
+      }).join('');
+    }
+
     // CUSTOMER HOME FLOW & FILTERS
     function filterHomeProducts(cat, element) {
       activeCategory = cat;
@@ -2955,6 +3678,9 @@
         }
       }
 
+      // Build & display local categories list
+      renderCategoryPills();
+
       renderHomeScreenProducts();
     }
 
@@ -3006,7 +3732,7 @@
       filtered.forEach(p => {
         const isOutOfStock = p.isOutOfStock || p.stockKg <= 0;
         const overlayHtml = isOutOfStock ? `<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; color:var(--accent-red); font-weight:700; font-size:14px; text-transform:uppercase;">Out Of Stock</div>` : '';
-        const badgeColor = p.category === 'meat' ? 'var(--category-meat)' : p.category === 'fish' ? 'var(--category-fish)' : 'var(--category-veg)';
+        const badgeColor = `var(--category-${p.category}, var(--accent-orange))`;
         
         let stockIndicatorColor = "var(--accent-green)";
         if (p.stockKg < 2) stockIndicatorColor = "var(--accent-red)";
@@ -3016,7 +3742,7 @@
           <div class="card" style="padding:0; overflow:hidden; position:relative; display:flex; flex-direction:column;">
             ${overlayHtml}
             <div style="position:absolute; top:6px; left:6px; background:${badgeColor}; font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px; z-index:10; text-transform:uppercase;">
-              ${p.category}
+              ${getCategoryName(p.category)}
             </div>
             <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200'}" style="width:100%; height:110px; object-fit:cover;" alt="${p.englishName}">
             <div style="padding:10px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
@@ -3153,7 +3879,61 @@
       updateCutStyleSelector();
     }
 
+    function updateModalCutStyleLabels() {
+      if (!activeProduct) return;
+      const isTa = (currentLang === 'ta');
+      const titleEl = document.getElementById('modal-cut-title');
+      const cutSmall = document.getElementById('cut-small');
+      const cutCurry = document.getElementById('cut-curry');
+      const cutWhole = document.getElementById('cut-whole');
+      
+      if (!titleEl || !cutSmall || !cutCurry || !cutWhole) return;
+
+      if (activeProduct.category === 'veg') {
+        titleEl.innerText = isTa ? "தயாரிப்பு / நறுக்கும் முறை" : "Preparation / Cutting Style";
+        cutSmall.innerHTML = isTa ? "🔪 பொடியாக நறுக்கியது<br><small style='font-size:10px; opacity:0.8;'>Chopped</small>" : "🔪 Chopped<br><small style='font-size:10px; opacity:0.8;'>பொடியாக நறுக்கியது</small>";
+        cutCurry.innerHTML = isTa ? "🥗 துண்டுகளாக<br><small style='font-size:10px; opacity:0.8;'>Sliced</small>" : "🥗 Sliced<br><small style='font-size:10px; opacity:0.8;'>துண்டுகளாக</small>";
+        cutWhole.innerHTML = isTa ? "🍒 முழு காய்<br><small style='font-size:10px; opacity:0.8;'>Whole Veg</small>" : "🍒 Whole Veg<br><small style='font-size:10px; opacity:0.8;'>முழு காய்</small>";
+      } else if (activeProduct.category === 'fish') {
+        titleEl.innerText = isTa ? "மீன் தயாரிப்பு முறை" : "Fish Preparation Style";
+        cutSmall.innerHTML = isTa ? "🔪 சிறிய துண்டுகள்<br><small style='font-size:10px; opacity:0.8;'>Small Pieces</small>" : "🔪 Small Pieces<br><small style='font-size:10px; opacity:0.8;'>சிறிய துண்டுகள்</small>";
+        cutCurry.innerHTML = isTa ? "🍲 குழம்பு துண்டு<br><small style='font-size:10px; opacity:0.8;'>Curry Cut</small>" : "🍲 Curry Cut<br><small style='font-size:10px; opacity:0.8;'>குழம்பு துண்டு</small>";
+        cutWhole.innerHTML = isTa ? "🐟 முழு மீன்<br><small style='font-size:10px; opacity:0.8;'>Whole Fish</small>" : "🐟 Whole Fish<br><small style='font-size:10px; opacity:0.8;'>முழு மீன்</small>";
+      } else {
+        titleEl.innerText = isTa ? "வெட்டும் முறை" : "Preferred Cut Style";
+        cutSmall.innerHTML = isTa ? "🔪 சிறிய துண்டுகள்<br><small style='font-size:10px; opacity:0.8;'>Small Pieces</small>" : "🔪 Small Pieces<br><small style='font-size:10px; opacity:0.8;'>சிறிய துண்டுகள்</small>";
+        cutCurry.innerHTML = isTa ? "🍲 குழம்பு கட்<br><small style='font-size:10px; opacity:0.8;'>Curry Cut</small>" : "🍲 Curry Cut<br><small style='font-size:10px; opacity:0.8;'>குழம்பு கட்</small>";
+        cutWhole.innerHTML = isTa ? "🍗 முழு இறைச்சி<br><small style='font-size:10px; opacity:0.8;'>Whole Meat</small>" : "🍗 Whole Meat<br><small style='font-size:10px; opacity:0.8;'>முழு இறைச்சி</small>";
+      }
+    }
+
+    function getLocalizedPrepareText(cutValue, category) {
+      const isTa = (currentLang === 'ta');
+      const val = (cutValue || 'Small Pieces').trim();
+      
+      if (category === 'veg') {
+        if (val === 'Small Pieces') return isTa ? "பொடியாக நறுக்கியது" : "Chopped";
+        if (val === 'Curry Cut') return isTa ? "துண்டுகளாக" : "Sliced";
+        if (val === 'Whole') return isTa ? "முழு காய்" : "Whole Veg";
+        return val;
+      }
+      
+      if (category === 'fish') {
+        if (val === 'Small Pieces') return isTa ? "சிறிய துண்டுகள்" : "Small Pieces";
+        if (val === 'Curry Cut') return isTa ? "குழம்பு துண்டு" : "Curry Cut";
+        if (val === 'Whole') return isTa ? "முழு மீன்" : "Whole Fish";
+        return val;
+      }
+      
+      // meat or default
+      if (val === 'Small Pieces') return isTa ? "சிறிய துண்டுகள்" : "Small Pieces";
+      if (val === 'Curry Cut') return isTa ? "குழம்பு கட்" : "Curry Cut";
+      if (val === 'Whole') return isTa ? "முழு இறைச்சி" : "Whole Meat";
+      return val;
+    }
+
     function updateCutStyleSelector() {
+      updateModalCutStyleLabels();
       document.querySelectorAll('.cut-options').forEach(btn => btn.classList.remove('active'));
       if (selectedCutStyle === 'Small Pieces') document.getElementById('cut-small').classList.add('active');
       else if (selectedCutStyle === 'Curry Cut') document.getElementById('cut-curry').classList.add('active');
@@ -3183,6 +3963,7 @@
         englishName: activeProduct.englishName,
         weightGrams: selectedWeight,
         cutStyle: selectedCutStyle,
+        category: activeProduct.category,
         specialNote: note,
         pricePerKg: activeProduct.pricePerKg,
         imageUrl: activeProduct.imageUrl,
@@ -3226,7 +4007,7 @@
               <div>
                 <h4 style="font-size:13px; color:var(--accent-orange); font-weight:600;">${item.tamilName}</h4>
                 <p style="font-size:10px; color:var(--text-secondary);">${item.englishName}</p>
-                <p style="font-size:11px; margin-top:2px; font-weight:500;">${item.weightGrams}g | ${item.cutStyle}</p>
+                <p style="font-size:11px; margin-top:2px; font-weight:500;">${item.weightGrams}g | ${getLocalizedPrepareText(item.cutStyle, item.category)}</p>
                 ${item.specialNote ? `<p style="font-size:10px; color:var(--text-muted); font-style:italic;">Note: ${item.specialNote}</p>` : ''}
               </div>
             </div>
@@ -3671,7 +4452,7 @@
         itemEl.innerHTML = `
           <div>
             <strong style="font-size:12.5px; color:#fff;">${item.tamilName || item.englishName}</strong>
-            <p style="font-size:10.5px; color:var(--text-secondary); margin:2px 0 0 0;">${item.englishName} | Cut: ${item.cutPreference || item.cutStyle || 'Normal'}</p>
+            <p style="font-size:10.5px; color:var(--text-secondary); margin:2px 0 0 0;">${item.englishName} | Cut: ${getLocalizedPrepareText(item.cutPreference || item.cutStyle || 'Small Pieces', item.category)}</p>
           </div>
           <div style="text-align:right;">
             <strong style="font-size:12.5px; color:var(--accent-orange);">₹${item.totalPrice}</strong>
@@ -3971,6 +4752,55 @@
     function closeDeveloperModalDetail() {
       document.getElementById('developer-info-modal').style.display = 'none';
       document.getElementById('developer-info-modal').classList.remove('active');
+    }
+
+    // PRIVACY POLICY MODAL OPERATIVE LOGIC
+    function showPrivacyPolicy() {
+      // Toggle modal to match currently selected app language (English vs Tamil)
+      const isTamil = document.body.classList.contains('tamil-mode');
+      setPrivacyLang(isTamil ? 'ta' : 'en');
+      
+      const modal = document.getElementById('privacy-policy-modal');
+      modal.style.display = 'flex';
+      modal.classList.add('active');
+    }
+
+    function closePrivacyPolicyModal(event) {
+      if (event.target === document.getElementById('privacy-policy-modal')) {
+        closePrivacyPolicyDetail();
+      }
+    }
+
+    function closePrivacyPolicyDetail() {
+      const modal = document.getElementById('privacy-policy-modal');
+      modal.style.display = 'none';
+      modal.classList.remove('active');
+    }
+
+    function setPrivacyLang(lang) {
+      const tabEn = document.getElementById('privacy-tab-en');
+      const tabTa = document.getElementById('privacy-tab-ta');
+      const contentEn = document.getElementById('privacy-content-en');
+      const contentTa = document.getElementById('privacy-content-ta');
+      
+      if (lang === 'en') {
+        contentEn.style.display = 'block';
+        contentTa.style.display = 'none';
+        tabEn.style.background = '#e63946';
+        tabEn.style.color = '#fff';
+        tabTa.style.background = 'transparent';
+        tabTa.style.color = '#9ca3af';
+      } else {
+        contentEn.style.display = 'none';
+        contentTa.style.display = 'block';
+        tabEn.style.background = 'transparent';
+        tabEn.style.color = '#9ca3af';
+        tabTa.style.background = '#e63946';
+        tabTa.style.color = '#fff';
+      }
+      
+      // Dynamic scroll reset to keep it sleek and fluid
+      document.getElementById('privacy-scroll-container').scrollTop = 0;
     }
 
     // PRINT PREVIEW MODAL OPERATIVE LOGIC
@@ -4313,7 +5143,7 @@
       }
 
       filtered.forEach(o => {
-        const itemRows = o.items.map(i => `• ${i.tamilName} (${i.englishName}) - <strong>${i.weightGrams}g</strong> [${i.cutStyle}] ${i.specialNote ? '<i>(Note: '+i.specialNote+')</i>' : ''}`).join('<br>');
+        const itemRows = o.items.map(i => `• ${i.tamilName} (${i.englishName}) - <strong>${i.weightGrams}g</strong> [${getLocalizedPrepareText(i.cutStyle, i.category)}] ${i.specialNote ? '<i>(Note: '+i.specialNote+')</i>' : ''}`).join('<br>');
         
         let actions = '';
         if (o.status === 'pending') {
@@ -4332,7 +5162,7 @@
         // Pre-formatted messages for WhatsApp Redirects
         const waCustomerMsg = encodeURIComponent(`Hello ${o.customerName}! Your order ${o.id} has been confirmed at Edappadi Kadai. Total amount: ₹${o.totalAmount}. We will deliver to your Address: ${o.deliveryAddress}. Thank you!`);
         const waReadyMsg = encodeURIComponent(`Dear ${o.customerName}, your order ${o.id} is ready! Our delivery executive Raman will reach you shortly. Please keep ₹${o.totalAmount} ready. - Edappadi Kadai`);
-        const kotMsg = encodeURIComponent(`NEW KOT: ${o.id}\nItems:\n${o.items.map((it, idx) => `${idx + 1}. ${it.tamilName} (${it.englishName}) - ${it.weightGrams}g [Cut: ${it.cutStyle}] ${it.specialNote ? '(Note: ' + it.specialNote + ')' : ''}`).join('\n')}\nSlot: ${o.deliveryTimeSlot}`);
+        const kotMsg = encodeURIComponent(`NEW KOT: ${o.id}\nItems:\n${o.items.map((it, idx) => `${idx + 1}. ${it.tamilName} (${it.englishName}) - ${it.weightGrams}g [Cut: ${getLocalizedPrepareText(it.cutStyle, it.category)}] ${it.specialNote ? '(Note: ' + it.specialNote + ')' : ''}`).join('\n')}\nSlot: ${o.deliveryTimeSlot}`);
 
         const isExpanded = !!expandedOrders[o.id];
 
@@ -4387,7 +5217,7 @@
                 <a href="https://wa.me/91${o.customerPhone}?text=${waCustomerMsg}" target="_blank" class="btn btn-secondary" style="padding:7px; font-size:11px; text-decoration:none; border-color:var(--accent-green); color:var(--accent-green); text-align:center;">📱 Confirm WA</a>
                 
                 <button class="btn btn-secondary" style="padding:7px; font-size:11px;" onclick="printKOTTicket('${o.id}')">🖨️ KOT Slip</button>
-                <a href="https://wa.me/919843673188?text=${kotMsg}" target="_blank" class="btn btn-secondary" style="padding:7px; font-size:11px; text-decoration:none; text-align:center;">💚 Share KOT</a>
+                <a href="https://wa.me/918778148899?text=${kotMsg}" target="_blank" class="btn btn-secondary" style="padding:7px; font-size:11px; text-decoration:none; text-align:center;">💚 Share KOT</a>
                 
                 <button class="btn btn-secondary" style="padding:7px; font-size:11px;" onclick="printCustomerInvoice('${o.id}')">📄 Print Bill</button>
                 <a href="https://wa.me/91${o.customerPhone}?text=${waReadyMsg}" target="_blank" class="btn btn-secondary" style="padding:7px; font-size:11px; text-decoration:none; text-align:center;">📢 Ready Prompt</a>
@@ -5066,6 +5896,9 @@
       let meatSales = 0;
       let fishSales = 0;
       let vegSales = 0;
+      let fruitsSales = 0;
+      let dairySales = 0;
+      let groceriesSales = 0;
 
       orders.forEach(o => {
         o.items.forEach(it => {
@@ -5075,31 +5908,46 @@
             if (p.category === 'meat') meatSales += it.totalPrice;
             else if (p.category === 'fish') fishSales += it.totalPrice;
             else if (p.category === 'veg') vegSales += it.totalPrice;
+            else if (p.category === 'fruits') fruitsSales += it.totalPrice;
+            else if (p.category === 'dairy') dairySales += it.totalPrice;
+            else if (p.category === 'groceries') groceriesSales += it.totalPrice;
           } else {
             // Fallback categorization based on string matches
             const name = it.englishName.toLowerCase();
             if (name.includes('chicken') || name.includes('mutton') || name.includes('meat')) meatSales += it.totalPrice;
-            else if (name.includes('fish') || name.includes('sea')) fishSales += it.totalPrice;
+            else if (name.includes('fish') || name.includes('sea') || name.includes('prawn') || name.includes('crab')) fishSales += it.totalPrice;
+            else if (name.includes('apple') || name.includes('banana') || name.includes('orange') || name.includes('fruit') || name.includes('grapes')) fruitsSales += it.totalPrice;
+            else if (name.includes('milk') || name.includes('egg') || name.includes('cheese') || name.includes('butter') || name.includes('dairy') || name.includes('ghee')) dairySales += it.totalPrice;
+            else if (name.includes('powder') || name.includes('masala') || name.includes('rice') || name.includes('oil') || name.includes('sugar') || name.includes('dhal')) groceriesSales += it.totalPrice;
             else vegSales += it.totalPrice;
           }
         });
       });
 
-      const totalSales = meatSales + fishSales + vegSales;
+      const totalSales = meatSales + fishSales + vegSales + fruitsSales + dairySales + groceriesSales;
 
       // Calculate relative percentages
       const meatPct = totalSales > 0 ? Math.round((meatSales / totalSales) * 100) : 0;
       const fishPct = totalSales > 0 ? Math.round((fishSales / totalSales) * 100) : 0;
       const vegPct = totalSales > 0 ? Math.round((vegSales / totalSales) * 100) : 0;
+      const fruitsPct = totalSales > 0 ? Math.round((fruitsSales / totalSales) * 100) : 0;
+      const dairyPct = totalSales > 0 ? Math.round((dairySales / totalSales) * 100) : 0;
+      const groceriesPct = totalSales > 0 ? Math.round((groceriesSales / totalSales) * 100) : 0;
 
       // Adjust CSS charts bars
       document.getElementById('bar-meat').style.width = `${meatPct}%`;
       document.getElementById('bar-fish').style.width = `${fishPct}%`;
       document.getElementById('bar-veg').style.width = `${vegPct}%`;
+      document.getElementById('bar-fruits').style.width = `${fruitsPct}%`;
+      document.getElementById('bar-dairy').style.width = `${dairyPct}%`;
+      document.getElementById('bar-groceries').style.width = `${groceriesPct}%`;
 
       document.getElementById('bar-meat-text').innerText = `₹${meatSales} (${meatPct}%)`;
       document.getElementById('bar-fish-text').innerText = `₹${fishSales} (${fishPct}%)`;
       document.getElementById('bar-veg-text').innerText = `₹${vegSales} (${vegPct}%)`;
+      document.getElementById('bar-fruits-text').innerText = `₹${fruitsSales} (${fruitsPct}%)`;
+      document.getElementById('bar-dairy-text').innerText = `₹${dairySales} (${dairyPct}%)`;
+      document.getElementById('bar-groceries-text').innerText = `₹${groceriesSales} (${groceriesPct}%)`;
 
       // Static text metrics
       document.getElementById('anal-concluded-orders').innerText = orders.length;
@@ -5175,7 +6023,7 @@
           </div>
           <div style="font-size: 12px; color: #444; font-family: 'Poppins', sans-serif; font-weight: 500;">(${it.englishName})</div>
           <div style="margin-top: 4px; background: #000; color: #fff; padding: 2px 6px; border-radius: 4px; display: inline-block; font-size: 12px; font-weight: 800; text-transform: uppercase; font-family: 'JetBrains Mono', monospace;">
-            ✂️ கட் முறை / CUTTING: ${it.cutStyle}
+            ✂️ தயாரிப்பு முறை / Prep: ${getLocalizedPrepareText(it.cutStyle, it.category)}
           </div>
           ${it.specialNote ? `<div style="margin-top: 6px; font-size: 12px; font-style: italic; font-weight: 700; color: #b45309; border-left: 3px solid #b45309; padding-left: 6px; background: #fffbeb;">
             குறிப்பு: ${it.specialNote}
@@ -5196,11 +6044,7 @@
               <td style="text-align: right; padding: 2px 0;"><strong>ஸ்லாட் / SLOT:</strong> <span style="font-weight: 800; border: 1.5px solid #000; padding: 1px 4px; border-radius: 4px;">${o.deliveryTimeSlot}</span></td>
             </tr>
             <tr>
-              <td style="padding: 2px 0;"><strong>வாடிக்கையாளர் / Cust:</strong> ${o.customerName}</td>
-              <td style="text-align: right; padding: 2px 0;"><strong>தேதி / Time:</strong> ${dateStr}</td>
-            </tr>
-            <tr>
-              <td colspan="2" style="padding: 2px 0;"><strong>தொடர்பு எண் / Contact:</strong> ${o.customerPhone}</td>
+              <td colspan="2" style="padding: 2px 0;"><strong>தேதி / Time:</strong> ${dateStr}</td>
             </tr>
           </table>
           
@@ -5248,7 +6092,7 @@
           <td style="padding: 8px 4px; border-bottom:1px solid #eee; text-align: left; vertical-align: top;">
             <div style="font-weight: 700; font-size: 13px; color: #111;">${it.tamilName}</div>
             <div style="font-size: 11px; color: #555; font-family: 'Poppins', sans-serif;">${it.englishName}</div>
-            <div style="font-size: 11px; color: #e65100; font-weight: 600; margin-top: 2px;">✂️ கட் முறை / Cut: ${it.cutStyle}</div>
+            <div style="font-size: 11px; color: #e65100; font-weight: 600; margin-top: 2px;">✂️ தயாரிப்பு முறை / Prep: ${getLocalizedPrepareText(it.cutStyle, it.category)}</div>
             ${it.specialNote ? `<div style="font-size: 10.5px; color: #b45309; font-style: italic; background: #fffbeb; padding: 2px 5px; border-radius: 4px; display: inline-block; margin-top: 2px; border-left: 2px solid #b45309;">குறிப்பு: ${it.specialNote}</div>` : ''}
           </td>
           <td style="padding: 8px 4px; border-bottom:1px solid #eee; text-align: center; vertical-align: top; font-weight: 500;">
@@ -5267,7 +6111,7 @@
             <h2 style="color: #111; margin: 2px 0 0 0; font-size: 18px; font-weight: 700; font-family: 'Hind Madurai', sans-serif;">எடப்பாடி கடை</h2>
             <p style="font-size: 11.5px; color: #444; margin: 4px 0 2px 0; font-weight: 500;">Premium Meat & Poultry Fast Delivery</p>
             <p style="font-size: 11px; color: #666; margin: 2px 0; font-weight: 500;">📍 Kavandampatti Rd, Idappadi, Salem, Tamil Nadu</p>
-            <p style="font-size: 11.5px; color: #111; margin: 2px 0 0 0; font-weight: 600;">📞 தொடர்புக்கு / WhatsApp: +91 98436 73188</p>
+            <p style="font-size: 11.5px; color: #111; margin: 2px 0 0 0; font-weight: 600;">📞 தொடர்புக்கு / WhatsApp: +91 87781 48899</p>
           </div>
           
           <div style="border-top: 1.5px dashed #000; margin: 12px 0;"></div>

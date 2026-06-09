@@ -6,215 +6,111 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Scale group carefully centered inside the 108x108 viewport (64% scale, centered) -->
+    <!-- Scale group carefully centered inside the 108x108 viewport (75% scale, centered) -->
     <group
         android:name="safe_zone_group"
-        android:scaleX="0.64"
-        android:scaleY="0.64"
-        android:translateX="19.44"
-        android:translateY="19.44">
+        android:scaleX="0.75"
+        android:scaleY="0.75"
+        android:translateX="13.5"
+        android:translateY="13.5">
 
-        <!-- 1. SOLID SHIELD BACKPLATE (Soft luxury backdrop to separate logo details from the deep background) -->
+        <!-- Outer Glowing Neon-Green Ring -->
         <path
-            android:pathData="M 50,4 L 88,26 L 88,58 C 88,80 50,96 50,96 C 50,96 12,80 12,58 L 12,26 Z">
-            <aapt:attr name="android:fillColor">
-                <gradient
-                    android:startX="12"
-                    android:startY="4"
-                    android:endX="88"
-                    android:endY="96"
-                    android:type="linear">
-                    <item android:color="#0D4B24" android:offset="0" /> <!-- Premium dark base -->
-                    <item android:color="#063217" android:offset="1" />
-                </gradient>
-            </aapt:attr>
-        </path>
+            android:pathData="M 54,16 A 38,38 0 1,1 53.9,16 Z"
+            android:strokeWidth="1.8"
+            android:strokeColor="#FF00FF88" strokeLineCap="round" />
+
+        <!-- Inner Accent Ring -->
+        <path
+            android:pathData="M 54,18 A 36,36 0 1,1 53.9,18 Z"
+            android:strokeWidth="0.8"
+            android:strokeColor="#8000FF88" strokeLineCap="round" strokeDashArray="3,1" />
+
+        <!-- SHOPPING BAG (Highly details rounded modern vector) -->
+        <!-- 1. Bag Handles -->
+        <path
+            android:pathData="M 44,42 C 44,32 64,32 64,42"
+            android:strokeWidth="2.2"
+            android:strokeColor="#FF00FF88"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000" />
 
         <path
-            android:pathData="M 50,8 L 84,28 L 84,56 C 84,75 50,89 50,89 C 50,89 16,75 16,56 L 16,28 Z"
-            android:strokeWidth="1.5"
-            android:strokeColor="#50FFF2BF" />
+            android:pathData="M 46,42 C 46,35 62,35 62,42"
+            android:strokeWidth="1.0"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000" />
 
-        <!-- 2. EXPRESS SPEED TRAILS (Ultra-clean straight trails from the left, representing swift hot delivery) -->
+        <!-- 2. Main Bag Body -->
         <path
-            android:pathData="M 4,40 L 26,40 M 2,49 L 24,49 M 6,58 L 22,58"
-            android:strokeWidth="3.0"
-            android:strokeLineCap="round">
-            <aapt:attr name="android:strokeColor">
-                <gradient
-                    android:startX="2"
-                    android:startY="40"
-                    android:endX="26"
-                    android:endY="58"
-                    android:type="linear">
-                    <item android:color="#00EF4444" android:offset="0" />
-                    <item android:color="#E0EF4444" android:offset="0.5" />
-                    <item android:color="#FFF1BE" android:offset="1" />
-                </gradient>
-            </aapt:attr>
-        </path>
+            android:pathData="M 40,43 L 68,43 C 71,43 72,45 71.5,48 L 66.5,70 C 66,73 63.5,75 60.5,75 L 47.5,75 C 44.5,75 42,73 41.5,70 L 36.5,48 C 36,45 37,43 40,43 Z"
+            android:strokeWidth="2.2"
+            android:strokeColor="#FF00FF88"
+            android:strokeLineJoin="round"
+            android:fillColor="#150a0c10" />
 
-        <!-- 3. PREMIUM EXPRESS DELIVERY SCOOTER (Visually striking, elegant, clean curves) -->
-        <group android:name="delivery_scooter">
+        <path
+            android:pathData="M 41.5,45 L 66.5,45 L 62.5,73 L 45.5,73 Z"
+            android:fillColor="#0c1219" />
+
+        <!-- 3. Eco-Leaf Details inside the bag -->
+        <path
+            android:pathData="M 48,67 C 48,67 44,56 55,54 C 55,54 57,64 48,67 Z"
+            android:strokeWidth="1.2"
+            android:strokeColor="#FF00FF88"
+            android:fillColor="#3000FF88" />
+
+        <!-- 4. Glowing leaf arrow overlay -->
+        <path
+            android:pathData="M 48,67 Q 54,60 64,54"
+            android:strokeWidth="1.8"
+            android:strokeColor="#FF00FF88"
+            android:strokeLineCap="round" />
+
+        <path
+            android:pathData="M 60,54 L 64,54 L 64,58"
+            android:strokeWidth="1.8"
+            android:strokeColor="#FF00FF88"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <!-- SLEEK NEON STAR & BOTTOM HORIZONTAL STABILIZERS -->
+        <group android:name="bottom_star_accent" android:translateY="3">
+            <!-- Center Star -->
+            <path
+                android:pathData="M 54,78 L 55.5,81 L 59,81 L 56,83 L 57.5,86 L 54,84.2 L 50.5,86 L 52,83 L 49,81 L 52.5,81 Z"
+                android:fillColor="#FFFFFFFF" />
             
-            <!-- Rear Wheel (Golden hub, black tire) -->
+            <!-- Left Wing Neon Line -->
             <path
-                android:pathData="M 33,65 m -6,0 a 6,6 0 1,1 12,0 a 6,6 0 1,1 -12,0"
-                android:strokeWidth="2.5"
-                android:strokeColor="#FFFFFF"
-                android:fillColor="#011308" />
-            <path
-                android:pathData="M 33,65 m -3,0 a 3,3 0 1,1 6,0 a 3,3 0 1,1 -6,0"
-                android:fillColor="#F59E0B" />
-
-            <!-- Front Wheel (Golden hub, black tire) -->
-            <path
-                android:pathData="M 71,65 m -6,0 a 6,6 0 1,1 12,0 a 6,6 0 1,1 -12,0"
-                android:strokeWidth="2.5"
-                android:strokeColor="#FFFFFF"
-                android:fillColor="#011308" />
-            <path
-                android:pathData="M 71,65 m -3,0 a 3,3 0 1,1 6,0 a 3,3 0 1,1 -6,0"
-                android:fillColor="#F59E0B" />
-
-            <!-- Solid Premium Scooter Body Chassis (Connecting the components) -->
-            <path
-                android:pathData="M 33,65 C 44,65 42,54 54,54 L 69,54 L 71,65"
-                android:strokeWidth="4.5"
-                android:strokeLineCap="round"
-                android:strokeLineJoin="round"
-                android:strokeColor="#FFFFFF" />
-            <path
-                android:pathData="M 33,65 C 44,65 42,54 54,54 L 69,54 L 71,65"
-                android:strokeWidth="2.5"
-                android:strokeLineCap="round"
-                android:strokeLineJoin="round">
-                <aapt:attr name="android:strokeColor">
-                    <gradient
-                        android:startX="33"
-                        android:startY="54"
-                        android:endX="71"
-                        android:endY="65"
-                        android:type="linear">
-                        <item android:color="#EF4444" android:offset="0" />
-                        <item android:color="#F59E0B" android:offset="1" />
-                    </gradient>
-                </aapt:attr>
-            </path>
-
-            <!-- Front Steering Column and Handlebar with Windshield Shield -->
-            <path
-                android:pathData="M 68,54 L 74,34 L 78,34"
-                android:strokeWidth="3.5"
-                android:strokeLineCap="round"
-                android:strokeColor="#FFFFFF" />
-            <path
-                android:pathData="M 74,34 L 78,34"
-                android:strokeWidth="2.0"
-                android:strokeLineCap="round"
-                android:strokeColor="#FFF1BE" />
-
-            <!-- Headlight / Speed visor glow -->
-            <path
-                android:pathData="M 74,34 Q 82,34 84,37"
-                android:strokeWidth="1.5"
-                android:strokeColor="#40FFE89C"
-                android:strokeLineCap="round" />
-
-            <!-- Hot Thermal Food Delivery Bag Mounted on Rear Carrier -->
-            <path
-                android:pathData="M 24,36 C 24,34 26,32 29,32 L 47,32 C 50,32 52,34 52,36 L 52,54 C 52,56 50,58 47,58 L 29,58 C 26,58 24,56 24,54 Z"
-                android:strokeWidth="1.5"
-                android:strokeColor="#FFFFFF">
-                <aapt:attr name="android:fillColor">
-                    <gradient
-                        android:startX="24"
-                        android:startY="32"
-                        android:endX="52"
-                        android:endY="58"
-                        android:type="linear">
-                        <item android:color="#FFF1BE" android:offset="0" />
-                        <item android:color="#F59E0B" android:offset="0.5" />
-                        <item android:color="#B45309" android:offset="1" />
-                    </gradient>
-                </aapt:attr>
-            </path>
-
-            <!-- Box Center Monogram Accent (Minimalist Fast Plate logo detail) -->
-            <path
-                android:pathData="M 38,40 m -5,0 a 5,5 0 1,1 10,0 a 5,5 0 1,1 -10,0"
+                android:pathData="M 38,81 H 46"
                 android:strokeWidth="1.2"
-                android:strokeColor="#B52007"
-                android:fillColor="#FFFFFF" />
-            
-            <path
-                android:pathData="M 35,42 Q 38,45 41,42"
-                android:strokeWidth="1.5"
-                android:strokeColor="#EF4444"
+                android:strokeColor="#FF00FF88"
                 android:strokeLineCap="round" />
 
-            <!-- Gourmet Steam/Aroma Trails rising from the Delivery Bag -->
+            <!-- Right Wing Neon Line -->
             <path
-                android:pathData="M 32,28 Q 30,22 34,18 M 40,28 Q 38,22 42,18"
-                android:strokeWidth="2.0"
-                android:strokeLineCap="round">
-                <aapt:attr name="android:strokeColor">
-                    <gradient
-                        android:startX="30"
-                        android:startY="18"
-                        android:endX="42"
-                        android:endY="28"
-                        android:type="linear">
-                        <item android:color="#00FFFFFF" android:offset="0" />
-                        <item android:color="#FFFFFFFF" android:offset="0.5" />
-                        <item android:color="#FFF1BE" android:offset="1" />
-                    </gradient>
-                </aapt:attr>
-            </path>
-
+                android:pathData="M 62,81 H 70"
+                android:strokeWidth="1.2"
+                android:strokeColor="#FF00FF88"
+                android:strokeLineCap="round" />
         </group>
 
-        <!-- 4. LOCATION DISPATCH MAP-PIN (Gracefully placed over the center coordinates) -->
-        <group
-            android:translateX="50"
-            android:translateY="20"
-            android:scaleX="0.8"
-            android:scaleY="0.8"
-            android:pivotX="12"
-            android:pivotY="22">
-            <path
-                android:pathData="M 12,2 C 8.1,2 5,5.1 5,9 C 5,14 12,22 12,22 C 12,22 19,14 19,9 C 19,5.1 15.9,2 12,2 Z"
-                android:strokeWidth="1.5"
-                android:strokeColor="#FFFFFF">
-                <aapt:attr name="android:fillColor">
-                    <gradient
-                        android:startX="5"
-                        android:startY="2"
-                        android:endX="19"
-                        android:endY="22"
-                        android:type="linear">
-                        <item android:color="#FF8A8A" android:offset="0" />
-                        <item android:color="#EF4444" android:offset="0.6" />
-                        <item android:color="#991B1B" android:offset="1" />
-                    </gradient>
-                </aapt:attr>
-            </path>
-            <!-- Pin interior spark of gold -->
-            <path
-                android:pathData="M 12,9 m -2.5,0 a 2.5,2.5 0 1,1 5,0 a 2.5,2.5 0 1,1 -5,0"
-                android:fillColor="#FFE89C" />
-        </group>
+        <!-- Dynamic arch indicators in place of small unreadable text -->
+        <path
+            android:pathData="M 28,30 C 33,23 43,19 54,19 C 65,19 75,23 80,30"
+            android:strokeWidth="0.8"
+            android:strokeColor="#40FFFFFF"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000" />
 
-        <!-- 5. ELEGANT EXCLUSIVE BRAND HIGHLIGHT SHINES (Vibrant diamond stars highlighting the premium class) -->
-        <!-- Top Right Diamond Star -->
         <path
-            android:pathData="M 80,18 L 81.5,20.5 L 84,21 L 81.5,21.5 L 80,24 L 78.5,21.5 L 76,21 L 78.5,20.5 Z"
-            android:fillColor="#FFFFFFFF" />
-        
-        <!-- Center Bottom Diamond Star -->
-        <path
-            android:pathData="M 50,78 L 51.5,80.5 L 54,81 L 51.5,81.5 L 50,84 L 48.5,81.5 L 46,81 L 48.5,80.5 Z"
-            android:fillColor="#FFE89C" />
+            android:pathData="M 32,84 C 38,88 46,90 54,90 C 62,90 70,88 76,84"
+            android:strokeWidth="0.8"
+            android:strokeColor="#40FFFFFF"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000" />
 
     </group>
 
