@@ -18,13 +18,15 @@
         <path
             android:pathData="M 54,16 A 38,38 0 1,1 53.9,16 Z"
             android:strokeWidth="1.8"
-            android:strokeColor="#FF00FF88" strokeLineCap="round" />
+            android:strokeColor="#FF00FF88"
+            android:strokeLineCap="round" />
 
         <!-- Inner Accent Ring -->
         <path
             android:pathData="M 54,18 A 36,36 0 1,1 53.9,18 Z"
             android:strokeWidth="0.8"
-            android:strokeColor="#8000FF88" strokeLineCap="round" strokeDashArray="3,1" />
+            android:strokeColor="#8000FF88"
+            android:strokeLineCap="round" />
 
         <!-- SHOPPING BAG (Highly details rounded modern vector) -->
         <!-- 1. Bag Handles -->

@@ -38,6 +38,7 @@
     <path
         android:pathData="M 54,18 A 36,36 0 1, 1 53.9, 18 Z"
         android:strokeWidth="1.2"
-        android:strokeColor="#3000FF88" strokeLineJoin="round" />
+        android:strokeColor="#3000FF88"
+        android:strokeLineJoin="round" />
 
 </vector>

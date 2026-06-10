@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.webkit.GeolocationPermissions
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -80,17 +81,47 @@ class MainActivity : ComponentActivity() {
                                     cacheMode = WebSettings.LOAD_DEFAULT
                                 }
 
-                                // Handle native intent actions (tel, whatsapp)
+                                // Handle native intent actions (tel, whatsapp, intents, maps)
                                 webViewClient = object : WebViewClient() {
                                     override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                                         if (url == null) return false
-                                        if (url.startsWith("tel:") || url.startsWith("whatsapp:") || url.contains("wa.me")) {
+                                        if (url.startsWith("file:///")) {
+                                            return false
+                                        }
+                                        
+                                        val isSpecialScheme = !url.startsWith("http://") && !url.startsWith("https://")
+                                                || url.contains("google.com/maps")
+                                                || url.contains("maps.google")
+                                                || url.contains("wa.me")
+                                                || url.startsWith("whatsapp:")
+                                                || url.startsWith("tel:")
+
+                                        if (isSpecialScheme) {
                                             try {
-                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                val intent = if (url.startsWith("intent:")) {
+                                                    val parsed = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                                                    val fallback = parsed.getStringExtra("browser_fallback_url")
+                                                    if (fallback != null && fallback.isNotEmpty()) {
+                                                        Intent(Intent.ACTION_VIEW, Uri.parse(fallback))
+                                                    } else {
+                                                        parsed
+                                                    }
+                                                } else {
+                                                    Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                }
                                                 context.startActivity(intent)
                                                 return true
                                             } catch (e: Exception) {
-                                                return true
+                                                e.printStackTrace()
+                                                // Fallback to basic map or external browser link opening
+                                                if (url.contains("google.com/maps") || url.contains("maps.google")) {
+                                                    try {
+                                                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                        context.startActivity(browserIntent)
+                                                        return true
+                                                    } catch (e2: Exception) {}
+                                                }
+                                                return true // Suppress the crash / bad web view schemes
                                             }
                                         }
                                         return false
@@ -99,6 +130,13 @@ class MainActivity : ComponentActivity() {
 
                                 // OnShowFileChooser WebChromeClient override
                                 webChromeClient = object : WebChromeClient() {
+                                    override fun onGeolocationPermissionsShowPrompt(
+                                        origin: String?,
+                                        callback: GeolocationPermissions.Callback?
+                                    ) {
+                                        callback?.invoke(origin, true, false)
+                                    }
+
                                     override fun onShowFileChooser(
                                         webView: WebView?,
                                         filePathCallback: ValueCallback<Array<Uri>>?,
