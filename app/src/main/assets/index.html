@@ -42,6 +42,120 @@
       --category-groceries: #8b5cf6;
     }
 
+    /* LEAFLET MAP PREMIUM DARK STYLING & GLOWS */
+    .leaflet-popup-content-wrapper {
+      background: rgba(12, 17, 23, 0.95) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(245, 158, 11, 0.45) !important;
+      border-radius: 12px !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      padding: 4px !important;
+    }
+    .leaflet-popup-tip {
+      background: rgba(12, 17, 23, 0.95) !important;
+      border-left: 1px solid rgba(245, 158, 11, 0.45) !important;
+      border-bottom: 1px solid rgba(245, 158, 11, 0.45) !important;
+    }
+    .leaflet-popup-content {
+      font-family: inherit !important;
+      font-size: 13px !important;
+      margin: 8px 12px !important;
+      line-height: 1.5 !important;
+    }
+    .leaflet-popup-content strong {
+      color: var(--accent-orange) !important;
+    }
+    
+    /* Glow animations for Map Pins */
+    @keyframes map-pin-glow-orange {
+      0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.8), 0 0 6px rgba(245,158,11,0.5); }
+      70% { box-shadow: 0 0 0 12px rgba(245, 158, 11, 0), 0 0 2px rgba(245,158,11,0); }
+      100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0), 0 0 0 rgba(245,158,11,0); }
+    }
+    @keyframes map-pin-glow-green {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.8), 0 0 6px rgba(16,185,129,0.5); }
+      70% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0), 0 0 2px rgba(16,185,129,0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0), 0 0 0 rgba(16,185,129,0); }
+    }
+    @keyframes map-pin-glow-blue {
+      0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.8), 0 0 8px rgba(59,130,246,0.5); }
+      70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0), 0 0 2px rgba(59,130,246,0); }
+      100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0), 0 0 0 rgba(59,130,246,0); }
+    }
+    
+    .map-pin-store {
+      animation: map-pin-glow-orange 2s infinite !important;
+    }
+    .map-pin-customer {
+      animation: map-pin-glow-green 2s infinite !important;
+    }
+    .map-pin-rider {
+      animation: map-pin-glow-blue 1.5s infinite !important;
+    }
+
+    /* RIDER BIKE SIMULATOR RIG */
+    @keyframes rider-pulse-ring {
+      0% {
+        transform: scale(0.6);
+        opacity: 0.9;
+      }
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+    .rider-simulator-container {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .rider-pulser {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1.5px solid rgba(59, 130, 246, 0.5);
+      animation: rider-pulse-ring 1.8s infinite linear;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .rider-bike-body {
+      width: 32px;
+      height: 32px;
+      background: #3b82f6;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+      font-size: 16px;
+      z-index: 2;
+      transition: transform 0.25s ease-out;
+    }
+    .rider-text-tag {
+      position: absolute;
+      bottom: -18px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #7dd3fc;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 30px;
+      white-space: nowrap;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+      z-index: 3;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
     .tamil-text { 
       font-family: 'Hind Madurai', sans-serif !important; 
       line-height: 1.7 !important;           /* Tamil script needs more line height */
@@ -132,8 +246,9 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Poppins', 'Hind Madurai', sans-serif;
       -webkit-tap-highlight-color: transparent;
+      outline: none;
     }
 
     body {
@@ -143,6 +258,12 @@
       justify-content: center;
       min-height: 100vh;
       overflow-x: hidden;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      /* Smooth hardware accelerated scroll mechanics */
+      -webkit-overflow-scrolling: touch;
     }
 
     /* Container lock for PWA/mobile aspect ratio */
@@ -156,8 +277,8 @@
       flex-direction: column;
       border-left: 1px solid var(--border-color);
       border-right: 1px solid var(--border-color);
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-      padding-bottom: 70px; /* Safe padding for bottom nav */
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+      padding-bottom: 74px; /* Safe padding for bottom nav space */
     }
 
     /* Safe Area padding for Splash and Login to hide nav bar space */
@@ -169,17 +290,26 @@
       display: none;
       flex-direction: column;
       width: 100%;
-      padding: 16px;
-      animation: fadeIn 0.25s ease-out;
+      padding: 16px 16px 110px 16px !important;
+      animation: nativeSlideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      /* Use hardware transitions for extreme responsiveness */
+      will-change: transform, opacity;
+      box-sizing: border-box;
     }
 
     .screen.active {
       display: flex;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes nativeSlideUp {
+      from { 
+        opacity: 0; 
+        transform: translateY(12px) scale(0.99); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+      }
     }
 
     @keyframes spin {
@@ -187,113 +317,143 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Scrollbars */
+    /* Scrollbars suppressed for completely native scrollbar layout */
     ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0a0a0a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #333;
-      border-radius: 3px;
+      width: 0px;
+      height: 0px;
+      background: transparent;
     }
 
     /* Card design */
     .card {
       background: var(--bg-card);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
-      border: 1px solid var(--border-color);
-      transition: all 0.2s ease;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 14px;
+      border: 1.2px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
+    
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+    }
+    
     .card-interactive:active {
-      transform: scale(0.98);
+      transform: scale(0.97) translateY(0);
       background: var(--bg-card-hover);
+      border-color: var(--accent-orange);
     }
 
-    /* Inputs styled elegantly */
+    /* Inputs styled elegantly with selectable text capability */
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
     .form-group label {
       display: block;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-secondary);
-      margin-bottom: 6px;
+      margin-bottom: 7px;
+      letter-spacing: 0.3px;
     }
     .form-control {
       width: 100%;
-      background: #121212;
-      border: 1px solid var(--border-color);
+      background: #0d0f12;
+      border: 1.5px solid rgba(255, 255, 255, 0.07);
       color: var(--text-primary);
-      font-size: 14px;
-      padding: 12px 14px;
-      border-radius: 10px;
+      font-size: 14.5px;
+      padding: 13px 16px;
+      border-radius: 14px;
       outline: none;
-      transition: all 0.2s;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
     }
     .form-control:focus {
       border-color: var(--accent-orange);
-      background: #181818;
+      background: #11141a;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
     }
 
-    /* Button Tokens */
+    /* Button Tokens - Premium Native Tactile Targets */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-weight: 600;
-      border-radius: 10px;
-      padding: 12px 16px;
+      font-weight: 700;
+      border-radius: 300px !important;
+      padding: 14px 20px;
+      min-height: 48px; /* High tactile hit rate target */
       border: none;
       cursor: pointer;
-      transition: all 0.2s;
-      gap: 8px;
+      transition: all 0.24s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      gap: 10px;
       font-size: 14px;
+      letter-spacing: 0.4px;
       width: 100%;
+      outline: none;
+      position: relative;
+      overflow: hidden;
+      backface-visibility: hidden;
     }
     .btn:active {
-      transform: scale(0.97);
+      transform: scale(0.95);
+      filter: brightness(1.1);
     }
     .btn-primary {
-      background: var(--accent-orange);
-      color: #000;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #000000;
+      box-shadow: 0 6px 18px rgba(245, 158, 11, 0.3);
+      border: 1.2px solid rgba(255, 255, 255, 0.12);
     }
-    .btn-primary:hover {
-      background: var(--accent-orange-dark);
+    .btn-primary:active {
+      box-shadow: 0 3px 8px rgba(245, 158, 11, 0.2);
     }
     .btn-success {
-      background: var(--accent-green);
-      color: #fff;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.3);
+      border: 1.2px solid rgba(255, 255, 255, 0.1);
     }
     .btn-danger {
-      background: var(--accent-red);
-      color: #fff;
+      background: linear-gradient(135deg, #f43f5e, #be123c);
+      color: #ffffff;
+      box-shadow: 0 6px 18px rgba(244, 63, 94, 0.3);
+      border: 1.2px solid rgba(255, 255, 255, 0.1);
     }
     .btn-secondary {
-      background: #262626;
+      background: #19212c;
       color: var(--text-primary);
-      border: 1px solid var(--border-color);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .btn-secondary:hover {
+      background: #222d3c;
+      border-color: rgba(255, 255, 255, 0.12);
     }
     .btn-selector {
       background: var(--bg-card);
-      border: 2px solid var(--border-color);
-      border-radius: 10px;
-      padding: 10px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 300px !important;
+      padding: 12px;
       color: var(--text-primary);
-      font-size: 13px;
+      font-size: 13.5px;
       cursor: pointer;
       text-align: center;
+      transition: all 0.2s ease;
+      min-height: 48px;
     }
     .btn-selector.active {
       border-color: var(--accent-orange);
-      background: rgba(245, 158, 11, 0.12);
+      background: rgba(245, 158, 11, 0.08);
       color: var(--accent-orange);
-      font-weight: 600;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
     }
 
     /* Badges */
@@ -535,46 +695,67 @@
       margin-top: 14px;
     }
 
-    /* Bottom Navigation Tab Bar */
+    /* Bottom Navigation Tab Bar - Ultra Premium Glassmorphic feel */
     .bottom-nav {
       position: fixed;
       bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
       width: 100%;
       max-width: 480px;
-      background: #111111;
-      border-top: 1px solid var(--border-color);
+      background: rgba(10, 14, 20, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1.5px solid rgba(255, 255, 255, 0.08);
       display: none; /* Controlled dynamically */
       justify-content: space-around;
-      padding: 10px 0;
+      padding: 10px 0 14px 0;
       z-index: 500;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
     }
     .nav-tab {
       display: flex;
       flex-direction: column;
       align-items: center;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       font-size: 11px;
+      font-weight: 500;
       text-decoration: none;
       cursor: pointer;
       position: relative;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 6px 14px;
+      border-radius: 14px;
+    }
+    .nav-tab:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.04);
     }
     .nav-tab.active {
       color: var(--accent-orange);
+      font-weight: 700;
+    }
+    .nav-tab.active span {
+      transform: scale(1.18) translateY(-1px);
+      filter: drop-shadow(0 2px 10px rgba(245, 158, 11, 0.5));
     }
     .nav-tab span {
-      font-size: 20px;
+      font-size: 21px;
       margin-bottom: 2px;
+      transition: transform 0.24s cubic-bezier(0.18, 0.89, 0.32, 1.28);
     }
     .nav-badge {
       position: absolute;
-      top: -3px;
-      right: 2px;
-      background: var(--accent-red);
+      top: 2px;
+      right: 6px;
+      background: linear-gradient(135deg, #f43f5e, #be123c);
       color: white;
       font-size: 9px;
-      font-weight: 700;
-      padding: 1px 5px;
+      font-weight: 800;
+      padding: 2px 6px;
       border-radius: 99px;
+      box-shadow: 0 2px 6px rgba(244, 63, 94, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     /* Category selection horizontal list */
@@ -1060,13 +1241,19 @@
         </div>
       </div>
 
-      <!-- Hero Banner -->
-      <div id="home-hero-banner" class="card" style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); border: none; color: #000; overflow: hidden; position: relative; transition: background 0.4s ease, color 0.4s ease;">
-        <div style="position: absolute; right: -15px; bottom: -15px; font-size: 96px; opacity: 0.15; pointer-events: none;">🥩</div>
-        <div style="max-width: 70%;">
-          <div class="badge" style="background: rgba(0,0,0,0.8); color: var(--accent-orange); margin-bottom: 6px;">100% தரமானது / Premium</div>
-          <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Edappadi Special ✨</h2>
-          <p style="font-size: 12px; line-height: 1.3; font-weight: 500;">Fresh country cuts and direct organic greens delivered directly to your kitchen in Idappadi town.</p>
+      <!-- Collapsible Hero Banner Wrapper -->
+      <div style="margin-bottom: 12px; background: rgba(255, 255, 255, 0.01); border: 1px dashed rgba(255,255,255,0.04); border-radius: 12px; padding: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px;" onclick="toggleHeroBannerCollapse()">
+          <span style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">📖 Intro / விளம்பரம்</span>
+          <span id="hero-banner-toggle-icon" style="font-size: 11px; color: var(--accent-orange); font-weight: bold; padding: 2px 8px; background: rgba(245,158,11,0.08); border-radius: 6px;">▼ Collapse / சுருக்கு</span>
+        </div>
+        <div id="home-hero-banner" class="card" style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); border: none; color: #000; overflow: hidden; position: relative; transition: background 0.4s ease, color 0.4s ease; margin-bottom: 0; margin-top: 4px;">
+          <div style="position: absolute; right: -15px; bottom: -15px; font-size: 96px; opacity: 0.15; pointer-events: none;">🥩</div>
+          <div style="max-width: 70%;">
+            <div class="badge" style="background: rgba(0,0,0,0.8); color: var(--accent-orange); margin-bottom: 6px;">100% தரமானது / Premium</div>
+            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">Edappadi Special ✨</h2>
+            <p style="font-size: 12px; line-height: 1.3; font-weight: 500;">Fresh country cuts and direct organic greens delivered directly to your kitchen in Idappadi town.</p>
+          </div>
         </div>
       </div>
 
@@ -1078,12 +1265,14 @@
 
       <!-- Today's Specials Section -->
       <div id="specials-section" style="margin-bottom: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <h4 style="font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Today's Specials ⭐</h4>
-          <span style="font-size: 12px; color: var(--accent-orange); font-weight: 500;">Scroll right →</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; cursor: pointer;" onclick="toggleSpecialsSectionCollapse()">
+          <h4 style="font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0;">Today's Specials ⭐</h4>
+          <span id="specials-toggle-icon" style="font-size: 11px; color: var(--accent-orange); font-weight: bold; background: rgba(245,158,11,0.08); padding: 2px 8px; border-radius: 6px;">▼ Collapse / சுருக்கு</span>
         </div>
-        <div class="scroller" id="specials-container">
-          <!-- Populated by JS -->
+        <div id="specials-collapse-wrapper">
+          <div class="scroller" id="specials-container">
+            <!-- Populated by JS -->
+          </div>
         </div>
       </div>
 
@@ -1636,10 +1825,19 @@
         <!-- Dynamic Stages Container -->
         <!-- STAGE 1: ENTER PHONE/EMAIL AND CHOOSE METHOD -->
         <div id="fp-stage-1">
-          <!-- Input registered user -->
-          <div class="form-group" style="margin-bottom: 16px;">
-            <label style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; font-family: 'Poppins', sans-serif;" id="fp-label-identifier">Registered Email or Phone Number</label>
-            <input type="text" id="fp-identifier-input" class="form-control" placeholder="e.g. 8778148899 or raj@domain.com" style="margin-top: 6px;">
+          <!-- Input registered user (Dual Authentication Private Packet) -->
+          <div style="background: rgba(245,158,11,0.04); border: 1px solid rgba(245,158,11,0.15); padding: 14px; border-radius: 14px; margin-bottom: 16px;">
+            <p style="font-size: 11px; color: var(--accent-orange); font-weight: 700; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px;">🔐 Private Recovery Packet Verification</p>
+            
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;" id="fp-label-phone">Registered Phone Number / கைபேசி</label>
+              <input type="tel" id="fp-phone-input" class="form-control" placeholder="e.g. 8778148899" style="margin-top: 4px; padding: 10px; font-size: 13px;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;" id="fp-label-email">Registered Email Address / மின்னஞ்சல்</label>
+              <input type="email" id="fp-email-input" class="form-control" placeholder="e.g. raj@domain.com" style="margin-top: 4px; padding: 10px; font-size: 13px;">
+            </div>
           </div>
 
           <!-- Send Methods Option -->
@@ -1774,6 +1972,10 @@
           <div id="cod-discount-row" style="display: flex; justify-content: space-between; font-size: 12px; color: var(--accent-green); margin-bottom: 6px;">
             <span>Loyalty Discount:</span>
             <span id="cod-discount"></span>
+          </div>
+          <div id="cod-coupon-row" style="display: none; justify-content: space-between; font-size: 12px; color: var(--accent-orange); margin-bottom: 6px;">
+            <span>Coupon Discount (<span id="cod-coupon-code-lbl"></span>):</span>
+            <span id="cod-coupon-discount"></span>
           </div>
           <div style="border-top: 1px solid #222; padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">
             <span style="font-weight: 600; font-size: 13px; color: #fff;">Total Paid:</span>
@@ -1942,6 +2144,22 @@
           }
         </style>
 
+        <!-- Global Coupon Application Card -->
+        <div class="card" style="background: #0f0f0f; border-color: rgba(245,158,11,0.15); padding: 14px; margin-bottom: 12px; border-radius: 16px;">
+          <label style="font-size: 11.5px; font-weight: 700; color: #fff; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 0.5px;">🏷️ Apply Promo Coupon / கூப்பன் சேர்க்க</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="cart-coupon-input" class="form-control" placeholder="e.g. WELCOME10" style="text-transform: uppercase; padding: 10px; font-size: 13.5px; border-radius: 8px; flex: 1.3;" oninput="this.value = this.value.toUpperCase()">
+            <button class="btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: #000; font-weight: 850; padding: 0 16px; border-radius: 8px; font-size: 13px;" onclick="applyCartCouponCode()">Apply / சேர்</button>
+          </div>
+          <div id="cart-applied-coupon-pill" style="display: none; align-items: center; justify-content: space-between; margin-top: 10px; padding: 8px 12px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px;">
+            <div style="font-size: 11.5px; color: var(--accent-green);">
+              <span id="cart-applied-coupon-value" style="font-weight: 800;">WELCOME10 (-₹50)</span> applied! 🎉
+            </div>
+            <button type="button" onclick="removeCartCouponCode()" style="background: transparent; border: none; color: #ef4444; font-size: 16px; font-weight: bold; cursor: pointer; padding: 0 4px;">×</button>
+          </div>
+          <p id="coupon-hint-text" style="font-size: 10.5px; color: var(--text-muted); margin-top: 6px; margin-bottom: 0;">Enter promo codes for massive instant savings on fresh meats & groceries!</p>
+        </div>
+
         <!-- Bill Invoice Summary Card -->
         <div class="card" style="background: #111;">
           <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">
@@ -1955,6 +2173,10 @@
           <div id="bill-discount-row" style="display: none; justify-content: space-between; font-size: 13px; color: var(--accent-green); margin-bottom: 8px;">
             <span>Loyalty Wallet Discount:</span>
             <span id="bill-discount">-₹12</span>
+          </div>
+          <div id="bill-coupon-row" style="display: none; justify-content: space-between; font-size: 13px; color: var(--accent-orange); margin-bottom: 8px;">
+            <span>Promo Code Discount (<span id="bill-coupon-code-label">CODE</span>):</span>
+            <span id="bill-coupon-discount">-₹0</span>
           </div>
           
           <div style="border-top: 1px solid var(--border-color); margin-top: 10px; padding-top: 10px; display: flex; justify-content: space-between; align-items: center;">
@@ -1999,44 +2221,52 @@
           <p id="track-rejection-reason" style="font-size: 12px; color: var(--text-primary); margin-top: 4px; font-weight: 600;"></p>
         </div>
 
-        <!-- Custom Graphical Delivery Progress Stepper (Timeline) -->
-        <div class="tracker-timeline">
-          <div class="tracker-timeline-line"></div>
-          <div id="stepper-line" class="tracker-timeline-progress" style="height: 0%;"></div>
-
-          <!-- Step 1 -->
-          <div id="step-row-pending" class="tracker-timeline-step">
-            <div class="tracker-step-circle" id="circle-pending">📝</div>
-            <div class="tracker-step-info">
-              <h4 id="text-pending" class="tracker-step-title">Order Received / வரப்பெற்றது</h4>
-              <p class="tracker-step-desc">Waiting for store confirmation & approval</p>
-            </div>
+        <!-- Custom Collapsible Graphical Delivery Progress Stepper (Timeline) -->
+        <div class="tracker-timeline-card" style="background: rgba(255, 255, 255, 0.012); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; margin-top: 12px; margin-bottom: 12px; overflow: hidden;">
+          <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 10px 14px;" onclick="toggleTrackerTimelineCollapse()">
+            <span style="font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">📋 Tracking Timeline / கண்காணிப்பு நிலை</span>
+            <span id="tracker-timeline-toggle-icon" style="font-size: 11px; color: var(--accent-orange); font-weight: bold; background: rgba(245,158,11,0.08); padding: 2px 8px; border-radius: 6px;">▼ Show / விரிக்குக</span>
           </div>
+          <div id="tracker-timeline-collapse" style="display: none; padding: 0 14px 16px 14px; border-top: 1px solid rgba(255,255,255,0.04);">
+            <div class="tracker-timeline" style="margin-top: 12px; margin-bottom: 0;">
+              <div class="tracker-timeline-line"></div>
+              <div id="stepper-line" class="tracker-timeline-progress" style="height: 0%;"></div>
 
-          <!-- Step 2 -->
-          <div id="step-row-ready" class="tracker-timeline-step">
-            <div class="tracker-step-circle" id="circle-ready">🥩</div>
-            <div class="tracker-step-info">
-              <h4 id="text-ready" class="tracker-step-title">Cleaned & Prepared / வெட்டப்படுகிறது</h4>
-              <p class="tracker-step-desc">Cut fresh-to-order and hygienically packed</p>
-            </div>
-          </div>
+              <!-- Step 1 -->
+              <div id="step-row-pending" class="tracker-timeline-step">
+                <div class="tracker-step-circle" id="circle-pending">📝</div>
+                <div class="tracker-step-info">
+                  <h4 id="text-pending" class="tracker-step-title">Order Received / வரப்பெற்றது</h4>
+                  <p class="tracker-step-desc">Waiting for store confirmation & approval</p>
+                </div>
+              </div>
 
-          <!-- Step 3 -->
-          <div id="step-row-delivering" class="tracker-timeline-step">
-            <div class="tracker-step-circle" id="circle-delivering">🏍️</div>
-            <div class="tracker-step-info">
-              <h4 id="text-delivering" class="tracker-step-title">Out for Delivery / விநியோகத்தில்</h4>
-              <p id="track-delivery-details" class="tracker-step-desc">Delivery partner is carrying your cargo</p>
-            </div>
-          </div>
+              <!-- Step 2 -->
+              <div id="step-row-ready" class="tracker-timeline-step">
+                <div class="tracker-step-circle" id="circle-ready">🥩</div>
+                <div class="tracker-step-info">
+                  <h4 id="text-ready" class="tracker-step-title">Cleaned & Prepared / வெட்டப்படுகிறது</h4>
+                  <p class="tracker-step-desc">Cut fresh-to-order and hygienically packed</p>
+                </div>
+              </div>
 
-          <!-- Step 4 -->
-          <div id="step-row-delivered" class="tracker-timeline-step">
-            <div class="tracker-step-circle" id="circle-delivered">🎁</div>
-            <div class="tracker-step-info">
-              <h4 id="text-delivered" class="tracker-step-title">Delivered Successfully / பெறப்பட்டது</h4>
-              <p class="tracker-step-desc">Thank you for dining with Edappadi Kadai!</p>
+              <!-- Step 3 -->
+              <div id="step-row-delivering" class="tracker-timeline-step">
+                <div class="tracker-step-circle" id="circle-delivering">🏍️</div>
+                <div class="tracker-step-info">
+                  <h4 id="text-delivering" class="tracker-step-title">Out for Delivery / விநியோகத்தில்</h4>
+                  <p id="track-delivery-details" class="tracker-step-desc">Delivery partner is carrying your cargo</p>
+                </div>
+              </div>
+
+              <!-- Step 4 -->
+              <div id="step-row-delivered" class="tracker-timeline-step">
+                <div class="tracker-step-circle" id="circle-delivered">🎁</div>
+                <div class="tracker-step-info">
+                  <h4 id="text-delivered" class="tracker-step-title">Delivered Successfully / பெறப்பட்டது</h4>
+                  <p class="tracker-step-desc">Thank you for dining with Edappadi Kadai!</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2054,42 +2284,42 @@
           </div>
         </div>
 
-        <!-- Rider Details Section -->
-        <div id="track-rider-container" style="display: none; margin-top: 20px; border-top: 1px dashed rgba(255, 255, 255, 0.1); padding-top: 16px;">
-          <p style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px;">Delivery Executive / விநியோக நபர் 🏍️</p>
-          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); box-shadow: inset 0 1px 1px rgba(255,255,255,0.05);">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <div style="position: relative; width: 44px; height: 44px; background: rgba(245,158,11,0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; border: 1.5px solid rgba(245,158,11,0.3);">
+        <!-- Rider Details Section (Premiumized & Compacted) -->
+        <div id="track-rider-container" style="display: none; margin-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.08); padding-top: 12px;">
+          <p style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">Delivery Executive / விநியோக நபர் 🏍️</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(20, 26, 35, 0.6) 0%, rgba(13, 17, 23, 0.8) 100%); padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.07); box-shadow: 0 4px 15px rgba(0,0,0,0.25);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="position: relative; width: 40px; height: 40px; background: rgba(245,158,11,0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1.5px solid rgba(245,158,11,0.3); box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);">
                 🏍️
-                <div style="position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #22c55e; border-radius: 50%; border: 2px solid #000;"></div>
+                <div style="position: absolute; bottom: -1px; right: -1px; width: 12px; height: 12px; background: #22c55e; border-radius: 50%; border: 2px solid #000; box-shadow: 0 0 6px #22c55e;"></div>
               </div>
               <div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <strong style="color: #fff; font-size: 13.5px;" id="track-rider-name">Raman K</strong>
-                  <span style="font-size: 10px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; padding: 1px 6px; border-radius: 5px;">⭐ 4.9</span>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <strong style="color: #fff; font-size: 13px;" id="track-rider-name">Raman K</strong>
+                  <span style="font-size: 9.5px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; padding: 1px 5px; border-radius: 4px;">⭐ 4.9</span>
                 </div>
-                <p style="font-size: 11px; color: var(--text-secondary); margin: 2px 0 0 0;">Edappadi Town Partner • Verified</p>
+                <p style="font-size: 10.5px; color: var(--text-secondary); margin: 1px 0 0 0;">Edappadi Town Partner • Verified</p>
               </div>
             </div>
-            <div style="display: flex; gap: 8px;">
-              <a id="track-rider-call" href="tel:" class="btn btn-secondary" style="width: auto; padding: 8px 14px; font-size: 12px; text-decoration: none; font-weight: 700; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">📞 Call</a>
-              <a id="track-rider-wa" href="https://wa.me/" target="_blank" class="btn btn-secondary" style="width: auto; padding: 8px 14px; font-size: 12px; text-decoration: none; border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.05); font-weight: 700; border-radius: 12px; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.1);">📱 Chat</a>
+            <div style="display: flex; gap: 6px;">
+              <a id="track-rider-call" href="tel:" class="btn" style="width: auto; padding: 8px 14px; font-size: 11.5px; text-decoration: none; font-weight: 800; border-radius: 20px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; color: #fff; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); transition: all 0.25s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">📞 Call</a>
+              <a id="track-rider-wa" href="https://wa.me/" target="_blank" class="btn" style="width: auto; padding: 8px 14px; font-size: 11.5px; text-decoration: none; border: none; color: #fff; background: linear-gradient(135deg, #10b981, #059669); font-weight: 800; border-radius: 20px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); transition: all 0.25s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">📱 Chat</a>
             </div>
           </div>
         </div>
 
         <!-- Interactive Live Tracking Map -->
-        <div id="tracker-map-box" class="card" style="margin-top: 18px; border: 1px solid rgba(255,255,255,0.08); padding: 0; overflow: hidden; border-radius: 16px; display: none; background: #0c0f14;">
-          <div style="background: rgba(245,158,11,0.04); padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center;">
+        <div id="tracker-map-box" class="card" style="margin-top: 14px; border: 1px solid rgba(255,255,255,0.08); padding: 0; overflow: hidden; border-radius: 16px; display: none; background: #0c0f14; box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
+          <div style="background: rgba(245,158,11,0.04); padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 11px; color: var(--accent-orange); font-weight: 700; letter-spacing: 0.5px;">📍 LIVE ROUTE MAP / நேரடி வரைபடம்</span>
-            <button onclick="openGoogleMapsNavigation()" class="btn btn-secondary" style="width: auto; padding: 6px 10px; font-size: 10.5px; border-color: rgba(245,158,11,0.4); color: var(--accent-orange); background: rgba(245,158,11,0.04); display: flex; align-items: center; gap: 4px; font-weight: 700; border-radius: 8px;">
+            <button onclick="openGoogleMapsNavigation()" class="btn btn-secondary" style="width: auto; padding: 5px 9px; font-size: 10px; border-color: rgba(245,158,11,0.4); color: var(--accent-orange); background: rgba(245,158,11,0.04); display: flex; align-items: center; gap: 4px; font-weight: 700; border-radius: 8px;">
               🗺️ Open Google Maps
             </button>
           </div>
-          <div id="live-map-container" style="height: 320px; width: 100%; background: #0c1117; position: relative;">
+          <div id="live-map-container" style="height: 440px; width: 100%; background: #0c1117; position: relative;">
             <!-- Leaflet map will render here dynamically -->
           </div>
-          <div style="padding: 12px; background: #080d14; text-align: center; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+          <div style="padding: 10px; background: #080d14; text-align: center; font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
             <span>🏢 Store: <strong>Edappadi Town</strong></span>
             <span style="color:var(--accent-orange)">➔</span>
             <span style="color: #60a5fa; font-weight: bold;" id="map-live-status">Rider Assigned</span>
@@ -2126,44 +2356,44 @@
         </button>
       </div>
 
-      <h2 style="color: var(--accent-orange); font-weight: 700; margin-bottom: 12px;">Customer Profile 👤</h2>
+      <h2 style="color: var(--text-primary); font-weight: 700; margin-bottom: 14px; text-shadow: 0 0 10px rgba(245,158,11,0.2);">Customer Profile 👤</h2>
 
-      <!-- Profile Header card -->
-      <div class="card" style="display: flex; align-items: center; gap: 14px;">
-        <div id="prof-avatar" style="width: 56px; height: 56px; background: rgba(245,158,11,0.1); border: 2px solid var(--accent-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: var(--accent-orange);"></div>
+      <!-- Profile Header card with Premium Neon Glow -->
+      <div class="card" id="profile-vip-card" style="display: flex; align-items: center; gap: 16px; background: #0b0b0c; position: relative; border: 1.5px solid var(--accent-orange); border-radius: 16px; padding: 18px; box-shadow: 0 0 15px rgba(245,158,11,0.25), inset 0 0 10px rgba(245,158,11,0.1); margin-bottom: 14px;">
+        <div id="prof-avatar" style="width: 58px; height: 58px; background: rgba(245,158,11,0.1); border: 2px solid var(--accent-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--accent-orange); box-shadow: 0 0 8px rgba(245,158,11,0.3);"></div>
         <div>
-          <h3 id="prof-name" style="font-weight: 600; font-size: 16px; margin-bottom: 2px;"></h3>
-          <p id="prof-phone" style="font-size: 12px; color: var(--text-secondary);"></p>
-          <span id="prof-tier-badge" class="badge" style="margin-top: 4px;">🥉 Bronze Tier</span>
+          <h3 id="prof-name" style="font-weight: 700; font-size: 17px; margin-bottom: 3px; color: #fff;"></h3>
+          <p id="prof-phone" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 5px; font-family: monospace;"></p>
+          <span id="prof-tier-badge" class="badge" style="display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; background: rgba(245,158,11,0.15); border: 1px solid var(--accent-orange); color: var(--accent-orange);">🥉 Bronze Tier</span>
         </div>
       </div>
 
       <!-- QUICK ACTIONS ROW -->
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
-        <div class="card card-interactive" onclick="showTab('tab-track')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 4px; margin-bottom: 0; text-align: center;">
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
+        <div class="card card-interactive" onclick="showTab('tab-track')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 4px; margin-bottom: 0; text-align: center; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04);">
           <span style="font-size: 20px; margin-bottom: 4px;">📦</span>
           <span data-translate="orders" style="font-size: 10px; font-weight: 500; color: var(--text-secondary);">Orders</span>
         </div>
         <a href="tel:8778148899" style="text-decoration: none; color: inherit; margin-bottom: 0;">
-          <div class="card card-interactive" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 4px; margin-bottom: 0; text-align: center; height: 100%;">
+          <div class="card card-interactive" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 4px; margin-bottom: 0; text-align: center; height: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04);">
             <span style="font-size: 20px; margin-bottom: 4px;">📞</span>
             <span style="font-size: 10px; font-weight: 500; color: var(--text-secondary); white-space: nowrap;">Call Shop</span>
           </div>
         </a>
         <a href="https://wa.me/918778148899" target="_blank" style="text-decoration: none; color: inherit; margin-bottom: 0;">
-          <div class="card card-interactive" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 4px; margin-bottom: 0; text-align: center; height: 100%;">
+          <div class="card card-interactive" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 4px; margin-bottom: 0; text-align: center; height: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04);">
             <span style="font-size: 20px; margin-bottom: 4px;">💬</span>
             <span style="font-size: 10px; font-weight: 500; color: var(--text-secondary); white-space: nowrap;">WhatsApp</span>
           </div>
         </a>
-        <div class="card card-interactive" onclick="shareAppLauncher()" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 4px; margin-bottom: 0; text-align: center;">
+        <div class="card card-interactive" onclick="shareAppLauncher()" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 4px; margin-bottom: 0; text-align: center; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04);">
           <span style="font-size: 20px; margin-bottom: 4px;">🔗</span>
           <span style="font-size: 10px; font-weight: 500; color: var(--text-secondary);">Share App</span>
         </div>
       </div>
 
-      <!-- RECENT/FAVORITE PRODUCTS (NEW SECTION) -->
-      <div class="card" id="favorite-products-card" style="display: none; padding: 12px; margin-bottom: 12px;">
+      <!-- RECENT/FAVORITE PRODUCTS -->
+      <div class="card" id="favorite-products-card" style="display: none; padding: 12px; margin-bottom: 12px; border-color: rgba(255,255,255,0.05);">
         <h4 style="margin-bottom: 10px; font-size: 13px; text-transform: uppercase; color: var(--accent-orange); display: flex; align-items: center; gap: 4px;">
           <span>❤️</span> <span data-translate="favoriteProducts">Favorite Products</span>
         </h4>
@@ -2172,57 +2402,38 @@
         </div>
       </div>
 
-      <!-- ORDER STATISTICS (NEW SECTION) -->
-      <div class="card" style="padding: 12px; margin-bottom: 12px;">
-        <h4 style="margin-bottom: 10px; font-size: 13px; text-transform: uppercase; color: var(--accent-orange); display: flex; align-items: center; gap: 4px;">
-          <span>📊</span> <span data-translate="orderStatistics">Order Statistics</span>
-        </h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
-          <div style="background: rgba(255,255,255,0.02); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <p style="color: var(--text-muted); margin-bottom: 2px;">Avg Order Value</p>
-            <strong style="font-size: 14px; color: var(--text-primary);" id="stats-avg-order">₹0</strong>
-          </div>
-          <div style="background: rgba(255,255,255,0.02); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <p style="color: var(--text-muted); margin-bottom: 2px;">Most Ordered</p>
-            <strong style="font-size: 14px; color: var(--accent-orange);" id="stats-most-ordered">-</strong>
-          </div>
-          <div style="background: rgba(255,255,255,0.02); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <p style="color: var(--text-muted); margin-bottom: 2px;">Member Since</p>
-            <strong style="font-size: 13px; color: var(--text-primary);" id="stats-member-since">Jun 2026</strong>
-          </div>
-          <div style="background: rgba(255,255,255,0.02); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <p style="color: var(--text-muted); margin-bottom: 2px;">This Month Spent</p>
-            <strong style="font-size: 14px; color: var(--accent-green);" id="stats-month-spent">₹0</strong>
-          </div>
+      <!-- Loyalty wallet progression card with Neon Emerald Touch -->
+      <div class="card" style="background: linear-gradient(135deg, #09090a 0%, #121214 100%); margin-bottom: 14px; border: 1.5px solid var(--accent-green); box-shadow: 0 0 14px rgba(16,185,129,0.18), inset 0 0 10px rgba(16,185,129,0.06); border-radius: 16px; padding: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid rgba(16, 185, 129, 0.1); padding-bottom: 8px; margin-bottom: 8px;" onclick="toggleLoyaltyCollapse()">
+          <span style="font-size: 11px; color: var(--accent-green); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">⭐ Loyalty Rewards / லாயல்டி</span>
+          <span id="loyalty-toggle-icon" style="font-size: 11px; color: var(--accent-green); font-weight: bold; background: rgba(16,185,129,0.08); padding: 2px 8px; border-radius: 6px;">▼ Collapse / சுருக்கு</span>
         </div>
-      </div>
+        <div id="loyalty-collapse-wrapper">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Loyalty Wallet</span>
+              <p style="font-size: 24px; font-weight: 700; color: var(--accent-green); text-shadow: 0 0 8px rgba(16,185,129,0.3); margin-top: 2px;"><span id="prof-wallet-pts">0</span> pts</p>
+            </div>
+            <div style="text-align: right; font-size: 11px; color: var(--text-muted);">
+              Valued at: <strong style="color: var(--accent-green); font-size: 13px;">₹<span id="prof-wallet-rupees">0</span></strong>
+            </div>
+          </div>
 
-      <!-- Loyalty wallet progression card -->
-      <div class="card" style="background: linear-gradient(135deg, #181818 0%, #111111 100%);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-          <div>
-            <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Loyalty Wallet</span>
-            <p style="font-size: 24px; font-weight: 700; color: var(--accent-orange);"><span id="prof-wallet-pts">0</span> pts</p>
+          <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;" id="prof-progress-text"></p>
+          <div class="progress-container" style="background: #19191b; height: 6px; border-radius: 4px; overflow: hidden; margin-bottom: 6px;">
+            <div class="progress-bar" id="prof-tier-progress-bar" style="background: var(--accent-green); height: 100%; width: 0%; transition: width 0.4s ease;"></div>
           </div>
-          <div style="text-align: right; font-size: 11px; color: var(--text-muted);">
-            Valued at: <strong style="color: var(--accent-green); font-size: 13px;">₹<span id="prof-wallet-rupees">12</span></strong>
-          </div>
+          <p style="font-size: 10px; color: var(--text-muted); text-align: right; margin-top: 2px; line-height: 1.4; margin-bottom: 0;">₹100 spent = 10-20 pts • 10 pts = ₹1 discount code</p>
         </div>
-
-        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;" id="prof-progress-text"></p>
-        <div class="progress-container">
-          <div class="progress-bar" id="prof-tier-progress-bar"></div>
-        </div>
-        <p style="font-size: 10px; color: var(--text-muted); text-align: right; margin-top: 2px;">₹100 spent = 10 pts (Bronze) / 15 pts (Silver) / 20 pts (Gold) • 10 pts = ₹1 discount</p>
       </div>
 
       <!-- Stats row layout -->
-      <div class="grid-2col" style="margin-bottom: 12px;">
-        <div class="card" style="text-align: center; margin-bottom: 0; padding: 12px;">
+      <div class="grid-2col" style="margin-bottom: 14px;">
+        <div class="card" style="text-align: center; margin-bottom: 0; padding: 12px; background: #0c0c0d; border-color: rgba(255,255,255,0.04);">
           <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Past Orders</span>
           <p style="font-size: 18px; font-weight: 700; color: var(--text-primary);" id="stats-orders">0</p>
         </div>
-        <div class="card" style="text-align: center; margin-bottom: 0; padding: 12px;">
+        <div class="card" style="text-align: center; margin-bottom: 0; padding: 12px; background: #0c0c0d; border-color: rgba(255,255,255,0.04);">
           <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Total Spent</span>
           <p style="font-size: 18px; font-weight: 700; color: var(--accent-green);" id="stats-spent">₹0</p>
         </div>
@@ -2330,6 +2541,11 @@
             <strong style="font-size: 16px; color: #a855f7;" id="delivery-exec-earnings">₹0</strong>
           </div>
         </div>
+        
+        <!-- Dynamic Premium Salary Payout Banner -->
+        <div id="delivery-exec-salary-banner" style="margin-top: 12px; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 10px; font-size: 11px; display: flex; flex-direction: column; gap: 4px; color: var(--text-secondary);">
+          <!-- Dynamically populated by JS on renderDeliveryScreen -->
+        </div>
       </div>
 
       <!-- Quick Category Filters mirroring Admin tab style -->
@@ -2406,6 +2622,7 @@
         <span class="admin-tab" onclick="switchAdminTab('tab-products', this)">🥩 Products</span>
         <span class="admin-tab" onclick="switchAdminTab('tab-delivery', this)">🚚 Delivery</span>
         <span class="admin-tab" onclick="switchAdminTab('tab-customers', this)">👥 Customers</span>
+        <span class="admin-tab" onclick="switchAdminTab('tab-coupons', this)">🏷️ Coupons</span>
         <span class="admin-tab" onclick="switchAdminTab('tab-analytics', this)">📊 Analytics</span>
         <span class="admin-tab" onclick="switchAdminTab('tab-settings', this)">⚙️ Settings</span>
       </div>
@@ -2523,24 +2740,54 @@
       <!-- ADMIN TAB 4: DELIVERY -->
       <div id="admin-tab-delivery" class="admin-subtab-container" style="display: none;">
         <!-- Add Delivery Person Form -->
-        <div class="card" style="border-color: var(--accent-orange); margin-bottom: 16px;">
-          <h4 style="color: var(--accent-orange); font-size: 14px; text-transform: uppercase; margin-bottom: 10px;">Register New Delivery Partner</h4>
+        <div class="card" style="border-color: var(--accent-orange); margin-bottom: 16px; background: linear-gradient(135deg, rgba(20,20,20,0.6) 0%, rgba(10,10,10,0.95) 100%);">
+          <h4 style="color: var(--accent-orange); font-size: 14px; text-transform: uppercase; margin-bottom: 10px;" id="admin-delivery-form-title">Register New Delivery Partner</h4>
           <form id="admin-delivery-form" onsubmit="handleDeliverySave(event)">
+            <input type="hidden" id="edit-exec-id" value="">
+            
             <div class="form-group">
-              <label>Delivery Executive Name</label>
+              <label style="font-weight: 700; color: #fff;">Delivery Executive Name / பெயர் 👤</label>
               <input type="text" id="add-exec-name" class="form-control" placeholder="Raman" required>
             </div>
-            <div class="grid-2col">
+            
+            <div class="grid-2col" style="margin-bottom: 12px;">
               <div class="form-group">
-                <label>Phone Number</label>
+                <label style="font-weight: 700; color: #fff;">Phone Number / தொலைபேசி 📞</label>
                 <input type="tel" id="add-exec-phone" class="form-control" placeholder="9876543210" pattern="\d{10}" required>
               </div>
               <div class="form-group">
-                <label>Secure Key / Password</label>
+                <label style="font-weight: 700; color: #fff;">Secure Key Password / கடவுச்சொல் 🔑</label>
                 <input type="password" id="add-exec-pass" class="form-control" placeholder="••••" required>
               </div>
             </div>
-            <button type="submit" class="btn btn-primary">Add Person ✓</button>
+
+            <!-- Global Delivery Salary / Payment Structures Configuration -->
+            <div class="card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 12px; margin-bottom: 14px; border-radius: 12px;">
+              <p style="font-size: 11px; color: var(--accent-orange); font-weight: 800; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px;">💰 Salary & Payout Design / சம்பளத் திட்டம்</p>
+              
+              <div class="grid-2col" style="gap: 10px;">
+                <div class="form-group">
+                  <label style="font-size: 11.5px; font-weight: 700;">Payout Type / திட்ட வகை</label>
+                  <select id="add-exec-salary-type" class="form-control" style="background: #0d0e12; border: 1px solid #2d3139; color: #fff; padding: 10px; border-radius: 8px;" onchange="onSalaryTypeChange()">
+                    <option value="per_order">Pay Per Order Commission (ஆர்டர் ஒன்றுக்கு கமிஷன்)</option>
+                    <option value="fixed">Fixed Monthly Salary (மாதாந்திர நிலையான சம்பளம்)</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label style="font-size: 11.5px; font-weight: 700;" id="exec-rate-label">Amount / தொகை (₹)</label>
+                  <input type="number" id="add-exec-salary-rate" class="form-control" value="35" min="0" placeholder="e.g. 35 per delivery" required>
+                </div>
+              </div>
+              <p style="font-size: 10.5px; color: var(--text-muted); margin-top: 6px; margin-bottom: 0; line-height: 1.45;" id="salary-help-text">
+                Rider is paid <strong>₹35</strong> directly for every completed delivery order ticket.
+              </p>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <button type="submit" class="btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 850; padding: 12px; border-radius: 10px; font-size: 13.5px; box-shadow: 0 4px 15px rgba(245,158,11,0.2);" id="exec-submit-btn">Register Rider ✓</button>
+              <button type="button" class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-secondary); display: none; padding: 10px;" id="exec-cancel-btn" onclick="resetDeliveryForm()">Cancel Edit / ரத்து செய்</button>
+            </div>
           </form>
         </div>
 
@@ -2565,6 +2812,65 @@
         </div>
 
         <div id="admin-customer-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- ADMIN TAB: COUPONS & OFFERS -->
+      <div id="admin-tab-coupons" class="admin-subtab-container" style="display: none;">
+        <!-- Add Coupon code Form -->
+        <div class="card" style="border-color: var(--accent-orange); margin-bottom: 20px; background: linear-gradient(135deg, rgba(20,20,20,0.6) 0%, rgba(10,10,10,0.95) 100%);">
+          <h4 style="color: var(--accent-orange); font-size: 14px; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+            <span>🏷️</span> Create Custom Offer Coupon / கூப்பன் உருவாக்கு
+          </h4>
+          <form id="admin-coupon-form" onsubmit="handleCouponSave(event)">
+            <input type="hidden" id="edit-coupon-id" value="">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>Coupon Code / குறியீடு *</label>
+                <input type="text" id="add-coupon-code" class="form-control" placeholder="WELCOME10" required style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>Discount Type / சலுகை வகை *</label>
+                <select id="add-coupon-type" class="form-control" onchange="onCouponTypeChange()">
+                  <option value="percentage">Percentage Off (%) / சதவீத தள்ளுபடி</option>
+                  <option value="fixed">Fixed Cash Off (₹) / நேரடி தள்ளுபடி</option>
+                  <option value="freeship">Free Delivery (🚚) / இலவச டெலிவரி</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label id="coupon-rate-label">Discount Value / தள்ளுபடி மதிப்பு</label>
+                <input type="number" id="add-coupon-rate" class="form-control" placeholder="10" required min="0">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>Min Order amount / குறைந்தபட்ச ஆர்டர் (₹)</label>
+                <input type="number" id="add-coupon-min" class="form-control" placeholder="199" required min="0">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label>Offer Description (English) *</label>
+              <input type="text" id="add-coupon-desc-en" class="form-control" placeholder="Get 10% OFF on elite chicken and beef recipes" required style="margin-bottom: 8px;">
+              <label>ஆஃபர் விளக்கம் (தமிழ்) *</label>
+              <input type="text" id="add-coupon-desc-ta" class="form-control" placeholder="உங்கள் ஆர்டருக்கு 10% உடனடித் தள்ளுபடி பெறுங்கள்!" required>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <button type="submit" id="coupon-submit-btn" class="btn btn-primary" style="flex: 1.3;">Create Coupon ✓</button>
+              <button type="button" id="coupon-cancel-btn" class="btn btn-secondary" onclick="resetCouponForm()" style="display: none; flex: 0.7;">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4 style="font-size: 13px; text-transform: uppercase; color: var(--text-secondary);">Active Global Coupons (கூப்பன்கள் பட்டியல்)</h4>
+          <span class="badge" style="background: rgba(245,158,11,0.08); color: var(--accent-orange); font-size: 11px;" id="admin-coupons-count">3 active</span>
+        </div>
+
+        <div id="admin-coupons-list" style="display: flex; flex-direction: column; gap: 10px;">
           <!-- Populated by JS -->
         </div>
       </div>
@@ -2925,6 +3231,38 @@
       }
     };
 
+    // Deletion Safeguard Registry
+    const getDeletedOrderIds = () => {
+      return getData('ek_deleted_order_ids', []);
+    };
+    const markOrderAsDeleted = (orderId) => {
+      const list = getDeletedOrderIds();
+      if (!list.includes(orderId)) {
+        list.push(orderId);
+        saveData('ek_deleted_order_ids', list);
+      }
+    };
+    const getDeletedProductIds = () => {
+      return getData('ek_deleted_product_ids', []);
+    };
+    const markProductAsDeleted = (productId) => {
+      const list = getDeletedProductIds();
+      if (!list.includes(productId)) {
+        list.push(productId);
+        saveData('ek_deleted_product_ids', list);
+      }
+    };
+    const getDeletedUserIds = () => {
+      return getData('ek_deleted_user_ids', []);
+    };
+    const markUserAsDeleted = (userId) => {
+      const list = getDeletedUserIds();
+      if (!list.includes(userId)) {
+        list.push(userId);
+        saveData('ek_deleted_user_ids', list);
+      }
+    };
+
     const saveData = (key, data) => {
       try {
         // Handle settings special injection of updatedAt
@@ -2937,6 +3275,11 @@
           AndroidStorage.saveData(key, jsonStr);
         }
         localStorage.setItem(key, jsonStr);
+
+        // Immediate internal event dispatch for same-page sync
+        if (key === 'ek_orders') {
+          window.dispatchEvent(new CustomEvent('ek-orders-updated', { detail: data }));
+        }
         
         // Real-time synchronization trigger
         if (['ek_products', 'ek_settings', 'ek_orders', 'ek_users', 'ek_delivery_persons', 'ek_admin_accounts', 'ek_remembered_credentials'].includes(key)) {
@@ -3171,6 +3514,7 @@
     let selectedWeight = 500; // default 500g
     let selectedCutStyle = 'Small Pieces';
     let cart = [];
+    let appliedCouponCode = null;
     let selectedDeliverySlot = 'Now';
     let selectedPaymentMethod = 'Cash on Delivery';
 
@@ -3302,6 +3646,11 @@
         renderTrackerScreen();
       } else if (currentScreen === 'screen-profile') {
         renderProfileScreen();
+      }
+      try {
+        syncCollapsePreferences();
+      } catch (e) {
+        console.error("syncCollapsePreferences error", e);
       }
     }
 
@@ -3759,7 +4108,21 @@
       if (event) event.preventDefault();
       
       const loginIdVal = document.getElementById('login-identifier').value.trim();
-      document.getElementById('fp-identifier-input').value = loginIdVal;
+      const phoneInp = document.getElementById('fp-phone-input');
+      const emailInp = document.getElementById('fp-email-input');
+      
+      if (phoneInp) phoneInp.value = '';
+      if (emailInp) emailInp.value = '';
+      
+      if (loginIdVal) {
+        if (/^\+?\d+$/.test(loginIdVal)) {
+          if (phoneInp) phoneInp.value = loginIdVal;
+        } else if (loginIdVal.includes('@')) {
+          if (emailInp) emailInp.value = loginIdVal;
+        } else {
+          if (phoneInp) phoneInp.value = loginIdVal;
+        }
+      }
       
       // Default configurations
       currentFPMethod = 'gmail-otp';
@@ -3854,37 +4217,43 @@
     }
 
     function proceedFPSendCode() {
-      const inputVal = document.getElementById('fp-identifier-input').value.trim();
+      const phoneVal = document.getElementById('fp-phone-input').value.trim();
+      const emailVal = document.getElementById('fp-email-input').value.trim().toLowerCase();
       const isTa = currentLang === 'ta';
       const strings = isTa ? fpTranslations.ta : fpTranslations.en;
 
-      if (!inputVal) {
-        showToast(strings.enterValidIdentifier, "error");
+      if (!phoneVal && !emailVal) {
+        showToast(
+          isTa 
+            ? "தயவுசெய்து உங்கள் கைபேசி எண் அல்லது மின்னஞ்சல் முகவரியை உள்ளிடவும்." 
+            : "Please enter your registered phone number or email address.", 
+          "error"
+        );
         return;
       }
 
-      fpIdentifier = inputVal;
+      fpIdentifier = phoneVal || emailVal; // fallback tracking
       const users = getData('ek_users');
-      // Search matched user
-      let matched = users.find(u => u.phone === inputVal || u.email === inputVal);
+      
+      let matched = null;
+      if (phoneVal && emailVal) {
+        matched = users.find(u => u.phone === phoneVal && u.email && u.email.toLowerCase() === emailVal);
+        if (!matched) {
+          // Safe fallback to match by phone only if dual verification details mismatch
+          matched = users.find(u => u.phone === phoneVal);
+        }
+      } else if (phoneVal) {
+        matched = users.find(u => u.phone === phoneVal);
+      } else if (emailVal) {
+        matched = users.find(u => u.email && u.email.toLowerCase() === emailVal);
+      }
       
       if (!matched) {
-        showCustomConfirm(
-          isTa ? "கணக்கு காணப்படவில்லை" : "Account Not Found",
+        showToast(
           isTa 
-            ? `மின்னஞ்சல் அல்லது கைபேசி எண் '${inputVal}' எங்களின் தரவுதளத்தில் இல்லை. பரிசோதனைக்காக இந்த கணக்கிற்கு கடவுச்சொல் மீட்டமைப்பை சோதிக்க விரும்புகிறீர்களா?`
-            : `Client '${inputVal}' is not registered yet. Would you like to proceed with a simulated reset for testing purposes?`,
-          () => {
-            fpMatchedUser = {
-              id: 'temp_mock_user',
-              name: 'Demo Account',
-              phone: inputVal.includes('@') ? '9999999999' : inputVal,
-              email: inputVal.includes('@') ? inputVal : 'demo@edappadikadai.com',
-              password: 'temp'
-            };
-            runFPSendingFlow();
-          },
-          () => {}
+            ? "சேமிக்கப்பட்ட விவரங்கள் எதுவும் பொருந்தவில்லை! மீண்டும் சரிபார்க்கவும்."
+            : "No matching account found with current entry. Please try again.",
+          "error"
         );
       } else {
         fpMatchedUser = matched;
@@ -4136,7 +4505,7 @@
         defaults.forEach(d => {
           const opt = document.createElement('option');
           opt.value = d.phone;
-          opt.innerText = `🏍️ ${d.name} (${d.phone})`;
+          opt.innerText = `🏍️ ${d.name}`;
           selector.appendChild(opt);
         });
       } else {
@@ -4144,7 +4513,7 @@
           if (e.isActive) {
             const opt = document.createElement('option');
             opt.value = e.phone;
-            opt.innerText = `🏍️ ${e.name} (${e.phone})`;
+            opt.innerText = `🏍️ ${e.name}`;
             selector.appendChild(opt);
           }
         });
@@ -4496,7 +4865,9 @@
                 <p style="font-size:10px; color:var(--text-secondary); margin-bottom:4px;">${p.englishName}</p>
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
                   <strong style="font-size:11px; color:var(--accent-green);">₹${p.pricePerKg}/Kg</strong>
-                  <button class="btn btn-primary" style="width:auto; padding:3px 8px; font-size:10px;" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">Buy</button>
+                  <button class="btn btn-primary" style="width:auto; padding:6px 14px; font-size:11.5px; font-weight:700; border-radius:12px; height:34px; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 4px 10px rgba(245,158,11,0.18);" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">
+                    <span>Buy ➔</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -4544,7 +4915,9 @@
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top: auto;">
                 <strong style="font-size:14px; color:var(--text-primary); font-weight:bold;">₹${p.pricePerKg}/Kg</strong>
-                <button class="btn btn-primary" style="width:auto; padding:5px 12px; font-size:11px; font-weight:800; border-radius:8px; height:28px;" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">Buy →</button>
+                <button class="btn btn-primary" style="width:auto; padding:6px 14px; font-size:11.5px; font-weight:700; border-radius:12px; height:34px; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 4px 10px rgba(245,158,11,0.18);" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">
+                  <span>Buy ➔</span>
+                </button>
               </div>
             </div>
           </div>
@@ -4838,12 +5211,54 @@
       recalculateBill();
     }
 
+    function getCurrentPrecisePosition(onSuccess, onError) {
+      if (!navigator.geolocation) {
+        if (onError) onError(new Error("Geolocation not supported"));
+        return;
+      }
+      
+      const highAccuracyOptions = {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 0
+      };
+      
+      const lowAccuracyOptions = {
+        enableHighAccuracy: false,
+        timeout: 8000,
+        maximumAge: 10000
+      };
+      
+      console.log("[Precise GPS] Locking position via hardware satellite GPS...");
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          console.log("[Precise GPS] Satellite location successfully locked!", pos.coords);
+          onSuccess(pos);
+        },
+        function (err) {
+          console.warn("[Precise GPS] Satellite signal timed out or timed out. Retrying with network/Wi-Fi positioning...", err);
+          navigator.geolocation.getCurrentPosition(
+            function (posCoarse) {
+              console.log("[Precise GPS] Network/Wi-Fi location locked!", posCoarse.coords);
+              onSuccess(posCoarse);
+            },
+            function (err2) {
+              console.error("[Precise GPS] Geolocation totally failed.", err2);
+              if (onError) onError(err2);
+            },
+            lowAccuracyOptions
+          );
+        },
+        highAccuracyOptions
+      );
+    }
+
     function autoDetectCoordinatesAndAddress(btn) {
       const originalHtml = btn.innerHTML;
-      btn.innerHTML = "🌀 Querying GPS coordinates...";
+      btn.innerHTML = currentLang === 'ta' ? "🌀 ஜிபிஎஸ் இணைக்கப்படுகிறது..." : "🌀 Querying GPS coordinates...";
       btn.disabled = true;
       
-      navigator.geolocation.getCurrentPosition(
+      getCurrentPrecisePosition(
         async function(position) {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
@@ -4854,7 +5269,7 @@
             textAddress.setAttribute('data-lng', lng);
           }
           
-          btn.innerHTML = "🔍 Looking up neighborhood name...";
+          btn.innerHTML = currentLang === 'ta' ? "🔍 முகவரியை தேடுகிறது..." : "🔍 Looking up neighborhood name...";
           
           try {
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
@@ -4888,7 +5303,7 @@
             }
             
             recalculateBill();
-            showToast("📍 Precise address detected and saved successfully!", "success");
+            showToast(currentLang === 'ta' ? "📍 உங்களது இருப்பிடம் துல்லியமாகக் கண்டறியப்பட்டது!" : "📍 Precise address detected and saved successfully!", "success");
             btn.innerHTML = "✅ GPS Location Linked";
             btn.style.borderColor = "var(--accent-green)";
             btn.style.color = "var(--accent-green)";
@@ -4899,7 +5314,7 @@
               textAddress.value = fallbackAddr;
             }
             recalculateBill();
-            showToast("📍 Coordinates acquired. Precision address filled!", "info");
+            showToast(currentLang === 'ta' ? "📍 அட்சரேகை பதிவானது. தோராய முகவரி இணைக்கப்பட்டது!" : "📍 Coordinates acquired. Precision address filled!", "info");
             btn.innerHTML = "✅ Connected Coordinates";
           } finally {
             setTimeout(() => {
@@ -4911,33 +5326,26 @@
           }
         },
         function(error) {
-          console.warn(error);
+          console.warn("GPS failed, using a stable central reference:", error);
           btn.disabled = false;
           btn.innerHTML = originalHtml;
           
-          // Fallback simulation within Edappadi center
-          const lat = 11.5804 + (Math.random() - 0.5) * 0.02;
-          const lng = 77.8501 + (Math.random() - 0.5) * 0.02;
+          // Use stable reference point (Vellandi Valasai Road, Edappadi) over randomized points
+          const lat = 11.5804;
+          const lng = 77.8501;
           const textAddress = document.getElementById('cart-delivery-address');
           if (textAddress) {
             textAddress.setAttribute('data-lat', lat);
             textAddress.setAttribute('data-lng', lng);
           }
           
-          const sampleAddresses = [
-            "Kavandampatti Road, Edappadi, Salem, pincode: 637101",
-            "Vellandi Valasai Road, Edappadi, Salem, pincode: 637105",
-            "Chinnamanali Road, Edappadi, Salem, pincode: 637101",
-            "Koneri Patty, Edappadi Municipality, Salem District"
-          ];
-          const randomized = sampleAddresses[Math.floor(Math.random() * sampleAddresses.length)];
+          const stableAddress = "Vellandi Valasai Road, Edappadi, Salem, Pincode: 637101";
           if (textAddress) {
-            textAddress.value = randomized;
+            textAddress.value = stableAddress;
           }
           recalculateBill();
-          showToast("🌐 Simulated hyper-precise coordinate linked successfully!", "info");
-        },
-        { enableHighAccuracy: true, timeout: 6000 }
+          showToast(currentLang === 'ta' ? "📍 ஜிபிஎஸ் சிக்னல் இல்லை, எடப்பாடி மையப்பகுதி முகவரி பயன்படுத்தப்பட்டது." : "📍 GPS inactive, using default central Edappadi address.", "info");
+        }
       );
     }
 
@@ -5134,10 +5542,10 @@
 
     function autoDetectCoordinatesForTarget(targetId, btn) {
       const originalText = btn.innerHTML;
-      btn.innerHTML = "🌀 Detecting...";
+      btn.innerHTML = currentLang === 'ta' ? "🌀 அறிவியற்றது..." : "🌀 Detecting...";
       btn.disabled = true;
 
-      navigator.geolocation.getCurrentPosition(
+      getCurrentPrecisePosition(
         async function (pos) {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
@@ -5182,7 +5590,7 @@
               recalculateBill();
             }
 
-            showToast("📍 தானியங்கி இருப்பிடம் வெற்றிகரமாக இணைக்கப்பட்டது!", "success");
+            showToast(currentLang === 'ta' ? "📍 இருப்பிடம் வெற்றிகரமாக இணைக்கப்பட்டது!" : "📍 Location detected successfully!", "success");
 
           } catch (e) {
             if (targetInput) targetInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)} (Edappadi Area)`;
@@ -5192,24 +5600,18 @@
           }
         },
         function (err) {
-          // Fallback simulation within Edappadi center for robust testing
-          const lat = 11.5804 + (Math.random() - 0.5) * 0.02;
-          const lng = 77.8501 + (Math.random() - 0.5) * 0.02;
+          console.warn("Target GPS acquisition failed, using central reference:", err);
+          const lat = 11.5804;
+          const lng = 77.8501;
           const targetInput = document.getElementById(targetId);
           if (targetInput) {
             targetInput.setAttribute('data-lat', lat);
             targetInput.setAttribute('data-lng', lng);
           }
           
-          const sampleAddresses = [
-            "Kavandampatti Road, Edappadi, Salem, pincode: 637101",
-            "Vellandi Valasai Road, Edappadi, Salem, pincode: 637105",
-            "Chinnamanali Road, Edappadi, Salem, pincode: 637101",
-            "Koneri Patty, Edappadi Municipality, Salem District"
-          ];
-          const randomized = sampleAddresses[Math.floor(Math.random() * sampleAddresses.length)];
+          const stableAddress = "Vellandi Valasai Road, Edappadi, Salem, Pincode: 637101";
           if (targetInput) {
-            targetInput.value = randomized;
+            targetInput.value = stableAddress;
           }
 
           if (targetId === 'prof-address-edit') {
@@ -5218,7 +5620,7 @@
               const users = getData('ek_users');
               const userIdx = users.findIndex(u => u.id === session.userId);
               if (userIdx !== -1) {
-                users[userIdx].address = randomized;
+                users[userIdx].address = stableAddress;
                 users[userIdx].latitude = lat;
                 users[userIdx].longitude = lng;
                 saveData('ek_users', users);
@@ -5233,9 +5635,8 @@
 
           btn.disabled = false;
           btn.innerHTML = originalText;
-          showToast("📍 தானியங்கி இருப்பிடம் வெற்றிகரமாக இணைக்கப்பட்டது!", "success");
-        },
-        { enableHighAccuracy: true, timeout: 6000 }
+          showToast(currentLang === 'ta' ? "📍 ஜிபிஎஸ் துண்டிக்கப்பட்டது, எடப்பாடி மையப்பகுதி முகவரி பயன்படுத்தப்பட்டது." : "📍 GPS inactive; central Edappadi reference coordinates connected.", "warning");
+        }
       );
     }
 
@@ -5286,17 +5687,61 @@
       const discRow = document.getElementById('bill-discount-row');
       
       if (usePoints && user) {
-        discount = Math.round(user.loyaltyPoints / 10);
+        const pointsConsumed = Math.min(user.loyaltyPoints, subtotal * 10);
+        discount = Math.round(pointsConsumed / 10);
         discRow.style.display = 'flex';
         document.getElementById('bill-discount').innerText = `-₹${discount}`;
       } else {
         discRow.style.display = 'none';
       }
 
-      const grandTotal = Math.max(0, (subtotal + deliveryFee) - discount);
+      // Coupon deduction checking
+      let currentDeliveryFee = deliveryFee;
+      let coupDiscount = 0;
+      const coupRow = document.getElementById('bill-coupon-row');
+      const coupPill = document.getElementById('cart-applied-coupon-pill');
+      const coupPillVal = document.getElementById('cart-applied-coupon-value');
+      
+      if (appliedCouponCode) {
+        const coupons = getCoupons();
+        const c = coupons.find(x => x.code === appliedCouponCode);
+        if (c && subtotal >= c.minAmount) {
+          if (c.type === 'percentage') {
+            coupDiscount = Math.round((subtotal * c.rate) / 100);
+          } else if (c.type === 'fixed') {
+            coupDiscount = c.rate;
+          } else if (c.type === 'freeship') {
+            coupDiscount = 0;
+            currentDeliveryFee = 0; // Free delivery override
+          }
+          
+          // Cap coupon discount so it does not exceed remaining subtotal space after points
+          coupDiscount = Math.min(Math.max(0, subtotal - discount), coupDiscount);
+          
+          if (coupRow) {
+            coupRow.style.display = 'flex';
+            document.getElementById('bill-coupon-code-label').innerText = c.code;
+            document.getElementById('bill-coupon-discount').innerText = c.type === 'freeship' ? 'FREE Delivery 🚚' : `-₹${coupDiscount}`;
+          }
+          if (coupPill && coupPillVal) {
+            coupPill.style.display = 'flex';
+            coupPillVal.innerText = c.type === 'freeship' ? `${c.code} (Free Delivery)` : `${c.code} (-₹${coupDiscount})`;
+          }
+        } else {
+          // auto remove if order contents fell below minimum eligibility
+          appliedCouponCode = null;
+          if (coupRow) coupRow.style.display = 'none';
+          if (coupPill) coupPill.style.display = 'none';
+        }
+      } else {
+        if (coupRow) coupRow.style.display = 'none';
+        if (coupPill) coupPill.style.display = 'none';
+      }
+
+      const grandTotal = Math.max(0, (subtotal + currentDeliveryFee) - discount - coupDiscount);
 
       document.getElementById('bill-subtotal').innerText = `₹${subtotal}`;
-      document.getElementById('bill-delivery').innerText = deliveryFee === 0 ? "FREE ✨" : `₹${deliveryFee}`;
+      document.getElementById('bill-delivery').innerText = currentDeliveryFee === 0 ? "FREE ✨" : `₹${currentDeliveryFee}`;
       document.getElementById('bill-grand-total').innerText = `₹${grandTotal}`;
 
       // Check min order requirements and show warning if violated
@@ -5370,11 +5815,33 @@
       let discount = 0;
       const usePoints = document.getElementById('cart-use-loyalty').checked;
       if (usePoints) {
-        discount = Math.round(user.loyaltyPoints / 10);
-        user.loyaltyPoints = 0; // Burned points
+        const pointsConsumed = Math.min(user.loyaltyPoints, subtotal * 10);
+        discount = Math.round(pointsConsumed / 10);
+        user.loyaltyPoints = Math.max(0, user.loyaltyPoints - pointsConsumed); // Deduct only consumed points!
       }
 
-      const grandTotal = Math.max(0, (subtotal + deliveryFee) - discount);
+      // Handle Coupon calculations
+      let coupDiscount = 0;
+      let coupCodeValue = null;
+      if (appliedCouponCode) {
+        const coupons = getCoupons();
+        const c = coupons.find(x => x.code === appliedCouponCode);
+        if (c && subtotal >= c.minAmount) {
+          coupCodeValue = c.code;
+          if (c.type === 'percentage') {
+            coupDiscount = Math.round((subtotal * c.rate) / 100);
+          } else if (c.type === 'fixed') {
+            coupDiscount = c.rate;
+          } else if (c.type === 'freeship') {
+            coupDiscount = 0;
+            deliveryFee = 0; // FREE DELIVERY
+          }
+          // Cap coupon discount so it does not exceed remaining subtotal space after points
+          coupDiscount = Math.min(Math.max(0, subtotal - discount), coupDiscount);
+        }
+      }
+
+      const grandTotal = Math.max(0, (subtotal + deliveryFee) - discount - coupDiscount);
 
       // Award dynamic loyalty points (Bronze: 10 per ₹100, Silver 1.5x: 15 per ₹100, Gold 2x: 20 per ₹100)
       let pointRate = 10;
@@ -5419,6 +5886,8 @@
         subtotalAmount: subtotal,
         deliveryCharge: deliveryFee,
         loyaltyDiscount: discount,
+        couponCode: coupCodeValue || "",
+        couponDiscount: coupDiscount,
         totalAmount: grandTotal,
         customerLat: custLat || user.latitude || null,
         customerLng: custLng || user.longitude || null,
@@ -5458,8 +5927,9 @@
       });
       saveData('ek_products', products);
 
-      // Reset cart metrics state
+      // Reset cart metrics state & Coupon
       cart = [];
+      appliedCouponCode = null;
       updateCartBadge();
       
       // Populate and trigger our glorious order success modal instead of just redirecting
@@ -5475,25 +5945,23 @@
     function updateRiderLiveLocation() {
       const session = getData('ek_delivery_session', null);
       if (!session) return;
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const list = getData('ek_delivery_persons', []);
-          const exIdx = list.findIndex(e => e.id === session.id);
-          if (exIdx !== -1) {
-            list[exIdx].latitude = lat;
-            list[exIdx].longitude = lng;
-            list[exIdx].lastActiveAt = new Date().toISOString();
-            saveData('ek_delivery_persons', list);
-            
-            if (db) {
-              db.collection('ek_delivery_persons').doc(session.id).set(list[exIdx])
-                .catch(err => console.log("Cloud sync rider geolocation error:", err));
-            }
+      getCurrentPrecisePosition(position => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const list = getData('ek_delivery_persons', []);
+        const exIdx = list.findIndex(e => e.id === session.id);
+        if (exIdx !== -1) {
+          list[exIdx].latitude = lat;
+          list[exIdx].longitude = lng;
+          list[exIdx].lastActiveAt = new Date().toISOString();
+          saveData('ek_delivery_persons', list);
+          
+          if (db) {
+            db.collection('ek_delivery_persons').doc(session.id).set(list[exIdx])
+              .catch(err => console.log("Cloud sync rider geolocation error:", err));
           }
-        }, err => console.warn("Rider tracking permission not active:", err), {enableHighAccuracy: true, timeout: 5000});
-      }
+        }
+      }, err => console.warn("Rider tracking background GPS error:", err));
     }
 
     function updateRiderLiveLocationManual() {
@@ -5502,40 +5970,36 @@
       
       showToast("📡 Fetching GPS coordination points...", "info");
       
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const list = getData('ek_delivery_persons', []);
-          const exIdx = list.findIndex(e => e.id === session.id);
-          if (exIdx !== -1) {
-            list[exIdx].latitude = lat;
-            list[exIdx].longitude = lng;
-            list[exIdx].lastActiveAt = new Date().toISOString();
-            saveData('ek_delivery_persons', list);
-            
-            if (db) {
-              db.collection('ek_delivery_persons').doc(session.id).set(list[exIdx])
-                .then(() => {
-                  showToast("உங்களது நேரலை ஜிபிஎஸ் இருப்பிடம் வாடிக்கையாளர் மற்றும் அட்மின் பக்கத்தில் புதுப்பிக்கப்பட்டது! 🛰️<br><span style='font-size:11px;'>GPS synchronized live!</span>", "success");
-                  renderDeliveryScreen();
-                })
-                .catch(err => {
-                  console.error(err);
-                  showToast("GPS updated locally, database push pending.", "info");
-                });
-            } else {
-              showToast("GPS updated locally! ✓", "success");
-              renderDeliveryScreen();
-            }
+      getCurrentPrecisePosition(position => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const list = getData('ek_delivery_persons', []);
+        const exIdx = list.findIndex(e => e.id === session.id);
+        if (exIdx !== -1) {
+          list[exIdx].latitude = lat;
+          list[exIdx].longitude = lng;
+          list[exIdx].lastActiveAt = new Date().toISOString();
+          saveData('ek_delivery_persons', list);
+          
+          if (db) {
+            db.collection('ek_delivery_persons').doc(session.id).set(list[exIdx])
+              .then(() => {
+                showToast("உங்களது நேரலை ஜிபிஎஸ் இருப்பிடம் வாடிக்கையாளர் மற்றும் அட்மின் பக்கத்தில் புதுப்பிக்கப்பட்டது! 🛰️<br><span style='font-size:11px;'>GPS synchronized live!</span>", "success");
+                renderDeliveryScreen();
+              })
+              .catch(err => {
+                console.error(err);
+                showToast("GPS updated locally, database push pending.", "info");
+              });
+          } else {
+            showToast("GPS updated locally! ✓", "success");
+            renderDeliveryScreen();
           }
-        }, err => {
-          console.warn("Rider tracking permission not active-", err);
-          showToast("ஜிபிஎஸ் அணுகல் மறுக்கப்பட்டது / GPS permission denied or timed out ❌", "error");
-        }, {enableHighAccuracy: true, timeout: 8000});
-      } else {
-        showToast("Web GPS is not supported on this browser.", "error");
-      }
+        }
+      }, err => {
+        console.warn("Rider manual location track failed:", err);
+        showToast("ஜிபிஎஸ் அணுகல் மறுக்கப்பட்டது அல்லது சிக்னல் இல்லை / GPS signal unavailable ❌", "error");
+      });
     }
 
     function renderDeliveryScreen() {
@@ -5569,12 +6033,69 @@
         }
       });
 
+      // Retrieve executive salary configuration
+      const allExecutives = getData('ek_delivery_persons', []);
+      const riderConfig = allExecutives.find(e => e.id === session.id);
+      
+      const salaryType = riderConfig?.salaryType || 'per_order';
+      const salaryRate = parseFloat(riderConfig?.salaryRate || 35);
+      
+      // All-time statistics for this specific delivery executive
+      const completedAllTime = orders.filter(o => o.assignedExecutiveId === session.id && o.status === 'delivered');
+      
+      // Calculate earnings for completed today
+      let todayEarnings = 0;
+      if (salaryType === 'per_order') {
+        todayEarnings = completedToday.length * salaryRate;
+      } else {
+        // For fixed monthly rate, today proportional equivalent
+        todayEarnings = Math.round((salaryRate / 30) * completedToday.length * 10) / 10;
+      }
+
       document.getElementById('delivery-exec-count').innerText = completedToday.length;
       document.getElementById('delivery-exec-cash').innerText = `₹${cashToCollect}`;
       
       const earningsEl = document.getElementById('delivery-exec-earnings');
       if (earningsEl) {
-        earningsEl.innerText = `₹${completedToday.length * 35}`;
+        if (salaryType === 'per_order') {
+          earningsEl.innerText = `₹${todayEarnings}`;
+        } else {
+          // Show monthly salary contract directly
+          earningsEl.innerText = `₹${salaryRate}`;
+        }
+      }
+
+      // Populate dynamic premium payout banner
+      const bannerEl = document.getElementById('delivery-exec-salary-banner');
+      if (bannerEl) {
+        let typeText = salaryType === 'per_order' 
+          ? `Per Order (₹${salaryRate})` 
+          : `Fixed Monthly (₹${salaryRate})`;
+          
+        let earnText = salaryType === 'per_order'
+          ? `₹${completedAllTime.length * salaryRate}`
+          : `₹${salaryRate} Guaranteed`;
+
+        bannerEl.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:var(--text-secondary);">💼 Payout Plan / சம்பளம்:</span>
+            <span style="color:#fff; font-weight:700;">${typeText}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+            <span style="color:var(--text-secondary);">📦 Completed Total / மொத்த விநியோகம்:</span>
+            <span style="color:var(--accent-green); font-weight:800;">${completedAllTime.length} orders</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+            <span style="color:var(--text-secondary);">💰 Accumulated Earnings / மொத்த வருமானம்:</span>
+            <span style="color:var(--accent-orange); font-weight:800;">${earnText}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+            <span style="color:var(--text-secondary);">⭐ Service Rating / விநியோக மதிப்பீடு:</span>
+            <span style="color:#f59e0b; font-weight:800;">
+              ${riderConfig?.averageRating ? `★ ${riderConfig.averageRating} (${riderConfig.totalRatings || 0} reviews)` : `${currentLang === 'ta' ? 'மதிப்பீடுகள் இல்லை' : 'No ratings yet'}`}
+            </span>
+          </div>
+        `;
       }
 
       // Update subtab filters count
@@ -5632,24 +6153,24 @@
         let actionBtn = '';
         if (currentDeliveryFilter === 'ready') {
           actionBtn = `
-            <button class="btn btn-primary" style="background:var(--accent-orange); color:#fff; font-size:12px; font-weight:700; padding:10px;" onclick="claimOrderForDelivery('${o.id}')">
+            <button class="btn" style="background:linear-gradient(135deg, #f59e0b, #d97706); border:none; color:#000; font-size:12.5px; font-weight:800; padding:12px; border-radius:10px; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(245,158,11,0.25); transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="claimOrderForDelivery('${o.id}')">
               Claim order / ஆர்டர் ஏற்றுக்கொள் 🙋‍♂️
             </button>
           `;
         } else if (currentDeliveryFilter === 'assigned') {
           if (o.status === 'ready') {
             actionBtn = `
-              <button class="btn btn-primary" style="background:#3b82f6; color:#fff; font-size:12px; font-weight:700; padding:10px;" onclick="updateDeliveryOrderStatus('${o.id}', 'delivering')">
+              <button class="btn" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8); border:none; color:#fff; font-size:12.5px; font-weight:800; padding:12px; border-radius:10px; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(59,130,246,0.25); transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="updateDeliveryOrderStatus('${o.id}', 'delivering')">
                 Start Delivery / விநியோகம் தொடங்கு 🚴‍♂️
               </button>
             `;
           } else if (o.status === 'delivering') {
             actionBtn = `
               <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
-                <button class="btn btn-success" style="background:var(--accent-green); border:none; color:#fff; font-size:12.5px; font-weight:800; padding:12px; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="quickCompleteDelivery('${o.id}')">
+                <button class="btn" style="background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; font-size:12.5px; font-weight:800; padding:12px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(16,185,129,0.35); transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="quickCompleteDelivery('${o.id}')">
                   📦 Deliver Order / டெலிவரி செய் (Direct)
                 </button>
-                <button class="btn btn-secondary" style="border:1px solid #2d2d2d; color:var(--text-secondary); font-size:11px; font-weight:600; padding:8px; border-radius:8px;" onclick="openDeliveryVerification('${o.id}')">
+                <button class="btn" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); color:var(--text-secondary); font-size:11px; font-weight:700; padding:9px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'" onclick="openDeliveryVerification('${o.id}')">
                   ✍️ Add Digital Signature Proof / வாடிக்கையாளர் கையொப்பம்
                 </button>
               </div>
@@ -5710,10 +6231,10 @@
               <span style="color:var(--accent-green); font-size:15px;">₹${o.totalAmount}</span>
             </div>
  
-            <div style="display:flex; gap:6px; margin-bottom:10px;">
-              <a href="tel:${o.customerPhone}" class="btn btn-secondary" style="padding:6px; font-size:11px; text-decoration:none; text-align:center; flex:1; display:flex; align-items:center; justify-content:center; gap:2.5px;">📞 Call</a>
-              <a href="https://wa.me/91${o.customerPhone}?text=${encodeURIComponent('வணக்கம் ' + o.customerName + ', எடப்பாடி சிக்கன் & மட்டன் கடையில் இருந்து உங்கள் ஆர்டர் (' + o.id + ') விநியோகிக்க புறப்பட்டு விட்டது! 🏍️💨')}" target="_blank" class="btn btn-secondary" style="padding:6px; font-size:11px; text-decoration:none; border-color:#22c55e; color:#22c55e; text-align:center; flex:1; display:flex; align-items:center; justify-content:center; gap:2.5px;">📱 WA</a>
-              <button onclick="openGoogleMapsNavigation('${o.id}')" class="btn btn-secondary" style="padding:6px; font-size:11px; border-color:var(--accent-orange); color:var(--accent-orange); text-align:center; flex:1; display:flex; align-items:center; justify-content:center; gap:2.5px; cursor:pointer; background:transparent;">📍 Map</button>
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+              <a href="tel:${o.customerPhone}" class="btn" style="padding:8px 10px; font-size:11px; text-decoration:none; text-align:center; flex:1; display:flex; align-items:center; justify-content:center; gap:4px; font-weight:800; border-radius:12px; background:linear-gradient(135deg, #2563eb, #1d4ed8); border:none; color:#fff; box-shadow:0 3px 8px rgba(37,99,235,0.25); transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">📞 Call</a>
+              <a href="https://wa.me/91${o.customerPhone}?text=${encodeURIComponent('வணக்கம் ' + o.customerName + ', எடப்பாடி சிக்கன் & மட்டன் கடையில் இருந்து உங்கள் ஆர்டர் (' + o.id + ') விநியோகிக்க புறப்பட்டு விட்டது! 🏍️💨')}" target="_blank" class="btn" style="padding:8px 10px; font-size:11px; text-decoration:none; text-align:center; flex:1; display:flex; align-items:center; justify-content:center; gap:4px; font-weight:800; border-radius:12px; background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; box-shadow:0 3px 8px rgba(16,185,129,0.25); transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">📱 WA</a>
+              <button onclick="openGoogleMapsNavigation('${o.id}')" class="btn" style="padding:8px 10px; font-size:11px; text-align:center; flex:1; display:flex; align-items:center; justify-content:center; gap:4px; font-weight:800; border-radius:12px; background:linear-gradient(135deg, #f59e0b, #d97706); border:none; color:#000; box-shadow:0 3px 8px rgba(245,158,11,0.25); cursor:pointer; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">📍 Map</button>
             </div>
  
             ${o.status !== 'delivered' ? `
@@ -5723,6 +6244,17 @@
             ` : ''}
 
             ${proofHtml}
+            ${o.rating ? `
+              <div style="margin-top: 8px; border:1px solid rgba(245,158,11,0.15); padding:8px 10px; border-radius:8.5px; background:rgba(245,158,11,0.02)">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:10.5px; color:var(--text-muted);">⭐ Rating:</span>
+                  <span style="font-size:11px; color:var(--accent-orange); font-weight:700;">${'★'.repeat(o.rating)}${'☆'.repeat(5 - o.rating)}</span>
+                </div>
+                ${o.feedbackComment ? `
+                  <p style="margin:4px 0 0 0; font-size:11px; color:rgba(255,255,255,0.7); font-style:italic;">"${o.feedbackComment}"</p>
+                ` : ''}
+              </div>
+            ` : ''}
           </div>
         `;
         container.innerHTML += cardHtml;
@@ -5905,28 +6437,40 @@
           </div>
 
           <div style="text-align: left;">
-            <label style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 6px;">1. CONFIRM PAYMENT RECEIVED / கட்டணம் கையில் கிடைத்ததா</label>
+            <label style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 6px;">
+              ${currentLang === 'ta' ? '1. கட்டணம் பெற்றதை உறுதி செய்க' : '1. Confirm Payment Received'}
+            </label>
             <div style="display: flex; gap: 8px;">
               <label style="flex: 1; border: 1.5px solid var(--accent-green); background: rgba(34,197,94,0.06); border-radius: 10px; padding: 8px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;">
                 <input type="radio" name="pay_verify" value="cash" checked style="accent-color: var(--accent-green);">
-                <span style="font-size: 11.5px; font-weight: 700; color: #fff;">👍 Collected / பெற்றேன்</span>
+                <span style="font-size: 11.5px; font-weight: 700; color: #fff;">
+                  ${currentLang === 'ta' ? '👍 பெற்றேன்' : '👍 Collected'}
+                </span>
               </label>
               <label style="flex: 1; border: 1.5px solid #222; background: #121214; border-radius: 10px; padding: 8px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;" id="online-pay-label">
                 <input type="radio" name="pay_verify" value="gpay" style="accent-color: var(--accent-green);">
-                <span style="font-size: 11.5px; font-weight: 700; color: var(--text-secondary);">💳 Online Pay</span>
+                <span style="font-size: 11.5px; font-weight: 700; color: var(--text-secondary);">
+                  ${currentLang === 'ta' ? '💳 ஆன்லைன் பே' : '💳 Online Pay'}
+                </span>
               </label>
             </div>
           </div>
 
           <div style="text-align: left;">
-            <label style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 6px;">2. ENTER LAST 4 DIGITS OF PHONE / கைபேசி கடைசி 4 எண்கள்</label>
+            <label style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 6px;">
+              ${currentLang === 'ta' ? '2. கைபேசியின் கடைசி 4 எண்கள்' : '2. Enter Last 4 Digits of Mobile'}
+            </label>
             <input type="number" id="verification-otp" class="form-control" style="background: #121214; border: 1.5px solid #222; letter-spacing: 4px; font-size: 16px; text-align: center; font-weight: 700; color: #fff;" placeholder="----" maxlength="4" oninput="if(this.value.length > 4) this.value = this.value.slice(0, 4)">
           </div>
 
           <div style="text-align: left;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <label style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin: 0;">3. CUSTOMER DRAW SIGNATURE / வாடிக்கையாளர் கையொப்பம்</label>
-              <button onclick="clearSignatureCanvas()" style="background: transparent; border: none; color: var(--accent-red); font-size: 11px; font-weight: 700; cursor: pointer;">CLEAR / அழி 🔄</button>
+              <label style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin: 0;">
+                ${currentLang === 'ta' ? '3. வாடிக்கையாளர் கையொப்பம்' : '3. Customer Signature'}
+              </label>
+              <button onclick="clearSignatureCanvas()" style="background: transparent; border: none; color: var(--accent-red); font-size: 11px; font-weight: 700; cursor: pointer;">
+                ${currentLang === 'ta' ? 'அழி 🔄' : 'CLEAR 🔄'}
+              </button>
             </div>
             <div style="border: 1.5px solid #2d2d2d; border-radius: 12px; overflow: hidden; background: #000; position: relative;">
               <canvas id="sig-pad" width="316" height="110" style="display: block; cursor: crosshair; touch-action: none;"></canvas>
@@ -5934,7 +6478,7 @@
           </div>
 
           <button class="btn btn-success" style="background: var(--accent-green); height: 46px; border-radius: 12px; font-weight: 800; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="submitDeliverySignature('${order.id}')">
-            COMPLETE VERIFIED DELIVERY / விநியோகத்தை முடி ✅
+            ${currentLang === 'ta' ? 'விநியோகத்தை முடி ✅' : 'COMPLETE VERIFIED DELIVERY ✅'}
           </button>
 
         </div>
@@ -6142,7 +6686,7 @@
           
           // C. Cancel the Order
           order.status = 'rejected';
-          order.rejectionReason = "Cancelled by customer / வாடிக்கையாளரால் ரத்து செய்யப்பட்டது";
+          order.rejectionReason = currentLang === 'ta' ? "வாடிக்கையாளரால் ரத்து செய்யப்பட்டது" : "Cancelled by customer";
           order.updatedAt = new Date().toISOString();
           
           orders[idx] = order;
@@ -6162,11 +6706,14 @@
 
     function deleteOrderFromDb(orderId, isCustomerSide = false) {
       showCustomConfirm(
-        isCustomerSide ? "விவரத்தை நீக்கவா? / Delete Record?" : "Delete Order Record?",
+        isCustomerSide ? (currentLang === 'ta' ? "விவரத்தை நீக்கவா?" : "Delete Record?") : (currentLang === 'ta' ? "ஆர்டர் விவரத்தை நீக்குக?" : "Delete Order Record?"),
         isCustomerSide 
           ? "உங்களது ஆர்டர் வரலாற்றிலிருந்து இந்த ஆர்டர் விவரத்தை நீக்க வேண்டுமா? <br><strong>ஆர்டர் ஐடி: " + orderId + "</strong>"
           : `நிச்சயமாக இந்த ஆர்டரை (<strong>${orderId}</strong>) நிரந்தரமாக நீக்க விரும்புகிறீர்களா? இதைப் பின்னாளில் மீட்டெடுக்க முடியாது.`,
         function() {
+          // Register in deletion safeguard
+          markOrderAsDeleted(orderId);
+
           const orders = getData('ek_orders');
           const filtered = orders.filter(o => o.id !== orderId);
           saveData('ek_orders', filtered);
@@ -6337,7 +6884,7 @@
               iconAnchor: [14, 14]
             });
             deliveryRiderMarker = L.marker([dpi.latitude, dpi.longitude], { icon: riderIdIcon }).addTo(deliveryLeafletMap)
-              .bindPopup("<strong>Your Location / உங்கள் இடம்</strong> 🏍️");
+              .bindPopup(currentLang === 'ta' ? "<strong>உங்களது தற்போதைய இடம்</strong> 🏍️" : "<strong>Your Current Position</strong> 🏍️");
           }
         }
 
@@ -6361,29 +6908,30 @@
         }).addTo(deliveryLeafletMap);
 
         const storeIcon = L.divIcon({
-          html: `<div style="background:var(--accent-orange); color:#000; font-size:14px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 8px rgba(245,158,11,0.6);">🏪</div>`,
+          html: `<div style="background:var(--accent-orange); color:#000; font-size:14px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff;" class="map-pin-store">🏪</div>`,
           className: '',
           iconSize: [28, 28],
           iconAnchor: [14, 14]
         });
 
         const custIcon = L.divIcon({
-          html: `<div style="background:#60a5fa; color:#fff; font-size:14px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 8px rgba(96,165,250,0.6);">🏠</div>`,
+          html: `<div style="background:#60a5fa; color:#fff; font-size:14px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff;" class="map-pin-customer">🏠</div>`,
           className: '',
           iconSize: [28, 28],
           iconAnchor: [14, 14]
         });
 
         deliveryStoreMarker = L.marker(storePos, { icon: storeIcon }).addTo(deliveryLeafletMap)
-          .bindPopup("<strong>Main Store</strong>🍖");
+          .bindPopup("<strong>Main Store / கறிக்கடை 🍖</strong>");
 
         deliveryCustomerMarker = L.marker(custPos, { icon: custIcon }).addTo(deliveryLeafletMap)
-          .bindPopup(`<strong>${order.customerName}</strong> 🏠`);
+          .bindPopup(`<strong>${order.customerName} / வாடிக்கையாளர் இல்லம் 🏠</strong>`);
 
         deliveryRoutePolyline = L.polyline([storePos, custPos], {
-          color: '#3b82f6',
+          color: 'var(--accent-orange)',
           weight: 4,
-          opacity: 0.8
+          opacity: 0.7,
+          dashArray: '6, 12'
         }).addTo(deliveryLeafletMap);
 
         if (session) {
@@ -6391,13 +6939,13 @@
           const dpi = dps.find(x => x.id === session.id);
           if (dpi && dpi.latitude && dpi.longitude) {
             const riderIdIcon = L.divIcon({
-              html: `<div style="background:#10b981; color:#fff; font-size:16px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 10px rgba(16,185,129,0.7); z-index:9999;">🏍️</div>`,
+              html: `<div style="background:#10b981; color:#fff; font-size:16px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; z-index:9999;" class="map-pin-rider">🏍️</div>`,
               className: '',
               iconSize: [28, 28],
               iconAnchor: [14, 14]
             });
             deliveryRiderMarker = L.marker([dpi.latitude, dpi.longitude], { icon: riderIdIcon }).addTo(deliveryLeafletMap)
-              .bindPopup("<strong>Your Location / உங்கள் இடம்</strong> 🏍️");
+              .bindPopup(currentLang === 'ta' ? "<strong>உங்களது தற்போதைய இடம்</strong> 🏍️" : "<strong>Your Current Position</strong> 🏍️");
           }
         }
 
@@ -6446,16 +6994,16 @@
       const statusEl = document.getElementById('map-live-status');
       if (statusEl) {
         if (order.status === 'pending') {
-          statusEl.innerHTML = `🏪 Preparing order at main Edappadi shop / தயாரிப்பில் உள்ளது`;
+          statusEl.innerHTML = currentLang === 'ta' ? `🏪 எடப்பாடி கடையில் தயாரிப்பில் உள்ளது` : `🏪 Preparing order at main Edappadi shop`;
           statusEl.style.color = 'var(--accent-orange)';
         } else if (order.status === 'ready') {
-          statusEl.innerHTML = `🏍️ Rider assigned & packing items / விநியோக நபர் தயார்`;
+          statusEl.innerHTML = currentLang === 'ta' ? `🏍️ விநியோக நபர் தயார் & பேக் செய்யப்படுகிறது` : `🏍️ Rider assigned & packing items`;
           statusEl.style.color = '#60a5fa';
         } else if (order.status === 'delivering') {
-          statusEl.innerHTML = `🚴‍♂️ Rider enroute to your location / விநியோகம் செய்யப்படுகிறது`;
+          statusEl.innerHTML = currentLang === 'ta' ? `🚴‍♂️ உங்களது இடத்திற்கு விநியோகம் செய்யப்படுகிறது` : `🚴‍♂️ Rider enroute to your location`;
           statusEl.style.color = 'var(--accent-orange)';
         } else if (order.status === 'delivered') {
-          statusEl.innerHTML = `✅ Successfully Delivered / முழுமையாக விநியோகிக்கப்பட்டது`;
+          statusEl.innerHTML = currentLang === 'ta' ? `✅ முழுமையாக விநியோகிக்கப்பட்டது` : `✅ Successfully Delivered`;
           statusEl.style.color = 'var(--accent-green)';
         }
       }
@@ -6493,17 +7041,31 @@
         }).addTo(trackerLeafletMap);
 
         const storeIcon = L.divIcon({
-          html: `<div style="background:var(--accent-orange); color:#000; font-size:14px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 8px rgba(245,158,11,0.6);">🏪</div>`,
+          html: `
+            <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;">
+              <div class="map-pin-store" style="background:#e65100; color:#fff; font-size:15px; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,0.4);">🥩</div>
+              <div style="position: absolute; bottom: -12px; background: rgba(0,0,0,0.85); border: 1px solid var(--accent-orange); border-radius: 4px; padding: 1px 4px; font-size: 7.5px; font-weight: 700; color: var(--accent-orange); white-space: nowrap; z-index: 5;">
+                ${currentLang === 'ta' ? 'கறிக்கடை' : 'MEAT SHOP'}
+              </div>
+            </div>
+          `,
           className: '',
-          iconSize: [28, 28],
-          iconAnchor: [14, 14]
+          iconSize: [44, 44],
+          iconAnchor: [22, 22]
         });
 
         const custIcon = L.divIcon({
-          html: `<div style="background:var(--accent-green); color:#fff; font-size:14px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 8px rgba(34,197,94,0.6);">🏠</div>`,
+          html: `
+            <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;">
+              <div class="map-pin-customer" style="background:#10b981; color:#fff; font-size:14px; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,0.4);">🏠</div>
+              <div style="position: absolute; bottom: -12px; background: rgba(0,0,0,0.85); border: 1px solid var(--accent-green); border-radius: 4px; padding: 1px 4px; font-size: 7.5px; font-weight: 700; color: var(--accent-green); white-space: nowrap; z-index: 5;">
+                ${currentLang === 'ta' ? 'என் இல்லம்' : 'MY HOME'}
+              </div>
+            </div>
+          `,
           className: '',
-          iconSize: [28, 28],
-          iconAnchor: [14, 14]
+          iconSize: [44, 44],
+          iconAnchor: [22, 22]
         });
 
         storeMarker = L.marker(storePos, { icon: storeIcon }).addTo(trackerLeafletMap)
@@ -6541,11 +7103,23 @@
 
       clearRiderAnimation();
 
+      const dx = custPos[1] - storePos[1];
+      const flipper = dx < 0 ? 'scaleX(1)' : 'scaleX(-1)';
+      const riderTag = currentLang === 'ta' ? 'விநியோகம் 🏍️' : 'Delivering ⚡';
+
       const riderIcon = L.divIcon({
-        html: `<div style="background:#3b82f6; color:#fff; font-size:17px; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 12px rgba(59,130,246,0.95); animation: pulse 1.2s infinite; font-weight: bold; transform-style: preserve-3d; transition: transform 0.2s ease-out;">🏍️</div>`,
+        html: `
+          <div class="rider-simulator-container">
+            <div class="rider-pulser"></div>
+            <div class="rider-bike-body">
+              <span style="display: inline-block; transform: ${flipper}; font-size: 16px; line-height: 1;">🏍️</span>
+            </div>
+            <div class="rider-text-tag">${riderTag}</div>
+          </div>
+        `,
         className: '',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
       });
 
       let riderPos = [...storePos];
@@ -6779,21 +7353,21 @@
           listHtml += `
             <div style="border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 8px; margin-top: 4px; display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: var(--text-secondary);">
               <div style="display: flex; justify-content: space-between;">
-                <span>Subtotal / இதர விலை:</span>
+                <span>${currentLang === 'ta' ? 'விபரம் (Subtotal):' : 'Subtotal:'}</span>
                 <span>₹${latestTrackable.items.reduce((s, x) => s + x.totalPrice, 0)}</span>
               </div>
               <div style="display: flex; justify-content: space-between;">
-                <span>Delivery Charge / டெலிவரி கட்டணம்:</span>
+                <span>${currentLang === 'ta' ? 'டெலிவரி கட்டணம்:' : 'Delivery Charge:'}</span>
                 <span>${(latestTrackable.deliveryCharge !== undefined ? latestTrackable.deliveryCharge : (latestTrackable.deliveryFee || 0)) === 0 ? "FREE ✨" : `₹${latestTrackable.deliveryCharge !== undefined ? latestTrackable.deliveryCharge : (latestTrackable.deliveryFee || 0)}`}</span>
               </div>
               ${(latestTrackable.loyaltyDiscount !== undefined ? latestTrackable.loyaltyDiscount : (latestTrackable.discountApplied || 0)) > 0 ? `
               <div style="display: flex; justify-content: space-between; color: var(--accent-green);">
-                <span>Discount / தள்ளுபடி:</span>
+                <span>${currentLang === 'ta' ? 'தள்ளுபடி:' : 'Discount:'}</span>
                 <span>-₹${latestTrackable.loyaltyDiscount !== undefined ? latestTrackable.loyaltyDiscount : latestTrackable.discountApplied}</span>
               </div>
               ` : ''}
               <div style="display: flex; justify-content: space-between; font-weight: bold; color: #fff; font-size: 13.5px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 6px; margin-top: 2px;">
-                <span>Grand Total / மொத்த தொகை:</span>
+                <span>${currentLang === 'ta' ? 'மொத்த தொகை:' : 'Grand Total:'}</span>
                 <span style="color: var(--accent-green);">₹${latestTrackable.totalAmount}</span>
               </div>
             </div>
@@ -6812,6 +7386,20 @@
 
         // Stepper Visual Sync Status
         updateStepperGraphic(latestTrackable.status);
+
+        // Auto design adjust: if rider is assigned and active, collapse the stepper to pull maps to top!
+        const timelineCollapse = document.getElementById('tracker-timeline-collapse');
+        const timelineToggleIcon = document.getElementById('tracker-timeline-toggle-icon');
+        if (timelineCollapse && timelineToggleIcon) {
+          if (latestTrackable.assignedExecutiveId && ['ready', 'delivering', 'delivered'].includes(latestTrackable.status)) {
+            timelineCollapse.style.display = 'none';
+            timelineToggleIcon.innerHTML = currentLang === 'ta' ? '▼ காட்டு' : '▼ Show';
+          } else {
+            // Keep it open for pending to let the user see the progress
+            timelineCollapse.style.display = 'block';
+            timelineToggleIcon.innerHTML = currentLang === 'ta' ? '▲ மறை' : '▲ Hide';
+          }
+        }
 
         // Customer Cancel Button visibility controller
         const cancelBtnContainer = document.getElementById('track-cancel-container');
@@ -6935,7 +7523,7 @@
               ${actionButtonHtml}
             </div>
             <div style="text-align: right; margin-top: 6px; font-size: 10px; color: var(--text-muted);">
-              விவரம் பார்க்க / Click for Details 🔍
+              ${currentLang === 'ta' ? 'விவரம் பார்க்க 🔍' : 'Click for Details 🔍'}
             </div>
           </div>
         `;
@@ -6944,7 +7532,7 @@
       pastList.innerHTML = pastListHtml;
 
       if (renderedPastCount === 0 && query) {
-        pastList.innerHTML = `<div class="card" style="text-align:center; padding:16px; color:var(--text-muted);">தேடலுக்குரிய தகவல் இல்லை / No matching orders found.</div>`;
+        pastList.innerHTML = `<div class="card" style="text-align:center; padding:16px; color:var(--text-muted);">${currentLang === 'ta' ? 'தேடலுக்கான தகவல் எதுவும் இல்லை.' : 'No matching orders found.'}</div>`;
       }
     }
 
@@ -7015,6 +7603,18 @@
         document.getElementById('cod-discount').innerText = `-₹${o.loyaltyDiscount}`;
       } else {
         discPercent.style.display = 'none';
+      }
+
+      // Render Coupon Code details inside historical breakdown modal
+      const coupRow = document.getElementById('cod-coupon-row');
+      if (o.couponCode && o.couponDiscount) {
+        if (coupRow) coupRow.style.display = 'flex';
+        const labelEl = document.getElementById('cod-coupon-code-lbl');
+        if (labelEl) labelEl.innerText = o.couponCode;
+        const discEl = document.getElementById('cod-coupon-discount');
+        if (discEl) discEl.innerText = `-₹${o.couponDiscount}`;
+      } else {
+        if (coupRow) coupRow.style.display = 'none';
       }
       
       document.getElementById('cod-grand-total').innerText = `₹${o.totalAmount}`;
@@ -7103,6 +7703,119 @@
       } else {
         list.style.display = 'none';
         icon.innerHTML = '▼ Show / விரிக்குக';
+      }
+    }
+
+    function toggleTrackerTimelineCollapse() {
+      const col = document.getElementById('tracker-timeline-collapse');
+      const icon = document.getElementById('tracker-timeline-toggle-icon');
+      if (!col || !icon) return;
+      if (col.style.display === 'none') {
+        col.style.display = 'block';
+        icon.innerHTML = '▲ Hide / சுருக்குக';
+      } else {
+        col.style.display = 'none';
+        icon.innerHTML = '▼ Show / விரிக்குக';
+      }
+      setTimeout(() => {
+        if (trackerLeafletMap) {
+          trackerLeafletMap.invalidateSize();
+        }
+      }, 150);
+    }
+
+    function toggleHeroBannerCollapse() {
+      const banner = document.getElementById('home-hero-banner');
+      const icon = document.getElementById('hero-banner-toggle-icon');
+      if (!banner || !icon) return;
+      if (banner.style.display === 'none') {
+        banner.style.display = 'block';
+        icon.innerHTML = currentLang === 'ta' ? '▼ சுருக்கு' : '▼ Collapse';
+        localStorage.setItem('hide_hero_banner', 'false');
+        if (typeof AndroidStorage !== 'undefined') AndroidStorage.saveData('hide_hero_banner', 'false');
+      } else {
+        banner.style.display = 'none';
+        icon.innerHTML = currentLang === 'ta' ? '▲ விரி' : '▲ Expand';
+        localStorage.setItem('hide_hero_banner', 'true');
+        if (typeof AndroidStorage !== 'undefined') AndroidStorage.saveData('hide_hero_banner', 'true');
+      }
+    }
+
+    function toggleSpecialsSectionCollapse() {
+      const wrapper = document.getElementById('specials-collapse-wrapper');
+      const icon = document.getElementById('specials-toggle-icon');
+      if (!wrapper || !icon) return;
+      if (wrapper.style.display === 'none') {
+        wrapper.style.display = 'block';
+        icon.innerHTML = currentLang === 'ta' ? '▼ சுருக்கு' : '▼ Collapse';
+        localStorage.setItem('hide_specials_section', 'false');
+        if (typeof AndroidStorage !== 'undefined') AndroidStorage.saveData('hide_specials_section', 'false');
+      } else {
+        wrapper.style.display = 'none';
+        icon.innerHTML = currentLang === 'ta' ? '▲ விரி' : '▲ Expand';
+        localStorage.setItem('hide_specials_section', 'true');
+        if (typeof AndroidStorage !== 'undefined') AndroidStorage.saveData('hide_specials_section', 'true');
+      }
+    }
+
+    function toggleLoyaltyCollapse() {
+      const wrapper = document.getElementById('loyalty-collapse-wrapper');
+      const icon = document.getElementById('loyalty-toggle-icon');
+      if (!wrapper || !icon) return;
+      if (wrapper.style.display === 'none') {
+        wrapper.style.display = 'block';
+        icon.innerHTML = currentLang === 'ta' ? '▼ சுருக்கு' : '▼ Collapse';
+        localStorage.setItem('hide_loyalty_wallet', 'false');
+        if (typeof AndroidStorage !== 'undefined') AndroidStorage.saveData('hide_loyalty_wallet', 'false');
+      } else {
+        wrapper.style.display = 'none';
+        icon.innerHTML = currentLang === 'ta' ? '▲ விரி' : '▲ Expand';
+        localStorage.setItem('hide_loyalty_wallet', 'true');
+        if (typeof AndroidStorage !== 'undefined') AndroidStorage.saveData('hide_loyalty_wallet', 'true');
+      }
+    }
+
+    function syncCollapsePreferences() {
+      const isTa = currentLang === 'ta';
+      
+      const hideHero = localStorage.getItem('hide_hero_banner') === 'true';
+      const hideSpecials = localStorage.getItem('hide_specials_section') === 'true';
+      const hideLoyalty = localStorage.getItem('hide_loyalty_wallet') === 'true';
+
+      const banner = document.getElementById('home-hero-banner');
+      const heroIcon = document.getElementById('hero-banner-toggle-icon');
+      if (banner && heroIcon) {
+        if (hideHero) {
+          banner.style.display = 'none';
+          heroIcon.innerHTML = isTa ? '▲ விரி' : '▲ Expand';
+        } else {
+          banner.style.display = 'block';
+          heroIcon.innerHTML = isTa ? '▼ சுருக்கு' : '▼ Collapse';
+        }
+      }
+
+      const specials = document.getElementById('specials-collapse-wrapper');
+      const specialsIcon = document.getElementById('specials-toggle-icon');
+      if (specials && specialsIcon) {
+        if (hideSpecials) {
+          specials.style.display = 'none';
+          specialsIcon.innerHTML = isTa ? '▲ விரி' : '▲ Expand';
+        } else {
+          specials.style.display = 'block';
+          specialsIcon.innerHTML = isTa ? '▼ சுருக்கு' : '▼ Collapse';
+        }
+      }
+
+      const loyalty = document.getElementById('loyalty-collapse-wrapper');
+      const loyaltyIcon = document.getElementById('loyalty-toggle-icon');
+      if (loyalty && loyaltyIcon) {
+        if (hideLoyalty) {
+          loyalty.style.display = 'none';
+          loyaltyIcon.innerHTML = isTa ? '▲ விரி' : '▲ Expand';
+        } else {
+          loyalty.style.display = 'block';
+          loyaltyIcon.innerHTML = isTa ? '▼ சுருக்கு' : '▼ Collapse';
+        }
       }
     }
 
@@ -7273,7 +7986,7 @@
           </div>
 
           <div style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 12px; margin-top: 4px;">
-            <p style="font-size: 12.5px; color: var(--text-secondary); font-weight: 700; margin-bottom: 8px;">மதிப்பிடுக / Rate Delivery Service</p>
+            <p style="font-size: 12.5px; color: var(--text-secondary); font-weight: 700; margin-bottom: 8px;">${currentLang === 'ta' ? 'விநியோக சேவையை மதிப்பிடுக' : 'Rate Delivery Service'}</p>
             <div style="display: flex; justify-content: center; gap: 8px;" id="feedback-star-row">
               <span style="font-size: 28px; cursor: pointer; opacity: 0.4;" onclick="highlightRatingStars(1)">⭐</span>
               <span style="font-size: 28px; cursor: pointer; opacity: 0.4;" onclick="highlightRatingStars(2)">⭐</span>
@@ -7281,14 +7994,17 @@
               <span style="font-size: 28px; cursor: pointer; opacity: 0.4;" onclick="highlightRatingStars(4)">⭐</span>
               <span style="font-size: 28px; cursor: pointer; opacity: 0.4;" onclick="highlightRatingStars(5)">⭐</span>
             </div>
+            <div style="margin-top: 10px; margin-bottom: 6px;">
+              <textarea id="feedback-comments" class="form-control" placeholder="${currentLang === 'ta' ? 'விமர்சனங்கள் அல்லது கருத்துக்களைப் பகிரவும் (விருப்பம்)...' : 'Share review or comment (Optional)...'}" style="background:#0c0c0d; color:#fff; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; font-size:12px; width:100%; box-sizing:border-box;" rows="2"></textarea>
+            </div>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
             <button class="btn btn-primary" style="background: var(--accent-green); border: none; font-size: 13px; font-weight: 700; padding: 12px; border-radius: 12px;" onclick="submitRiderDeliveredFeedback('${order.id}')">
-              Submit Feedback / அனுப்பவும் 👍
+              ${currentLang === 'ta' ? 'மதிப்பீட்டை சமர்ப்பிக்கவும் 👍' : 'Submit Feedback 👍'}
             </button>
             <button class="btn btn-secondary" style="background: transparent; border: none; color: var(--text-muted); font-size: 12px; font-weight: 600;" onclick="closeDeliveredCelebrateModal()">
-              Close / மூடு
+              ${currentLang === 'ta' ? 'மூடுக' : 'Close'}
             </button>
           </div>
 
@@ -7325,8 +8041,58 @@
     }
 
     function submitRiderDeliveredFeedback(orderId) {
-      showToast(`Review sent successfully! Rated standard ${selectedRiderRating} stars! Thank you! ✓`, "success");
+      const orders = getData('ek_orders', []);
+      const oIdx = orders.findIndex(ord => ord.id === orderId);
+      let writtenComment = "";
+      
+      const commentInput = document.getElementById('feedback-comments');
+      if (commentInput) {
+        writtenComment = commentInput.value.trim();
+      }
+
+      if (oIdx !== -1) {
+        orders[oIdx].rating = selectedRiderRating;
+        orders[oIdx].feedbackComment = writtenComment;
+        saveData('ek_orders', orders);
+        
+        if (typeof db !== 'undefined' && db) {
+          db.collection('ek_orders').doc(orderId).set(orders[oIdx])
+            .catch(err => console.error("Could not sync rating to Firestore:", err));
+        }
+
+        // Update the delivery rider's overall rating stats
+        const assignedRiderId = orders[oIdx].assignedExecutiveId;
+        if (assignedRiderId) {
+          const executives = getData('ek_delivery_persons', []);
+          const eIdx = executives.findIndex(e => e.id === assignedRiderId);
+          if (eIdx !== -1) {
+            const ex = executives[eIdx];
+            ex.totalRatings = (ex.totalRatings || 0) + 1;
+            ex.ratingSum = (ex.ratingSum || 0) + selectedRiderRating;
+            ex.averageRating = parseFloat((ex.ratingSum / ex.totalRatings).toFixed(1));
+            saveData('ek_delivery_persons', executives);
+            
+            if (typeof db !== 'undefined' && db) {
+              db.collection('ek_delivery_persons').doc(assignedRiderId).set(ex)
+                .catch(err => console.error("Could not sync delivery person rating to Firestore:", err));
+            }
+          }
+        }
+      }
+
+      const thanksMsg = currentLang === 'ta' 
+        ? `மிக்க நன்றி! உங்களது ${selectedRiderRating} நட்சத்திர மதிப்பீடு மற்றும் கருத்துக்கள் வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது! ✓`
+        : `Thank you! Your ${selectedRiderRating}-star rating and review have been submitted successfully! ✓`;
+
+      showToast(thanksMsg, "success");
       closeDeliveredCelebrateModal();
+      
+      // Auto-refresh whichever screen we are currently viewing
+      if (currentScreen === 'screen-delivery') {
+        renderDeliveryScreen();
+      } else if (currentScreen === 'screen-admin') {
+        renderAdminDashboard();
+      }
     }
 
     function closeDeliveredCelebrateModal() {
@@ -7359,7 +8125,7 @@
       const user = getActiveUser();
       if (!user) return;
 
-      const uName = user.name || session.name || "Customer / வாடிக்கையாளர்";
+      const uName = user.name || session.name || (currentLang === 'ta' ? "வாடிக்கையாளர்" : "Customer");
       const uPhone = user.phone || session.phone || "";
 
       // Setup labels
@@ -7508,6 +8274,9 @@
           profAddrEdit.removeAttribute('data-lng');
         }
       }
+
+      // Update behavioral triggers & gourmet milestones
+      updateProfileGamification();
     }
 
     function updateProfilePref() {
@@ -7785,7 +8554,7 @@
 <body>
   <div class="ticket-container">
     ${contentHTML}
-    <button class="btn-print" onclick="window.print()">🖨️ Direct Print / பிரிண்ட் செய்யவும்</button>
+    <button class="btn-print" onclick="window.print()">${currentLang === 'ta' ? '🖨️ அச்சு செய்க (Print)' : '🖨️ Direct Print'}</button>
   </div>
 </body>
 </html>`;
@@ -7925,6 +8694,9 @@
       } else if (tab === 'tab-customers') {
         document.getElementById('admin-tab-customers').style.display = 'block';
         renderAdminCustomers();
+      } else if (tab === 'tab-coupons') {
+        document.getElementById('admin-tab-coupons').style.display = 'block';
+        renderAdminCoupons();
       } else if (tab === 'tab-analytics') {
         document.getElementById('admin-tab-analytics').style.display = 'block';
         renderAdminAnalytics();
@@ -7986,7 +8758,7 @@
           return { ...dp, distToCust };
         }).sort((a, b) => a.distToCust - b.distToCust);
 
-        let deliveryOptionsHtml = '<option value="">-- Unassigned / நியமிக்கப்படவில்லை --</option>';
+        let deliveryOptionsHtml = `<option value="">${currentLang === 'ta' ? '-- நியமிக்கப்படவில்லை --' : '-- Unassigned --'}</option>`;
         sortedExecutives.forEach(dp => {
           const isSel = o.assignedExecutiveId === dp.id ? 'selected' : '';
           const distanceStatus = dp.latitude ? `⚡ ${dp.distToCust} km from customer` : `🏪 at Shop`;
@@ -7996,12 +8768,12 @@
         let actions = '';
         if (o.status === 'pending') {
           actions += `
-            <button class="btn btn-success" style="padding:6px; font-size:11px;" onclick="changeOrderStatus('${o.id}', 'ready')">Mark Ready ✓</button>
-            <button class="btn btn-danger" style="padding:6px; font-size:11px;" onclick="cancelOrderPrompt('${o.id}')">Cancel Order 🔴</button>
+            <button class="btn" style="background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; font-size:11.5px; font-weight:800; padding:10px; border-radius:10px; cursor:pointer; box-shadow:0 4px 10px rgba(16,185,129,0.2);" onclick="changeOrderStatus('${o.id}', 'ready')">Mark Ready ✓</button>
+            <button class="btn" style="background:linear-gradient(135deg, #ef4444, #dc2626); border:none; color:#fff; font-size:11.5px; font-weight:800; padding:10px; border-radius:10px; cursor:pointer; box-shadow:0 4px 10px rgba(239,68,68,0.2);" onclick="cancelOrderPrompt('${o.id}')">Cancel Order 🔴</button>
           `;
         } else if (o.status === 'ready') {
           actions += `
-            <button class="btn btn-success" style="grid-column: span 2; padding:6px; font-size:11px;" onclick="changeOrderStatus('${o.id}', 'delivered')">Mark Delivered ✅</button>
+            <button class="btn" style="grid-column: span 2; background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; font-size:12px; font-weight:800; padding:11px; border-radius:10px; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,0.25);" onclick="changeOrderStatus('${o.id}', 'delivered')">Mark Delivered ✅</button>
           `;
         }
 
@@ -8038,7 +8810,7 @@
             ${!isExpanded ? `
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-top:1px dashed #262626; padding-top:8px; font-size:11.5px; color:var(--text-muted);">
                 <span>💰 Total : <strong style="color:var(--accent-green);">₹${o.totalAmount}</strong></span>
-                <span style="color: var(--accent-orange); font-weight:600; font-size:10.5px; display:flex; align-items:center; gap:2px;">விவரம் காண்க / View Details ⬇️</span>
+                <span style="color: var(--accent-orange); font-weight:600; font-size:10.5px; display:flex; align-items:center; gap:2px;">${currentLang === 'ta' ? 'விவரம் காண்க ⬇️' : 'View Details ⬇️'}</span>
               </div>
             ` : ''}
 
@@ -8055,7 +8827,7 @@
               </div>
 
               <div style="margin-bottom:12px; border-top: 1px dashed #262626; padding-top: 8px;">
-                <label style="font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; display:block; margin-bottom:4px;">Delivery Partner / டெலிவரி நபர்</label>
+                <label style="font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; display:block; margin-bottom:4px;">${currentLang === 'ta' ? 'விநியோக நபர் (Rider)' : 'Delivery Partner'}</label>
                 <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:12px; padding:6px; border-radius:6px; width:100%; font-weight:bold;" onchange="assignDeliveryPartner('${o.id}', this.value)" onclick="event.stopPropagation()">
                   ${deliveryOptionsHtml}
                 </select>
@@ -8078,18 +8850,32 @@
                     <span style="font-size:11px; color:var(--accent-green); font-weight:700;">✓ OTP Hand-off verified</span>
                   `}
                 </div>
+                
+                ${o.rating ? `
+                  <div style="background:rgba(245,158,11,0.03); border: 1px solid rgba(245,158,11,0.15); border-radius:10.5px; padding:10px 12px; margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                      <span style="font-size:9.5px; color:var(--text-muted); text-transform:uppercase; font-weight:700;">⭐ Customer Review & Rating</span>
+                      <span style="font-size:12px; color:var(--accent-orange); font-weight:700;">${'★'.repeat(o.rating)}${'☆'.repeat(5 - o.rating)}</span>
+                    </div>
+                    ${o.feedbackComment ? `
+                      <p style="margin:4px 0 0 0; font-size:11.5px; color:rgba(255,255,255,0.85); font-style:italic;">"${o.feedbackComment}"</p>
+                    ` : `
+                      <p style="margin:4px 0 0 0; font-size:11px; color:var(--text-muted);">No written comments provided.</p>
+                    `}
+                  </div>
+                ` : ''}
               ` : ''}
 
               <!-- Operational Buttons Grid -->
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
-                <a href="tel:${o.customerPhone}" class="btn btn-secondary" style="padding:7px; font-size:11px; text-decoration:none; text-align:center;">📞 Call Customer</a>
-                <a href="https://wa.me/91${o.customerPhone}?text=${waCustomerMsg}" target="_blank" class="btn btn-secondary" style="padding:7px; font-size:11px; text-decoration:none; border-color:var(--accent-green); color:var(--accent-green); text-align:center;">📱 Confirm WA</a>
+                <a href="tel:${o.customerPhone}" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px;">📞 Call Customer</a>
+                <a href="https://wa.me/91${o.customerPhone}?text=${waCustomerMsg}" target="_blank" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.3); color:#10b981; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px; font-weight:700;">📱 Confirm WA</a>
                 
-                <button class="btn btn-secondary" style="padding:7px; font-size:11px;" onclick="printKOTTicket('${o.id}')">🖨️ KOT Slip</button>
-                <a href="https://wa.me/918778148899?text=${kotMsg}" target="_blank" class="btn btn-secondary" style="padding:7px; font-size:11px; text-decoration:none; text-align:center;">💚 Share KOT</a>
+                <button class="btn" style="padding:8px; font-size:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; cursor:pointer;" onclick="printKOTTicket('${o.id}')">🖨️ KOT Slip</button>
+                <a href="https://wa.me/918778148899?text=${kotMsg}" target="_blank" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(34, 197, 94, 0.08); border:1px solid rgba(34, 197, 94, 0.3); color:#22c55e; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px; font-weight:700;">💚 Share KOT</a>
                 
-                <button class="btn btn-secondary" style="padding:7px; font-size:11px;" onclick="printCustomerInvoice('${o.id}')">📄 Print Bill</button>
-                <a href="https://wa.me/91${o.customerPhone}?text=${waReadyMsg}" target="_blank" class="btn btn-secondary" style="padding:7px; font-size:11px; text-decoration:none; text-align:center;">📢 Ready Prompt</a>
+                <button class="btn" style="padding:8px; font-size:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; cursor:pointer;" onclick="printCustomerInvoice('${o.id}')">📄 Print Bill</button>
+                <a href="https://wa.me/91${o.customerPhone}?text=${waReadyMsg}" target="_blank" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.3); color:#3b82f6; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px; font-weight:700;">📢 Ready Prompt</a>
               </div>
 
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; border-top: 1px solid var(--border-color); padding-top:8px;">
@@ -8099,7 +8885,7 @@
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px dashed #262626; padding-top: 8px;">
                 <button class="btn" style="background: rgba(244, 63, 94, 0.08); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.25); padding: 5px 10px; font-size: 11px; font-weight: 700; border-radius: 8px; width: auto; font-family: 'Poppins', sans-serif;" onclick="deleteOrderFromDb('${o.id}', false)">🗑️ Delete Record</button>
                 <button onclick="toggleOrderDetails('${o.id}')" style="background:transparent; border:none; color:var(--text-secondary); font-size:11px; cursor:pointer; font-weight:500;">
-                  ▲ Collapse / சுருக்குக
+                  ${currentLang === 'ta' ? '▲ சுருக்குக' : '▲ Collapse'}
                 </button>
               </div>
             </div>
@@ -8209,7 +8995,7 @@
 
     function confirmOrderCancellation() {
       const id = document.getElementById('order-cancel-id').value;
-      const reasonText = document.getElementById('order-cancel-reason-input').value.trim() || 'No reason provided / காரணம் குறிப்பிடப்படவில்லை';
+      const reasonText = document.getElementById('order-cancel-reason-input').value.trim() || (currentLang === 'ta' ? 'காரணம் குறிப்பிடப்படவில்லை' : 'No reason provided');
       
       if (!id) return;
       
@@ -8426,6 +9212,9 @@
         "Product நீக்க விருப்பமா?",
         `நிச்சயமாக இந்த தயாரிப்பை (<strong>${prodName}</strong>) நீக்க விரும்புகிறீர்களா? இது நிரந்தரமாக நீக்கப்பட்டுவிடும்.`,
         function() {
+          // Register in deletion safeguard
+          markProductAsDeleted(id);
+
           const products = getData('ek_products');
           const filtered = products.filter(p => p.id !== id);
           
@@ -8513,22 +9302,106 @@
     }
 
     // DELIVERY EXECUTIVE MANAGEMENT
+    function onSalaryTypeChange() {
+      const type = document.getElementById('add-exec-salary-type').value;
+      const rateLabel = document.getElementById('exec-rate-label');
+      const helpText = document.getElementById('salary-help-text');
+      const rateInput = document.getElementById('add-exec-salary-rate');
+
+      if (type === 'per_order') {
+        rateLabel.innerHTML = currentLang === 'ta' ? 'கமிஷன் தொகை (₹)' : 'Commission per Delivery (₹)';
+        rateInput.placeholder = 'e.g. 35';
+        helpText.innerHTML = 'Rider is paid directly for <strong>every completed delivery order</strong> ticket.';
+      } else if (type === 'fixed') {
+        rateLabel.innerHTML = currentLang === 'ta' ? 'மாதச் சம்பளம் (₹)' : 'Fixed Monthly Salary (₹)';
+        rateInput.placeholder = 'e.g. 15000';
+        helpText.innerHTML = 'Rider is configured on a <strong>fixed monthly salary</strong> model.';
+      }
+    }
+
     function handleDeliverySave(event) {
       event.preventDefault();
+      const execId = document.getElementById('edit-exec-id').value;
       const name = document.getElementById('add-exec-name').value.trim();
       const phone = document.getElementById('add-exec-phone').value.trim();
       const pass = document.getElementById('add-exec-pass').value;
+      const salaryType = document.getElementById('add-exec-salary-type').value;
+      const salaryRate = parseFloat(document.getElementById('add-exec-salary-rate').value || 35);
 
       const list = getData('ek_delivery_persons', []);
-      list.push({
-        id: 'd_' + Math.floor(100000 + Math.random() * 900000),
-        name, phone, password: pass, isActive: true
-      });
+      
+      let targetObj;
+      if (execId) {
+        // Edit flow
+        const idx = list.findIndex(e => e.id === execId);
+        if (idx !== -1) {
+          list[idx].name = name;
+          list[idx].phone = phone;
+          list[idx].password = pass;
+          list[idx].salaryType = salaryType;
+          list[idx].salaryRate = salaryRate;
+          targetObj = list[idx];
+        } else {
+          showToast("Error locating executive record", "error");
+          return;
+        }
+      } else {
+        // Create flow
+        const newId = 'd_' + Math.floor(100000 + Math.random() * 900000);
+        targetObj = {
+          id: newId,
+          name,
+          phone,
+          password: pass,
+          isActive: true,
+          salaryType,
+          salaryRate
+        };
+        list.push(targetObj);
+      }
 
       saveData('ek_delivery_persons', list);
-      document.getElementById('admin-delivery-form').reset();
+
+      // Cloud firestore auto sync
+      if (typeof db !== 'undefined' && db && targetObj) {
+        db.collection('ek_delivery_persons').doc(targetObj.id).set(targetObj)
+          .catch(err => console.error("Rider cloud sync error:", err));
+      }
+
+      resetDeliveryForm();
       renderDeliveryExecutives();
-      showToast("Delivery executive registered successfully ✓", "success");
+      showToast(execId ? "Rider details successfully updated! ✓" : "Delivery executive registered successfully ✓", "success");
+    }
+
+    function editExecutiveForm(id) {
+      const list = getData('ek_delivery_persons', []);
+      const exec = list.find(e => e.id === id);
+      if (!exec) return;
+
+      document.getElementById('edit-exec-id').value = exec.id;
+      document.getElementById('add-exec-name').value = exec.name;
+      document.getElementById('add-exec-phone').value = exec.phone;
+      document.getElementById('add-exec-pass').value = exec.password || '';
+      document.getElementById('add-exec-salary-type').value = exec.salaryType || 'per_order';
+      document.getElementById('add-exec-salary-rate').value = exec.salaryRate || 35;
+
+      document.getElementById('admin-delivery-form-title').innerText = "✏️ Edit Delivery Partner Details";
+      document.getElementById('exec-submit-btn').innerText = currentLang === 'ta' ? "சேமி ✓" : "Save Changes ✓";
+      document.getElementById('exec-cancel-btn').style.display = 'block';
+
+      onSalaryTypeChange();
+      
+      // Scroll smoothly to form
+      document.getElementById('admin-delivery-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function resetDeliveryForm() {
+      document.getElementById('edit-exec-id').value = '';
+      document.getElementById('admin-delivery-form').reset();
+      document.getElementById('admin-delivery-form-title').innerText = "Register New Delivery Partner";
+      document.getElementById('exec-submit-btn').innerText = "Register Rider ✓";
+      document.getElementById('exec-cancel-btn').style.display = 'none';
+      onSalaryTypeChange();
     }
 
     function toggleExecutiveStatus(id) {
@@ -8538,6 +9411,12 @@
 
       list[idx].isActive = !list[idx].isActive;
       saveData('ek_delivery_persons', list);
+      
+      if (typeof db !== 'undefined' && db) {
+        db.collection('ek_delivery_persons').doc(id).set(list[idx])
+          .catch(err => console.error(err));
+      }
+
       renderDeliveryExecutives();
       showToast(`Status toggled for delivery partner.`, "info");
     }
@@ -8548,7 +9427,14 @@
         "Are you sure you want to remove this delivery executive partner?",
         function() {
           const list = getData('ek_delivery_persons', []);
-          saveData('ek_delivery_persons', list.filter(e => e.id !== id));
+          const updated = list.filter(e => e.id !== id);
+          saveData('ek_delivery_persons', updated);
+
+          if (typeof db !== 'undefined' && db) {
+            db.collection('ek_delivery_persons').doc(id).delete()
+              .catch(err => console.error(err));
+          }
+
           renderDeliveryExecutives();
           showToast("Partner removed", "error");
         }
@@ -8566,18 +9452,41 @@
       }
 
       list.forEach(e => {
+        const sType = e.salaryType || 'per_order';
+        const sRate = e.salaryRate || 35;
+        const sText = sType === 'per_order' ? `₹${sRate} / order` : `₹${sRate} / month`;
+
+        const ratingHtml = e.averageRating 
+          ? `<div style="font-size:11px; margin-top:4px; display:flex; align-items:center; gap:4px; color:#f59e0b;">
+               <span>⭐ rating:</span>
+               <strong>★ ${e.averageRating} (${e.totalRatings || 0} reviews)</strong>
+             </div>`
+          : `<div style="font-size:11px; margin-top:4px; display:flex; align-items:center; gap:4px; color:var(--text-muted);">
+               <span>⭐ Rating:</span>
+               <span>No reviews submitted yet</span>
+             </div>`;
+
         const card = `
-          <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px;">
-            <div>
-              <strong style="color:#fff; font-size:14px; display:block;">${e.name}</strong>
-              <span style="font-size:11px; color:var(--text-secondary);">📞 ${e.phone}</span>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
+          <div class="card" style="display:flex; flex-direction:column; padding:12px; margin-bottom:10px; gap:8px; border-color: rgba(255,255,255,0.06); background: rgba(255,255,255,0.01);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <strong style="color:#fff; font-size:14px; display:block;">${e.name}</strong>
+                <span style="font-size:11.5px; color:var(--text-secondary);">📞 ${e.phone}</span>
+                <div style="font-size:11px; margin-top:4px; display:flex; align-items:center; gap:4px; color:var(--accent-orange);">
+                  <span>💰 Salary Setup:</span>
+                  <strong style="background:rgba(245,158,11,0.08); padding:1px 6px; border-radius:4px; border:1px solid rgba(245,158,11,0.15);">${sText}</strong>
+                </div>
+                ${ratingHtml}
+              </div>
               <span class="badge" style="background:${e.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)'}; color:${e.isActive ? 'var(--accent-green)' : 'var(--accent-red)'}">
                 ${e.isActive ? 'Active' : 'Inactive'}
               </span>
-              <button class="btn btn-secondary" style="width:auto; padding:4px 8px; font-size:11px;" onclick="toggleExecutiveStatus('${e.id}')">Toggle</button>
-              <button class="btn btn-secondary" style="width:auto; padding:4px 8px; font-size:11px; border-color:var(--accent-red);" onclick="deleteExecutive('${e.id}')">❌</button>
+            </div>
+            
+            <div style="display:flex; justify-content:flex-end; gap:6px; border-top:1px dashed rgba(255,255,255,0.04); padding-top:8px; margin-top:4px;">
+              <button class="btn btn-secondary" style="width:auto; padding:4px 10px; font-size:11px; display:flex; align-items:center; gap:2.5px; border-radius:6px;" onclick="editExecutiveForm('${e.id}')">✏️ Edit</button>
+              <button class="btn btn-secondary" style="width:auto; padding:4px 8px; font-size:11px; display:flex; align-items:center; gap:2px; border-radius:6px;" onclick="toggleExecutiveStatus('${e.id}')">🔄 Status</button>
+              <button class="btn btn-secondary" style="width:auto; padding:4px 8px; font-size:11px; border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.05); color:#ef4444; border-radius:6px;" onclick="deleteExecutive('${e.id}')">❌</button>
             </div>
           </div>
         `;
@@ -8630,9 +9539,14 @@
       if (!u) return;
 
       showCustomConfirm(
-        "வாடிக்கையாளரை நீக்கவா? / Delete Customer?",
-        `நிச்சயமாக <strong>${u.name}</strong> (+91 ${u.phone}) என்ற வாடிக்கையாளரின் கணக்கை நிரந்தரமாக நீக்க விரும்புகிறீர்களா?<br><br>குறிப்பு: இதனால் அவரது ஆர்டர் விவரங்கள் நீக்கப்படாது. ஆனால் கணக்கு மற்றும் லாயல்டி புள்ளிகள் முழுமையாக நீக்கப்படும். தேவைப்பட்டால் அவர் மீண்டும் பதிவு செய்து லாகின் செய்யலாம்.`,
+        currentLang === 'ta' ? "வாடிக்கையாளரை நீக்கவா?" : "Delete Customer?",
+        currentLang === 'ta' 
+          ? `நிச்சயமாக <strong>${u.name}</strong> (+91 ${u.phone}) என்ற வாடிக்கையாளரின் கணக்கை நிரந்தரமாக நீக்க விரும்புகிறீர்களா?<br><br>குறிப்பு: இதனால் அவரது ஆர்டர் விவரங்கள் நீக்கப்படாது. ஆனால் கணக்கு மற்றும் லாயல்டி புள்ளிகள் முழுமையாக நீக்கப்படும்.`
+          : `Are you sure you want to permanently delete customer <strong>${u.name}</strong> (+91 ${u.phone})?<br><br>Their account and loyalty points will be fully removed.`,
         function() {
+          // Register in deletion safeguard
+          markUserAsDeleted(userId);
+
           const filtered = users.filter(user => user.id !== userId);
           saveData('ek_users', filtered);
 
@@ -8649,7 +9563,7 @@
             handleLogout();
           }
 
-          showToast("வாடிக்கையாளர் கணக்கு நீக்கப்பட்டது ✓ / Customer record removed!", "success");
+          showToast(currentLang === 'ta' ? "வாடிக்கையாளர் கணக்கு நீக்கப்பட்டது ✓" : "Customer record removed!", "success");
           renderAdminCustomers();
         }
       );
@@ -8695,7 +9609,7 @@
             <!-- Quick Management Tools including Delete -->
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px; border-top:1px dashed #222; padding-top:8px;">
               <button class="btn" style="background:rgba(244,63,94,0.08); color:#f43f5e; border:1px solid rgba(244,63,94,0.25); padding:4px 10px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer; font-family:'Poppins', sans-serif;" onclick="deleteCustomerFromDb('${u.id}')">
-                🗑️ Delete / நீக்குக
+                ${currentLang === 'ta' ? '🗑️ நீக்குக' : '🗑️ Delete'}
               </button>
             </div>
           </div>
@@ -8981,7 +9895,7 @@
           </div>
           <div style="font-size: 12px; color: #444; font-family: 'Poppins', sans-serif; font-weight: 500;">(${it.englishName})</div>
           <div style="margin-top: 4px; background: #000; color: #fff; padding: 2px 6px; border-radius: 4px; display: inline-block; font-size: 12px; font-weight: 800; text-transform: uppercase; font-family: 'JetBrains Mono', monospace;">
-            ✂️ தயாரிப்பு முறை / Prep: ${getLocalizedPrepareText(it.cutStyle, it.category)}
+            ✂️ ${currentLang === 'ta' ? 'தயாரிப்பு முறை:' : 'Preparation:'} ${getLocalizedPrepareText(it.cutStyle, it.category)}
           </div>
           ${it.specialNote ? `<div style="margin-top: 6px; font-size: 12px; font-style: italic; font-weight: 700; color: #b45309; border-left: 3px solid #b45309; padding-left: 6px; background: #fffbeb;">
             குறிப்பு: ${it.specialNote}
@@ -9050,7 +9964,7 @@
           <td style="padding: 8px 4px; border-bottom:1px solid #eee; text-align: left; vertical-align: top;">
             <div style="font-weight: 700; font-size: 13px; color: #111;">${it.tamilName}</div>
             <div style="font-size: 11px; color: #555; font-family: 'Poppins', sans-serif;">${it.englishName}</div>
-            <div style="font-size: 11px; color: #e65100; font-weight: 600; margin-top: 2px;">✂️ தயாரிப்பு முறை / Prep: ${getLocalizedPrepareText(it.cutStyle, it.category)}</div>
+            <div style="font-size: 11px; color: #e65100; font-weight: 600; margin-top: 2px;">✂️ ${currentLang === 'ta' ? 'தயாரிப்பு முறை:' : 'Preparation:'} ${getLocalizedPrepareText(it.cutStyle, it.category)}</div>
             ${it.specialNote ? `<div style="font-size: 10.5px; color: #b45309; font-style: italic; background: #fffbeb; padding: 2px 5px; border-radius: 4px; display: inline-block; margin-top: 2px; border-left: 2px solid #b45309;">குறிப்பு: ${it.specialNote}</div>` : ''}
           </td>
           <td style="padding: 8px 4px; border-bottom:1px solid #eee; text-align: center; vertical-align: top; font-weight: 500;">
@@ -9069,37 +9983,37 @@
             <h2 style="color: #111; margin: 2px 0 0 0; font-size: 18px; font-weight: 700; font-family: 'Hind Madurai', sans-serif;">எடப்பாடி கடை</h2>
             <p style="font-size: 11.5px; color: #444; margin: 4px 0 2px 0; font-weight: 500;">Premium Meat & Poultry Fast Delivery</p>
             <p style="font-size: 11px; color: #666; margin: 2px 0; font-weight: 500;">📍 Kavandampatti Rd, Idappadi, Salem, Tamil Nadu</p>
-            <p style="font-size: 11.5px; color: #111; margin: 2px 0 0 0; font-weight: 600;">📞 தொடர்புக்கு / WhatsApp: +91 87781 48899</p>
+            <p style="font-size: 11.5px; color: #111; margin: 2px 0 0 0; font-weight: 600;">📱 WhatsApp / Calls: +91 87781 48899</p>
           </div>
           
           <div style="border-top: 1.5px dashed #000; margin: 12px 0;"></div>
           
           <table style="width: 100%; font-size: 11.5px; border-collapse: collapse; line-height: 1.5; margin-bottom: 12px;">
             <tr>
-              <td style="padding: 2px 0; width: 50%;"><strong>பில் எண் / Ticket:</strong> <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">${o.id}</span></td>
-              <td style="padding: 2px 0; text-align: right; width: 50%;"><strong>நாள் / Date:</strong> ${dateStr}</td>
+              <td style="padding: 2px 0; width: 50%;"><strong>${currentLang === 'ta' ? 'பில் எண்:' : 'Ticket ID:'}</strong> <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">${o.id}</span></td>
+              <td style="padding: 2px 0; text-align: right; width: 50%;"><strong>${currentLang === 'ta' ? 'நாள்:' : 'Date:'}</strong> ${dateStr}</td>
             </tr>
             <tr>
-              <td style="padding: 2px 0;"><strong>பில் பெறுபவர் / Customer:</strong> ${o.customerName}</td>
-              <td style="padding: 2px 0; text-align: right;"><strong>கைபேசி / Mobile:</strong> ${o.customerPhone}</td>
+              <td style="padding: 2px 0;"><strong>${currentLang === 'ta' ? 'வாடிக்கையாளர்:' : 'Customer:'}</strong> ${o.customerName}</td>
+              <td style="padding: 2px 0; text-align: right;"><strong>${currentLang === 'ta' ? 'கைபேசி:' : 'Mobile:'}</strong> ${o.customerPhone}</td>
             </tr>
             <tr>
               <td colspan="2" style="padding: 4px 0; border-top: 1px dotted #ccc; margin-top: 4px;">
-                <strong>📍 விநியோக முகவரி / Delivery Address:</strong><br>
+                <strong>📍 ${currentLang === 'ta' ? 'விநியோக முகவரி:' : 'Delivery Address:'}</strong><br>
                 <span style="color: #333; font-size: 11px; display: inline-block; margin-top: 2px;">${o.deliveryAddress}</span>
               </td>
             </tr>
             <tr>
               <td style="padding: 4px 0 2px 0; border-top: 1px dotted #ccc;">
-                <strong>⏱️ நேர ஸ்லாட் / Time Slot:</strong> <span style="color: #e65100; font-weight: 600;">${o.deliveryTimeSlot}</span>
+                <strong>⏱️ ${currentLang === 'ta' ? 'நேர ஸ்லாட்:' : 'Time Slot:'}</strong> <span style="color: #e65100; font-weight: 600;">${o.deliveryTimeSlot}</span>
               </td>
               <td style="padding: 4px 0 2px 0; border-top: 1px dotted #ccc; text-align: right;">
-                <strong>💳 கட்டணம் / Payment:</strong> <span style="text-transform: uppercase; font-weight: 600;">${o.paymentMethod || 'Cash on Delivery'}</span>
+                <strong>💳 ${currentLang === 'ta' ? 'பணம் செலுத்துதல்:' : 'Payment:'}</strong> <span style="text-transform: uppercase; font-weight: 600;">${o.paymentMethod || 'Cash on Delivery'}</span>
               </td>
             </tr>
             <tr>
               <td colspan="2" style="padding: 2px 0;">
-                <strong>📦 மொத்த எடை / Total Package Weight:</strong> <span style="color: #111; font-weight: 600;">${totalWeightStr}</span>
+                <strong>📦 ${currentLang === 'ta' ? 'மொத்த எடை:' : 'Total Weight:'}</strong> <span style="color: #111; font-weight: 600;">${totalWeightStr}</span>
               </td>
             </tr>
           </table>
@@ -9107,10 +10021,10 @@
           <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px;">
             <thead>
               <tr style="background: #f8f8f8; border-top: 1px solid #111; border-bottom: 1.5px solid #111;">
-                <th style="padding: 6px 4px; text-align: left; font-weight: 700;">வ.எண் (S.No)</th>
-                <th style="padding: 6px 4px; text-align: left; font-weight: 700;">பொருள் / விவரம் (Product)</th>
-                <th style="padding: 6px 4px; text-align: center; font-weight: 700;">எடை (Weight)</th>
-                <th style="padding: 6px 4px; text-align: right; font-weight: 700;">விலை (Total)</th>
+                <th style="padding: 6px 4px; text-align: left; font-weight: 700;">${currentLang === 'ta' ? 'வரிசை எண் (No.)' : 'S.No'}</th>
+                <th style="padding: 6px 4px; text-align: left; font-weight: 700;">${currentLang === 'ta' ? 'பொருள் / விவரம்' : 'Item Details'}</th>
+                <th style="padding: 6px 4px; text-align: center; font-weight: 700;">${currentLang === 'ta' ? 'எடை / அளவு' : 'Weight / Qty'}</th>
+                <th style="padding: 6px 4px; text-align: right; font-weight: 700;">${currentLang === 'ta' ? 'விலை (₹)' : 'Price (₹)'}</th>
               </tr>
             </thead>
             <tbody>
@@ -9119,19 +10033,19 @@
           </table>
 
           <div style="margin-top: 12px; border-top: 1.5px dashed #000; padding-top: 8px; font-size: 12.5px; text-align: right; line-height: 1.6;">
-            <div>Subtotal (பொருட்களின் விலை): <strong style="color: #111;">₹${o.subtotalAmount}</strong></div>
-            <div style="margin-top: 2px;">Delivery Fee (டெலிவரி கட்டணம்): <strong style="color: #111;">₹${o.deliveryCharge}</strong></div>
-            ${o.loyaltyDiscount ? `<div style="color: #b91c1c; margin-top: 2px;">Loyalty Discount (தள்ளுபடி மின்கூப்பன்): <strong style="color: #b91c1c;">-₹${o.loyaltyDiscount}</strong></div>` : ''}
+            <div>${currentLang === 'ta' ? 'பொருட்களின் விலை (Subtotal):' : 'Subtotal:'} <strong style="color: #111;">₹${o.subtotalAmount}</strong></div>
+            <div style="margin-top: 2px;">${currentLang === 'ta' ? 'டெலிவரி கட்டணம் (Delivery):' : 'Delivery Charge:'} <strong style="color: #111;">₹${o.deliveryCharge}</strong></div>
+            ${o.loyaltyDiscount ? `<div style="color: #b91c1c; margin-top: 2px;">${currentLang === 'ta' ? 'லாயல்டி தள்ளுபடி (-):' : 'Loyalty Discount (-):'} <strong style="color: #b91c1c;">-₹${o.loyaltyDiscount}</strong></div>` : ''}
             <div style="border-top: 1px dotted #000; margin: 6px 0 6px auto; width: 150px;"></div>
             <div style="font-size: 15px; font-weight: 800; color: #111;">
-              Grand Total Payable (மொத்தம் செலுத்த வேண்டியது): <span style="color: #16a34a; font-size: 17px; display: inline-block; border-bottom: 1.5px double #16a34a; padding-bottom: 1px;">₹${o.totalAmount}</span>
+              ${currentLang === 'ta' ? 'மொத்தம் செலுத்த வேண்டியது:' : 'Grand Total Payable:'} <span style="color: #16a34a; font-size: 17px; display: inline-block; border-bottom: 1.5px double #16a34a; padding-bottom: 1px;">₹${o.totalAmount}</span>
             </div>
           </div>
           
           <div style="border-top: 1.5px dashed #000; margin: 16px 0 8px 0;"></div>
           <div style="text-align: center; font-family: 'Hind Madurai', sans-serif;">
-            <p style="font-size: 12px; font-weight: 700; margin: 0 0 4px 0; color: #111;">எடப்பாடி கடையில் வாங்கியதற்கு மிக்க நன்றி! 🙏</p>
-            <p style="font-size: 10.5px; color: #555; margin: 0;">மீண்டும் வருக! / Thank You for Supporting Local! 🙏</p>
+            <p style="font-size: 12px; font-weight: 700; margin: 0 0 4px 0; color: #111;">${currentLang === 'ta' ? 'எடப்பாடி கடையில் வாங்கியதற்கு மிக்க நன்றி! 🙏' : 'Thank you for shopping at Edappadi Kadai! 🙏'}</p>
+            <p style="font-size: 10.5px; color: #555; margin: 0;">${currentLang === 'ta' ? 'மீண்டும் வருக! 🙏' : 'Thank You for Supporting Local! 🙏'}</p>
             <p style="font-size: 9px; color: #888; margin-top: 6px; font-family: 'Poppins', sans-serif;">Generated via Edappadi Creators Logistics Engine</p>
           </div>
         </div>
@@ -9229,15 +10143,25 @@
           let usersModified = false;
 
           if (!usersSnap.empty) {
+            const deletedUserIds = getDeletedUserIds();
             usersSnap.forEach(doc => {
               const cloudUser = doc.data();
               const key = cloudUser.id || cloudUser.phone;
-              if (key) cloudUsersMap.set(key, cloudUser);
+              if (key) {
+                if (deletedUserIds.includes(key)) return;
+                cloudUsersMap.set(key, cloudUser);
+              }
             });
           }
 
           // A. Upload local users that are newer, or don't exist in the cloud
+          const deletedUserIds = getDeletedUserIds();
           for (const [key, localUser] of localUsersMap.entries()) {
+            if (deletedUserIds.includes(key)) {
+              localUsersMap.delete(key);
+              usersModified = true;
+              continue;
+            }
             const cloudUser = cloudUsersMap.get(key);
             if (!cloudUser) {
               console.log(`[Cloud Sync] Uploading missing local user to Cloud: ${key}`);
@@ -9299,16 +10223,24 @@
           let ordersModified = false;
 
           if (!ordersSnap.empty) {
+            const deletedOrderIds = getDeletedOrderIds();
             ordersSnap.forEach(doc => {
               const cloudOrder = doc.data();
               if (cloudOrder && cloudOrder.id) {
+                if (deletedOrderIds.includes(cloudOrder.id)) return;
                 cloudOrdersMap.set(cloudOrder.id, cloudOrder);
               }
             });
           }
 
           // A. Upload local orders that are newer, or don't exist in the cloud
+          const deletedOrderIds = getDeletedOrderIds();
           for (const [key, localOrder] of localOrdersMap.entries()) {
+            if (deletedOrderIds.includes(key)) {
+              localOrdersMap.delete(key);
+              ordersModified = true;
+              continue;
+            }
             const cloudOrder = cloudOrdersMap.get(key);
             if (!cloudOrder) {
               const ageMs = Date.now() - new Date(localOrder.createdAt || Date.now()).getTime();
@@ -9381,16 +10313,24 @@
           let productsModified = false;
 
           if (!productsSnap.empty) {
+            const deletedProdIds = getDeletedProductIds();
             productsSnap.forEach(doc => {
               const cloudProd = doc.data();
               if (cloudProd && cloudProd.id) {
+                if (deletedProdIds.includes(cloudProd.id)) return;
                 cloudProductsMap.set(cloudProd.id, cloudProd);
               }
             });
           }
 
           // A. Upload local products that are newer, or don't exist in the cloud
+          const deletedProdIds = getDeletedProductIds();
           for (const [key, localProd] of localProductsMap.entries()) {
+            if (deletedProdIds.includes(key)) {
+              localProductsMap.delete(key);
+              productsModified = true;
+              continue;
+            }
             const cloudProd = cloudProductsMap.get(key);
             if (!cloudProd) {
               console.log(`[Cloud Sync] Local product ${key} is missing in cloud (deleted). Pruning locally.`);
@@ -9516,22 +10456,40 @@
       // A. Real-time stream for Users
       try {
         liveSyncUnsubscribers.users = db.collection('ek_users').onSnapshot(snapshot => {
-          if (!snapshot || snapshot.empty) return;
+          if (!snapshot) return;
           const localUsers = getData('ek_users', [DEMO_CUSTOMER]);
           const localUsersMap = new Map(localUsers.map(u => [u.id || u.phone, u]));
           let modifiedUsers = false;
 
-          snapshot.forEach(doc => {
-            const cloudUser = doc.data();
-            const key = cloudUser.id || cloudUser.phone;
-            if (!key) return;
-            const existing = localUsersMap.get(key);
-            
-            if (!existing || (JSON.stringify(existing) !== JSON.stringify(cloudUser))) {
-              localUsersMap.set(key, cloudUser);
+          const cloudUserIds = new Set();
+          if (!snapshot.empty) {
+            snapshot.forEach(doc => {
+              const cloudUser = doc.data();
+              const key = cloudUser.id || cloudUser.phone;
+              if (!key) return;
+
+              // Check deleted safeguard
+              const deletedUserIds = getDeletedUserIds();
+              if (deletedUserIds.includes(key)) return;
+
+              cloudUserIds.add(key);
+              const existing = localUsersMap.get(key);
+              
+              if (!existing || (JSON.stringify(existing) !== JSON.stringify(cloudUser))) {
+                localUsersMap.set(key, cloudUser);
+                modifiedUsers = true;
+              }
+            });
+          }
+
+          // Prune locally deleted users
+          for (const key of localUsersMap.keys()) {
+            if (key === DEMO_CUSTOMER.id || key === DEMO_CUSTOMER.phone) continue;
+            if (!cloudUserIds.has(key)) {
+              localUsersMap.delete(key);
               modifiedUsers = true;
             }
-          });
+          }
 
           if (modifiedUsers) {
             const merged = Array.from(localUsersMap.values());
@@ -9566,6 +10524,11 @@
             snapshot.forEach(doc => {
               const cloudOrder = doc.data();
               if (!cloudOrder || !cloudOrder.id) return;
+
+              // Check deleted safeguard
+              const deletedOrderIds = getDeletedOrderIds();
+              if (deletedOrderIds.includes(cloudOrder.id)) return;
+
               cloudOrderIds.add(cloudOrder.id);
               const existing = localOrdersMap.get(cloudOrder.id);
               
@@ -9601,16 +10564,7 @@
             console.log("[Cloud Live Sync] Instantly merged new orders from Firestore stream.");
             
             // Render display targets instantly
-            if (currentScreen === 'screen-admin') {
-              renderAdminOrders();
-              renderAdminDashboard();
-            } else if (currentScreen === 'screen-profile') {
-              renderProfileScreen();
-            } else if (currentScreen === 'screen-track') {
-              renderTrackerScreen();
-            } else if (currentScreen === 'screen-delivery') {
-              renderDeliveryScreen();
-            }
+            triggerGlobalScreenRefresh();
           }
         }, err => {
           console.warn("[Cloud Live Sync] Orders stream interrupted: ", err);
@@ -9655,37 +10609,36 @@
       // D. Real-time stream for Products
       try {
         liveSyncUnsubscribers.products = db.collection('ek_products').onSnapshot(snapshot => {
-          if (!snapshot || snapshot.empty) return;
+          if (!snapshot) return;
           const localProducts = getData('ek_products');
           const localProductsMap = new Map(localProducts.map(p => [p.id, p]));
           let modifiedProducts = false;
 
-          snapshot.forEach(doc => {
-            const cloudProd = doc.data();
-            if (!cloudProd || !cloudProd.id) return;
-            const existing = localProductsMap.get(cloudProd.id);
-
-            if (!existing || (JSON.stringify(existing) !== JSON.stringify(cloudProd))) {
-              localProductsMap.set(cloudProd.id, cloudProd);
-              modifiedProducts = true;
-            }
-          });
-
-          // Handle cases where a product was deleted in Firestore
           const cloudDocIds = new Set();
-          snapshot.forEach(doc => {
-            if (doc.exists) {
-              const data = doc.data();
-              if (data && data.id) cloudDocIds.add(data.id);
-            }
-          });
-          
-          if (cloudDocIds.size > 0) {
-            for (const key of localProductsMap.keys()) {
-              if (!cloudDocIds.has(key)) {
-                localProductsMap.delete(key);
+          if (!snapshot.empty) {
+            snapshot.forEach(doc => {
+              const cloudProd = doc.data();
+              if (!cloudProd || !cloudProd.id) return;
+
+              // Check deleted safeguard
+              const deletedProdIds = getDeletedProductIds();
+              if (deletedProdIds.includes(cloudProd.id)) return;
+
+              cloudDocIds.add(cloudProd.id);
+              const existing = localProductsMap.get(cloudProd.id);
+
+              if (!existing || (JSON.stringify(existing) !== JSON.stringify(cloudProd))) {
+                localProductsMap.set(cloudProd.id, cloudProd);
                 modifiedProducts = true;
               }
+            });
+          }
+
+          // Prune locally deleted products
+          for (const key of localProductsMap.keys()) {
+            if (!cloudDocIds.has(key)) {
+              localProductsMap.delete(key);
+              modifiedProducts = true;
             }
           }
 
@@ -9732,6 +10685,80 @@
         });
       } catch (e) {
         console.error("[Cloud Live Sync] Failed to attach products listener:", e);
+      }
+
+      // E. Real-time stream for Delivery staff/Rider positions
+      try {
+        liveSyncUnsubscribers.deliveryPersons = db.collection('ek_delivery_persons').onSnapshot(snapshot => {
+          if (!snapshot) return;
+          const localE = getData('ek_delivery_persons', []);
+          const localEMap = new Map(localE.map(e => [e.id, e]));
+          let modified = false;
+
+          let cloudIds = new Set();
+          if (!snapshot.empty) {
+            snapshot.forEach(doc => {
+              const cloudD = doc.data();
+              if (!cloudD || !cloudD.id) return;
+              cloudIds.add(cloudD.id);
+              const existing = localEMap.get(cloudD.id);
+              if (!existing || JSON.stringify(existing) !== JSON.stringify(cloudD)) {
+                localEMap.set(cloudD.id, cloudD);
+                modified = true;
+              }
+            });
+          }
+
+          // Prune locally deleted
+          for (const key of localEMap.keys()) {
+            if (!cloudIds.has(key)) {
+              localEMap.delete(key);
+              modified = true;
+            }
+          }
+
+          if (modified) {
+            const merged = Array.from(localEMap.values());
+            const jsonStr = JSON.stringify(merged);
+            if (typeof AndroidStorage !== 'undefined') {
+              AndroidStorage.saveData('ek_delivery_persons', jsonStr);
+            }
+            localStorage.setItem('ek_delivery_persons', jsonStr);
+            console.log("[Cloud Live Sync] Instantly merged new delivery riders from Firestore stream.");
+
+            // Inform active maps to update their markers right away!
+            if (currentScreen === 'screen-active-tracking' && trackerLeafletMap) {
+              console.log("[Cloud Live Sync] Active tracking screen live coordinate refresh.");
+              const activeOrderId = document.getElementById('tracking-order-id')?.innerText;
+              if (activeOrderId) {
+                const orders = getData('ek_orders', []);
+                const matchedOrder = orders.find(o => o.id === activeOrderId);
+                if (matchedOrder) {
+                  const storeLocation = [11.5815, 77.8488];
+                  let custLocation = [11.5804, 77.8501];
+                  const detailsContainer = document.getElementById('tracking-details-card');
+                  if (detailsContainer) {
+                    const latAttr = detailsContainer.getAttribute('data-cust-lat');
+                    const lngAttr = detailsContainer.getAttribute('data-cust-lng');
+                    if (latAttr && lngAttr) {
+                      custLocation = [parseFloat(latAttr), parseFloat(lngAttr)];
+                    }
+                  }
+                  updateMapMarkers(matchedOrder, storeLocation, custLocation);
+                }
+              }
+            } else if (currentScreen === 'screen-delivery' && typeof renderDeliveryScreen === 'function') {
+              renderDeliveryScreen();
+            } else if (currentScreen === 'screen-admin') {
+              renderAdminDashboard();
+            }
+          }
+        }, err => {
+          console.warn("[Cloud Live Sync] Delivery persons stream interrupted: ", err);
+          handleLiveStreamError('deliveryPersons', err);
+        });
+      } catch (e) {
+        console.error("[Cloud Live Sync] Failed to attach delivery staff listener:", e);
       }
     }
 
@@ -9873,8 +10900,57 @@
       }
     }
 
-    // REALTIME LIFETIME SYNC ENGINE
+    // REALTIME LIFETIME SYNC ENGINE & NATIVE RE-RENDER LOGIC
     let clientLastSyncTime = Date.now();
+
+    function triggerGlobalScreenRefresh() {
+      try {
+        if (currentScreen === 'screen-home') {
+          renderHomeScreen();
+        } else if (currentScreen === 'screen-cart') {
+          renderCartScreen();
+        } else if (currentScreen === 'screen-track') {
+          renderTrackerScreen();
+        } else if (currentScreen === 'screen-profile') {
+          renderProfileScreen();
+        } else if (currentScreen === 'screen-admin') {
+          if (typeof renderAdminOrders === 'function') renderAdminOrders();
+          if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+        } else if (currentScreen === 'screen-delivery') {
+          if (typeof renderDeliveryScreen === 'function') renderDeliveryScreen();
+        }
+
+        // Check if customer order detail modal is open, and refresh it in place!
+        const codModal = document.getElementById('customer-order-detail-modal');
+        if (codModal && (codModal.style.display === 'flex' || codModal.classList.contains('active'))) {
+          const codOrderIdEl = document.getElementById('cod-order-id');
+          if (codOrderIdEl) {
+            const currentCodId = codOrderIdEl.innerText.trim();
+            if (currentCodId) {
+              openCustomerOrderDetail(currentCodId);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Soft trigger screen refresh failure: ", err);
+      }
+    }
+
+    // Storage update synchronization channels (for multiple webviews, cross-tab triggers, or same-browser sync)
+    window.addEventListener('storage', (e) => {
+      if (['ek_orders', 'ek_last_update', 'ek_settings', 'ek_products', 'ek_users', 'ek_delivery_persons'].includes(e.key)) {
+        const lastUpdated = localStorage.getItem('ek_last_update');
+        if (lastUpdated) {
+          clientLastSyncTime = parseInt(lastUpdated);
+        }
+        triggerGlobalScreenRefresh();
+      }
+    });
+
+    window.addEventListener('ek-orders-updated', () => {
+      triggerGlobalScreenRefresh();
+    });
+
     function startRealtimeSync() {
       // 1. Initial snapshot fetch for fallback robustness
       syncWithCloud();
@@ -9885,27 +10961,18 @@
       // 3. Hot high-frequency periodic fallback sync to ensure absolute data consistency (every 90 seconds instead of heavy 15s)
       setInterval(syncWithCloud, 90000);
 
-      // Background check for admin data updates every 3 seconds (local storage changes)
+      // Background check for admin data updates (highly optimized 1-second interval for real-time responsiveness)
       setInterval(() => {
         const lastUpdated = localStorage.getItem('ek_last_update');
         if (lastUpdated) {
           const serverTime = parseInt(lastUpdated);
           if (serverTime > clientLastSyncTime) {
-            console.log("[PWA Realtime Sync] Changes made by admin identified. Re-rendering display gracefully...");
+            console.log("[PWA Realtime Sync] Changes identified. Re-rendering display gracefully...");
             clientLastSyncTime = serverTime;
-            // Refreshes the currently active user screen dynamically without screen reload
-            if (currentScreen === 'screen-home') {
-              renderHomeScreen();
-            } else if (currentScreen === 'screen-cart') {
-              renderCartScreen();
-            } else if (currentScreen === 'screen-track') {
-              renderTrackerScreen();
-            } else if (currentScreen === 'screen-profile') {
-              renderProfileScreen();
-            }
+            triggerGlobalScreenRefresh();
           }
         }
-      }, 3000);
+      }, 1000);
     }
 
     // WEB SHARE API INTEGRATION FOR APP MARKETING Gimmick
@@ -9956,7 +11023,8 @@
         const syncKeys = [
           'ek_products', 'ek_settings', 'ek_orders', 'ek_users', 
           'ek_delivery_persons', 'ek_admin_accounts', 'ek_admin_session', 
-          'ek_customer_session', 'ek_last_update', 'ek_lang', 'ek_remembered_credentials'
+          'ek_customer_session', 'ek_last_update', 'ek_lang', 'ek_remembered_credentials',
+          'ek_deleted_order_ids', 'ek_deleted_product_ids', 'ek_deleted_user_ids'
         ];
         syncKeys.forEach(k => {
           try {
@@ -9999,6 +11067,345 @@
         }
       }, 2000);
     });
+
+    // ==========================================
+    // GLOBAL COUPONS, MILESTONES & SCIENTIFIC PSYCHOLOGY REWARD HUB
+    // ==========================================
+    const DEFAULT_COUPONS = [
+      { id: 'c1', code: 'WELCOME10', type: 'percentage', rate: 10, minAmount: 199, descEn: 'Get 10% OFF on all gourmet meat and veggies!', descTa: 'அனைத்து இறைச்சி மற்றும் காய்கறிகளுக்கு 10% தள்ளுபடி!' },
+      { id: 'c2', code: 'FREEFRESH', type: 'freeship', rate: 0, minAmount: 299, descEn: 'Get FREE doorstep delivery on your delicious order!', descTa: 'குறைந்தபட்ச ஆர்டர் ₹299-க்கு இலவச டெலிவரி!' },
+      { id: 'c3', code: 'SAVEMORE', type: 'fixed', rate: 50, minAmount: 499, descEn: 'Flat ₹50 cash discount on your grand feast order!', descTa: 'உங்கள் மொத்த ஆர்டருக்கும் ₹50 நேரடி தள்ளுபடி!' }
+    ];
+
+    function getCoupons() {
+      return getData('ek_coupons', DEFAULT_COUPONS);
+    }
+
+    function saveCoupons(list) {
+      saveData('ek_coupons', list);
+      if (db) {
+        // sync to firebase directly
+        list.forEach(c => {
+          db.collection('ek_coupons').doc(c.id).set(c).catch(err => {});
+        });
+      }
+    }
+
+    // APPLY COUPON ON CHECKOUT SCREEN
+    function applyCartCouponCode() {
+      const inp = document.getElementById('cart-coupon-input');
+      if (!inp) return;
+      const code = inp.value.trim().toUpperCase();
+      if (!code) {
+        showToast(currentLang === 'ta' ? "மன்னிக்கவும்! கூப்பன் குறியீடு காலியாக உள்ளது." : "Please enter a coupon code!", "warning");
+        return;
+      }
+
+      const coupons = getCoupons();
+      const match = coupons.find(c => c.code === code);
+      if (!match) {
+        showToast(currentLang === 'ta' ? "தவறான கூப்பன் குறியீடு! WELCOME10, FREEFRESH அல்லது SAVEMORE முயற்சிக்கவும்." : "Invalid Coupon Code! Try WELCOME10, FREEFRESH or SAVEMORE.", "error");
+        return;
+      }
+
+      // Check minimum order validity
+      const subtotal = cart.reduce((acc, curr) => acc + curr.totalPrice, 0);
+      if (subtotal < match.minAmount) {
+        showToast(currentLang === 'ta' ? `மன்னிக்கவும்! இந்த கூப்பனைப் பயன்படுத்த குறைந்தபட்ச ஆர்டர் ₹${match.minAmount} தேவை.` : `This coupon requires a minimum subtotal of ₹${match.minAmount}!`, "warning");
+        return;
+      }
+
+      appliedCouponCode = code;
+      recalculateBill();
+      showToast(currentLang === 'ta' ? `கூப்பன் '${code}' வெற்றிகரமாக சேர்க்கப்பட்டது! 🎉` : `Coupon ${code} applied successfully! 🎉`, "success");
+      inp.value = '';
+    }
+
+    function removeCartCouponCode() {
+      appliedCouponCode = null;
+      recalculateBill();
+      showToast(currentLang === 'ta' ? "கூப்பன் நீக்கப்பட்டது." : "Coupon code retracted.", "info");
+    }
+
+    // ADMIN COUPONS RENDER & STORAGE CONTROLLER
+    function renderAdminCoupons() {
+      const list = getCoupons();
+      const container = document.getElementById('admin-coupons-list');
+      const countLabel = document.getElementById('admin-coupons-count');
+      if (!container) return;
+
+      container.innerHTML = '';
+      if (countLabel) countLabel.innerText = `${list.length} active`;
+
+      if (list.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">${currentLang === 'ta' ? 'கூப்பன்கள் எதுவும் இல்லை.' : 'No active promo coupons defined yet.'}</div>`;
+        return;
+      }
+
+      list.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.style.borderColor = 'rgba(245,158,11,0.2)';
+        div.style.background = '#121214';
+        div.style.marginBottom = '8px';
+        div.style.display = 'flex';
+        div.style.justify = 'space-between';
+        div.style.alignItems = 'center';
+
+        const typeLabel = c.type === 'percentage' ? `${c.rate}% Off` : c.type === 'fixed' ? `₹${c.rate} Off` : 'Free Shipping 🚚';
+        div.innerHTML = `
+          <div>
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+              <span class="badge" style="background:rgba(245,158,11,0.1); color:var(--accent-orange); font-weight:800; font-size:12px;">${c.code}</span>
+              <span style="font-size:11.5px; font-weight:700; color:var(--accent-green);">${typeLabel}</span>
+            </div>
+            <p style="font-size:11.5px; color:#fff; font-weight:600; margin:2px 0;">🇬🇧 ${c.descEn}</p>
+            <p style="font-size:11px; color:var(--text-secondary); margin:2px 0;">🇮🇳 ${c.descTa}</p>
+            <span style="font-size:10px; color:var(--text-muted);">Min Order: ₹${c.minAmount}</span>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn" style="padding:6px 10px; font-size:11px; font-weight:700; width:auto; border-color:rgba(255,255,255,0.05); color:#fff;" onclick="editCoupon('${c.id}')">✏️</button>
+            <button class="btn btn-secondary" style="padding:6px 10px; font-size:11px; font-weight:700; width:auto; border-color:#ef4444; color:#ef4444;" onclick="deleteCoupon('${c.id}')">🗑️</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function onCouponTypeChange() {
+      const type = document.getElementById('add-coupon-type').value;
+      const rateLabel = document.getElementById('coupon-rate-label');
+      const rateInput = document.getElementById('add-coupon-rate');
+      
+      if (type === 'freeship') {
+        rateInput.value = '0';
+        rateInput.disabled = true;
+        rateLabel.innerText = "Discount Value (Disabled)";
+      } else {
+        rateInput.disabled = false;
+        rateLabel.innerText = type === 'percentage'
+          ? (currentLang === 'ta' ? "தள்ளுபடி சதவிகிதம் (%)" : "Discount Percentage (%)")
+          : (currentLang === 'ta' ? "தள்ளுபடி தொகை (₹)" : "Discount Value (₹)");
+      }
+    }
+
+    function handleCouponSave(event) {
+      if (event) event.preventDefault();
+      
+      const id = document.getElementById('edit-coupon-id').value;
+      const code = document.getElementById('add-coupon-code').value.trim().toUpperCase();
+      const type = document.getElementById('add-coupon-type').value;
+      const rate = parseInt(document.getElementById('add-coupon-rate').value) || 0;
+      const minAmount = parseInt(document.getElementById('add-coupon-min').value) || 0;
+      const descEn = document.getElementById('add-coupon-desc-en').value.trim();
+      const descTa = document.getElementById('add-coupon-desc-ta').value.trim();
+
+      if (!code || !descEn || !descTa) {
+        showToast("Please enter all required fields", "warning");
+        return;
+      }
+
+      let coupons = getCoupons();
+
+      if (id) {
+        // Edit mode
+        const idx = coupons.findIndex(c => c.id === id);
+        if (idx !== -1) {
+          coupons[idx] = { id, code, type, rate, minAmount, descEn, descTa };
+          showToast(currentLang === 'ta' ? "கூப்பன் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!" : "Coupon updated successfully!", "success");
+        }
+      } else {
+        // New mode
+        const existing = coupons.find(c => c.code === code);
+        if (existing) {
+          showToast(currentLang === 'ta' ? "மன்னிக்கவும்! இந்த கூப்பன் குறியீடு ஏற்கனவே உள்ளது." : "This Coupon code already exists!", "error");
+          return;
+        }
+        const newC = {
+          id: 'CP' + Math.floor(100000 + Math.random() * 900000),
+          code, type, rate, minAmount, descEn, descTa
+        };
+        coupons.push(newC);
+        showToast(currentLang === 'ta' ? "புதிய கூப்பன் வெற்றிகரமாக சேர்க்கப்பட்டது!" : "Custom coupon created successfully!", "success");
+      }
+
+      saveCoupons(coupons);
+      resetCouponForm();
+      renderAdminCoupons();
+    }
+
+    function resetCouponForm() {
+      document.getElementById('edit-coupon-id').value = '';
+      document.getElementById('add-coupon-code').value = '';
+      document.getElementById('add-coupon-type').value = 'percentage';
+      document.getElementById('add-coupon-rate').value = '10';
+      document.getElementById('add-coupon-min').value = '199';
+      document.getElementById('add-coupon-desc-en').value = '';
+      document.getElementById('add-coupon-desc-ta').value = '';
+
+      const submitBtn = document.getElementById('coupon-submit-btn');
+      if (submitBtn) submitBtn.innerText = "Create Coupon ✓";
+      const cancelBtn = document.getElementById('coupon-cancel-btn');
+      if (cancelBtn) cancelBtn.style.display = 'none';
+      onCouponTypeChange();
+    }
+
+    function editCoupon(id) {
+      const coupons = getCoupons();
+      const c = coupons.find(x => x.id === id);
+      if (!c) return;
+
+      document.getElementById('edit-coupon-id').value = c.id;
+      document.getElementById('add-coupon-code').value = c.code;
+      document.getElementById('add-coupon-type').value = c.type;
+      document.getElementById('add-coupon-rate').value = c.rate;
+      document.getElementById('add-coupon-min').value = c.minAmount;
+      document.getElementById('add-coupon-desc-en').value = c.descEn;
+      document.getElementById('add-coupon-desc-ta').value = c.descTa;
+
+      const submitBtn = document.getElementById('coupon-submit-btn');
+      if (submitBtn) submitBtn.innerText = "Save Coupon Updates ✓";
+      const cancelBtn = document.getElementById('coupon-cancel-btn');
+      if (cancelBtn) cancelBtn.style.display = 'inline-block';
+      onCouponTypeChange();
+      
+      // scroll to edit form
+      document.getElementById('admin-coupon-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deleteCoupon(id) {
+      showCustomConfirm("அழிக்க வேண்டுமா?", "Are you sure you want to delete this promotional coupon code?", () => {
+        let coupons = getCoupons();
+        coupons = coupons.filter(c => c.id !== id);
+        saveCoupons(coupons);
+        renderAdminCoupons();
+        showToast("Promo coupons deleted successfully.", "warning");
+      });
+    }
+
+    // DYNAMIC GREETINGS & BEHAVIORAL TRIGGERS ENGINE on customer profile
+    function updateProfileGamification() {
+      const session = getActiveSession();
+      if (!session) return;
+      const users = getData('ek_users');
+      const u = users.find(x => x.id === session.userId);
+      if (!u) return;
+
+      const greetBanner = document.getElementById('prof-dynamic-greeting-banner');
+      const orders = getData('ek_orders').filter(o => o.customerId === u.id);
+      const totalAmountSpent = orders.reduce((acc, curr) => acc + (curr.totalAmount || curr.subtotalAmount || 0), 0);
+
+      // Generate localized premium dynamic greeting message
+      let messageEn = `Welcome to the exclusive inner circle, ${u.name}! `;
+      let messageTa = `வணக்கம் ${u.name}! `;
+
+      if (orders.length === 0) {
+        messageEn += `Your gourmet journey begins now! Get a massive discount on your first meat bowl today! 🥩`;
+        messageTa += `உங்கள் முதல் சுவையான ஆஃபரை பெற இப்போதே ஒரு ஆர்டர் செய்திடுங்கள்! 🍖`;
+      } else if (orders.length < 3) {
+        messageEn += `Perfect! You are only ${3 - orders.length} orders away from becoming a registered Silver Elite VIP customer! 🚀`;
+        messageTa += `வெறும் ${3 - orders.length} ஆர்டர்கள் மட்டும் முடித்து நீங்கள் சில்வர் விஐபி ஆகலாம்! 🚀`;
+      } else {
+        messageEn += `Spectacular! Thank you for ordering ${orders.length} times. Keep checking details for hidden gourmet deals! 🔥`;
+        messageTa += `அற்புதம்! எங்களின் எலைட் வாடிக்கையாளராக விளங்குவதற்கு மிக்க நன்றி! 🔥`;
+      }
+
+      if (greetBanner) {
+        greetBanner.innerHTML = `🌟 ${messageEn}<br><span style="font-size:11.5px; opacity:0.85;">✨ ${messageTa}</span>`;
+      }
+
+      // Render Gourmet Badges dynamically based on order metric counts
+      const streakBox = document.getElementById('badge-streak-box');
+      const streakIco = document.getElementById('badge-streak-ico');
+      const streakLbl = document.getElementById('badge-streak-lbl');
+
+      const carbonBox = document.getElementById('badge-carbon-box');
+      const carbonIco = document.getElementById('badge-carbon-ico');
+      const carbonLbl = document.getElementById('badge-carbon-lbl');
+
+      const vipBox = document.getElementById('badge-vip-box');
+      const vipIco = document.getElementById('badge-vip-ico');
+      const vipLbl = document.getElementById('badge-vip-lbl');
+
+      // Streak master badge
+      if (orders.length >= 1) {
+        if (streakBox) {
+          streakBox.style.borderColor = 'rgba(239,68,68,0.4)';
+          streakBox.style.background = 'rgba(239,68,68,0.06)';
+        }
+        if (streakIco) streakIco.style.filter = 'none';
+        if (streakLbl) {
+          streakLbl.innerText = "Master ✦";
+          streakLbl.style.color = '#ef4444';
+        }
+      }
+
+      // Carbon neutral hero (Eco points) - group packaging choice
+      if (totalAmountSpent >= 500) {
+        if (carbonBox) {
+          carbonBox.style.borderColor = 'rgba(16,185,129,0.4)';
+          carbonBox.style.background = 'rgba(16,185,129,0.06)';
+        }
+        if (carbonIco) carbonIco.style.filter = 'none';
+        if (carbonLbl) {
+          carbonLbl.innerText = "Eco Hero";
+          carbonLbl.style.color = '#10b981';
+        }
+      }
+
+      // VIP Crown badge
+      if (orders.length >= 4 || u.tier === 'gold') {
+        if (vipBox) {
+          vipBox.style.borderColor = 'rgba(245,158,11,0.4)';
+          vipBox.style.background = 'rgba(245,158,11,0.06)';
+        }
+        if (vipIco) vipIco.style.filter = 'none';
+        if (vipLbl) {
+          vipLbl.innerText = "Royal Member";
+          vipLbl.style.color = '#f59e0b';
+        }
+      }
+    }
+
+    // CHEF SECRET SCRATCH CARD REWARD POPULATOR
+    function scratchSecretProfileReward() {
+      const resDiv = document.getElementById('secret-scratched-result');
+      if (!resDiv) return;
+
+      const secretsList = [
+        {
+          title: "🍗 Elite Chef Secret: Butter Mutton Stew",
+          desc: "Before gourmet cooking, massage the fresh cuts with lemon zest and yogurt. Apply promo secret code: WELCOME10 for ₹50 off on orders above ₹199!"
+        },
+        {
+          title: "🔥 Spicy Country Chicken Fry",
+          desc: "Roast and handground dry coriander seeds with cinnamon and red chillies. Use secret code: SAVEMORE to get flat ₹50 instant discount!"
+        },
+        {
+          title: "🐟 Traditional Fish Tamarind Sauce",
+          desc: "Sauté seasoned small shallots with curry leaves on fresh cold pressed sesame oil. Use secret promo code: FREEFRESH to unlock free shipping!"
+        }
+      ];
+
+      const chosen = secretsList[Math.floor(Math.random() * secretsList.length)];
+      
+      resDiv.innerHTML = `
+        <strong style="color:var(--accent-orange); font-size:13px; display:block; margin-bottom:4px;">${chosen.title}</strong>
+        <p style="font-size:11.5px; color:#fff; line-height:1.4; margin-bottom:8px;">${chosen.desc}</p>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button class="btn btn-secondary" style="width:auto; padding:4px 10px; font-size:10px; border-color:var(--accent-green); color:var(--accent-green);" onclick="copyCouponCodeValue('${chosen.title.replace(/\\s/g, '')}')">📋 Copy Promo Code</button>
+          <span style="font-size:10.5px; color:var(--text-muted);">Custom recipe unlocked! 🌟</span>
+        </div>
+      `;
+      resDiv.style.display = 'block';
+      showToast("🔮 Magic box unleashed! Your cooking custom reward is printed below!", "success");
+    }
+
+    function copyCouponCodeValue(prefix) {
+      const code = prefix.includes("Mutton") ? 'WELCOME10' : prefix.includes("Chicken") ? 'SAVEMORE' : 'FREEFRESH';
+      navigator.clipboard.writeText(code);
+      showToast(`Discount promo coupon '${code}' copied straight to clipboard!`, "success");
+    }
   </script>
 
 </body>
