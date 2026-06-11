@@ -2378,8 +2378,8 @@
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 6px;">
-          <button id="admin-manual-sync-btn" style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 10px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: #60a5fa; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; font-family: 'Poppins', sans-serif;" onclick="triggerManualCloudSync()">🔄 Sync Now</button>
-          <button style="background: rgba(244, 63, 94, 0.08); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 700; color: #f43f5e; cursor: pointer; transition: all 0.2s; font-family: 'Poppins', sans-serif;" onclick="handleLogout()">Logout</button>
+          <button id="admin-manual-sync-btn" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.16) 0%, rgba(37, 99, 235, 0.16) 100%); border: 1.5px solid #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); border-radius: 20px; padding: 6px 12px; font-size: 11px; font-weight: 800; color: #60a5fa; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Poppins', sans-serif;" onclick="triggerManualCloudSync()">🔄 Sync Now</button>
+          <button style="background: rgba(244, 63, 94, 0.08); border: 1.5px solid rgba(244, 63, 94, 0.4); border-radius: 20px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: #f43f5e; cursor: pointer; transition: all 0.25s; font-family: 'Poppins', sans-serif;" onclick="handleLogout()">Logout</button>
         </div>
       </div>
 
@@ -9311,9 +9311,17 @@
           for (const [key, localOrder] of localOrdersMap.entries()) {
             const cloudOrder = cloudOrdersMap.get(key);
             if (!cloudOrder) {
-              console.log(`[Cloud Sync] Uploading missing local order to Cloud: ${key}`);
-              await db.collection('ek_orders').doc(key).set(localOrder)
-                .catch(e => console.error("Error setting order in cloud:", e));
+              const ageMs = Date.now() - new Date(localOrder.createdAt || Date.now()).getTime();
+              // Only upload if it is extremely new (e.g. created < 90 seconds ago, e.g. offline queue)
+              if (ageMs < 90000) {
+                console.log(`[Cloud Sync] Uploading missing local order to Cloud: ${key}`);
+                await db.collection('ek_orders').doc(key).set(localOrder)
+                  .catch(e => console.error("Error setting order in cloud:", e));
+              } else {
+                console.log(`[Cloud Sync] Local order ${key} is missing in cloud (deleted). Pruning locally.`);
+                localOrdersMap.delete(key);
+                ordersModified = true;
+              }
             } else {
               const localTime = localOrder.updatedAt ? new Date(localOrder.updatedAt).getTime() : 0;
               const cloudTime = cloudOrder.updatedAt ? new Date(cloudOrder.updatedAt).getTime() : 0;
@@ -9385,9 +9393,9 @@
           for (const [key, localProd] of localProductsMap.entries()) {
             const cloudProd = cloudProductsMap.get(key);
             if (!cloudProd) {
-              console.log(`[Cloud Sync] Uploading missing local product to Cloud: ${key}`);
-              await db.collection('ek_products').doc(key).set(localProd)
-                .catch(e => console.error("Error setting product in cloud:", e));
+              console.log(`[Cloud Sync] Local product ${key} is missing in cloud (deleted). Pruning locally.`);
+              localProductsMap.delete(key);
+              productsModified = true;
             } else {
               const localTime = localProd.updatedAt ? new Date(localProd.updatedAt).getTime() : 0;
               const cloudTime = cloudProd.updatedAt ? new Date(cloudProd.updatedAt).getTime() : 0;
@@ -9548,28 +9556,40 @@
       // B. Real-time stream for Orders
       try {
         liveSyncUnsubscribers.orders = db.collection('ek_orders').onSnapshot(snapshot => {
-          if (!snapshot || snapshot.empty) return;
+          if (!snapshot) return;
           const localOrders = getData('ek_orders', []);
           const localOrdersMap = new Map(localOrders.map(o => [o.id, o]));
           let modifiedOrders = false;
 
-          snapshot.forEach(doc => {
-            const cloudOrder = doc.data();
-            if (!cloudOrder || !cloudOrder.id) return;
-            const existing = localOrdersMap.get(cloudOrder.id);
-            
-            if (!existing || (JSON.stringify(existing) !== JSON.stringify(cloudOrder))) {
-              // Trigger real-time alert overlay/message on status change for active orders
-              if (existing && existing.status !== cloudOrder.status) {
-                const ageMs = Date.now() - new Date(cloudOrder.updatedAt || cloudOrder.createdAt || Date.now()).getTime();
-                if (ageMs < 1000 * 60 * 60 * 2) { // 2 hours
-                  triggerRealTimeStatusNotification(cloudOrder.id, existing.status, cloudOrder.status);
+          const cloudOrderIds = new Set();
+          if (!snapshot.empty) {
+            snapshot.forEach(doc => {
+              const cloudOrder = doc.data();
+              if (!cloudOrder || !cloudOrder.id) return;
+              cloudOrderIds.add(cloudOrder.id);
+              const existing = localOrdersMap.get(cloudOrder.id);
+              
+              if (!existing || (JSON.stringify(existing) !== JSON.stringify(cloudOrder))) {
+                // Trigger real-time alert overlay/message on status change for active orders
+                if (existing && existing.status !== cloudOrder.status) {
+                  const ageMs = Date.now() - new Date(cloudOrder.updatedAt || cloudOrder.createdAt || Date.now()).getTime();
+                  if (ageMs < 1000 * 60 * 60 * 2) { // 2 hours
+                    triggerRealTimeStatusNotification(cloudOrder.id, existing.status, cloudOrder.status);
+                  }
                 }
+                localOrdersMap.set(cloudOrder.id, cloudOrder);
+                modifiedOrders = true;
               }
-              localOrdersMap.set(cloudOrder.id, cloudOrder);
+            });
+          }
+
+          // Prune locally deleted orders
+          for (const key of localOrdersMap.keys()) {
+            if (!cloudOrderIds.has(key)) {
+              localOrdersMap.delete(key);
               modifiedOrders = true;
             }
-          });
+          }
 
           if (modifiedOrders) {
             const merged = Array.from(localOrdersMap.values());
@@ -9862,8 +9882,8 @@
       // 2. Setup standard Firestore live snapshot streams for instant updates from anywhere in India
       setupCloudRealtimeListeners2();
 
-      // 3. Hot high-frequency periodic fallback sync to ensure absolute data consistency (every 15 seconds)
-      setInterval(syncWithCloud, 15000);
+      // 3. Hot high-frequency periodic fallback sync to ensure absolute data consistency (every 90 seconds instead of heavy 15s)
+      setInterval(syncWithCloud, 90000);
 
       // Background check for admin data updates every 3 seconds (local storage changes)
       setInterval(() => {
