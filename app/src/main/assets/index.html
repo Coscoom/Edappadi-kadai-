@@ -2296,7 +2296,8 @@
             <span style="font-size: 11px; color: var(--text-muted);" id="delivery-exec-header-name">Partner Dashboard</span>
           </div>
         </div>
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button class="btn btn-success" style="width: auto; padding: 6px 11px; font-size: 11.5px; font-weight: 800; background: #10b981; border: none; box-shadow: 0 0 10px rgba(16,185,129,0.25);" onclick="updateRiderLiveLocationManual()">🛰️ GPS</button>
           <button class="btn btn-secondary" style="width: auto; padding: 6px 10px; font-size: 12px; border-color: #333;" onclick="syncDeliveryOrders()">🔄 Sync</button>
           <button class="btn btn-danger" style="width: auto; padding: 6px 10px; font-size: 12px; margin: 0; background: #ef4444;" onclick="handleDeliveryLogout()">🚪 Logout</button>
         </div>
@@ -4303,6 +4304,14 @@
       let user = users.find(u => u.id === session.userId);
       if (!user && session.phone) {
         user = users.find(u => u.phone === session.phone);
+        if (user) {
+          session.userId = user.id;
+          if (getData('ek_customer_session', null)) {
+            saveData('ek_customer_session', session);
+          } else if (sessionStorage.getItem('ek_customer_session_temp')) {
+            sessionStorage.setItem('ek_customer_session_temp', JSON.stringify(session));
+          }
+        }
       }
 
       if (!user) {
@@ -5487,6 +5496,48 @@
       }
     }
 
+    function updateRiderLiveLocationManual() {
+      const session = getData('ek_delivery_session', null);
+      if (!session) return;
+      
+      showToast("📡 Fetching GPS coordination points...", "info");
+      
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const list = getData('ek_delivery_persons', []);
+          const exIdx = list.findIndex(e => e.id === session.id);
+          if (exIdx !== -1) {
+            list[exIdx].latitude = lat;
+            list[exIdx].longitude = lng;
+            list[exIdx].lastActiveAt = new Date().toISOString();
+            saveData('ek_delivery_persons', list);
+            
+            if (db) {
+              db.collection('ek_delivery_persons').doc(session.id).set(list[exIdx])
+                .then(() => {
+                  showToast("உங்களது நேரலை ஜிபிஎஸ் இருப்பிடம் வாடிக்கையாளர் மற்றும் அட்மின் பக்கத்தில் புதுப்பிக்கப்பட்டது! 🛰️<br><span style='font-size:11px;'>GPS synchronized live!</span>", "success");
+                  renderDeliveryScreen();
+                })
+                .catch(err => {
+                  console.error(err);
+                  showToast("GPS updated locally, database push pending.", "info");
+                });
+            } else {
+              showToast("GPS updated locally! ✓", "success");
+              renderDeliveryScreen();
+            }
+          }
+        }, err => {
+          console.warn("Rider tracking permission not active-", err);
+          showToast("ஜிபிஎஸ் அணுகல் மறுக்கப்பட்டது / GPS permission denied or timed out ❌", "error");
+        }, {enableHighAccuracy: true, timeout: 8000});
+      } else {
+        showToast("Web GPS is not supported on this browser.", "error");
+      }
+    }
+
     function renderDeliveryScreen() {
       const session = getData('ek_delivery_session', null);
       if (!session) {
@@ -5594,9 +5645,14 @@
             `;
           } else if (o.status === 'delivering') {
             actionBtn = `
-              <button class="btn btn-success" style="background:#22c55e; color:#fff; font-size:12px; font-weight:700; padding:10px;" onclick="openDeliveryVerification('${o.id}')">
-                Mark as Delivered / விநியோகிக்கப்பட்டது ✅
-              </button>
+              <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+                <button class="btn btn-success" style="background:var(--accent-green); border:none; color:#fff; font-size:12.5px; font-weight:800; padding:12px; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="quickCompleteDelivery('${o.id}')">
+                  📦 Deliver Order / டெலிவரி செய் (Direct)
+                </button>
+                <button class="btn btn-secondary" style="border:1px solid #2d2d2d; color:var(--text-secondary); font-size:11px; font-weight:600; padding:8px; border-radius:8px;" onclick="openDeliveryVerification('${o.id}')">
+                  ✍️ Add Digital Signature Proof / வாடிக்கையாளர் கையொப்பம்
+                </button>
+              </div>
             `;
           }
         }
@@ -5771,6 +5827,33 @@
 
       showToast(`Order status updated to ${nextStatus.toUpperCase()}!`, "success");
       renderDeliveryScreen();
+    }
+
+    function quickCompleteDelivery(orderId) {
+      showCustomConfirm(
+        "டெலிவரி உறுதிசெய்யவா?",
+        "வாடிக்கையாளருக்கு ஆர்டர் வெற்றிகரமாக விநியோகிக்கப்பட்டது என்பதை உறுதிசெய்ய விரும்புகிறீர்களா?",
+        function() {
+          const orders = getData('ek_orders', []);
+          const idx = orders.findIndex(o => o.id === orderId);
+          if (idx === -1) return;
+
+          orders[idx].status = 'delivered';
+          orders[idx].customerSignature = "Quick delivered by Delivery Partner";
+          orders[idx].updatedAt = new Date().toISOString();
+
+          saveData('ek_orders', orders);
+
+          if (db) {
+            db.collection('ek_orders').doc(orderId).set(orders[idx])
+              .then(() => console.log(`Order ${orderId} quick delivered successfully.`))
+              .catch(e => console.error("Firebase sync error: ", e));
+          }
+
+          showToast("விநியோகிக்கப்பட்டது! ஆர்டர் டெலிவரி வெற்றிகரமாக பதிவு செய்யப்பட்டுள்ளது ✓", "success");
+          renderDeliveryScreen();
+        }
+      );
     }
 
     // PREMIUM PRO DELIVERY VERIFICATION SYSTEM (DIGITAL SIGNATURE PAD & CONTROL GATES)
@@ -6437,7 +6520,7 @@
         }).addTo(trackerLeafletMap);
 
         const group = new L.featureGroup([storeMarker, customerMarker]);
-        trackerLeafletMap.fitBounds(group.getBounds().pad(0.2));
+        trackerLeafletMap.flyToBounds(group.getBounds().pad(0.25), { animate: true, duration: 1.8 });
 
         // Fire rendering invalidators for safety
         setTimeout(() => {
@@ -6456,8 +6539,10 @@
     function updateMapMarkers(order, storePos, custPos) {
       if (!trackerLeafletMap) return;
 
+      clearRiderAnimation();
+
       const riderIcon = L.divIcon({
-        html: `<div style="background:#3b82f6; color:#fff; font-size:17px; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 10px rgba(59,130,246,0.8); animation: pulse 1.5s infinite;">🏍️</div>`,
+        html: `<div style="background:#3b82f6; color:#fff; font-size:17px; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 12px rgba(59,130,246,0.95); animation: pulse 1.2s infinite; font-weight: bold; transform-style: preserve-3d; transition: transform 0.2s ease-out;">🏍️</div>`,
         className: '',
         iconSize: [32, 32],
         iconAnchor: [16, 16]
@@ -6474,34 +6559,47 @@
           riderPos[0] = exe.latitude;
           riderPos[1] = exe.longitude;
         } else {
-          const updatedMs = new Date(order.updatedAt).getTime();
-          const elapsedSecs = (Date.now() - updatedMs) / 1000;
-          
-          // Simulating the 2 minute delivery run
-          const tripDuration = 120;
-          let fraction = Math.min(elapsedSecs / tripDuration, 0.95);
+          // Dynamic smooth simulation at 30 FPS / 33ms steps!
+          const updatedMs = new Date(order.updatedAt || new Date()).getTime();
+          const tripDuration = 120; // 2 minutes trip
 
-          riderPos[0] = storePos[0] + (custPos[0] - storePos[0]) * fraction;
-          riderPos[1] = storePos[1] + (custPos[1] - storePos[1]) * fraction;
+          // Setup initial position smoothly
+          const initialElapsed = (Date.now() - updatedMs) / 1000;
+          let currentF = Math.min(initialElapsed / tripDuration, 0.98);
+          
+          riderPos[0] = storePos[0] + (custPos[0] - storePos[0]) * currentF;
+          riderPos[1] = storePos[1] + (custPos[1] - storePos[1]) * currentF;
 
           riderAnimationTimer = setInterval(() => {
             const nowElapsed = (Date.now() - updatedMs) / 1000;
-            let f = Math.min(nowElapsed / tripDuration, 0.95);
-            if (f >= 0.95) {
+            let targetF = Math.min(nowElapsed / tripDuration, 0.98);
+            
+            if (targetF >= 0.98) {
               clearInterval(riderAnimationTimer);
             }
+            
+            // Incrementally approach target fraction with smooth damp filter
+            currentF += (targetF - currentF) * 0.08;
+
             if (riderMarker) {
               const trackingList = getData('ek_delivery_persons', []);
               const trackingExe = trackingList.find(dp => dp.id === order.assignedExecutiveId);
+              let targetLat, targetLng;
               if (trackingExe && trackingExe.latitude && trackingExe.longitude) {
-                riderMarker.setLatLng([trackingExe.latitude, trackingExe.longitude]);
+                targetLat = trackingExe.latitude;
+                targetLng = trackingExe.longitude;
               } else {
-                const interpolatedLat = storePos[0] + (custPos[0] - storePos[0]) * f;
-                const interpolatedLng = storePos[1] + (custPos[1] - storePos[1]) * f;
-                riderMarker.setLatLng([interpolatedLat, interpolatedLng]);
+                targetLat = storePos[0] + (custPos[0] - storePos[0]) * currentF;
+                targetLng = storePos[1] + (custPos[1] - storePos[1]) * currentF;
               }
+
+              // Smoothly glide marker position over coordinate steps
+              const currentLatLng = riderMarker.getLatLng();
+              const interpLat = currentLatLng.lat + (targetLat - currentLatLng.lat) * 0.12;
+              const interpLng = currentLatLng.lng + (targetLng - currentLatLng.lng) * 0.12;
+              riderMarker.setLatLng([interpLat, interpLng]);
             }
-          }, 1500);
+          }, 35);
         }
 
       } else if (order.status === 'delivered') {
@@ -6514,7 +6612,28 @@
           riderMarker = L.marker(riderPos, { icon: riderIcon }).addTo(trackerLeafletMap)
             .bindPopup("<strong>Delivery Executive</strong><br>உங்கள் விநியோக நபர் 🏍️");
         } else {
-          riderMarker.setLatLng(riderPos);
+          // Smoothly animate simple coordinates jump
+          const currentLatLng = riderMarker.getLatLng();
+          const dist = Math.sqrt(Math.pow(currentLatLng.lat - riderPos[0], 2) + Math.pow(currentLatLng.lng - riderPos[1], 2));
+          if (dist > 0.0001) {
+            let start = null;
+            const duration = 1200; // 1.2s smooth animated glide
+            function step(timestamp) {
+              if (!start) start = timestamp;
+              const progress = Math.min((timestamp - start) / duration, 1);
+              if (riderMarker) {
+                const currentLat = currentLatLng.lat + (riderPos[0] - currentLatLng.lat) * progress;
+                const currentLng = currentLatLng.lng + (riderPos[1] - currentLatLng.lng) * progress;
+                riderMarker.setLatLng([currentLat, currentLng]);
+              }
+              if (progress < 1) {
+                requestAnimationFrame(step);
+              }
+            }
+            requestAnimationFrame(step);
+          } else {
+            riderMarker.setLatLng(riderPos);
+          }
         }
       } else {
         if (riderMarker) {
@@ -6523,12 +6642,21 @@
         }
       }
 
-      // Re-boundary fitting
+      // Re-boundary fitting using zoom out-in flying kinematics
       try {
         const activeElements = [storeMarker, customerMarker];
         if (showRider && riderMarker) activeElements.push(riderMarker);
         const group = new L.featureGroup(activeElements);
-        trackerLeafletMap.fitBounds(group.getBounds().pad(0.25));
+        const bounds = group.getBounds().pad(0.3);
+
+        const stateKey = `${order.id}_${order.status}`;
+        if (trackerLeafletMap._lastFlownState !== stateKey) {
+          trackerLeafletMap._lastFlownState = stateKey;
+          trackerLeafletMap.flyToBounds(bounds, { animate: true, duration: 2.2, easeLinearity: 0.2 });
+        } else {
+          // Just align boundaries gently without interrupting active user pan
+          trackerLeafletMap.fitBounds(bounds, { animate: true, duration: 0.5 });
+        }
       } catch (err) {
         console.warn(err);
       }
@@ -6550,7 +6678,7 @@
       } else {
         const session = getActiveSession();
         if (session) {
-          const userOrders = orders.filter(o => o.customerId === session.userId)
+          const userOrders = orders.filter(o => o.customerId === session.userId || (o.customerPhone && session.phone && o.customerPhone === session.phone))
                                   .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
           orderToQuery = userOrders[0];
         }
@@ -6577,7 +6705,7 @@
       const session = getActiveSession();
       if (!session) return;
 
-      const userOrders = orders.filter(o => o.customerId === session.userId)
+      const userOrders = orders.filter(o => o.customerId === session.userId || (o.customerPhone && session.phone && o.customerPhone === session.phone))
                               .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       const activeBox = document.getElementById('active-tracker-box');
@@ -6656,12 +6784,12 @@
               </div>
               <div style="display: flex; justify-content: space-between;">
                 <span>Delivery Charge / டெலிவரி கட்டணம்:</span>
-                <span>${latestTrackable.deliveryFee === 0 ? "FREE ✨" : `₹${latestTrackable.deliveryFee || 0}`}</span>
+                <span>${(latestTrackable.deliveryCharge !== undefined ? latestTrackable.deliveryCharge : (latestTrackable.deliveryFee || 0)) === 0 ? "FREE ✨" : `₹${latestTrackable.deliveryCharge !== undefined ? latestTrackable.deliveryCharge : (latestTrackable.deliveryFee || 0)}`}</span>
               </div>
-              ${latestTrackable.discountApplied > 0 ? `
+              ${(latestTrackable.loyaltyDiscount !== undefined ? latestTrackable.loyaltyDiscount : (latestTrackable.discountApplied || 0)) > 0 ? `
               <div style="display: flex; justify-content: space-between; color: var(--accent-green);">
                 <span>Discount / தள்ளுபடி:</span>
-                <span>-₹${latestTrackable.discountApplied}</span>
+                <span>-₹${latestTrackable.loyaltyDiscount !== undefined ? latestTrackable.loyaltyDiscount : latestTrackable.discountApplied}</span>
               </div>
               ` : ''}
               <div style="display: flex; justify-content: space-between; font-weight: bold; color: #fff; font-size: 13.5px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 6px; margin-top: 2px;">
@@ -6965,11 +7093,34 @@
       showTab('tab-track');
     }
 
+    function toggleTrackerItemsCollapse() {
+      const list = document.getElementById('tracker-items-list-collapse');
+      const icon = document.getElementById('tracker-items-toggle-icon');
+      if (!list || !icon) return;
+      if (list.style.display === 'none') {
+        list.style.display = 'block';
+        icon.innerHTML = '▲ Hide / சுருக்குக';
+      } else {
+        list.style.display = 'none';
+        icon.innerHTML = '▼ Show / விரிக்குக';
+      }
+    }
+
     function updateStepperGraphic(status) {
       const stepperLine = document.getElementById('stepper-line');
       if (!stepperLine) return;
       
-      // Initialize states classes
+      const rPending = document.getElementById('step-row-pending');
+      const rReady = document.getElementById('step-row-ready');
+      const rDelivering = document.getElementById('step-row-delivering');
+      const rDelivered = document.getElementById('step-row-delivered');
+
+      if (rPending) rPending.className = "tracker-timeline-step";
+      if (rReady) rReady.className = "tracker-timeline-step";
+      if (rDelivering) rDelivering.className = "tracker-timeline-step";
+      if (rDelivered) rDelivered.className = "tracker-timeline-step";
+
+      // Also support legacy circle styling if fallback elements exist
       const cPending = document.getElementById('circle-pending');
       const cReady = document.getElementById('circle-ready');
       const cDelivering = document.getElementById('circle-delivering');
@@ -6992,16 +7143,22 @@
 
       if (status === 'pending') {
         stepperLine.style.height = "0%";
+        if (rPending) rPending.classList.add("active");
         if (cPending) cPending.style.borderColor = "var(--accent-orange)";
         if (tPending) tPending.style.color = "#fff";
       } else if (status === 'ready') {
         stepperLine.style.height = "33%";
+        if (rPending) rPending.classList.add("completed");
+        if (rReady) rReady.classList.add("active");
         if (cPending) cPending.style.borderColor = "var(--accent-orange)";
         if (cReady) cReady.style.borderColor = "var(--accent-blue)";
         if (tPending) tPending.style.color = "#fff";
         if (tReady) tReady.style.color = "#fff";
       } else if (status === 'delivering') {
         stepperLine.style.height = "66%";
+        if (rPending) rPending.classList.add("completed");
+        if (rReady) rReady.classList.add("completed");
+        if (rDelivering) rDelivering.classList.add("active");
         if (cPending) cPending.style.borderColor = "var(--accent-orange)";
         if (cReady) cReady.style.borderColor = "var(--accent-blue)";
         if (cDelivering) cDelivering.style.borderColor = "var(--accent-orange)";
@@ -7010,6 +7167,10 @@
         if (tDelivering) tDelivering.style.color = "#fff";
       } else if (status === 'delivered') {
         stepperLine.style.height = "100%";
+        if (rPending) rPending.classList.add("completed");
+        if (rReady) rReady.classList.add("completed");
+        if (rDelivering) rDelivering.classList.add("completed");
+        if (rDelivered) rDelivered.classList.add("completed");
         if (cPending) cPending.style.borderColor = "var(--accent-orange)";
         if (cReady) cReady.style.borderColor = "var(--accent-blue)";
         if (cDelivering) cDelivering.style.borderColor = "var(--accent-orange)";
@@ -7021,8 +7182,160 @@
       } else {
         // Red stepper on cancellation/rejection
         stepperLine.style.height = "0%";
+        if (rPending) rPending.classList.add("active");
         if (cPending) cPending.style.borderColor = "var(--accent-red)";
         if (tPending) tPending.style.color = "var(--accent-red)";
+      }
+    }
+
+    function triggerRealTimeStatusNotification(orderId, oldStatus, newStatus) {
+      const session = getActiveSession();
+      const orders = getData('ek_orders', []);
+      const o = orders.find(ord => ord.id === orderId);
+      if (!o) return;
+
+      const isAdminActive = (typeof currentScreen !== 'undefined' && currentScreen === 'screen-admin');
+      const isMyOrder = session && (o.customerId === session.userId || (o.customerPhone && session.phone && o.customerPhone === session.phone));
+
+      if (!isMyOrder && !isAdminActive) return;
+
+      let msgTamil = "";
+      let msgEnglish = "";
+      let toastTheme = "info";
+
+      if (newStatus === 'ready') {
+        msgTamil = `ஆர்டர் ${orderId} உறுதிசெய்யப்பட்டு வெட்டப்படுகிறது! 🥩`;
+        msgEnglish = `Order ${orderId} has been confirmed & is preparing!`;
+        toastTheme = "success";
+      } else if (newStatus === 'delivering') {
+        msgTamil = `ஆர்டர் ${orderId} விநியோகிக்க புறப்பட்டுவிட்டது! 🏍️`;
+        msgEnglish = `Order ${orderId} is out for delivery!`;
+        toastTheme = "info";
+      } else if (newStatus === 'delivered') {
+        msgTamil = `ஆர்டர் ${orderId} விநியோகிக்கப்பட்டது! 🎉`;
+        msgEnglish = `Order ${orderId} delivered successfully!`;
+        toastTheme = "success";
+        
+        if (isMyOrder) {
+          showCelebrateDeliveredModal(o);
+        }
+      } else if (newStatus === 'rejected') {
+        msgTamil = `ஆர்டர் ${orderId} ரத்து செய்யப்பட்டது / மறுக்கப்பட்டது ❌`;
+        msgEnglish = `Order ${orderId} was rejected or cancelled.`;
+        toastTheme = "error";
+      }
+
+      if (msgEnglish && msgTamil) {
+        showToast(`${msgTamil}<br><span style="font-size: 11px; opacity: 0.85;">${msgEnglish}</span>`, toastTheme);
+      }
+    }
+
+    function showCelebrateDeliveredModal(order) {
+      const existing = document.getElementById('delivered-celebrate-modal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'delivered-celebrate-modal';
+      modal.className = 'modal-backdrop';
+      modal.style.zIndex = '10010';
+      modal.style.display = 'flex';
+      modal.style.justifyContent = 'center';
+      modal.style.alignItems = 'center';
+      modal.style.padding = '20px';
+      modal.style.background = 'rgba(0, 0, 0, 0.85)';
+
+      modal.innerHTML = `
+        <div class="bottom-sheet" style="background: #0f1217; color: #ffffff; border: 2.5px solid var(--accent-green); border-radius: 28px; width: 100%; max-width: 400px; padding: 26px; text-align: center; position: relative; box-shadow: 0 15px 45px rgba(16, 185, 129, 0.2); display: flex; flex-direction: column; gap: 16px; transform: scale(0.9); transition: all 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28);">
+          
+          <div style="width: 86px; height: 86px; background: rgba(16, 185, 129, 0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 2px solid var(--accent-green); box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);">
+            <span style="font-size: 44px;">🥩</span>
+          </div>
+
+          <div>
+            <span style="font-size: 10.5px; background: rgba(16, 185, 129, 0.15); color: var(--accent-green); font-weight: 800; padding: 3px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 1px;">Order Delivered / பெறப்பட்டது</span>
+            <h3 style="font-family: 'Poppins', 'Hind Madurai', sans-serif; font-size: 21px; font-weight: 800; color: #fff; margin: 10px 0 2px 0;">ஆர்டர் முழுமையடைந்தது!</h3>
+            <p style="font-family: 'Poppins', 'Hind Madurai', sans-serif; font-size: 14.5px; font-weight: 600; color: var(--text-secondary); margin: 0;">Your order reached successfully!</p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 18px; padding: 14px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+              <span style="color: var(--text-muted);">Order Ticket:</span>
+              <strong style="color: #fff; font-family: 'JetBrains Mono', monospace;">${order.id}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+              <span style="color: var(--text-muted);">Amount Paid:</span>
+              <strong style="color: var(--accent-green); font-size: 14px;">₹${order.totalAmount}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+              <span style="color: var(--text-muted);">Rider Executive:</span>
+              <strong style="color: #fff;">${order.assignedExecutiveName || "Raman K"} 🏍️</strong>
+            </div>
+          </div>
+
+          <div style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 12px; margin-top: 4px;">
+            <p style="font-size: 12.5px; color: var(--text-secondary); font-weight: 700; margin-bottom: 8px;">மதிப்பிடுக / Rate Delivery Service</p>
+            <div style="display: flex; justify-content: center; gap: 8px;" id="feedback-star-row">
+              <span style="font-size: 28px; cursor: pointer; opacity: 0.4;" onclick="highlightRatingStars(1)">⭐</span>
+              <span style="font-size: 28px; cursor: pointer; opacity: 0.4;" onclick="highlightRatingStars(2)">⭐</span>
+              <span style="font-size: 28px; cursor: pointer; opacity: 0.4;" onclick="highlightRatingStars(3)">⭐</span>
+              <span style="font-size: 28px; cursor: pointer; opacity: 0.4;" onclick="highlightRatingStars(4)">⭐</span>
+              <span style="font-size: 28px; cursor: pointer; opacity: 0.4;" onclick="highlightRatingStars(5)">⭐</span>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+            <button class="btn btn-primary" style="background: var(--accent-green); border: none; font-size: 13px; font-weight: 700; padding: 12px; border-radius: 12px;" onclick="submitRiderDeliveredFeedback('${order.id}')">
+              Submit Feedback / அனுப்பவும் 👍
+            </button>
+            <button class="btn btn-secondary" style="background: transparent; border: none; color: var(--text-muted); font-size: 12px; font-weight: 600;" onclick="closeDeliveredCelebrateModal()">
+              Close / மூடு
+            </button>
+          </div>
+
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      setTimeout(() => {
+        modal.classList.add('active');
+        const sheet = modal.querySelector('.bottom-sheet');
+        if (sheet) sheet.style.transform = 'scale(1)';
+      }, 10);
+      
+      highlightRatingStars(5);
+    }
+
+    let selectedRiderRating = 5;
+
+    function highlightRatingStars(rating) {
+      selectedRiderRating = rating;
+      const row = document.getElementById('feedback-star-row');
+      if (!row) return;
+      const stars = row.querySelectorAll('span');
+      stars.forEach((star, idx) => {
+        if (idx < rating) {
+          star.style.opacity = '1';
+          star.style.textShadow = '0 0 10px rgba(245,158,11,0.5)';
+        } else {
+          star.style.opacity = '0.4';
+          star.style.textShadow = 'none';
+        }
+      });
+    }
+
+    function submitRiderDeliveredFeedback(orderId) {
+      showToast(`Review sent successfully! Rated standard ${selectedRiderRating} stars! Thank you! ✓`, "success");
+      closeDeliveredCelebrateModal();
+    }
+
+    function closeDeliveredCelebrateModal() {
+      const modal = document.getElementById('delivered-celebrate-modal');
+      if (modal) {
+        modal.classList.remove('active');
+        const sheet = modal.querySelector('.bottom-sheet');
+        if (sheet) sheet.style.transform = 'scale(0.9)';
+        setTimeout(() => modal.remove(), 200);
       }
     }
 
@@ -7098,7 +7411,7 @@
 
       // Stats card counts
       const orders = getData('ek_orders');
-      const myOrders = orders.filter(o => o.customerId === user.id);
+      const myOrders = orders.filter(o => o.customerId === user.id || (o.customerPhone && user.phone && o.customerPhone === user.phone));
       const spentAmount = myOrders.reduce((sum, o) => sum + o.totalAmount, 0);
 
       document.getElementById('stats-orders').innerText = myOrders.length;
@@ -7830,7 +8143,14 @@
         orders[idx].assignedExecutiveId = exec.id;
         orders[idx].assignedExecutiveName = exec.name;
         orders[idx].assignedExecutivePhone = exec.phone;
-        showToast(`Assigned ${exec.name} to order ${orderId}! 🏍️`, "success");
+        
+        // Automatically make state READY (Confirmed & Preparing) if currently PENDING
+        if (orders[idx].status === 'pending') {
+          orders[idx].status = 'ready';
+          showToast(`Assigned ${exec.name} & Order Confirmed and Preparing! 🥩`, "success");
+        } else {
+          showToast(`Assigned ${exec.name} to order ${orderId}! 🏍️`, "success");
+        }
       } else {
         orders[idx].assignedExecutiveId = '';
         orders[idx].assignedExecutiveName = '';
@@ -9199,7 +9519,7 @@
             if (!key) return;
             const existing = localUsersMap.get(key);
             
-            if (!existing || !existing.updatedAt || (cloudUser.updatedAt && new Date(cloudUser.updatedAt) > new Date(existing.updatedAt))) {
+            if (!existing || (JSON.stringify(existing) !== JSON.stringify(cloudUser))) {
               localUsersMap.set(key, cloudUser);
               modifiedUsers = true;
             }
@@ -9238,7 +9558,14 @@
             if (!cloudOrder || !cloudOrder.id) return;
             const existing = localOrdersMap.get(cloudOrder.id);
             
-            if (!existing || !existing.updatedAt || (cloudOrder.updatedAt && new Date(cloudOrder.updatedAt) > new Date(existing.updatedAt))) {
+            if (!existing || (JSON.stringify(existing) !== JSON.stringify(cloudOrder))) {
+              // Trigger real-time alert overlay/message on status change for active orders
+              if (existing && existing.status !== cloudOrder.status) {
+                const ageMs = Date.now() - new Date(cloudOrder.updatedAt || cloudOrder.createdAt || Date.now()).getTime();
+                if (ageMs < 1000 * 60 * 60 * 2) { // 2 hours
+                  triggerRealTimeStatusNotification(cloudOrder.id, existing.status, cloudOrder.status);
+                }
+              }
               localOrdersMap.set(cloudOrder.id, cloudOrder);
               modifiedOrders = true;
             }
@@ -9318,7 +9645,7 @@
             if (!cloudProd || !cloudProd.id) return;
             const existing = localProductsMap.get(cloudProd.id);
 
-            if (!existing || !existing.updatedAt || (cloudProd.updatedAt && new Date(cloudProd.updatedAt) > new Date(existing.updatedAt))) {
+            if (!existing || (JSON.stringify(existing) !== JSON.stringify(cloudProd))) {
               localProductsMap.set(cloudProd.id, cloudProd);
               modifiedProducts = true;
             }
