@@ -279,6 +279,7 @@
       border-right: 1px solid var(--border-color);
       box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
       padding-bottom: 74px; /* Safe padding for bottom nav space */
+      overflow-x: clip !important; /* Strictly lock all content inside mobile viewport while supporting position:sticky */
     }
 
     /* Safe Area padding for Splash and Login to hide nav bar space */
@@ -437,23 +438,37 @@
       border-color: rgba(255, 255, 255, 0.12);
     }
     .btn-selector {
-      background: var(--bg-card);
-      border: 1.5px solid var(--border-color);
-      border-radius: 300px !important;
-      padding: 12px;
+      background: #111827;
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px !important; /* Safer, more modern Material 3 border-radius */
+      padding: 6px 10px; /* Reduced padding from 14px to 10px for safer grid fit */
       color: var(--text-primary);
-      font-size: 13.5px;
+      font-size: 11.5px; /* Slightly more compact font */
+      font-weight: 600;
       cursor: pointer;
       text-align: center;
-      transition: all 0.2s ease;
-      min-height: 48px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      min-height: 38px;
+      display: inline-flex;
+      flex-direction: column; /* Stack line break cleanly vertically */
+      align-items: center;
+      justify-content: center;
+      white-space: normal; /* Force wrapped lines instead of nowrap! */
+      word-break: break-all; /* Prevent overflow on very narrow viewports */
     }
     .btn-selector.active {
-      border-color: var(--accent-orange);
-      background: rgba(245, 158, 11, 0.08);
-      color: var(--accent-orange);
+      border-color: transparent;
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      color: #000000;
       font-weight: 700;
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+    }
+    .btn-selector.cut-options {
+      line-height: 1.3 !important;
+      padding: 8px 4px !important;
+      min-height: 52px !important;
+      font-size: 11px !important;
+      border-radius: 14px !important;
     }
 
     /* Badges */
@@ -494,9 +509,11 @@
       padding: 20px;
       max-height: 85vh;
       overflow-y: auto;
+      overflow-x: hidden; /* Force strict containment */
       border-top: 1px solid var(--border-color);
       transform: translateY(100%);
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-sizing: border-box;
     }
     .modal-backdrop.active {
       display: flex;
@@ -695,7 +712,7 @@
       margin-top: 14px;
     }
 
-    /* Bottom Navigation Tab Bar - Ultra Premium Glassmorphic feel */
+    /* Bottom Navigation Tab Bar - Ultra Premium Compact Glassmorphic feel */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -703,32 +720,32 @@
       transform: translateX(-50%);
       width: 100%;
       max-width: 480px;
-      background: rgba(10, 14, 20, 0.85);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-top: 1.5px solid rgba(255, 255, 255, 0.08);
+      background: rgba(10, 14, 20, 0.9);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       display: none; /* Controlled dynamically */
       justify-content: space-around;
-      padding: 10px 0 14px 0;
+      padding: 5px 0 7px 0;
       z-index: 500;
-      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.6);
     }
     .nav-tab {
       display: flex;
       flex-direction: column;
       align-items: center;
       color: var(--text-secondary);
-      font-size: 11px;
-      font-weight: 500;
+      font-size: 9.5px;
+      font-weight: 600;
       text-decoration: none;
       cursor: pointer;
       position: relative;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      padding: 6px 14px;
-      border-radius: 14px;
+      padding: 4px 10px;
+      border-radius: 12px;
     }
     .nav-tab:active {
-      transform: scale(0.92);
+      transform: scale(0.94);
       background: rgba(255, 255, 255, 0.04);
     }
     .nav-tab.active {
@@ -736,26 +753,27 @@
       font-weight: 700;
     }
     .nav-tab.active span {
-      transform: scale(1.18) translateY(-1px);
-      filter: drop-shadow(0 2px 10px rgba(245, 158, 11, 0.5));
+      transform: scale(1.1) translateY(-0.5px);
+      filter: drop-shadow(0 2px 5px rgba(245, 158, 11, 0.3));
     }
     .nav-tab span {
-      font-size: 21px;
-      margin-bottom: 2px;
+      font-size: 15px;
+      margin-bottom: 1.5px;
       transition: transform 0.24s cubic-bezier(0.18, 0.89, 0.32, 1.28);
     }
     .nav-badge {
       position: absolute;
-      top: 2px;
-      right: 6px;
+      top: -2px;
+      right: -2px;
       background: linear-gradient(135deg, #f43f5e, #be123c);
       color: white;
-      font-size: 9px;
+      font-size: 7.5px;
       font-weight: 800;
-      padding: 2px 6px;
+      padding: 1px 4px;
       border-radius: 99px;
-      box-shadow: 0 2px 6px rgba(244, 63, 94, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 2px 4px rgba(244, 63, 94, 0.4);
+      border: 1.1px solid rgba(255, 255, 255, 0.1);
+      line-height: 1;
     }
 
     /* Category selection horizontal list */
@@ -766,6 +784,18 @@
       padding-bottom: 4px;
       margin-bottom: 16px;
       scrollbar-width: none;
+    }
+    #screen-home .filter-pills {
+      position: sticky;
+      top: 0px;
+      z-index: 110;
+      background: #030508; /* Perfectly match home page dark background context */
+      padding: 10px 4px;
+      margin-left: -16px;
+      margin-right: -16px;
+      padding-left: 16px;
+      padding-right: 16px;
+      border-bottom: 1.5px solid rgba(255, 255, 255, 0.08);
     }
     .filter-pills::-webkit-scrollbar {
       display: none;
@@ -1023,7 +1053,7 @@
 
     <!-- SCREEN 2: LOGIN PAGE -->
     <div id="screen-login" class="screen no-nav" style="justify-content: center; min-height: 100vh;">
-      <div style="position: absolute; top: 16px; right: 16px;">
+      <div style="position: absolute; top: 16px; right: 16px; display: none;">
         <button class="btn btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;" onclick="toggleLang()">EN/தமிழ்</button>
       </div>
 
@@ -1257,6 +1287,12 @@
         </div>
       </div>
 
+      <!-- Interactive Fresh Search Bar -->
+      <div style="margin-left: -2px; margin-right: -2px; margin-bottom: 16px; position: relative; display: block;">
+        <input type="text" id="home-product-search" class="form-control" placeholder="Search fresh mutton, chicken, fish, veg..." style="width: 100%; padding: 11px 14px 11px 36px; font-size: 13px; border-radius: 12px; background: #0c0f12; border: 1.5px solid rgba(255,255,255,0.06); color: #fff; box-sizing: border-box;" oninput="renderHomeScreenProducts()">
+        <span style="position: absolute; left: 13px; top: 11px; font-size: 14px; color: var(--text-muted); pointer-events: none;">🔍</span>
+      </div>
+
       <!-- Category Filter Pills -->
       <h4 style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;" data-translate="categories">Categories</h4>
       <div class="filter-pills">
@@ -1288,8 +1324,8 @@
       <div class="bottom-sheet" onclick="event.stopPropagation()">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
           <div>
-            <h2 id="modal-tamil-name" style="color: var(--accent-orange); font-weight: 700; font-size: 20px;"></h2>
-            <p id="modal-english-name" style="color: var(--text-secondary); font-size: 14px; font-weight: 500;"></p>
+            <h2 id="modal-english-name" style="color: #ffffff; font-weight: 700; font-size: 19px; margin-bottom: 2px;"></h2>
+            <p id="modal-tamil-name" style="color: var(--accent-orange); font-size: 13.5px; font-weight: 600;"></p>
           </div>
           <button onclick="closeProductModalDetail()" style="background: #222; color: #fff; width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;">×</button>
         </div>
@@ -1298,7 +1334,7 @@
         <div id="modal-product-image-container" style="width: 100%; height: 160px; border-radius: 18px; overflow: hidden; margin-bottom: 20px; position: relative; border: 1.5px solid var(--border-color); cursor: zoom-in;" onclick="expandProductPhotoFullscreen()">
           <img id="modal-product-img" src="" style="width: 100%; height: 100%; object-fit: cover;" alt="Product photo">
           <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 600; pointer-events: none; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-            🔍 Click to expand / பெரிதாக பார்க்க
+            🔍 Tap to zoom image
           </div>
         </div>
 
@@ -1341,7 +1377,7 @@
         </div>
 
         <!-- Preferred Cut style -->
-        <div class="form-group">
+        <div class="form-group" id="modal-cut-group">
           <label style="font-weight: 600;" id="modal-cut-title">Preferred Cut Style</label>
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px;">
             <button class="btn-selector cut-options" id="cut-small" onclick="selectCutStyle('Small Pieces')">🔪 Small Pieces</button>
@@ -1512,12 +1548,12 @@
         
         <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 style="font-size: 18px; font-weight: 700; color: #f59e0b; margin: 0; font-family: 'Poppins', sans-serif;">Privacy Policy / தனியுரிமை</h3>
+          <h3 style="font-size: 18px; font-weight: 700; color: #f59e0b; margin: 0; font-family: 'Poppins', sans-serif;">Privacy Policy</h3>
           <button onclick="closePrivacyPolicyDetail()" style="background: #222222; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;">×</button>
         </div>
 
-        <!-- Language Tabs inside Modal -->
-        <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+        <!-- Language Tabs inside Modal (Hidden based on user request to use English exclusively) -->
+        <div style="display: none !important; gap: 8px; justify-content: center; margin-bottom: 20px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
           <button id="privacy-tab-en" onclick="setPrivacyLang('en')" style="flex: 1; background: #e63946; color: #fff; border: none; padding: 8px 16px; border-radius: 16px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; font-family: 'Poppins', sans-serif;">English</button>
           <button id="privacy-tab-ta" onclick="setPrivacyLang('ta')" style="flex: 1; background: transparent; color: #9ca3af; border: none; padding: 8px 16px; border-radius: 16px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; font-family: 'Poppins', sans-serif;">தமிழ்</button>
         </div>
@@ -2147,9 +2183,9 @@
         <!-- Global Coupon Application Card -->
         <div class="card" style="background: #0f0f0f; border-color: rgba(245,158,11,0.15); padding: 14px; margin-bottom: 12px; border-radius: 16px;">
           <label style="font-size: 11.5px; font-weight: 700; color: #fff; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 0.5px;">🏷️ Apply Promo Coupon / கூப்பன் சேர்க்க</label>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="cart-coupon-input" class="form-control" placeholder="e.g. WELCOME10" style="text-transform: uppercase; padding: 10px; font-size: 13.5px; border-radius: 8px; flex: 1.3;" oninput="this.value = this.value.toUpperCase()">
-            <button class="btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: #000; font-weight: 850; padding: 0 16px; border-radius: 8px; font-size: 13px;" onclick="applyCartCouponCode()">Apply / சேர்</button>
+          <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 8px; width: 100%; box-sizing: border-box;">
+            <input type="text" id="cart-coupon-input" class="form-control" placeholder="e.g. WELCOME10" style="text-transform: uppercase; padding: 10px 14px; font-size: 13px; border-radius: 10px; width: 100%; box-sizing: border-box; background: #0c0f12; border: 1.5px solid rgba(245,158,11,0.25); color: #fff;" oninput="this.value = this.value.toUpperCase()">
+            <button class="btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: #000; font-weight: 850; padding: 0; border-radius: 10px; font-size: 13px; width: 100%; height: 44px; min-height: 44px; box-shadow: 0 4px 12px rgba(245,158,11,0.25);" onclick="applyCartCouponCode()">Apply / சேர்</button>
           </div>
           <div id="cart-applied-coupon-pill" style="display: none; align-items: center; justify-content: space-between; margin-top: 10px; padding: 8px 12px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px;">
             <div style="font-size: 11.5px; color: var(--accent-green);">
@@ -2203,7 +2239,7 @@
             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
               <div class="pulse-container">
                 <div class="pulse-dot"></div>
-                <span style="font-size: 10px; color: #22c55e; font-weight: 800; letter-spacing: 0.5px;">LIVE TRACKING / நேரடி கண்காணிப்பு</span>
+                <span style="font-size: 10px; color: #22c55e; font-weight: 800; letter-spacing: 0.5px;">LIVE TRACKING</span>
               </div>
             </div>
             <h3 id="track-order-id" style="color: var(--accent-orange); font-weight: 800; font-size: 17px; margin-top: 4px;">EP862380</h3>
@@ -2217,15 +2253,46 @@
 
         <!-- Dynamic rejection notice -->
         <div id="track-rejection-msg-box" class="card" style="display: none; background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.25); padding: 12px; margin-bottom: 16px; border-radius: 12px;">
-          <p style="font-size: 12px; color: var(--accent-red); font-weight: 700;"> Rejection Reason / காரணம்:</p>
+          <p style="font-size: 12px; color: var(--accent-red); font-weight: 700;"> Rejection Reason:</p>
           <p id="track-rejection-reason" style="font-size: 12px; color: var(--text-primary); margin-top: 4px; font-weight: 600;"></p>
+        </div>
+
+        <!-- Interactive Live Tracking Map - PROMINENTLY AT THE TOP AS REQUESTED -->
+        <div id="tracker-map-box" class="card" style="margin-top: 4px; margin-bottom: 16px; border: 1.5px solid rgba(245,158,11,0.3); padding: 0; overflow: hidden; border-radius: 18px; display: none; background: #0c0f14; box-shadow: 0 10px 30px rgba(0,0,0,0.6);">
+          <div style="background: rgba(245,158,11,0.06); padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11.5px; color: var(--accent-orange); font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">📍 LIVE ROUTE MAP</span>
+            <button onclick="openGoogleMapsNavigation()" class="btn btn-secondary" style="width: auto; padding: 4.5px 9px; font-size: 10px; border-color: rgba(245,158,11,0.4); color: var(--accent-orange); background: rgba(245,158,11,0.04); display: flex; align-items: center; gap: 4px; font-weight: 700; border-radius: 8px;">
+              🗺️ Open Google Maps
+            </button>
+          </div>
+          <div style="position: relative;">
+            <div id="live-map-container" style="height: 380px; width: 100%; background: #0c1117; position: relative;">
+              <!-- Leaflet map will render here dynamically -->
+            </div>
+            
+            <!-- Dynamic interactive badge overlay for outstanding touch experience -->
+            <div id="map-interactive-badge" style="position: absolute; bottom: 12px; left: 12px; right: 12px; background: rgba(8, 12, 19, 0.95); border: 1.5px solid var(--accent-orange); border-radius: 12px; padding: 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.8); z-index: 1000; backdrop-filter: blur(8px); display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span id="map-badge-status" style="font-size: 11px; font-weight: 700; color: var(--accent-orange); text-transform: uppercase; letter-spacing: 0.5px;">🏍️ Rider Enroute</span>
+                <span style="font-size: 10.5px; color: #10b981; font-weight: 700; background: rgba(16,185,129,0.1); padding: 2px 6px; border-radius: 6px;" id="map-badge-eta">ETA: 4 mins</span>
+              </div>
+              <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;" id="map-badge-desc">Your delivery partner is moving towards your doorstep with your fresh items.</p>
+              <div style="display: flex; gap: 8px; justify-content: flex-end;" id="map-badge-actions">
+              </div>
+            </div>
+          </div>
+          <div style="padding: 10px 14px; background: #080d14; text-align: center; font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+            <span>🏢 Store: <strong>Edappadi Town</strong></span>
+            <span style="color:var(--accent-orange)">➔</span>
+            <span style="color: #60a5fa; font-weight: bold;" id="map-live-status">Rider Assigned</span>
+          </div>
         </div>
 
         <!-- Custom Collapsible Graphical Delivery Progress Stepper (Timeline) -->
         <div class="tracker-timeline-card" style="background: rgba(255, 255, 255, 0.012); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; margin-top: 12px; margin-bottom: 12px; overflow: hidden;">
           <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 10px 14px;" onclick="toggleTrackerTimelineCollapse()">
-            <span style="font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">📋 Tracking Timeline / கண்காணிப்பு நிலை</span>
-            <span id="tracker-timeline-toggle-icon" style="font-size: 11px; color: var(--accent-orange); font-weight: bold; background: rgba(245,158,11,0.08); padding: 2px 8px; border-radius: 6px;">▼ Show / விரிக்குக</span>
+            <span style="font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">📋 Tracking Timeline</span>
+            <span id="tracker-timeline-toggle-icon" style="font-size: 11px; color: var(--accent-orange); font-weight: bold; background: rgba(245,158,11,0.08); padding: 2px 8px; border-radius: 6px;">▼ Show</span>
           </div>
           <div id="tracker-timeline-collapse" style="display: none; padding: 0 14px 16px 14px; border-top: 1px solid rgba(255,255,255,0.04);">
             <div class="tracker-timeline" style="margin-top: 12px; margin-bottom: 0;">
@@ -2236,7 +2303,7 @@
               <div id="step-row-pending" class="tracker-timeline-step">
                 <div class="tracker-step-circle" id="circle-pending">📝</div>
                 <div class="tracker-step-info">
-                  <h4 id="text-pending" class="tracker-step-title">Order Received / வரப்பெற்றது</h4>
+                  <h4 id="text-pending" class="tracker-step-title">Order Received</h4>
                   <p class="tracker-step-desc">Waiting for store confirmation & approval</p>
                 </div>
               </div>
@@ -2245,7 +2312,7 @@
               <div id="step-row-ready" class="tracker-timeline-step">
                 <div class="tracker-step-circle" id="circle-ready">🥩</div>
                 <div class="tracker-step-info">
-                  <h4 id="text-ready" class="tracker-step-title">Cleaned & Prepared / வெட்டப்படுகிறது</h4>
+                  <h4 id="text-ready" class="tracker-step-title">Cleaned & Prepared</h4>
                   <p class="tracker-step-desc">Cut fresh-to-order and hygienically packed</p>
                 </div>
               </div>
@@ -2254,7 +2321,7 @@
               <div id="step-row-delivering" class="tracker-timeline-step">
                 <div class="tracker-step-circle" id="circle-delivering">🏍️</div>
                 <div class="tracker-step-info">
-                  <h4 id="text-delivering" class="tracker-step-title">Out for Delivery / விநியோகத்தில்</h4>
+                  <h4 id="text-delivering" class="tracker-step-title">Out for Delivery</h4>
                   <p id="track-delivery-details" class="tracker-step-desc">Delivery partner is carrying your cargo</p>
                 </div>
               </div>
@@ -2263,7 +2330,7 @@
               <div id="step-row-delivered" class="tracker-timeline-step">
                 <div class="tracker-step-circle" id="circle-delivered">🎁</div>
                 <div class="tracker-step-info">
-                  <h4 id="text-delivered" class="tracker-step-title">Delivered Successfully / பெறப்பட்டது</h4>
+                  <h4 id="text-delivered" class="tracker-step-title">Delivered Successfully</h4>
                   <p class="tracker-step-desc">Thank you for dining with Edappadi Kadai!</p>
                 </div>
               </div>
@@ -2274,8 +2341,8 @@
         <!-- Order Items Summary Section (Breathtaking foldout) -->
         <div class="tracker-items-summary">
           <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleTrackerItemsCollapse()">
-            <span style="font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">📦 Checked Basket / ஆர்டர் விவரம்</span>
-            <span id="tracker-items-toggle-icon" style="font-size: 11px; color: var(--accent-orange); font-weight: bold; background: rgba(245,158,11,0.08); padding: 2px 8px; border-radius: 6px;">▼ Show / விரிக்குக</span>
+            <span style="font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">📦 Checked Basket</span>
+            <span id="tracker-items-toggle-icon" style="font-size: 11px; color: var(--accent-orange); font-weight: bold; background: rgba(245,158,11,0.08); padding: 2px 8px; border-radius: 6px;">▼ Show</span>
           </div>
           <div id="tracker-items-list-collapse" style="display: none; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 8px;">
             <div id="track-items-summary-list" style="display: flex; flex-direction: column; gap: 8px;">
@@ -2286,7 +2353,7 @@
 
         <!-- Rider Details Section (Premiumized & Compacted) -->
         <div id="track-rider-container" style="display: none; margin-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.08); padding-top: 12px;">
-          <p style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">Delivery Executive / விநியோக நபர் 🏍️</p>
+          <p style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">Delivery Executive 🏍️</p>
           <div style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(20, 26, 35, 0.6) 0%, rgba(13, 17, 23, 0.8) 100%); padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.07); box-shadow: 0 4px 15px rgba(0,0,0,0.25);">
             <div style="display: flex; align-items: center; gap: 10px;">
               <div style="position: relative; width: 40px; height: 40px; background: rgba(245,158,11,0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1.5px solid rgba(245,158,11,0.3); box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);">
@@ -2308,28 +2375,10 @@
           </div>
         </div>
 
-        <!-- Interactive Live Tracking Map -->
-        <div id="tracker-map-box" class="card" style="margin-top: 14px; border: 1px solid rgba(255,255,255,0.08); padding: 0; overflow: hidden; border-radius: 16px; display: none; background: #0c0f14; box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
-          <div style="background: rgba(245,158,11,0.04); padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 11px; color: var(--accent-orange); font-weight: 700; letter-spacing: 0.5px;">📍 LIVE ROUTE MAP / நேரடி வரைபடம்</span>
-            <button onclick="openGoogleMapsNavigation()" class="btn btn-secondary" style="width: auto; padding: 5px 9px; font-size: 10px; border-color: rgba(245,158,11,0.4); color: var(--accent-orange); background: rgba(245,158,11,0.04); display: flex; align-items: center; gap: 4px; font-weight: 700; border-radius: 8px;">
-              🗺️ Open Google Maps
-            </button>
-          </div>
-          <div id="live-map-container" style="height: 440px; width: 100%; background: #0c1117; position: relative;">
-            <!-- Leaflet map will render here dynamically -->
-          </div>
-          <div style="padding: 10px; background: #080d14; text-align: center; font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
-            <span>🏢 Store: <strong>Edappadi Town</strong></span>
-            <span style="color:var(--accent-orange)">➔</span>
-            <span style="color: #60a5fa; font-weight: bold;" id="map-live-status">Rider Assigned</span>
-          </div>
-        </div>
-
         <!-- Dynamic Customer Cancel Button inside Tracker box -->
         <div id="track-cancel-container" style="display: none; margin-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 14px; text-align: center;">
           <button id="track-btn-cancel" class="btn" style="background: rgba(239, 68, 68, 0.08); color: #ff5c5c; border: 1px solid rgba(239,68,68,0.3); font-size: 13px; font-weight: 700; padding: 11px 18px; border-radius: 12px; cursor: pointer; width: 100%; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 6px;" onmouseover="this.style.background='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.08)'">
-            🛑 Cancel Order / ஆர்டரை ரத்து செய்
+            🛑 Cancel Order
           </button>
         </div>
       </div>
@@ -2339,7 +2388,7 @@
       
       <!-- Search Input for past orders -->
       <div style="margin: 8px 0 14px 0; display: flex; gap: 8px;">
-        <input type="text" id="track-orders-search" class="form-control" style="width: 100%; padding: 10px 14px; font-size: 13px; border-radius: 12px; background: #141414; border: 1px solid #222;" placeholder="🔍 Search Order ID or Item name / தேடுக..." oninput="renderTrackerScreen()">
+        <input type="text" id="track-orders-search" class="form-control" style="width: 100%; padding: 10px 14px; font-size: 13px; border-radius: 12px; background: #141414; border: 1px solid #222;" placeholder="🔍 Search Order ID or Item name..." oninput="renderTrackerScreen()">
       </div>
 
       <div id="past-orders-list">
@@ -2350,7 +2399,7 @@
     <!-- SCREEN 8: CUSTOMER PROFILE PAGE -->
     <div id="screen-profile" class="screen">
       <!-- Language toggle button ABOVE user name -->
-      <div class="lang-switch-row" style="margin-bottom: 12px; display: flex; justify-content: flex-end;">
+      <div class="lang-switch-row" style="margin-bottom: 12px; display: none !important;">
         <button onclick="toggleLang()" class="btn btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px; border-color: var(--accent-orange); background: rgba(245,158,11,0.05); color: var(--accent-orange); display: flex; align-items: center; gap: 4px;">
           🌐 <span id="langLabelProfile">தமிழ்</span>
         </button>
@@ -2392,14 +2441,48 @@
         </div>
       </div>
 
-      <!-- RECENT/FAVORITE PRODUCTS -->
-      <div class="card" id="favorite-products-card" style="display: none; padding: 12px; margin-bottom: 12px; border-color: rgba(255,255,255,0.05);">
-        <h4 style="margin-bottom: 10px; font-size: 13px; text-transform: uppercase; color: var(--accent-orange); display: flex; align-items: center; gap: 4px;">
-          <span>❤️</span> <span data-translate="favoriteProducts">Favorite Products</span>
-        </h4>
-        <div id="profile-favorites-list" style="display: flex; flex-direction: column; gap: 8px;">
-          <!-- Populated dynamically -->
+      <!-- DYNAMIC BANNER -->
+      <div id="prof-dynamic-greeting-banner" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 14px; padding: 12px 14px; font-size: 12px; color: #fff; line-height: 1.5; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.05);">
+        Welcome to Edappadi Kadai! Loading your premium personalized tips...
+      </div>
+
+      <!-- PREMIUM ACCOMPLISHMENTS BADGES -->
+      <h4 style="margin-bottom: 8px; font-size: 13px; text-transform: uppercase; color: var(--accent-orange); letter-spacing: 0.5px;">🎖️ சாதனைகள் & பட்டங்கள் / Achievements</h4>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
+        <!-- Badge 1: Streak -->
+        <div id="badge-streak-box" style="border: 1.5px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.01); border-radius: 12px; padding: 10px 4px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; transition: all 0.25s;">
+          <span id="badge-streak-ico" style="font-size: 24px; filter: grayscale(1); margin-bottom: 4px; transition: filter 0.3s;">🔥</span>
+          <span style="font-size: 9px; color: var(--text-muted); font-weight: 500; display: block; white-space: nowrap;">Streak / ஆர்டர்</span>
+          <span id="badge-streak-lbl" style="font-size: 10px; font-weight: bold; color: var(--text-muted); margin-top: 2px;">Locked</span>
         </div>
+        <!-- Badge 2: Carbon / Eco Hero -->
+        <div id="badge-carbon-box" style="border: 1.5px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.01); border-radius: 12px; padding: 10px 4px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; transition: all 0.25s;">
+          <span id="badge-carbon-ico" style="font-size: 24px; filter: grayscale(1); margin-bottom: 4px; transition: filter 0.3s;">🌱</span>
+          <span style="font-size: 9px; color: var(--text-muted); font-weight: 500; display: block; white-space: nowrap;">Eco Hero / பசுமை</span>
+          <span id="badge-carbon-lbl" style="font-size: 10px; font-weight: bold; color: var(--text-muted); margin-top: 2px;">Locked</span>
+        </div>
+        <!-- Badge 3: VIP Royal -->
+        <div id="badge-vip-box" style="border: 1.5px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.01); border-radius: 12px; padding: 10px 4px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; transition: all 0.25s;">
+          <span id="badge-vip-ico" style="font-size: 24px; filter: grayscale(1); margin-bottom: 4px; transition: filter 0.3s;">👑</span>
+          <span style="font-size: 9px; color: var(--text-muted); font-weight: 500; display: block; white-space: nowrap;">Vip Royal / ராயல்</span>
+          <span id="badge-vip-lbl" style="font-size: 10px; font-weight: bold; color: var(--text-muted); margin-top: 2px;">Locked</span>
+        </div>
+      </div>
+
+      <div class="card" style="background: linear-gradient(135deg, #1c150c 0%, #0d0905 100%); border-color: rgba(245,158,11,0.25); margin-bottom: 14px; padding: 14px; position: relative; border-radius: 16px;">
+        <h4 style="margin-bottom: 2px; font-size: 13px; text-transform: uppercase; color: var(--accent-orange); display: flex; align-items: center; gap: 6px;">
+          <span>👥</span> <span>நண்பர்களைப் பரிந்துரை / Companion Link Gift</span>
+        </h4>
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">Invite a neighbor/shop companion from Edappadi region to earn 50 FREE loyalty points (₹10 direct cash equivalent)!</p>
+        
+        <div id="referral-result-area" style="display: none; padding: 10px; background: rgba(245,158,11,0.06); border: 1px dashed rgba(245,158,11,0.3); border-radius: 8px; margin-bottom: 10px;">
+          <p style="font-size: 11px; color: #fff; line-height: 1.4; margin-bottom: 6px;" id="referral-link-text"></p>
+          <button class="btn btn-primary" style="width: auto; padding: 4px 10px; font-size: 10px; margin: 0; background: var(--accent-orange); border: none;" onclick="copyReferralLinktoClip()">📋 Copy Link</button>
+        </div>
+
+        <button class="btn" style="background: rgba(245,158,11,0.12); border: 1.5px solid rgba(245,158,11,0.3); color: var(--accent-orange); font-weight: 700; font-size: 11.5px; height: 34px; width: 100%; border-radius: 10px; cursor: pointer;" onclick="generateReferralCodeProfile()">
+          GENERATE COMPANION REFERRAL LINK 🎁
+        </button>
       </div>
 
       <!-- Loyalty wallet progression card with Neon Emerald Touch -->
@@ -2427,15 +2510,32 @@
         </div>
       </div>
 
-      <!-- Stats row layout -->
-      <div class="grid-2col" style="margin-bottom: 14px;">
-        <div class="card" style="text-align: center; margin-bottom: 0; padding: 12px; background: #0c0c0d; border-color: rgba(255,255,255,0.04);">
-          <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Past Orders</span>
-          <p style="font-size: 18px; font-weight: 700; color: var(--text-primary);" id="stats-orders">0</p>
+      <!-- CUSTOMER PREMIUM ANALYTICS INSIGHTS GRID -->
+      <h4 style="margin-bottom: 8px; font-size: 13px; text-transform: uppercase; color: var(--accent-orange); letter-spacing: 0.5px;">📊 உங்களது புள்ளிவிவரங்கள் / Profile Insights</h4>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px;">
+        <div class="card" style="text-align: center; margin-bottom: 0; padding: 10px; background: #07090c; border-color: rgba(255,255,255,0.04); border-radius: 12px;">
+          <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Past Orders / ஆர்டர்கள்</span>
+          <p style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-top: 4px;" id="stats-orders">0</p>
         </div>
-        <div class="card" style="text-align: center; margin-bottom: 0; padding: 12px; background: #0c0c0d; border-color: rgba(255,255,255,0.04);">
-          <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Total Spent</span>
-          <p style="font-size: 18px; font-weight: 700; color: var(--accent-green);" id="stats-spent">₹0</p>
+        <div class="card" style="text-align: center; margin-bottom: 0; padding: 10px; background: #07090c; border-color: rgba(255,255,255,0.04); border-radius: 12px;">
+          <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Total Spent / செலவு</span>
+          <p style="font-size: 15px; font-weight: 700; color: var(--accent-green); margin-top: 4px;" id="stats-spent">₹0</p>
+        </div>
+        <div class="card" style="text-align: center; margin-bottom: 0; padding: 10px; background: #07090c; border-color: rgba(255,255,255,0.04); border-radius: 12px;">
+          <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Avg Order Value / சராசரி</span>
+          <p style="font-size: 15px; font-weight: 700; color: #3b82f6; margin-top: 4px;" id="stats-avg-order">₹0</p>
+        </div>
+        <div class="card" style="text-align: center; margin-bottom: 0; padding: 10px; background: #07090c; border-color: rgba(255,255,255,0.04); border-radius: 12px;">
+          <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">This Month / இந்த மாதம்</span>
+          <p style="font-size: 15px; font-weight: 700; color: #a78bfa; margin-top: 4px;" id="stats-month-spent">₹0</p>
+        </div>
+        <div class="card" style="text-align: center; margin-bottom: 0; padding: 10px; background: #0c0f13; border-color: rgba(255,255,255,0.04); border-radius: 12px; grid-column: span 1;">
+          <span style="font-size: 9.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Favorite / அதிகம் வாங்கியது</span>
+          <p style="font-size: 11.5px; font-weight: 700; color: var(--accent-orange); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="stats-most-ordered">-</p>
+        </div>
+        <div class="card" style="text-align: center; margin-bottom: 0; padding: 10px; background: #07090c; border-color: rgba(255,255,255,0.04); border-radius: 12px;">
+          <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Member Since / இணைந்த தேதி</span>
+          <p style="font-size: 13px; font-weight: 700; color: #9ca3af; margin-top: 4px;" id="stats-member-since">Jun 2026</p>
         </div>
       </div>
 
@@ -3348,7 +3448,7 @@
 
     // SEEDED DEMO DATA DEFINITIONS
     const DEMO_PRODUCTS = [
-      // MEAT SPECIALTIES
+      // MEAT SPECIALTIES (20 Items)
       { id: 'p1', tamilName: 'பிராய்லர் கோழி', englishName: 'Broiler Chicken', pricePerKg: 220, stockKg: 40, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p2', tamilName: 'நாட்டுக்கோழி', englishName: 'Country Chicken', pricePerKg: 450, stockKg: 23, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1604503468506-a8da13d11bfb?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p3', tamilName: 'ஆட்டிறைச்சி', englishName: 'He-Goat Mutton', pricePerKg: 800, stockKg: 14, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
@@ -3360,9 +3460,18 @@
       { id: 'p_mutton_bones', tamilName: 'ஆட்டு எலும்பு', englishName: 'Mutton Soup Bones', pricePerKg: 500, stockKg: 10, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_mutton_liver', tamilName: 'ஆட்டு ஈரல்', englishName: 'Mutton Liver', pricePerKg: 850, stockKg: 8, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_mutton_brain', tamilName: 'ஆட்டு மூளை', englishName: 'Mutton Brain', pricePerKg: 180, stockKg: 15, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_turkey_meat', tamilName: 'வான்கோழி இறைச்சி', englishName: 'Turkey Meat', pricePerKg: 450, stockKg: 15, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_duck_meat', tamilName: 'வாத்து இறைச்சி', englishName: 'Duck Meat', pricePerKg: 380, stockKg: 10, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_mutton_kidney', tamilName: 'ஆட்டு சிறுநீரகம் (கிட்னி)', englishName: 'Mutton Kidney', pricePerKg: 750, stockKg: 7, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_mutton_fat', tamilName: 'ஆட்டுக் கொழுப்பு', englishName: 'Mutton Suet Fat', pricePerKg: 150, stockKg: 10, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_chicken_keema', tamilName: 'கோழி கைமா', englishName: 'Chicken Keema (Minced)', pricePerKg: 340, stockKg: 15, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1602662235901-52f20e7f7791?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_mutton_keema', tamilName: 'ஆட்டு கைமா', englishName: 'Mutton Keema (Minced)', pricePerKg: 850, stockKg: 12, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_mutton_head_meat', tamilName: 'ஆட்டு தலைக்கறி', englishName: 'Mutton Head Meat', pricePerKg: 400, stockKg: 18, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_mutton_boti', tamilName: 'ஆட்டு குடல் கறி (போட்டி)', englishName: 'Mutton Boti Intestine', pricePerKg: 300, stockKg: 14, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_mutton_payar_pair', tamilName: 'ஆட்டு கால் பாயா (4 பீஸ்)', englishName: 'Mutton Leg Paaya (4 Pcs)', pricePerKg: 250, stockKg: 20, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
 
-      // FISH & SEAFOOD SPECIALTIES
-      { id: 'p4', tamilName: 'நாட்டுமீன்', englishName: 'Fresh River Fish', pricePerKg: 300, stockKg: 20, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1557781281-1ded57ac7ef1?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      // FISH & SEAFOOD SPECIALTIES (18 Items)
+      { id: 'p4', tamilName: 'நாட்டுமீன் (கெண்டை)', englishName: 'Fresh River Fish', pricePerKg: 300, stockKg: 20, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1557781281-1ded57ac7ef1?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_fish_vanjaram', tamilName: 'வஞ்சரம் மீன்', englishName: 'Vanjaram Seer Fish', pricePerKg: 950, stockKg: 12, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_fish_sankara', tamilName: 'சங்கரா மீன்', englishName: 'Sankara Red Snapper', pricePerKg: 380, stockKg: 25, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_fish_ayala', tamilName: 'அயலா மீன்', englishName: 'Ayala Mackerel', pricePerKg: 260, stockKg: 30, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
@@ -3371,8 +3480,17 @@
       { id: 'p_fish_katla', tamilName: 'கட்லா மீன்', englishName: 'Katla Fish', pricePerKg: 260, stockKg: 28, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_fish_prawns', tamilName: 'சுத்தமான இறால்', englishName: 'Fresh Prawns', pricePerKg: 480, stockKg: 15, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1559737604-3f7b242f3604?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_fish_crab', tamilName: 'வயல் நண்டு', englishName: 'Freshwater Crab', pricePerKg: 450, stockKg: 10, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1551248429-40975aa4de74?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fish_sardine_mathi', tamilName: 'மத்தி மீன் (சாலமீன்)', englishName: 'Mathi Sardine Fish', pricePerKg: 180, stockKg: 40, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fish_tilapia_jilabi', tamilName: 'ஜிலேபி கெண்டை மீன்', englishName: 'Jilabi Tilapia Fish', pricePerKg: 160, stockKg: 50, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1501595091296-3a9f4fe68226?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fish_barracuda_sheela', tamilName: 'சீலா மீன்', englishName: 'Sheela Barracuda', pricePerKg: 450, stockKg: 15, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fish_trevally_paarai', tamilName: 'பாறை மீன்', englishName: 'Paarai Trevally', pricePerKg: 550, stockKg: 10, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fish_shark_sura', tamilName: 'பால் சுறா (பவுடர் துண்டுகள்)', englishName: 'Sura Baby Shark', pricePerKg: 650, stockKg: 12, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fish_ribbon_vaalai', tamilName: 'வாலை மீன்', englishName: 'Vaalai Ribbon Fish', pricePerKg: 220, stockKg: 30, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fish_murrel_viral', tamilName: 'விரால் மீன் (உயிருடன்)', englishName: 'Viral Murrel Fish', pricePerKg: 700, stockKg: 8, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1557781281-1ded57ac7ef1?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fish_catfish_keluthi', tamilName: 'கெளுத்தி மீன்', englishName: 'Keluthi Catfish', pricePerKg: 280, stockKg: 15, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1557781281-1ded57ac7ef1?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fish_dried_karuvadu', tamilName: 'நெத்திலி கருவாடு (பாக்கெட்)', englishName: 'Dried Nethili Karuvadu', pricePerKg: 400, stockKg: 20, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
 
-      // VEGETABLES SPECIALTIES
+      // VEGETABLES SPECIALTIES (20 Items)
       { id: 'p5', tamilName: 'கத்திரிக்காய்', englishName: 'Brinjal', pricePerKg: 60, stockKg: 15, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_veg_onion', tamilName: 'பெரிய வெங்காயம்', englishName: 'Big Onion', pricePerKg: 45, stockKg: 100, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1508747703725-719777637510?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_veg_small_onion', tamilName: 'சின்ன வெங்காயம்', englishName: 'Small Onion (Sambar)', pricePerKg: 90, stockKg: 50, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1620574387839-38b4ed42cc2e?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
@@ -3384,13 +3502,17 @@
       { id: 'p_veg_cabbage', tamilName: 'முட்டைக்கோஸ்', englishName: 'Cabbage', pricePerKg: 35, stockKg: 60, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1582515073490-39981397c445?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_veg_cauliflower', tamilName: 'காலிஃபிளவர் (முழு)', englishName: 'Cauliflower (Full)', pricePerKg: 40, stockKg: 40, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1568584711075-3d021a7c3ecf?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_veg_ginger', tamilName: 'இஞ்சி', englishName: 'Ginger', pricePerKg: 160, stockKg: 20, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_garlic', tamilName: 'மலைப் பூண்டு', englishName: 'Garlic', pricePerKg: 220, stockKg: 25, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_green_chilli', tamilName: 'கார பச்சை மிளகாய்', englishName: 'Green Chilli', pricePerKg: 60, stockKg: 30, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_veg_garlic', tamilName: 'பூண்டு', englishName: 'Garlic', pricePerKg: 220, stockKg: 25, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_veg_green_chilli', tamilName: 'பச்சை மிளகாய்', englishName: 'Green Chilli', pricePerKg: 60, stockKg: 30, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_veg_coriander', tamilName: 'கொத்தமல்லி தழை (கட்டு)', englishName: 'Coriander Leaves (Bunch)', pricePerKg: 15, stockKg: 50, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1588879460618-924b17688da5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_veg_curry_leaves', tamilName: 'மணமுள்ள கறிவேப்பிலை (கட்டு)', englishName: 'Curry Leaves (Bunch)', pricePerKg: 10, stockKg: 50, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_veg_mint', tamilName: 'புதினா தழை (கட்டு)', englishName: 'Mint Leaves (Bunch)', pricePerKg: 15, stockKg: 40, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_veg_beetroot', tamilName: 'பீட்ரூட்', englishName: 'Beetroot red', pricePerKg: 50, stockKg: 45, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_veg_radish', tamilName: 'முள்ளங்கி', englishName: 'White Radish', pricePerKg: 35, stockKg: 30, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1595855759920-86582396756a?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_veg_pumpkin_yellow', tamilName: 'மஞ்சள் பூசணிக்காய்', englishName: 'Yellow Pumpkin', pricePerKg: 30, stockKg: 40, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1508747703725-719777637510?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_veg_beans', tamilName: 'நயம் பீன்ஸ்', englishName: 'Green Beans', pricePerKg: 70, stockKg: 50, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
 
-      // FRUIT SPECIALTIES
+      // FRUIT SPECIALTIES (13 Items)
       { id: 'p6', tamilName: 'காஷ்மீர் ஆப்பிள்', englishName: 'Kashmir Red Apple', pricePerKg: 180, stockKg: 35, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p9', tamilName: 'செவ்வாழை பழம்', englishName: 'Red Cavendish Banana', pricePerKg: 90, stockKg: 40, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_fruit_banana_elakki', tamilName: 'ஏலக்கி வாழைப்பழம்', englishName: 'Elakki Banana', pricePerKg: 80, stockKg: 40, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
@@ -3399,18 +3521,22 @@
       { id: 'p_fruit_pomegranate', tamilName: 'மதுரை மாதுளம்பழம்', englishName: 'Pomegranate Premium', pricePerKg: 180, stockKg: 20, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1581074817932-847c458bb12a?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_fruit_orange', tamilName: 'நாக்பூர் ஆரஞ்சு பழம்', englishName: 'Nagpur Orange', pricePerKg: 100, stockKg: 45, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_fruit_grapes_black', tamilName: 'விதையில்லா கருப்பு திராட்சை', englishName: 'Seedless Black Grapes', pricePerKg: 120, stockKg: 25, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_guava', tamilName: 'நாட்டு கொய்யாப்பழம்', englishName: 'Fresh Country Guava', pricePerKg: 60, stockKg: 35, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fruit_grapes_green', tamilName: 'விதையில்லா பச்சை திராட்சை', englishName: 'Seedless Green Grapes', pricePerKg: 90, stockKg: 30, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fruit_guava', tamilName: 'நாட்டு கொய்யாப்பழம்', englishName: 'Fresh Country Guava', pricePerKg: 60, stockKg: 35, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fruit_watermelon', tamilName: 'தர்பூசணி (முழுவதுமாக)', englishName: 'Fresh Watermelon Full', pricePerKg: 50, stockKg: 60, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fruit_mango_salem', tamilName: 'சேலம் மல்கோவா மாம்பழம்', englishName: 'Salem Malgova Mango', pricePerKg: 120, stockKg: 50, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_fruit_sapota', tamilName: 'சப்போட்டா பழம்', englishName: 'Fresh Sweet Sapota', pricePerKg: 65, stockKg: 40, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
 
-      // DAIRY & EGGS
+      // DAIRY & EGGS (7 Items)
       { id: 'p7', tamilName: 'பசுவின் பால் (1 லிட்டர்)', englishName: 'Pure Cow Milk (1L)', pricePerKg: 70, stockKg: 50, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_dairy_egg_white', tamilName: 'பண்ணை வெள்ளை முட்டை', englishName: 'Farm White Egg', pricePerKg: 6, stockKg: 500, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_dairy_egg_country', tamilName: 'சுத்தமான நாட்டு முட்டை', englishName: 'Country Chicken Egg', pricePerKg: 12, stockKg: 150, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_dairy_egg_country', tamilName: 'நாட்டு முட்டை', englishName: 'Country Chicken Egg', pricePerKg: 12, stockKg: 150, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_dairy_paneer', tamilName: 'பிரெஷ் பன்னீர் (200கி)', englishName: 'Fresh Paneer (200g)', pricePerKg: 110, stockKg: 30, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_dairy_ghee', tamilName: 'சுத்தமான நெய் (250மிமி)', englishName: 'Pure Butter Ghee (250ml)', pricePerKg: 240, stockKg: 40, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1589135340805-1a84920e744f?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_dairy_curd', tamilName: 'கெட்டித் தயிர் (500மிமி)', englishName: 'Thick Rich Curd (500ml)', pricePerKg: 45, stockKg: 60, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_dairy_ghee', tamilName: 'சுத்தமான பசு நெய் (250மி)', englishName: 'Pure Butter Ghee (250ml)', pricePerKg: 240, stockKg: 40, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1589135340805-1a84920e744f?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_dairy_curd', tamilName: 'கெட்டித் தயிர் (500மி)', englishName: 'Thick Rich Curd (500ml)', pricePerKg: 45, stockKg: 60, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_dairy_butter', tamilName: 'உப்பு இல்லாத வெண்ணெய் (100கி)', englishName: 'Unsalted Butter (100g)', pricePerKg: 60, stockKg: 35, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1589135340805-1a84920e744f?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
 
-      // GROCERIES SPECIALTIES
+      // GROCERIES SPECIALTIES (15 Items)
       { id: 'p8', tamilName: 'தனி மஞ்சள் தூள் (250கி)', englishName: 'Pure Turmeric Powder (250g)', pricePerKg: 80, stockKg: 60, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_groc_rice_ponni', tamilName: 'பொன்னி பச்சரிசி (5கிலோ)', englishName: 'Ponni Raw Rice (5kg)', pricePerKg: 320, stockKg: 50, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_groc_toor_dal', tamilName: 'சுத்தமான துவரம் பருப்பு', englishName: 'Premium Toor Dal', pricePerKg: 160, stockKg: 150, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1547058886-d0a1b6e680a3?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
@@ -3420,7 +3546,7 @@
       { id: 'p_groc_oil_coconut', tamilName: 'செக்கு தேங்காய் எண்ணெய் (1லி)', englishName: 'Cold Pressed Coconut Oil (1L)', pricePerKg: 230, stockKg: 60, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_groc_sugar', tamilName: 'தூய வெள்ளை சர்க்கரை', englishName: 'Pure White Sugar', pricePerKg: 45, stockKg: 300, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1581781894806-bf24cfbbfa12?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_groc_jaggery', tamilName: 'நயம் அச்சு வெல்லம்', englishName: 'Premium Jaggery', pricePerKg: 70, stockKg: 120, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_tamarind', tamilName: 'தூய்மையான உருண்டை புளி (500கி)', englishName: 'Clean Tamarind (500g)', pricePerKg: 110, stockKg: 80, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
+      { id: 'p_groc_tamarind', tamilName: 'உருண்டை புளி (500கி)', englishName: 'Clean Tamarind (500g)', pricePerKg: 110, stockKg: 80, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_groc_mustard', tamilName: 'சிறிய கடுகு (100கி)', englishName: 'Mustard Seeds (100g)', pricePerKg: 25, stockKg: 125, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1599307767316-776533dae004?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_groc_cumin', tamilName: 'வாசனைச் சீரகம் (100கி)', englishName: 'Cumin Seeds (100g)', pricePerKg: 55, stockKg: 95, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1599307767316-776533dae004?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
       { id: 'p_groc_pepper', tamilName: 'கருப்பு மிளகு (100கி)', englishName: 'Black Pepper (100g)', pricePerKg: 85, stockKg: 110, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1599307767316-776533dae004?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
@@ -3499,15 +3625,14 @@
 
     // STATE CONTROLLERS
     let currentLang = 'en';
+    // Deep force of English as requested: "அப்ளிகேஷன் முழுமைக்கும் ஆங்கிலத்திலேயே கொடுத்து விடு"
+    currentLang = 'en';
     try {
+      localStorage.setItem('ek_lang', 'en');
       if (typeof AndroidStorage !== 'undefined') {
-        currentLang = AndroidStorage.getData('ek_lang', '') || localStorage.getItem('ek_lang') || 'en';
-      } else {
-        currentLang = localStorage.getItem('ek_lang') || 'en';
+        AndroidStorage.saveData('ek_lang', 'en');
       }
-    } catch (e) {
-      currentLang = 'en';
-    }
+    } catch (e) {}
     let currentScreen = 'screen-splash';
     let activeCategory = 'all';
     let activeProduct = null;
@@ -3896,13 +4021,13 @@
     }
 
     function toggleLang() {
-      currentLang = currentLang === 'en' ? 'ta' : 'en';
-      localStorage.setItem('ek_lang', currentLang);
+      currentLang = 'en';
+      localStorage.setItem('ek_lang', 'en');
       if (typeof AndroidStorage !== 'undefined') {
-        AndroidStorage.saveData('ek_lang', currentLang);
+        AndroidStorage.saveData('ek_lang', 'en');
       }
       applyTranslations();
-      showToast(currentLang === 'en' ? "Language changed to English 🇬🇧" : "தமிழ் மொழிக்கு மாற்றப்பட்டது 🇮🇳", "success");
+      showToast("Language locked to English 🇬🇧", "success");
     }
 
     // AUTH ACTION CONTROLLERS
@@ -4854,18 +4979,20 @@
         let specialsHtml = '';
         specials.forEach(p => {
           const isOutOfStock = p.isOutOfStock || p.stockKg <= 0;
-          const overlayHtml = isOutOfStock ? `<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:var(--accent-red); font-weight:700; font-size:12px;">OUT OF STOCK</div>` : '';
+          const overlayHtml = isOutOfStock ? `<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:var(--accent-red); font-weight:700; font-size:11px;">OUT OF STOCK</div>` : '';
           
           const cardHtml = `
-            <div class="special-card">
+            <div class="special-card" style="height: 195px; display: flex; flex-direction: column; justify-content: space-between;">
               ${overlayHtml}
-              <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200'}" class="special-img" alt="${p.englishName}">
-              <div class="special-detail">
-                <h5 style="font-size:12px; font-weight:700; color:var(--accent-orange); margin-bottom:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.tamilName}</h5>
-                <p style="font-size:10px; color:var(--text-secondary); margin-bottom:4px;">${p.englishName}</p>
+              <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200'}" class="special-img" style="height: 95px; object-fit: cover;" alt="${p.englishName}">
+              <div class="special-detail" style="padding: 6px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <h5 style="font-size:12.5px; font-weight:700; color:#ffffff; margin-bottom:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.englishName}</h5>
+                  <p class="tamil-text" style="font-size:10.5px; color:var(--accent-orange); font-weight:600; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.tamilName}</p>
+                </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
-                  <strong style="font-size:11px; color:var(--accent-green);">₹${p.pricePerKg}/Kg</strong>
-                  <button class="btn btn-primary" style="width:auto; padding:6px 14px; font-size:11.5px; font-weight:700; border-radius:12px; height:34px; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 4px 10px rgba(245,158,11,0.18);" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">
+                  <strong style="font-size:12px; color:var(--text-primary);">₹${p.pricePerKg}<span style="font-size:9px; font-weight:500; color:var(--text-secondary);">/Kg</span></strong>
+                  <button class="btn btn-primary" style="width:62px !important; min-width:62px !important; height:24px !important; min-height:auto !important; padding:0 !important; font-size:12px !important; font-weight:800; border-radius:6px !important; display:inline-flex; align-items:center; justify-content:center; gap:2px; box-shadow:0 2px 6px rgba(245,158,11,0.15);" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">
                     <span>Buy ➔</span>
                   </button>
                 </div>
@@ -4880,7 +5007,17 @@
       // 2. Render all product grid
       const grid = document.getElementById('home-product-grid');
       
-      const filtered = activeCategory === 'all' ? products : products.filter(p => p.category === activeCategory);
+      const searchBox = document.getElementById('home-product-search');
+      const searchQuery = searchBox ? searchBox.value.toLowerCase().trim() : '';
+
+      let filtered = activeCategory === 'all' ? products : products.filter(p => p.category === activeCategory);
+      if (searchQuery) {
+        filtered = filtered.filter(p => 
+          p.englishName.toLowerCase().includes(searchQuery) ||
+          p.tamilName.toLowerCase().includes(searchQuery) ||
+          p.category.toLowerCase().includes(searchQuery)
+        );
+      }
       
       if (filtered.length === 0) {
         grid.innerHTML = `<div style="grid-column: span 2; text-align:center; padding: 24px; color: var(--text-muted);">No stock registered in this category currently!</div>`;
@@ -4890,7 +5027,7 @@
       let gridHtml = '';
       filtered.forEach(p => {
         const isOutOfStock = p.isOutOfStock || p.stockKg <= 0;
-        const overlayHtml = isOutOfStock ? `<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; color:var(--accent-red); font-weight:700; font-size:14px; text-transform:uppercase;">Out Of Stock</div>` : '';
+        const overlayHtml = isOutOfStock ? `<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; color:var(--accent-red); font-weight:700; font-size:12px; text-transform:uppercase;">Out Of Stock</div>` : '';
         const badgeColor = `var(--category-${p.category}, var(--accent-orange))`;
         
         let stockIndicatorColor = "var(--accent-green)";
@@ -4898,24 +5035,24 @@
         else if (p.stockKg <= 5) stockIndicatorColor = "var(--accent-orange)";
 
         const cardHtml = `
-          <div class="product-grid-card">
+          <div class="product-grid-card" style="height: 228px; display: flex; flex-direction: column; justify-content: space-between;">
             ${overlayHtml}
-            <div style="position:absolute; top:8px; left:8px; background:${badgeColor}; font-size:9px; font-weight:800; padding:3px 8px; border-radius:6px; z-index:10; text-transform:uppercase; color:#000; box-shadow:0 2px 4px rgba(0,0,0,0.3);">
+            <div style="position:absolute; top:6px; left:6px; background:${badgeColor}; font-size:8px; font-weight:800; padding:2px 6px; border-radius:4px; z-index:10; text-transform:uppercase; color:#000; box-shadow:0 2px 4px rgba(0,0,0,0.3);">
               ${getCategoryName(p.category)}
             </div>
-            <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200'}" class="product-img" alt="${p.englishName}">
-            <div style="padding:12px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
+            <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200'}" class="product-img" style="height: 110px; object-fit: cover;" alt="${p.englishName}">
+            <div style="padding:10px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
               <div>
-                <h4 style="font-size:14px; font-weight:700; color:var(--accent-orange); max-height: 40px; overflow:hidden; margin-bottom:2px;">${p.tamilName}</h4>
-                <p style="font-size:11px; color:var(--text-secondary); margin-bottom:6px; font-weight:500;">${p.englishName}</p>
-                <p style="font-size:10px; color:${stockIndicatorColor}; font-weight:600; margin-bottom:8px; display:flex; align-items:center; gap:4px;">
-                  <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:${stockIndicatorColor}"></span>
+                <h4 style="font-size:12.5px; font-weight:700; color:#ffffff; max-height: 18px; overflow:hidden; margin-bottom:1px; white-space:nowrap; text-overflow:ellipsis;">${p.englishName}</h4>
+                <p class="tamil-text" style="font-size:10.5px; color:var(--accent-orange); margin-bottom:4px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.tamilName}</p>
+                <p style="font-size:10px; color:${stockIndicatorColor}; font-weight:600; margin-bottom:2px; display:flex; align-items:center; gap:4px;">
+                  <span style="display:inline-block; width:5px; height:5px; border-radius:50%; background:${stockIndicatorColor}"></span>
                   Stock: ${p.stockKg} Kg
                 </p>
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top: auto;">
-                <strong style="font-size:14px; color:var(--text-primary); font-weight:bold;">₹${p.pricePerKg}/Kg</strong>
-                <button class="btn btn-primary" style="width:auto; padding:6px 14px; font-size:11.5px; font-weight:700; border-radius:12px; height:34px; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 4px 10px rgba(245,158,11,0.18);" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">
+                <strong style="font-size:12.5px; color:var(--text-primary); font-weight:700;">₹${p.pricePerKg}<span style="font-size:9px; font-weight:500; color:var(--text-secondary);">/Kg</span></strong>
+                <button class="btn btn-primary" style="width:62px !important; min-width:62px !important; height:24px !important; min-height:auto !important; padding:0 !important; font-size:12px !important; font-weight:800; border-radius:6px !important; display:inline-flex; align-items:center; justify-content:center; gap:2px; box-shadow:0 2px 6px rgba(245,158,11,0.15);" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">
                   <span>Buy ➔</span>
                 </button>
               </div>
@@ -4951,6 +5088,16 @@
       const modalImg = document.getElementById('modal-product-img');
       if (modalImg) {
         modalImg.src = p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400';
+      }
+
+      // Hide/Show cut style group (Only Meat and Fish get Cutting styles)
+      const modalCutGroup = document.getElementById('modal-cut-group');
+      if (modalCutGroup) {
+        if (p.category === 'meat' || p.category === 'fish') {
+          modalCutGroup.style.display = 'block';
+        } else {
+          modalCutGroup.style.display = 'none';
+        }
       }
 
       // Set active indicator on cut elements
@@ -5071,15 +5218,11 @@
     }
 
     function getLocalizedPrepareText(cutValue, category) {
+      if (category !== 'meat' && category !== 'fish') {
+        return "";
+      }
       const isTa = (currentLang === 'ta');
       const val = (cutValue || 'Small Pieces').trim();
-      
-      if (category === 'veg') {
-        if (val === 'Small Pieces') return isTa ? "பொடியாக நறுக்கியது" : "Chopped";
-        if (val === 'Curry Cut') return isTa ? "துண்டுகளாக" : "Sliced";
-        if (val === 'Whole') return isTa ? "முழு காய்" : "Whole Veg";
-        return val;
-      }
       
       if (category === 'fish') {
         if (val === 'Small Pieces') return isTa ? "சிறிய துண்டுகள்" : "Small Pieces";
@@ -5163,20 +5306,29 @@
       container.innerHTML = '';
 
       cart.forEach((item, index) => {
+        const prep = getLocalizedPrepareText(item.cutStyle, item.category);
         const itemCard = `
-          <div class="card" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=100'}" style="width:48px; height:48px; border-radius:6px; object-fit:cover;" alt="">
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding: 10px 12px; margin-bottom: 8px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=100'}" style="width:44px; height:44px; border-radius:6px; object-fit:cover;" alt="">
               <div>
-                <h4 style="font-size:13px; color:var(--accent-orange); font-weight:600;">${item.tamilName}</h4>
-                <p style="font-size:10px; color:var(--text-secondary);">${item.englishName}</p>
-                <p style="font-size:11px; margin-top:2px; font-weight:500;">${item.weightGrams}g | ${getLocalizedPrepareText(item.cutStyle, item.category)}</p>
-                ${item.specialNote ? `<p style="font-size:10px; color:var(--text-muted); font-style:italic;">Note: ${item.specialNote}</p>` : ''}
+                <h4 style="font-size:12.5px; color:#ffffff; font-weight:700;">${item.englishName}</h4>
+                <p class="tamil-text" style="font-size:11.5px; color:var(--accent-orange); font-weight:600; margin-top:1px;">${item.tamilName}</p>
+                <p style="font-size:11px; margin-top:2px; font-weight:500; color:var(--text-secondary); margin-bottom: 4px;">${prep ? prep : ''}</p>
+                
+                <!-- Weight measurement toggle (ஆற்காடு பகுதி எடை திருத்தம்) -->
+                <div style="display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.02); padding:3px 6px; border-radius:6px; width:fit-content; border:1px solid rgba(255,255,255,0.06);">
+                  <button class="btn" style="min-height:auto; width:20px; height:20px; padding:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.1); color:#ff5c5c; border-radius:4px; cursor:pointer;" onclick="adjustCartItemWeight(${index}, -250)">-</button>
+                  <span style="font-size:11px; font-weight:700; color:#fff; min-width:48px; text-align:center;">${item.weightGrams >= 1000 ? (item.weightGrams / 1000).toFixed(2).replace(/\.00$/, '') + ' Kg' : item.weightGrams + 'g'}</span>
+                  <button class="btn" style="min-height:auto; width:20px; height:20px; padding:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.1); color:#34d399; border-radius:4px; cursor:pointer;" onclick="adjustCartItemWeight(${index}, 250)">+</button>
+                </div>
+                
+                ${item.specialNote ? `<p style="font-size:10px; color:var(--text-muted); font-style:italic; margin-top:4px;">Note: ${item.specialNote}</p>` : ''}
               </div>
             </div>
             <div style="text-align:right;">
-              <strong style="color:var(--text-primary); font-size:15px; display:block; margin-bottom:4px;">₹${item.totalPrice}</strong>
-              <button class="btn btn-secondary" style="width:auto; padding:4px 8px; font-size:11px; color:var(--accent-red); border-color:#333;" onclick="removeFromCart(${index})">Remove</button>
+              <strong style="color:var(--text-primary); font-size:14px; display:block; margin-bottom:4px;">₹${item.totalPrice}</strong>
+              <button class="btn btn-secondary" style="width:auto; padding:4px 8px; font-size:10.5px; color:var(--accent-red); border-color:#333; height: 26px; display: inline-flex; align-items: center;" onclick="removeFromCart(${index})">Remove</button>
             </div>
           </div>
         `;
@@ -5647,6 +5799,26 @@
       showToast("Item retracted from cart.", "warning");
     }
 
+    function adjustCartItemWeight(index, diff) {
+      if (index < 0 || index >= cart.length) return;
+      const item = cart[index];
+      
+      let newWeight = (item.weightGrams || 500) + diff;
+      if (newWeight < 50) newWeight = 50;
+      if (newWeight > 10000) newWeight = 10000; // Cap at 10 Kg
+
+      item.weightGrams = newWeight;
+      item.totalPrice = Math.round((item.pricePerKg / 1000) * newWeight);
+      
+      updateCartBadge();
+      renderCartScreen();
+      
+      const updateMsg = currentLang === 'ta' 
+        ? `கார்ட்டில் எடை புதுப்பிக்கப்பட்டது: ${newWeight >= 1000 ? (newWeight/1000).toFixed(2).replace(/\.00$/, '') + ' Kg' : newWeight + 'g'} ✓`
+        : `Weight updated in cart: ${newWeight >= 1000 ? (newWeight/1000).toFixed(2).replace(/\.00$/, '') + ' Kg' : newWeight + 'g'} ✓`;
+      showToast(updateMsg, "success");
+    }
+
     function selectDeliveryTimeSlot(slot, btn) {
       selectedDeliverySlot = slot;
       document.querySelectorAll('.slot-btns').forEach(b => b.classList.remove('active'));
@@ -5771,7 +5943,10 @@
     function placeOrder() {
       const address = document.getElementById('cart-delivery-address').value.trim();
       if (!address) {
-        showToast("Please enter a valid dispatch address!", "error");
+        const errorMsg = currentLang === 'ta' 
+          ? "தயவுசெய்து சரியான டெலிவரி முகவரியை உள்ளிடவும்! 📍" 
+          : "Please enter a valid delivery address! 📍";
+        showToast(errorMsg, "error");
         return;
       }
 
@@ -5893,7 +6068,8 @@
         customerLng: custLng || user.longitude || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        rejectionReason: ""
+        rejectionReason: "",
+        accruedPoints: accruedPoints
       };
 
       orders.push(newOrder);
@@ -6148,7 +6324,11 @@
           statusBadge = `<span class="badge" style="background:rgba(34,197,94,0.15); color:var(--accent-green);">DELIVERED ✅</span>`;
         }
  
-        const itemsList = o.items.map(i => `• ${i.tamilName || i.englishName} - <strong>${i.weightGrams}g</strong> [${getLocalizedPrepareText(i.cutStyle, i.category)}]`).join('<br>');
+        const itemsList = o.items.map(i => {
+          const prep = getLocalizedPrepareText(i.cutStyle, i.category);
+          const prepStr = prep ? ` [${prep}]` : '';
+          return `• ${i.tamilName || i.englishName} - <strong>${i.weightGrams}g</strong>${prepStr}`;
+        }).join('<br>');
  
         let actionBtn = '';
         if (currentDeliveryFilter === 'ready') {
@@ -6363,8 +6543,8 @@
 
     function quickCompleteDelivery(orderId) {
       showCustomConfirm(
-        "டெலிவரி உறுதிசெய்யவா?",
-        "வாடிக்கையாளருக்கு ஆர்டர் வெற்றிகரமாக விநியோகிக்கப்பட்டது என்பதை உறுதிசெய்ய விரும்புகிறீர்களா?",
+        "Confirm Delivery?",
+        "Are you sure you want to confirm that this order has been successfully delivered?",
         function() {
           const orders = getData('ek_orders', []);
           const idx = orders.findIndex(o => o.id === orderId);
@@ -6626,14 +6806,14 @@
       }
 
       closeDeliveryVerification();
-      showToast("விநியோகிக்கப்பட்டது! ஆர்டர் டெலிவரி வெற்றிகரமாக பதிவு செய்யப்பட்டுள்ளது ✓", "success");
+      showToast("Delivered! Order status updated successfully ✓", "success");
       renderDeliveryScreen();
     }
 
     function customerCancelOrder(orderId) {
       showCustomConfirm(
-        "ஆர்டரை ரத்து செய்ய விருப்பமா?",
-        "நிச்சயமாக இந்த ஆர்டரை ரத்து செய்ய விரும்புகிறீர்களா? இதனுடைய ஸ்டாக் மற்றும் பாயிண்டுகள் பழையபடி மாற்றி வழங்கப்படும்.",
+        "Cancel Order?",
+        "Are you sure you want to cancel this order? Item stocks and loyalty points will be reverted.",
         function() {
           const orders = getData('ek_orders');
           const idx = orders.findIndex(o => o.id === orderId);
@@ -6641,7 +6821,7 @@
           
           const order = orders[idx];
           if (order.status !== 'pending') {
-            showToast("மன்னிக்கவும்! இந்த ஆர்டர் ஏற்கனவே நிர்வாகியால் தயாரிக்கப்பட்டுவிட்டது அல்லது டெலிவரிக்கு அனுப்பப்பட்டுள்ளது, எனவே இதை தற்போது ரத்து செய்ய முடியாது.", "error");
+            showToast("Sorry! This order has already been prepared or loaded for delivery, so it cannot be cancelled.", "error");
             return;
           }
           
@@ -6698,7 +6878,7 @@
               .catch(err => console.error("Cloud cancel sync order update failed:", err));
           }
           
-          showToast("ஆர்டர் வெற்றிகரமாக ரத்து செய்யப்பட்டது. Order Cancelled! 🛑", "error");
+          showToast("Order Cancelled! 🛑", "error");
           renderTrackerScreen();
         }
       );
@@ -6706,10 +6886,10 @@
 
     function deleteOrderFromDb(orderId, isCustomerSide = false) {
       showCustomConfirm(
-        isCustomerSide ? (currentLang === 'ta' ? "விவரத்தை நீக்கவா?" : "Delete Record?") : (currentLang === 'ta' ? "ஆர்டர் விவரத்தை நீக்குக?" : "Delete Order Record?"),
+        isCustomerSide ? "Delete Record?" : "Delete Order Record?",
         isCustomerSide 
-          ? "உங்களது ஆர்டர் வரலாற்றிலிருந்து இந்த ஆர்டர் விவரத்தை நீக்க வேண்டுமா? <br><strong>ஆர்டர் ஐடி: " + orderId + "</strong>"
-          : `நிச்சயமாக இந்த ஆர்டரை (<strong>${orderId}</strong>) நிரந்தரமாக நீக்க விரும்புகிறீர்களா? இதைப் பின்னாளில் மீட்டெடுக்க முடியாது.`,
+          ? `Are you sure you want to remove this order from your order history?<br><strong>Order ID: ${orderId}</strong>`
+          : `Are you sure you want to permanently delete order record (<strong>${orderId}</strong>)? This cannot be undone.`,
         function() {
           // Register in deletion safeguard
           markOrderAsDeleted(orderId);
@@ -6978,7 +7158,7 @@
       const trackerMapBox = document.getElementById('tracker-map-box');
       if (!mapContainer || !trackerMapBox) return;
 
-      const showStatuses = ['pending', 'ready', 'delivering', 'delivered'];
+      const showStatuses = ['pending', 'ready', 'delivering'];
       if (!order || !showStatuses.includes(order.status)) {
         trackerMapBox.style.display = 'none';
         clearRiderAnimation();
@@ -7084,6 +7264,11 @@
         const group = new L.featureGroup([storeMarker, customerMarker]);
         trackerLeafletMap.flyToBounds(group.getBounds().pad(0.25), { animate: true, duration: 1.8 });
 
+        // Add interactive touch/click listener on map to trigger custom overlay and smooth zooming & centering
+        trackerLeafletMap.on('click', () => {
+          triggerMapTapExperience(order);
+        });
+
         // Fire rendering invalidators for safety
         setTimeout(() => {
           if (trackerLeafletMap) {
@@ -7095,6 +7280,71 @@
 
       } catch (err) {
         console.error("Leaflet map initialization failed:", err);
+      }
+    }
+
+    function triggerMapTapExperience(order) {
+      if (!order) return;
+      const coords = getOrderCoordinates(order);
+      const storePos = coords.store;
+      const custPos = coords.customer;
+      
+      let centerLatLng = [...custPos];
+      let zoomLevel = 15;
+      
+      if (order.status === 'delivering' && riderMarker) {
+        centerLatLng = [riderMarker.getLatLng().lat, riderMarker.getLatLng().lng];
+        zoomLevel = 16;
+      }
+      
+      if (trackerLeafletMap) {
+        trackerLeafletMap.flyTo(centerLatLng, zoomLevel, {
+          animate: true,
+          duration: 1.2
+        });
+      }
+      
+      const statusText = order.status === 'delivering' 
+        ? "Centering on Rider's Live Location! 🏍️" 
+        : "Centering on Route! 🏁";
+        
+      showToast(statusText, "info");
+      
+      // Reveal the beautiful custom interactive map popup container with actions!
+      const mapBadge = document.getElementById('map-interactive-badge');
+      if (mapBadge) {
+        mapBadge.style.display = 'block';
+        
+        const badgeStatus = document.getElementById('map-badge-status');
+        const badgeEta = document.getElementById('map-badge-eta');
+        const badgeDesc = document.getElementById('map-badge-desc');
+        const badgeActions = document.getElementById('map-badge-actions');
+        
+        if (order.status === 'delivering') {
+          badgeStatus.innerText = "🏍️ Rider Enroute";
+          badgeEta.style.display = "inline-block";
+          badgeEta.innerText = "ETA: 4-6 mins";
+          
+          const list = getData('ek_delivery_persons', []);
+          const exe = list.find(dp => dp.id === order.assignedExecutiveId);
+          const riderName = exe ? exe.name : "Edappadi Partner";
+          const riderPhone = exe ? exe.phone : "9042681532";
+          
+          badgeDesc.innerText = `Rider ${riderName} is enroute to your doorstep. Tap below to call or chat.`;
+          
+          badgeActions.innerHTML = `
+            <a href="tel:${riderPhone}" class="btn" style="width:auto; padding:6px 12px; font-size:11px; background:#2563eb; color:#fff; border:none; font-weight:700; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:4px; box-shadow:0 4px 10px rgba(37,99,235,0.35);">📞 Call</a>
+            <a href="https://wa.me/91${riderPhone}" target="_blank" class="btn" style="width:auto; padding:6px 12px; font-size:11px; background:#10b981; color:#fff; border:none; font-weight:700; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:4px; box-shadow:0 4px 10px rgba(16,185,129,0.35);">📱 Chat</a>
+            <button onclick="document.getElementById('map-interactive-badge').style.display='none';" class="btn" style="width:auto; padding:6px 12px; font-size:11px; background:rgba(255,255,255,0.06); border:none; color:#bbb; font-weight:700; border-radius:8px;">Dismiss</button>
+          `;
+        } else {
+          badgeStatus.innerText = "🏪 Order In Preparation";
+          badgeEta.style.display = "none";
+          badgeDesc.innerText = "Our cooks at Edappadi Meat Shop are preparing your custom items. The live rider route will update as soon as the rider accepts.";
+          badgeActions.innerHTML = `
+            <button onclick="document.getElementById('map-interactive-badge').style.display='none';" class="btn" style="width:auto; padding:6px 12px; font-size:11px; background:rgba(255,255,255,0.08); border:none; color:#fff; font-weight:700; border-radius:8px;">Dismiss</button>
+          `;
+        }
       }
     }
 
@@ -7144,6 +7394,10 @@
           riderPos[0] = storePos[0] + (custPos[0] - storePos[0]) * currentF;
           riderPos[1] = storePos[1] + (custPos[1] - storePos[1]) * currentF;
 
+          // Caching the details outside of the 35ms loop to prevent heavy disk and parsing overloads
+          const trackingList = getData('ek_delivery_persons', []);
+          const trackingExe = trackingList.find(dp => dp.id === order.assignedExecutiveId);
+
           riderAnimationTimer = setInterval(() => {
             const nowElapsed = (Date.now() - updatedMs) / 1000;
             let targetF = Math.min(nowElapsed / tripDuration, 0.98);
@@ -7156,8 +7410,6 @@
             currentF += (targetF - currentF) * 0.08;
 
             if (riderMarker) {
-              const trackingList = getData('ek_delivery_persons', []);
-              const trackingExe = trackingList.find(dp => dp.id === order.assignedExecutiveId);
               let targetLat, targetLng;
               if (trackingExe && trackingExe.latitude && trackingExe.longitude) {
                 targetLat = trackingExe.latitude;
@@ -7306,9 +7558,6 @@
       if (!latestTrackable) {
         latestTrackable = userOrders.find(o => ['pending', 'ready', 'delivering'].includes(o.status));
       }
-      if (!latestTrackable) {
-        latestTrackable = userOrders[0];
-      }
 
       if (latestTrackable && !latestTrackable.isArchived) {
         activeBox.style.display = 'block';
@@ -7333,13 +7582,15 @@
           let listHtml = '';
           latestTrackable.items.forEach(it => {
             const formattedWeight = it.weightGrams >= 1000 ? (it.weightGrams / 1000).toFixed(2) + ' Kg' : it.weightGrams + 'g';
+            const prep = getLocalizedPrepareText(it.cutStyle, it.category);
+            const prepStr = prep ? ` | ${prep}` : '';
             listHtml += `
               <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; padding: 4px 0;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <span style="color: var(--accent-orange); font-weight: bold;">•</span>
                   <div>
                     <span style="color: #fff; font-weight: 600;">${it.englishName}</span>
-                    <span style="font-size: 11px; color: var(--text-muted); display: block;">${it.tamilName || ''} | Cut: ${it.cutStyle || 'Curry Cut'}</span>
+                    <span style="font-size: 11px; color: var(--text-muted); display: block;">${it.tamilName || ''}${prepStr}</span>
                   </div>
                 </div>
                 <div style="text-align: right;">
@@ -7391,14 +7642,9 @@
         const timelineCollapse = document.getElementById('tracker-timeline-collapse');
         const timelineToggleIcon = document.getElementById('tracker-timeline-toggle-icon');
         if (timelineCollapse && timelineToggleIcon) {
-          if (latestTrackable.assignedExecutiveId && ['ready', 'delivering', 'delivered'].includes(latestTrackable.status)) {
-            timelineCollapse.style.display = 'none';
-            timelineToggleIcon.innerHTML = currentLang === 'ta' ? '▼ காட்டு' : '▼ Show';
-          } else {
-            // Keep it open for pending to let the user see the progress
-            timelineCollapse.style.display = 'block';
-            timelineToggleIcon.innerHTML = currentLang === 'ta' ? '▲ மறை' : '▲ Hide';
-          }
+          // Strictly keep timeline collapsed by default for all statuses to save vertical space & emphasize history!
+          timelineCollapse.style.display = 'none';
+          timelineToggleIcon.innerHTML = currentLang === 'ta' ? '▼ காட்டு' : '▼ Show';
         }
 
         // Customer Cancel Button visibility controller
@@ -7569,7 +7815,7 @@
         itemEl.innerHTML = `
           <div>
             <strong style="font-size:12.5px; color:#fff;">${item.tamilName || item.englishName}</strong>
-            <p style="font-size:10.5px; color:var(--text-secondary); margin:2px 0 0 0;">${item.englishName} | Cut: ${getLocalizedPrepareText(item.cutPreference || item.cutStyle || 'Small Pieces', item.category)}</p>
+            <p style="font-size:10.5px; color:var(--text-secondary); margin:2px 0 0 0;">${item.englishName}${getLocalizedPrepareText(item.cutPreference || item.cutStyle || 'Small Pieces', item.category) ? ' | Cut: ' + getLocalizedPrepareText(item.cutPreference || item.cutStyle || 'Small Pieces', item.category) : ''}</p>
           </div>
           <div style="text-align:right;">
             <strong style="font-size:12.5px; color:var(--accent-orange);">₹${item.totalPrice}</strong>
@@ -8113,7 +8359,10 @@
       // Unpack basket items to active cart list
       cart = [...o.items];
       updateCartBadge();
-      showToast("Cart successfully populated with history products check template! ✓", "success");
+      const localizedToast = currentLang === 'ta' 
+        ? "கூடையில் உங்களது முந்தைய ஆர்டர் பொருட்கள் வெற்றிகரமாக சேர்க்கப்பட்டன! 🛒" 
+        : "Cart successfully populated with products from your previous order! 🛒";
+      showToast(localizedToast, "success");
       showTab('tab-cart');
     }
 
@@ -8647,13 +8896,22 @@
         document.getElementById('admin-stat-pending').style.color = "#fff";
       }
 
-      // Render tab selections
-      renderAdminOrders();
-      renderAdminProducts();
-      renderDeliveryExecutives();
-      renderAdminCustomers();
-      renderAdminAnalytics();
-      renderAdminAccountsSettings();
+      // Render only the active tab selection to keep application high-performance and lag-free
+      if (currentAdminTab === 'tab-orders') {
+        renderAdminOrders();
+      } else if (currentAdminTab === 'tab-products') {
+        renderAdminProducts();
+      } else if (currentAdminTab === 'tab-delivery') {
+        renderDeliveryExecutives();
+      } else if (currentAdminTab === 'tab-customers') {
+        renderAdminCustomers();
+      } else if (currentAdminTab === 'tab-analytics') {
+        renderAdminAnalytics();
+      } else if (currentAdminTab === 'tab-coupons') {
+        if (typeof renderAdminCoupons === 'function') renderAdminCoupons();
+      } else if (currentAdminTab === 'tab-settings') {
+        renderAdminAccountsSettings();
+      }
       
       // Load current settings toggles
       const settings = getData('ek_settings', DEFAULT_SETTINGS);
@@ -8745,7 +9003,11 @@
 
       let listHtml = '';
       filtered.forEach(o => {
-        const itemRows = o.items.map(i => `• ${i.tamilName} (${i.englishName}) - <strong>${i.weightGrams}g</strong> [${getLocalizedPrepareText(i.cutStyle, i.category)}] ${i.specialNote ? '<i>(Note: '+i.specialNote+')</i>' : ''}`).join('<br>');
+        const itemRows = o.items.map(i => {
+          const prep = getLocalizedPrepareText(i.cutStyle, i.category);
+          const prepStr = prep ? ` [${prep}]` : '';
+          return `• ${i.tamilName} (${i.englishName}) - <strong>${i.weightGrams}g</strong>${prepStr} ${i.specialNote ? '<i>(Note: '+i.specialNote+')</i>' : ''}`;
+        }).join('<br>');
         
         const oCoords = getOrderCoordinates(o);
         const custLat = oCoords.customer[0];
@@ -8773,7 +9035,13 @@
           `;
         } else if (o.status === 'ready') {
           actions += `
-            <button class="btn" style="grid-column: span 2; background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; font-size:12px; font-weight:800; padding:11px; border-radius:10px; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,0.25);" onclick="changeOrderStatus('${o.id}', 'delivered')">Mark Delivered ✅</button>
+            <button class="btn" style="background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; font-size:11.5px; font-weight:800; padding:10px; border-radius:10px; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,0.25);" onclick="changeOrderStatus('${o.id}', 'delivered')">Mark Delivered ✅</button>
+            <button class="btn" style="background:linear-gradient(135deg, #ef4444, #dc2626); border:none; color:#fff; font-size:11.5px; font-weight:800; padding:10px; border-radius:10px; cursor:pointer; box-shadow:0 4px 10px rgba(239,68,68,0.2);" onclick="cancelOrderPrompt('${o.id}')">Cancel Order 🔴</button>
+          `;
+        } else if (o.status === 'delivering') {
+          actions += `
+            <button class="btn" style="background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; font-size:11.5px; font-weight:800; padding:10px; border-radius:10px; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,0.25);" onclick="changeOrderStatus('${o.id}', 'delivered')">Mark Delivered ✅</button>
+            <button class="btn" style="background:linear-gradient(135deg, #ef4444, #dc2626); border:none; color:#fff; font-size:11.5px; font-weight:800; padding:10px; border-radius:10px; cursor:pointer; box-shadow:0 4px 10px rgba(239,68,68,0.2);" onclick="cancelOrderPrompt('${o.id}')">Cancel Order 🔴</button>
           `;
         }
 
@@ -8782,7 +9050,11 @@
         // Pre-formatted messages for WhatsApp Redirects
         const waCustomerMsg = encodeURIComponent(`Hello ${o.customerName}! Your order ${o.id} has been confirmed at Edappadi Kadai. Total amount: ₹${o.totalAmount}. We will deliver to your Address: ${o.deliveryAddress}. Thank you!`);
         const waReadyMsg = encodeURIComponent(`Dear ${o.customerName}, your order ${o.id} is ready! Our delivery executive Raman will reach you shortly. Please keep ₹${o.totalAmount} ready. - Edappadi Kadai`);
-        const kotMsg = encodeURIComponent(`NEW KOT: ${o.id}\nItems:\n${o.items.map((it, idx) => `${idx + 1}. ${it.tamilName} (${it.englishName}) - ${it.weightGrams}g [Cut: ${getLocalizedPrepareText(it.cutStyle, it.category)}] ${it.specialNote ? '(Note: ' + it.specialNote + ')' : ''}`).join('\n')}\nSlot: ${o.deliveryTimeSlot}`);
+        const kotMsg = encodeURIComponent(`NEW KOT: ${o.id}\nItems:\n${o.items.map((it, idx) => {
+          const prep = getLocalizedPrepareText(it.cutStyle, it.category);
+          const prepStr = prep ? ` [Cut: ${prep}]` : '';
+          return `${idx + 1}. ${it.tamilName} (${it.englishName}) - ${it.weightGrams}g${prepStr} ${it.specialNote ? '(Note: ' + it.specialNote + ')' : ''}`;
+        }).join('\n')}\nSlot: ${o.deliveryTimeSlot}`);
 
         const isExpanded = !!expandedOrders[o.id];
 
@@ -8902,6 +9174,9 @@
       if (idx === -1) return;
 
       orders[idx].status = nextStatus;
+      if (nextStatus === 'delivered' && !orders[idx].customerSignature) {
+        orders[idx].customerSignature = "Delivered manually by Admin 👑";
+      }
       orders[idx].updatedAt = new Date().toISOString();
       
       saveData('ek_orders', orders);
@@ -9003,10 +9278,60 @@
       const idx = orders.findIndex(o => o.id === id);
       if (idx === -1) return;
 
-      orders[idx].status = 'rejected';
-      orders[idx].rejectionReason = reasonText;
-      orders[idx].updatedAt = new Date().toISOString();
+      const order = orders[idx];
+
+      // If order is already cancelled, avoid double processing
+      if (order.status === 'rejected') {
+        showToast(currentLang === 'ta' ? "மன்னிக்கவும்! இந்த ஆர்டர் ஏற்கனவே ரத்து செய்யப்பட்டுவிட்டது." : "Sorry! This order has already been cancelled.", "warning");
+        closeOrderCancelModalDetail();
+        return;
+      }
+
+      // A. Restore Stock levels
+      const products = getData('ek_products');
+      order.items.forEach(item => {
+        const prod = products.find(p => p.id === item.productId);
+        if (prod) {
+          prod.stockKg = parseFloat((prod.stockKg + (item.weightGrams / 1000)).toFixed(3));
+          prod.isOutOfStock = false;
+          prod.updatedAt = new Date().toISOString();
+          
+          if (typeof db !== 'undefined' && db) {
+            db.collection('ek_products').doc(prod.id).set(prod)
+              .catch(err => console.error("Cloud stock restore error on admin cancel:", err));
+          }
+        }
+      });
+      saveData('ek_products', products);
+
+      // B. Restore Loyalty Points
+      const users = getData('ek_users');
+      const userIdx = users.findIndex(u => u.id === order.customerId);
+      if (userIdx !== -1) {
+        const user = users[userIdx];
+        const accruedPoints = order.accruedPoints || (Math.floor(order.totalAmount / 100) * 10);
+        const pointsRefunded = (order.loyaltyDiscount || 0) * 10;
+        user.loyaltyPoints = Math.max(0, user.loyaltyPoints - accruedPoints + pointsRefunded);
+        
+        if (user.loyaltyPoints >= 500) user.tier = 'gold';
+        else if (user.loyaltyPoints >= 150) user.tier = 'silver';
+        else user.tier = 'bronze';
+        
+        users[userIdx] = user;
+        saveData('ek_users', users);
+        
+        if (typeof db !== 'undefined' && db) {
+          db.collection('ek_users').doc(user.id).set(user)
+            .catch(err => console.error("Cloud user points restore error on admin cancel:", err));
+        }
+      }
+
+      // C. Submit state updates to Order Record
+      order.status = 'rejected';
+      order.rejectionReason = reasonText;
+      order.updatedAt = new Date().toISOString();
       
+      orders[idx] = order;
       saveData('ek_orders', orders);
 
       // Instantly write status update to Cloud Firestore
@@ -9016,7 +9341,7 @@
           .catch(err => console.error(`[Cloud Sync] Failed writing cancelled order for ${id}:`, err));
       }
 
-      showToast("Order cancelled ✓", "error");
+      showToast(currentLang === 'ta' ? "நிர்வாகியால் ஆர்டர் வெற்றிகரமாக ரத்து செய்யப்பட்டது! 🛑" : "Order cancelled by Admin successfully! 🛑", "error");
       
       closeOrderCancelModalDetail();
       renderAdminDashboard();
@@ -9207,10 +9532,10 @@
 
     function deleteProductFromDb(id) {
       const prod = getData('ek_products').find(p => p.id === id);
-      const prodName = prod ? prod.tamilName : 'product';
+      const prodName = prod ? prod.englishName : 'product';
       showCustomConfirm(
-        "Product நீக்க விருப்பமா?",
-        `நிச்சயமாக இந்த தயாரிப்பை (<strong>${prodName}</strong>) நீக்க விரும்புகிறீர்களா? இது நிரந்தரமாக நீக்கப்பட்டுவிடும்.`,
+        "Delete Product?",
+        `Are you sure you want to permanently delete the product (<strong>${prodName}</strong>)? This cannot be undone.`,
         function() {
           // Register in deletion safeguard
           markProductAsDeleted(id);
@@ -9500,7 +9825,6 @@
       const settings = getData('ek_settings', DEFAULT_SETTINGS);
       settings.announcement = msg;
       saveData('ek_settings', settings);
-      
       showToast("Notice updated on all customer dashboards!", "success");
     }
 
@@ -9510,8 +9834,6 @@
       if (idx === -1) return;
 
       users[idx].loyaltyPoints = Math.max(0, users[idx].loyaltyPoints + diff);
-      
-      // Sync tiers
       if (users[idx].loyaltyPoints >= 500) users[idx].tier = 'gold';
       else if (users[idx].loyaltyPoints >= 150) users[idx].tier = 'silver';
       else users[idx].tier = 'bronze';
@@ -9539,31 +9861,15 @@
       if (!u) return;
 
       showCustomConfirm(
-        currentLang === 'ta' ? "வாடிக்கையாளரை நீக்கவா?" : "Delete Customer?",
-        currentLang === 'ta' 
-          ? `நிச்சயமாக <strong>${u.name}</strong> (+91 ${u.phone}) என்ற வாடிக்கையாளரின் கணக்கை நிரந்தரமாக நீக்க விரும்புகிறீர்களா?<br><br>குறிப்பு: இதனால் அவரது ஆர்டர் விவரங்கள் நீக்கப்படாது. ஆனால் கணக்கு மற்றும் லாயல்டி புள்ளிகள் முழுமையாக நீக்கப்படும்.`
-          : `Are you sure you want to permanently delete customer <strong>${u.name}</strong> (+91 ${u.phone})?<br><br>Their account and loyalty points will be fully removed.`,
+        "Delete Customer?",
+        `Are you sure you want to permanently delete customer <strong>${u.name}</strong> (+91 ${u.phone})?<br><br>Their account and loyalty points will be fully removed.`,
         function() {
-          // Register in deletion safeguard
           markUserAsDeleted(userId);
 
           const filtered = users.filter(user => user.id !== userId);
           saveData('ek_users', filtered);
 
-          // Force delete on cloud directly if Firebase is operational
-          if (typeof db !== 'undefined' && db) {
-            db.collection('ek_users').doc(userId).delete()
-              .then(() => console.log(`[Cloud Sync] Customer ${userId} deleted from cloud Firestore.`))
-              .catch(err => console.error("Cloud customer deletion async failed:", err));
-          }
-
-          // If the customer deleted himself (or active session matches), log them out
-          const session = getActiveSession();
-          if (session && (session.userId === userId || session.phone === u.phone)) {
-            handleLogout();
-          }
-
-          showToast(currentLang === 'ta' ? "வாடிக்கையாளர் கணக்கு நீக்கப்பட்டது ✓" : "Customer record removed!", "success");
+          showToast("Customer record removed!", "success");
           renderAdminCustomers();
         }
       );
@@ -9595,7 +9901,6 @@
                 <p style="font-size:11px; color:var(--text-secondary); margin-top:4px;">Orders counter: <strong>${myOrders.length} times</strong> | Gross Turnout: <strong>₹${spent}</strong></p>
               </div>
 
-              <!-- Points editor adjustments -->
               <div style="text-align:right; flex-shrink: 0;">
                 <span style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">WALLET BALANCE</span>
                 <div style="display:flex; align-items:center; gap:6px;">
@@ -9606,10 +9911,9 @@
               </div>
             </div>
             
-            <!-- Quick Management Tools including Delete -->
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px; border-top:1px dashed #222; padding-top:8px;">
               <button class="btn" style="background:rgba(244,63,94,0.08); color:#f43f5e; border:1px solid rgba(244,63,94,0.25); padding:4px 10px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer; font-family:'Poppins', sans-serif;" onclick="deleteCustomerFromDb('${u.id}')">
-                ${currentLang === 'ta' ? '🗑️ நீக்குக' : '🗑️ Delete'}
+                🗑️ Delete
               </button>
             </div>
           </div>
@@ -10914,7 +11218,6 @@
         } else if (currentScreen === 'screen-profile') {
           renderProfileScreen();
         } else if (currentScreen === 'screen-admin') {
-          if (typeof renderAdminOrders === 'function') renderAdminOrders();
           if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
         } else if (currentScreen === 'screen-delivery') {
           if (typeof renderDeliveryScreen === 'function') renderDeliveryScreen();
@@ -11314,6 +11617,38 @@
         greetBanner.innerHTML = `🌟 ${messageEn}<br><span style="font-size:11.5px; opacity:0.85;">✨ ${messageTa}</span>`;
       }
 
+      // Calculate localized fresh agritech support score based on actual customer purchases
+      let freshKgs = 0;
+      orders.forEach(o => {
+        if (o.items && Array.isArray(o.items)) {
+          o.items.forEach(it => {
+            if (it.category === 'veg' || it.category === 'fruits') {
+              freshKgs += (it.weightGrams || 500) / 1000;
+            }
+          });
+        }
+      });
+
+      const scoreEl = document.getElementById('prof-farm-score');
+      const kgEl = document.getElementById('prof-farm-kg');
+      if (scoreEl && kgEl) {
+        if (freshKgs === 0) {
+          scoreEl.innerText = "Level 0 (Seed Sower)";
+          kgEl.innerText = "0 Kg Fresh Produce";
+        } else if (freshKgs <= 5) {
+          scoreEl.innerText = "Level 1 (Direct Contributor)";
+          kgEl.innerText = `${freshKgs.toFixed(1)} Kg fresh produce sourced`;
+        } else if (freshKgs <= 15) {
+          scoreEl.innerText = "Level 2 (Direct Farm Patron)";
+          scoreEl.style.color = "#34d399";
+          kgEl.innerText = `${freshKgs.toFixed(1)} Kg fresh produce sourced`;
+        } else {
+          scoreEl.innerText = "Level 3 (Gourmet Agri Hero 🚜)";
+          scoreEl.style.color = "#6ee7b7";
+          kgEl.innerText = `${freshKgs.toFixed(1)} Kg sourced direct!`;
+        }
+      }
+
       // Render Gourmet Badges dynamically based on order metric counts
       const streakBox = document.getElementById('badge-streak-box');
       const streakIco = document.getElementById('badge-streak-ico');
@@ -11365,6 +11700,30 @@
           vipLbl.style.color = '#f59e0b';
         }
       }
+    }
+
+    // COMPANION REFERRAL CODE LINK GENERATORS FOR PROFILE
+    function generateReferralCodeProfile() {
+      const u = getActiveUser();
+      if (!u) return;
+      const refId = u.id ? u.id.substring(0, 5).toUpperCase() : 'EDP50';
+      const refLink = `https://edappadikadai.com/join?ref=${refId}`;
+      
+      const linkText = document.getElementById('referral-link-text');
+      const areaDiv = document.getElementById('referral-result-area');
+      if (linkText && areaDiv) {
+        linkText.innerHTML = `<strong>Your Companion Link:</strong><br><span style="color:var(--accent-orange); font-family:monospace; font-size:11px;">${refLink}</span><br><span style="font-size:10px; color:#adbac7; margin-top:4px; display:block;">Your friend gets ₹50 on signup! You receive 50 loyalty pts automatically on their 1st dispatch.</span>`;
+        areaDiv.style.display = 'block';
+        showToast("🎁 Companion referral link loaded! Copy and share it via WhatsApp!", "success");
+      }
+    }
+
+    function copyReferralLinktoClip() {
+      const u = getActiveUser();
+      const refId = u ? (u.id ? u.id.substring(0, 5).toUpperCase() : 'EDP50') : 'EDP50';
+      const refLink = `https://edappadikadai.com/join?ref=${refId}`;
+      navigator.clipboard.writeText(refLink);
+      showToast("Link copied to clipboard! Share direct on WhatsApp/SMS! 🌐", "success");
     }
 
     // CHEF SECRET SCRATCH CARD REWARD POPULATOR
