@@ -1124,7 +1124,7 @@
         
         <div class="form-group" id="admin-selector-wrapper" style="display: none;">
           <label style="color: var(--accent-orange); font-weight: 600;">Choose Admin Character 👑</label>
-          <select id="admin-selector" class="form-control" style="background: #111; color: #fff; border: 1.5px solid var(--accent-orange); font-weight: bold; padding: 12px; border-radius: 8px; width: 100%;">
+          <select id="admin-selector" class="form-control" style="background: #111; color: #fff; border: 1.5px solid var(--accent-orange); font-weight: bold; padding: 12px; border-radius: 8px; width: 100%;" onchange="updateAdminPasswordFromSelection()">
             <option value="9999999999">👑 Anantharaj (Super Admin)</option>
             <option value="9999999998">📦 Karthick (Stock Manager)</option>
             <option value="9999999997">🚚 Prakash (Dispatcher)</option>
@@ -1135,7 +1135,7 @@
 
         <div class="form-group" id="delivery-selector-wrapper" style="display: none;">
           <label style="color: var(--accent-orange); font-weight: 600;">டெலிவரி நபர் தேர்வு செய்க / Choose Delivery Partner 🏍️</label>
-          <select id="delivery-selector" class="form-control" style="background: #111; color: #fff; border: 1.5px solid var(--accent-orange); font-weight: bold; padding: 12px; border-radius: 8px; width: 100%;">
+          <select id="delivery-selector" class="form-control" style="background: #111; color: #fff; border: 1.5px solid var(--accent-orange); font-weight: bold; padding: 12px; border-radius: 8px; width: 100%;" onchange="updateDeliveryPasswordFromSelection()">
             <!-- Dynamically populated via JS -->
           </select>
         </div>
@@ -2258,35 +2258,50 @@
         </div>
 
         <!-- Interactive Live Tracking Map - PROMINENTLY AT THE TOP AS REQUESTED -->
-        <div id="tracker-map-box" class="card" style="margin-top: 4px; margin-bottom: 16px; border: 1.5px solid rgba(245,158,11,0.3); padding: 0; overflow: hidden; border-radius: 18px; display: none; background: #0c0f14; box-shadow: 0 10px 30px rgba(0,0,0,0.6);">
-          <div style="background: rgba(245,158,11,0.06); padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 11.5px; color: var(--accent-orange); font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">📍 LIVE ROUTE MAP</span>
-            <button onclick="openGoogleMapsNavigation()" class="btn btn-secondary" style="width: auto; padding: 4.5px 9px; font-size: 10px; border-color: rgba(245,158,11,0.4); color: var(--accent-orange); background: rgba(245,158,11,0.04); display: flex; align-items: center; gap: 4px; font-weight: 700; border-radius: 8px;">
+        <div id="tracker-map-box" class="card" style="margin-top: 4px; margin-bottom: 16px; border: 1.5px solid rgba(255,255,255,0.08); padding: 0; overflow: hidden; border-radius: 16px; display: none; background: #0c0f14; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+          <div style="background: rgba(255,255,255,0.02); padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-secondary); font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">📍 நேரலை வரைபடம் / LIVE TRACKER</span>
+            <button onclick="openGoogleMapsNavigation()" class="btn btn-secondary" style="width: auto; padding: 4px 8px; font-size: 10px; border-color: rgba(255,255,255,0.15); color: #fff; background: transparent; display: flex; align-items: center; gap: 4px; font-weight: 700; border-radius: 6px;">
               🗺️ Open Google Maps
             </button>
           </div>
           <div style="position: relative;">
-            <div id="live-map-container" style="height: 380px; width: 100%; background: #0c1117; position: relative;">
-              <!-- Leaflet map will render here dynamically -->
+            <div id="live-map-container" style="height: 320px; width: 100%; background: #ffffff; position: relative;">
+              <!-- Leaflet map will render here dynamically with a clean white/light theme background -->
             </div>
             
             <!-- Dynamic interactive badge overlay for outstanding touch experience -->
-            <div id="map-interactive-badge" style="position: absolute; bottom: 12px; left: 12px; right: 12px; background: rgba(8, 12, 19, 0.95); border: 1.5px solid var(--accent-orange); border-radius: 12px; padding: 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.8); z-index: 1000; backdrop-filter: blur(8px); display: none;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <span id="map-badge-status" style="font-size: 11px; font-weight: 700; color: var(--accent-orange); text-transform: uppercase; letter-spacing: 0.5px;">🏍️ Rider Enroute</span>
-                <span style="font-size: 10.5px; color: #10b981; font-weight: 700; background: rgba(16,185,129,0.1); padding: 2px 6px; border-radius: 6px;" id="map-badge-eta">ETA: 4 mins</span>
+            <div id="map-interactive-badge" style="position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(8, 12, 19, 0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); z-index: 1000; backdrop-filter: blur(8px); display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span id="map-badge-status" style="font-size: 10.5px; font-weight: 700; color: var(--accent-orange);">🏍️ Rider Enroute</span>
+                <span style="font-size: 10px; color: #10b981; font-weight: 700;" id="map-badge-eta">ETA: 4 mins</span>
               </div>
-              <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;" id="map-badge-desc">Your delivery partner is moving towards your doorstep with your fresh items.</p>
-              <div style="display: flex; gap: 8px; justify-content: flex-end;" id="map-badge-actions">
+              <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.3;" id="map-badge-desc">Your delivery partner is moving towards your doorstep.</p>
+              <div style="display: flex; gap: 6px; justify-content: flex-end;" id="map-badge-actions">
               </div>
             </div>
           </div>
-          <div style="padding: 10px 14px; background: #080d14; text-align: center; font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
-            <span>🏢 Store: <strong>Edappadi Town</strong></span>
-            <span style="color:var(--accent-orange)">➔</span>
-            <span style="color: #60a5fa; font-weight: bold;" id="map-live-status">Rider Assigned</span>
+
+          <!-- PURE PREMIUM ONE-LINER HORIZONTAL LIVE PROGRESS BAR -->
+          <div style="padding: 12px 14px; background: #080d14; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <span style="color: var(--accent-orange); font-size: 13px;">🏍️</span>
+              <span id="visual-hud-instruction-text" style="font-family: 'Poppins', 'Hind Madurai', sans-serif;">தயாரிப்பில்... / Preparing your order...</span>
+            </div>
+            <div id="visual-hud-eta-text" style="font-size: 10.5px; font-weight: bold; color: #10b981; padding: 2px 6px; background: rgba(16,185,129,0.1); border-radius: 4px; white-space: nowrap;">
+              -
+            </div>
+            <!-- Keep hidden fields to make sure no JS calculations or updates ever break -->
+            <div style="display: none;">
+              <span id="customer-tracker-total-dist">-</span>
+              <span id="customer-tracker-rider-dist">-</span>
+              <span id="map-live-status">-</span>
+              <div id="visual-hud-progress-line" style="width: 0%;"></div>
+              <div id="visual-hud-rider-dot" style="left: 0%;"></div>
+            </div>
           </div>
         </div>
+
 
         <!-- Custom Collapsible Graphical Delivery Progress Stepper (Timeline) -->
         <div class="tracker-timeline-card" style="background: rgba(255, 255, 255, 0.012); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; margin-top: 12px; margin-bottom: 12px; overflow: hidden;">
@@ -2656,20 +2671,45 @@
       </div>
 
       <!-- Interactive Rider Map / விநியோக வரைபடம் -->
-      <div id="delivery-map-box" class="card" style="margin-top: 4px; border: 1.5px solid #1c1c1e; padding: 0; overflow: hidden; border-radius: 12px; display: none; margin-bottom: 16px;">
-        <div style="background: rgba(245,158,11,0.04); padding: 8px 12px; border-bottom: 1px solid #1c1c1e; display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 11px; color: var(--accent-orange); font-weight: 700; letter-spacing: 0.5px;">📍 ROUTE MAP / விநியோக வரைபடம்</span>
-          <button id="btn-delivery-gmaps-nav" class="btn btn-secondary" style="width: auto; padding: 4px 8px; font-size: 10px; border-color: var(--accent-orange); color: var(--accent-orange); background: transparent; display: flex; align-items: center; gap: 2.5px; font-weight: 700; cursor: pointer;">
-            🗺️ Open Google Maps
-          </button>
+      <div id="delivery-map-box" class="card" style="margin-top: 4px; border: 1.5px solid rgba(245,158,11,0.25); padding: 0; overflow: hidden; border-radius: 18px; display: none; margin-bottom: 16px; background: #0c0f14; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+        <div style="background: rgba(245,158,11,0.06); padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 11.5px; color: var(--accent-orange); font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">📍 ROUTE MAP / விநியோக வரைபடம்</span>
+          <span style="font-size: 10px; color: #10b981; font-weight: bold; padding: 2px 6px; background: rgba(16,185,129,0.1); border-radius: 4px;">LIVE ACTIVE Gps</span>
         </div>
-        <div id="delivery-live-map-container" style="height: 220px; width: 100%; background: #0c1117; position: relative;">
+        
+        <div id="delivery-live-map-container" style="height: 300px; width: 100%; background: #ffffff; position: relative;">
           <!-- Leaflet map will render here dynamically -->
         </div>
-        <div style="padding: 10px; background: #080d14; text-align: center; font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px; border-top: 1px solid #1c1c1e;">
-          <span>🏪 Main Store</span>
-          <span style="color:var(--accent-orange)">➔</span>
-          <span id="delivery-map-target" style="color: #60a5fa; font-weight: bold;">Loading...</span>
+
+        <div style="padding: 12px 14px; background: #080d14; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06);">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--text-primary); margin-bottom: 10px;">
+            <span>🏪 கடை / Store</span>
+            <span style="color:var(--accent-orange)">➔</span>
+            <span id="delivery-map-target" style="color: #60a5fa; font-weight: bold; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">Loading...</span>
+          </div>
+
+          <!-- Driver Pain-free Easy Tools Panel -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button id="btn-delivery-easy-nav" class="btn" style="grid-column: span 2; margin: 0; background: linear-gradient(135deg, #f59e0b, #ea580c); color: #fff; border: none; font-weight: 800; font-size: 12.5px; height: 38px; border-radius: 10px; box-shadow: 0 4px 12px rgba(234,88,12,0.3); display: flex; align-items: center; justify-content: center; gap: 6px;">
+              🗺️ கூகுள் நேவிகேஷன் / Start Google Maps
+            </button>
+            <button id="btn-delivery-easy-call" class="btn btn-secondary" style="margin: 0; border: 1.5px solid #2563eb; background: rgba(37,99,235,0.1); color: #60a5fa; font-weight: 700; font-size: 11.5px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              📞 கஸ்டமர் போன் / Call Client
+            </button>
+            <button id="btn-delivery-easy-chat" class="btn btn-secondary" style="margin: 0; border: 1.5px solid #10b981; background: rgba(16,185,129,0.1); color: #34d399; font-weight: 700; font-size: 11.5px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              💬 கஸ்டமர் வாட்ஸ்அப் / WhatsApp
+            </button>
+          </div>
+
+          <!-- Friendly Ride Assistance Tips for Driver -->
+          <div style="margin-top: 12px; padding: 10px 12px; background: rgba(16,185,129,0.06); border: 1px dashed rgba(16,185,129,0.25); border-radius: 12px; font-size: 11.5px; color: #a7f3d0; line-height: 1.5; text-align: left; font-family: 'Poppins', 'Hind Madurai', sans-serif;">
+            <div style="font-weight: 800; color: #34d399; display: flex; align-items: center; gap: 4px; margin-bottom: 3px;">
+              <span>🏍️</span> <span>டெலிவரி நபர் வழிகாட்டி / Rider Easy Help:</span>
+            </div>
+            1. வரைபடத்தில் உள்ள 🏠 குறியீடு கஸ்டமரின் இல்லத்தைக் குறிக்கும்.<br>
+            2. <strong>கூகுள் நேவிகேஷன்</strong> பட்டனை அழுத்தினால் ஜிபிஎஸ் தானாகவே வழி காட்டும்.<br>
+            3. முகவரியில் சந்தேகம் இருந்தால் <strong>கஸ்டமர் போன்</strong> பட்டனை அழுத்தவும்.
+          </div>
         </div>
       </div>
 
@@ -3124,6 +3164,20 @@
           <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 12px;">Auto saved upon value modification • Configures global client checkouts.</p>
         </div>
 
+        <!-- ADMIN MANAGE CATEGORIES CARD -->
+        <div class="card" style="margin-top: 16px;">
+          <h4 style="font-size: 14px; text-transform: uppercase; color: var(--accent-orange); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>🌿</span> <span>வகை மேலாண்மை / Manage Categories</span>
+          </h4>
+          <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
+            கேட்டகிரிகளை மறைக்க/காண்பிக்க மற்றும் அவற்றின் வரிசையை மாற்றலாம் / Hide or show core shopping categories, and click buttons to swap their visual ordering sequence.
+          </p>
+
+          <div id="admin-categories-list" style="display: flex; flex-direction: column; gap: 4px;">
+            <!-- Rendered dynamically by JS -->
+          </div>
+        </div>
+
         <!-- ADMIN HERO BANNER IMAGE CONFIGURATION CARD -->
         <div class="card" style="margin-top: 16px;">
           <h4 style="font-size: 14px; text-transform: uppercase; color: var(--accent-orange); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; display: flex; align-items: center; gap: 6px;">
@@ -3166,6 +3220,20 @@
           <div id="admin-accounts-list-container">
             <!-- Dynamic Admin Accounts list loaded here -->
           </div>
+        </div>
+
+        <!-- NEW DANGER ZONE PURGE CARD WITH MULTILINGUAL CLEAN RESET DESIGN FOR BLAZING FRESH START -->
+        <div class="card" style="margin-top: 16px; border: 1.5px solid rgba(239, 68, 68, 0.35); padding: 14px; border-radius: 16px; background: rgba(239, 68, 68, 0.02); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.08);">
+          <h4 style="font-size: 14px; text-transform: uppercase; color: #f87171; margin-bottom: 10px; border-bottom: 1px solid rgba(239,68,68,0.25); padding-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>🧹</span> <span>அபாய பகுதி / Danger Zone - Reset & Purge</span>
+          </h4>
+          <p style="font-size: 11.5px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.45; font-family: 'Poppins', 'Hind Madurai', sans-serif;">
+            பரிசோதனை மற்றும் பழைய ஆர்டர்களை நினைவகத்திலிருந்தும், கிளவுட் டேட்டாபேஸிலிருந்தும் முழுமையாக நீக்கிவிட்டு பயன்பாட்டைப் புதியதாக மாற்ற, பின்கண்ட பொத்தானை அழுத்தவும். <br>
+            <span style="color: #f87171; font-weight: bold;">*இதன் மூலம் புதிய வாடிக்கையாளர்கள் புத்தம் புதியதாக ஆர்டர் செய்து மகிழலாம்.</span>
+          </p>
+          <button class="btn" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #fff; border: none; font-weight: 800; width: 100%; padding: 12px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);" onclick="purgeOrderDataHistory()">
+            🗑️ அனைத்து ஆர்டர்களையும் நீக்கு / Delete Order History
+          </button>
         </div>
       </div>
     </div>
@@ -3362,6 +3430,11 @@
         saveData('ek_deleted_user_ids', list);
       }
     };
+    const unmarkUserAsDeleted = (userIdOrPhone) => {
+      let list = getDeletedUserIds();
+      list = list.filter(id => id !== userIdOrPhone);
+      saveData('ek_deleted_user_ids', list);
+    };
 
     const saveData = (key, data) => {
       try {
@@ -3382,7 +3455,7 @@
         }
         
         // Real-time synchronization trigger
-        if (['ek_products', 'ek_settings', 'ek_orders', 'ek_users', 'ek_delivery_persons', 'ek_admin_accounts', 'ek_remembered_credentials'].includes(key)) {
+        if (['ek_products', 'ek_settings', 'ek_orders', 'ek_users', 'ek_delivery_persons', 'ek_admin_accounts', 'ek_remembered_credentials', 'ek_categories'].includes(key)) {
           const timeStr = Date.now().toString();
           localStorage.setItem('ek_last_update', timeStr);
           if (typeof AndroidStorage !== 'undefined') {
@@ -3439,6 +3512,14 @@
           const remCheckbox = document.getElementById('login-remember');
           if (idInput && !idInput.value) idInput.value = remembered.identifier || "";
           if (passInput && !passInput.value) passInput.value = remembered.password || "";
+          if (remCheckbox) remCheckbox.checked = true;
+        } else {
+          // Prefill default customer credentials for instant frictionless login out-of-the-box
+          const idInput = document.getElementById('login-identifier');
+          const passInput = document.getElementById('login-password');
+          const remCheckbox = document.getElementById('login-remember');
+          if (idInput && !idInput.value) idInput.value = "8778148899";
+          if (passInput && !passInput.value) passInput.value = "test123";
           if (remCheckbox) remCheckbox.checked = true;
         }
       } catch (e) {
@@ -4580,6 +4661,20 @@
       }
     }
 
+    function updateAdminPasswordFromSelection() {
+      const passInp = document.getElementById('login-password');
+      if (passInp && currentLoginMode === 'admin') {
+        passInp.value = '';
+      }
+    }
+
+    function updateDeliveryPasswordFromSelection() {
+      const passInp = document.getElementById('login-password');
+      if (passInp && currentLoginMode === 'delivery') {
+        passInp.value = '';
+      }
+    }
+
     function enterDeliveryLogin() {
       currentLoginMode = 'delivery';
       const loginIdWrap = document.getElementById('login-identifier-wrapper');
@@ -4597,8 +4692,9 @@
       if (adminSelector) adminSelector.removeAttribute('required');
       if (deliverySelector) deliverySelector.setAttribute('required', 'true');
       
-      // Clear password field
-      document.getElementById('login-password').value = '';
+      // Clear password field for manual entry
+      const passInp = document.getElementById('login-password');
+      if (passInp) passInp.value = '';
       
       // Populate choices
       populateDeliveryLoginFormSelector();
@@ -4612,7 +4708,7 @@
       if (btnToggleCustomer) btnToggleCustomer.style.display = 'inline-block';
       if (btnToggleDelivery) btnToggleDelivery.style.display = 'none';
       
-      showToast("Switched to Delivery Executive Login Mode. Choose your profile and enter your secure key! 🔐", "info");
+      showToast("Switched to Delivery Executive Login Mode. Choose your profile and type your secure key! 🔐", "info");
     }
 
     function populateDeliveryLoginFormSelector() {
@@ -4662,8 +4758,9 @@
       if (adminSelector) adminSelector.setAttribute('required', 'true');
       if (deliverySelector) deliverySelector.removeAttribute('required');
       
-      // Clear password field to require manual input
-      document.getElementById('login-password').value = '';
+      // Clear password field for admin manual passcode entry
+      const passInp = document.getElementById('login-password');
+      if (passInp) passInp.value = '';
       
       // Toggle button states
       const btnToggleAdmin = document.getElementById('btn-toggle-admin-mode');
@@ -4673,7 +4770,7 @@
       if (btnToggleCustomer) btnToggleCustomer.style.display = 'inline-block';
       if (btnToggleDelivery) btnToggleDelivery.style.display = 'inline-block';
       
-      showToast("Switched to Admin Login Mode. Choose your Admin and enter your password! 🔐", "info");
+      showToast("Switched to Admin Login Mode. Choose your character and enter password! 🔐", "info");
     }
 
     function enterCustomerLogin() {
@@ -4693,8 +4790,8 @@
       if (adminSelector) adminSelector.removeAttribute('required');
       if (deliverySelector) deliverySelector.removeAttribute('required');
       
-      // Clear password field
-      document.getElementById('login-password').value = '';
+      // Force reload or default fill of customer credentials
+      prefillLoginCredentials();
       
       // Toggle button states
       const btnToggleAdmin = document.getElementById('btn-toggle-admin-mode');
@@ -4746,6 +4843,9 @@
       const regAddrElem = document.getElementById('reg-address');
       const regLat = regAddrElem ? parseFloat(regAddrElem.getAttribute('data-lat')) : null;
       const regLng = regAddrElem ? parseFloat(regAddrElem.getAttribute('data-lng')) : null;
+
+      // Clean deleted safeguard registry for this phone / new registration
+      unmarkUserAsDeleted(phone);
 
       const newUser = {
         id: 'cust_' + Math.floor(100000 + Math.random() * 900000),
@@ -4865,9 +4965,32 @@
       showScreen('screen-login');
     }
 
-    // CATEGORIES TRANSLATION MAP & DYNAMIC RENDERER
+    // DYNAMIC CATEGORIES MANAGEMENT SYSTEM
+    const DEFAULT_CATEGORIES = [
+      { id: 'meat', nameTa: 'கறிவகை', nameEn: 'Meat', icon: '🔴', isHidden: false, order: 0 },
+      { id: 'fish', nameTa: 'மீன்வகை', nameEn: 'Fish', icon: '🔵', isHidden: false, order: 1 },
+      { id: 'veg', nameTa: 'காய்கறி', nameEn: 'Veg', icon: '🟢', isHidden: false, order: 2 },
+      { id: 'fruits', nameTa: 'பழங்கள்', nameEn: 'Fruits', icon: '🍎', isHidden: false, order: 3 },
+      { id: 'dairy', nameTa: 'பால் & முட்டை', nameEn: 'Dairy', icon: '🥛', isHidden: false, order: 4 },
+      { id: 'groceries', nameTa: 'மளிகை', nameEn: 'Groceries', icon: '📦', isHidden: false, order: 5 }
+    ];
+
+    function getCategoriesList() {
+      let catList = getData('ek_categories');
+      if (!catList || !Array.isArray(catList) || catList.length === 0) {
+        saveData('ek_categories', DEFAULT_CATEGORIES);
+        return DEFAULT_CATEGORIES;
+      }
+      return catList.sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+
     function getCategoryName(cat) {
       const isTa = currentLang === 'ta';
+      const catList = getCategoriesList();
+      const matched = catList.find(c => c.id === cat);
+      if (matched) {
+        return isTa ? matched.nameTa : matched.nameEn;
+      }
       const map = {
         meat: isTa ? 'கறிவகை' : 'Meat',
         fish: isTa ? 'மீன்வகை' : 'Fish',
@@ -4879,22 +5002,32 @@
       return map[cat] || cat;
     }
 
+    function populateProductCategoryOptions() {
+      const select = document.getElementById('add-prod-category');
+      if (!select) return;
+      const catList = getCategoriesList();
+      select.innerHTML = catList.map(c => {
+        return `<option value="${c.id}">${c.nameEn} (${c.icon} ${c.nameTa})</option>`;
+      }).join('');
+    }
+
     function renderCategoryPills() {
       const pillsContainer = document.querySelector('.filter-pills');
       if (!pillsContainer) return;
       
       const isTa = currentLang === 'ta';
+      const catList = getCategoriesList();
+      const visibleCategories = catList.filter(c => !c.isHidden);
+      
       const CATEGORIES = [
         { id: 'all', name: isTa ? 'அனைத்தும்' : 'All Items', icon: '🍽️' },
-        { id: 'meat', name: isTa ? 'கறிவகை' : 'Meat', icon: '🔴' },
-        { id: 'fish', name: isTa ? 'மீன்வகை' : 'Fish', icon: '🔵' },
-        { id: 'veg', name: isTa ? 'காய்கறி' : 'Veg', icon: '🟢' },
-        { id: 'fruits', name: isTa ? 'பழங்கள்' : 'Fruits', icon: '🍎' },
-        { id: 'dairy', name: isTa ? 'பால் & முட்டை' : 'Dairy', icon: '🥛' },
-        { id: 'groceries', name: isTa ? 'மளிகை' : 'Groceries', icon: '📦' }
+        ...visibleCategories.map(c => ({
+          id: c.id,
+          name: isTa ? c.nameTa : c.nameEn,
+          icon: c.icon
+        }))
       ];
 
-      // If activeCategory is not in our categories list, default to 'all'
       if (!CATEGORIES.some(cat => cat.id === activeCategory)) {
         activeCategory = 'all';
       }
@@ -4903,6 +5036,90 @@
         const isActive = activeCategory === cat.id ? 'active' : '';
         return `<button class="pill ${isActive}" onclick="filterHomeProducts('${cat.id}', this)">${cat.icon} ${cat.name}</button>`;
       }).join('');
+    }
+
+    function renderAdminCategoriesList() {
+      const container = document.getElementById('admin-categories-list');
+      if (!container) return;
+      
+      const catList = getCategoriesList();
+      
+      container.innerHTML = catList.map((c, index) => {
+        const isHidden = c.isHidden ? true : false;
+        const visibleLabel = isHidden 
+          ? `<span style="color: var(--accent-red); font-size: 11px; font-weight: bold;">🙈 Hidden / மறைவு</span>`
+          : `<span style="color: var(--accent-green); font-size: 11px; font-weight: bold;">👁️ Visible / பார்வை</span>`;
+        
+        return `
+          <div style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+              <span style="font-size: 16px;">${c.icon}</span>
+              <div style="min-width: 0;">
+                <span style="font-weight: 700; font-size: 13px; color: #fff; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  ${c.nameTa} (${c.nameEn})
+                </span>
+                ${visibleLabel}
+              </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+              <button class="btn btn-secondary" style="padding: 4px 6px; margin: 0; font-size: 11px; height: 26px; min-width: 26px; border: 1px solid #332121; background:#000; color:#fff;" onclick="reorderCategoryItem(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+              <button class="btn btn-secondary" style="padding: 4px 6px; margin: 0; font-size: 11px; height: 26px; min-width: 26px; border: 1px solid #332121; background:#000; color:#fff;" onclick="reorderCategoryItem(${index}, 1)" ${index === catList.length - 1 ? 'disabled' : ''}>▼</button>
+              
+              <button class="btn" style="padding: 4px 10px; margin: 0; font-size: 11px; font-weight: 700; height: 26px; border-radius: 6px; background: ${isHidden ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)'}; color: ${isHidden ? 'var(--accent-red)' : 'var(--accent-green)'}; border: 1px solid ${isHidden ? 'var(--accent-red)' : 'var(--accent-green)'}; cursor: pointer;" onclick="toggleCategoryVisibility('${c.id}')">
+                ${isHidden ? 'Show' : 'Hide'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleCategoryVisibility(id) {
+      const catList = getCategoriesList();
+      const matched = catList.find(c => c.id === id);
+      if (matched) {
+        matched.isHidden = !matched.isHidden;
+        saveData('ek_categories', catList);
+        
+        if (typeof db !== 'undefined' && db) {
+          db.collection('ek_categories').doc(id).set(matched)
+            .then(() => console.log(`[Cloud Sync] Category ${id} visibility written to cloud`))
+            .catch(e => console.error(e));
+        }
+        
+        showToast("Category visibility updated successfully!", "success");
+        renderAdminDashboard();
+        renderCategoryPills();
+      }
+    }
+
+    function reorderCategoryItem(index, direction) {
+      const catList = getCategoriesList();
+      const targetIndex = index + direction;
+      
+      if (targetIndex >= 0 && targetIndex < catList.length) {
+        const temp = catList[index];
+        catList[index] = catList[targetIndex];
+        catList[targetIndex] = temp;
+        
+        catList.forEach((c, idx) => {
+          c.order = idx;
+        });
+        
+        saveData('ek_categories', catList);
+        
+        if (typeof db !== 'undefined' && db) {
+          catList.forEach(c => {
+            db.collection('ek_categories').doc(c.id).set(c)
+              .catch(e => console.error(e));
+          });
+        }
+        
+        showToast("Category order updated!", "success");
+        renderAdminDashboard();
+        renderCategoryPills();
+      }
     }
 
     // CUSTOMER HOME FLOW & FILTERS
@@ -7022,9 +7239,27 @@
         targetEl.innerHTML = `📍 Customer: ${order.customerName} (${order.deliveryAddress})`;
       }
 
-      const gmapsBtn = document.getElementById('btn-delivery-gmaps-nav');
-      if (gmapsBtn) {
-        gmapsBtn.onclick = () => openGoogleMapsNavigation(order.id);
+      // Configure driver's visual simple touch action buttons
+      const easyNavBtn = document.getElementById('btn-delivery-easy-nav');
+      if (easyNavBtn) {
+        easyNavBtn.onclick = () => openGoogleMapsNavigation(order.id);
+      }
+      const easyCallBtn = document.getElementById('btn-delivery-easy-call');
+      if (easyCallBtn) {
+        easyCallBtn.onclick = () => {
+          const phone = order.customerPhone || "9042681532";
+          window.open(`tel:${phone}`, '_blank');
+        };
+      }
+      const easyChatBtn = document.getElementById('btn-delivery-easy-chat');
+      if (easyChatBtn) {
+        easyChatBtn.onclick = () => {
+          const phone = order.customerPhone || "9042681532";
+          // Strip non-digits and leading 91/0 for WhatsApp template
+          const cleanPhone = phone.replace(/\D/g, "");
+          const formattedPhone = cleanPhone.length === 10 ? "91" + cleanPhone : cleanPhone;
+          window.open(`https://wa.me/${formattedPhone}`, '_blank');
+        };
       }
 
       if (typeof L === 'undefined') {
@@ -7083,7 +7318,7 @@
           attributionControl: false
         }).setView(storePos, 14);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
           maxZoom: 18
         }).addTo(deliveryLeafletMap);
 
@@ -7215,18 +7450,15 @@
           attributionControl: false
         }).setView(storePos, 14);
 
-        // Dark matte styling layout matching perfectly to premium dark design
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        // Elegant light theme styling for a clean, premium visual design
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
           maxZoom: 18
         }).addTo(trackerLeafletMap);
 
         const storeIcon = L.divIcon({
           html: `
             <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;">
-              <div class="map-pin-store" style="background:#e65100; color:#fff; font-size:15px; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,0.4);">🥩</div>
-              <div style="position: absolute; bottom: -12px; background: rgba(0,0,0,0.85); border: 1px solid var(--accent-orange); border-radius: 4px; padding: 1px 4px; font-size: 7.5px; font-weight: 700; color: var(--accent-orange); white-space: nowrap; z-index: 5;">
-                ${currentLang === 'ta' ? 'கறிக்கடை' : 'MEAT SHOP'}
-              </div>
+              <div class="map-pin-store" style="background:#e65100; color:#fff; font-size:16px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,0.4); z-index:10;">🏪</div>
             </div>
           `,
           className: '',
@@ -7237,10 +7469,7 @@
         const custIcon = L.divIcon({
           html: `
             <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;">
-              <div class="map-pin-customer" style="background:#10b981; color:#fff; font-size:14px; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,0.4);">🏠</div>
-              <div style="position: absolute; bottom: -12px; background: rgba(0,0,0,0.85); border: 1px solid var(--accent-green); border-radius: 4px; padding: 1px 4px; font-size: 7.5px; font-weight: 700; color: var(--accent-green); white-space: nowrap; z-index: 5;">
-                ${currentLang === 'ta' ? 'என் இல்லம்' : 'MY HOME'}
-              </div>
+              <div class="map-pin-customer" style="background:#10b981; color:#fff; font-size:14px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,0.4); z-index:10;">🏠</div>
             </div>
           `,
           className: '',
@@ -7348,6 +7577,76 @@
       }
     }
 
+    function updateCustomerMapHUD(order, storePos, custPos, currentF) {
+      const totalDistEl = document.getElementById('customer-tracker-total-dist');
+      const riderDistEl = document.getElementById('customer-tracker-rider-dist');
+      const etaTextEl = document.getElementById('visual-hud-eta-text');
+      const progressLineEl = document.getElementById('visual-hud-progress-line');
+      const riderDotEl = document.getElementById('visual-hud-rider-dot');
+      const instructionEl = document.getElementById('visual-hud-instruction-text');
+
+      if (!totalDistEl) return; // Element not present on the current DOM page
+
+      // Spherical law of cosines / Haversine helper for precise local distances
+      function utils_calcLatLonDistanceKm(lat1, lon1, lat2, lon2) {
+        var R = 6371; // earth radius in km
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return Math.round(R * c * 10) / 10;
+      }
+
+      const totalDist = utils_calcLatLonDistanceKm(storePos[0], storePos[1], custPos[0], custPos[1]);
+      totalDistEl.innerText = `${totalDist} Km`;
+
+      if (order.status === 'pending') {
+        riderDistEl.innerText = currentLang === 'ta' ? 'தயாரிப்பில்...' : 'Preparing...';
+        etaTextEl.innerHTML = currentLang === 'ta' ? '⏰ ~15-20 நிமிடம்' : '⏰ ~15-20 Mins';
+        progressLineEl.style.width = '5%';
+        riderDotEl.style.left = '5%';
+        instructionEl.innerHTML = currentLang === 'ta'
+          ? '🥩 ஆர்டர் தயாரிப்பில் உள்ளது / Preparing order...'
+          : '🥩 Preparing your custom premium order...';
+      } else if (order.status === 'ready') {
+        riderDistEl.innerText = currentLang === 'ta' ? 'கடைக்கு வருகை...' : 'Rider Picking up...';
+        etaTextEl.innerHTML = currentLang === 'ta' ? '⏰ ~10-15 நிமிடம்' : '⏰ ~10-15 Mins';
+        progressLineEl.style.width = '15%';
+        riderDotEl.style.left = '15%';
+        instructionEl.innerHTML = currentLang === 'ta'
+          ? '📦 டெலிவரி நபர் கடைக்கு வந்துள்ளார் / Rider at store...'
+          : '📦 Cleanly packed! Rider is accepting cargo at the store...';
+      } else if (order.status === 'delivering') {
+        const fraction = typeof currentF === 'number' ? currentF : 0.05;
+        // Remaining distance calculation
+        const riderDist = Math.max(0.1, Math.round(totalDist * (1 - fraction) * 10) / 10);
+        riderDistEl.innerText = `${riderDist} Km`;
+        
+        // Dynamic time estimation (average speed 24km/h -> 2.5 mins per km)
+        const estMins = Math.max(1, Math.round(riderDist * 2.5));
+        etaTextEl.innerHTML = currentLang === 'ta' ? `⚡ ETA ${estMins} நிமிடம்` : `⚡ ETA ${estMins} Mins`;
+        
+        // Scale dot position on the bar from 15% to 90%
+        const visualPct = Math.round(15 + fraction * 75);
+        progressLineEl.style.width = `${visualPct}%`;
+        riderDotEl.style.left = `${visualPct}%`;
+        instructionEl.innerHTML = currentLang === 'ta'
+          ? `🏍️ டெலிவரி நபர் வழியில் உள்ளார் (${riderDist} கி.மீ)`
+          : `🏍️ Rider is enroute towards your house (${riderDist} Km)`;
+      } else {
+        // Delivered / completed
+        riderDistEl.innerText = '0 Km';
+        etaTextEl.innerHTML = '✅ Arrived';
+        progressLineEl.style.width = '100%';
+        riderDotEl.style.left = '100%';
+        instructionEl.innerHTML = currentLang === 'ta'
+          ? '🎉 வெற்றிகரமாக ஒப்படைக்கப்பட்டது! நன்றி'
+          : '🎉 Safely delivered! Thank you for ordering with us.';
+      }
+    }
+
     function updateMapMarkers(order, storePos, custPos) {
       if (!trackerLeafletMap) return;
 
@@ -7359,21 +7658,24 @@
 
       const riderIcon = L.divIcon({
         html: `
-          <div class="rider-simulator-container">
-            <div class="rider-pulser"></div>
-            <div class="rider-bike-body">
-              <span style="display: inline-block; transform: ${flipper}; font-size: 16px; line-height: 1;">🏍️</span>
+          <div class="rider-simulator-container" style="position: relative; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px;">
+            <div class="rider-pulser" style="position: absolute; width: 44px; height: 44px; background: rgba(245,158,11,0.25); border-radius: 50%; animation: pulse 1.8s infinite; z-index: 1;"></div>
+            <div class="rider-bike-body" style="background:#f59e0b; border: 2.5px solid #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 14px rgba(0,0,0,0.5); z-index:10;">
+              <span style="display: inline-block; transform: ${flipper}; font-size: 18px; line-height: 1;">🏍️</span>
             </div>
-            <div class="rider-text-tag">${riderTag}</div>
+            <div class="rider-text-tag" style="position: absolute; top: -24px; background: #eab308; border: 1.5px solid #000; border-radius: 6px; padding: 2px 6px; font-size: 10px; font-weight: 800; color: #000; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 20; text-transform: uppercase;">
+              ${riderTag}
+            </div>
           </div>
         `,
         className: '',
-        iconSize: [44, 44],
-        iconAnchor: [22, 22]
+        iconSize: [50, 50],
+        iconAnchor: [25, 25]
       });
 
       let riderPos = [...storePos];
       let showRider = false;
+      let calculatedF = 0;
 
       if (order.status === 'delivering') {
         showRider = true;
@@ -7382,6 +7684,19 @@
         if (exe && exe.latitude && exe.longitude) {
           riderPos[0] = exe.latitude;
           riderPos[1] = exe.longitude;
+          
+          // Calculate fraction based on distance ratio
+          function utils_calcLatLonDistanceKm(lat1, lon1, lat2, lon2) {
+            var R = 6371;
+            var dLat = (lat2 - lat1) * Math.PI / 180;
+            var dLon = (lon2 - lon1) * Math.PI / 180;
+            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+          }
+          const totalDist = utils_calcLatLonDistanceKm(storePos[0], storePos[1], custPos[0], custPos[1]);
+          const currentRiderDist = utils_calcLatLonDistanceKm(riderPos[0], riderPos[1], custPos[0], custPos[1]);
+          calculatedF = totalDist > 0 ? Math.max(0, Math.min(1 - (currentRiderDist / totalDist), 0.98)) : 0.5;
         } else {
           // Dynamic smooth simulation at 30 FPS / 33ms steps!
           const updatedMs = new Date(order.updatedAt || new Date()).getTime();
@@ -7390,6 +7705,7 @@
           // Setup initial position smoothly
           const initialElapsed = (Date.now() - updatedMs) / 1000;
           let currentF = Math.min(initialElapsed / tripDuration, 0.98);
+          calculatedF = currentF;
           
           riderPos[0] = storePos[0] + (custPos[0] - storePos[0]) * currentF;
           riderPos[1] = storePos[1] + (custPos[1] - storePos[1]) * currentF;
@@ -7425,13 +7741,20 @@
               const interpLng = currentLatLng.lng + (targetLng - currentLatLng.lng) * 0.12;
               riderMarker.setLatLng([interpLat, interpLng]);
             }
+            
+            // Continuous real-time updates to UI HUD values
+            updateCustomerMapHUD(order, storePos, custPos, currentF);
           }, 35);
         }
 
       } else if (order.status === 'delivered') {
         showRider = true;
         riderPos = [...custPos];
+        calculatedF = 1.0;
       }
+
+      // Initial non-interval trigger update
+      updateCustomerMapHUD(order, storePos, custPos, calculatedF);
 
       if (showRider) {
         if (!riderMarker) {
@@ -8896,6 +9219,11 @@
         document.getElementById('admin-stat-pending').style.color = "#fff";
       }
 
+      // Populate dynamic product form category options
+      if (typeof populateProductCategoryOptions === 'function') {
+        populateProductCategoryOptions();
+      }
+
       // Render only the active tab selection to keep application high-performance and lag-free
       if (currentAdminTab === 'tab-orders') {
         renderAdminOrders();
@@ -8911,6 +9239,9 @@
         if (typeof renderAdminCoupons === 'function') renderAdminCoupons();
       } else if (currentAdminTab === 'tab-settings') {
         renderAdminAccountsSettings();
+        if (typeof renderAdminCategoriesList === 'function') {
+          renderAdminCategoriesList();
+        }
       }
       
       // Load current settings toggles
@@ -9865,9 +10196,17 @@
         `Are you sure you want to permanently delete customer <strong>${u.name}</strong> (+91 ${u.phone})?<br><br>Their account and loyalty points will be fully removed.`,
         function() {
           markUserAsDeleted(userId);
+          markUserAsDeleted(u.phone);
 
           const filtered = users.filter(user => user.id !== userId);
           saveData('ek_users', filtered);
+
+          // Delete from Firestore Cloud to prevent resynced restore and free up phone/email
+          if (typeof db !== 'undefined' && db && db.collection) {
+            db.collection('ek_users').doc(userId).delete()
+              .then(() => console.log(`[Cloud] User ${userId} successfully deleted from Firestore.`))
+              .catch(err => console.error("Cloud user deletion failed:", err));
+          }
 
           showToast("Customer record removed!", "success");
           renderAdminCustomers();
@@ -10063,6 +10402,59 @@
       }
       
       showToast("விளம்பரப் படம் நீக்கப்பட்டது.", "success");
+    }
+
+    async function purgeOrderDataHistory() {
+      const confirm1 = confirm("⚠️ எச்சரிக்கை / Warning!\n\nநிச்சயமாக அனைத்து வரலாற்று ஆர்டர்களையும் நீக்க வேண்டுமா?\nAre you sure you want to delete all historical order records?");
+      if (!confirm1) return;
+      
+      const confirm2 = confirm("🚨 உறுதிப்படுத்தல் / Final Confirmation!\n\nஇந்த நடவடிக்கை மாற்ற முடியாதது. கிளவுட் மற்றும் உள்ளூர் நினைவகத்திலிருந்து அனைத்து ஆர்டர்களும் நிரந்தரமாக நீக்கப்படும்.\nThis will permanently erase all orders from Cloud and Local Storage. Proceed?");
+      if (!confirm2) return;
+      
+      showToast("தரவு சுத்திகரிப்பு துவங்குகிறது / Purging data...", "info");
+      
+      const localOrders = getData('ek_orders', []);
+      const orderIds = localOrders.map(o => o.id);
+      
+      // Mark current local orders as deleted
+      orderIds.forEach(id => {
+        markOrderAsDeleted(id);
+      });
+      
+      // Delete from Firestore directly
+      if (typeof db !== 'undefined' && db && db.collection) {
+        showToast("கிளவுட் தரவுகளை நீக்குகிறது... / Purging cloud records...", "info");
+        try {
+          // Pull all orders currently active on Firestore
+          const cloudSnap = await db.collection('ek_orders').get();
+          if (!cloudSnap.empty) {
+            // Register every online order ID in the deletion safeguard registry
+            cloudSnap.forEach(doc => {
+              markOrderAsDeleted(doc.id);
+            });
+            
+            // Delete documents sequentially from cloud
+            for (const doc of cloudSnap.docs) {
+              await doc.ref.delete().catch(e => console.warn("Cloud delete failed for: " + doc.id, e));
+            }
+          }
+          console.log("[Data Purge] All Firestore order collection items purged successfully.");
+        } catch (cloudErr) {
+          console.error("Cloud database order purge encountered some issues: ", cloudErr);
+        }
+      }
+      
+      // Clear local states
+      saveData('ek_orders', []);
+      cart = [];
+      updateCartBadge();
+      
+      // Re-render UI immediately
+      if (typeof renderAdminOrders === 'function') renderAdminOrders();
+      if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+      if (typeof renderCartScreen === 'function') renderCartScreen();
+      
+      showToast("🎉 அனைத்து ஆர்டர்களும் வெற்றிகரமாக நீக்கப்பட்டது! / Order history successfully purged!", "success");
     }
 
     // ANALYTICS & GRAPH CONTROLLER
@@ -11064,6 +11456,50 @@
       } catch (e) {
         console.error("[Cloud Live Sync] Failed to attach delivery staff listener:", e);
       }
+
+      // F. Real-time stream for Custom Categories mapping
+      try {
+        liveSyncUnsubscribers.categories = db.collection('ek_categories').onSnapshot(snapshot => {
+          if (!snapshot) return;
+          const localCats = getData('ek_categories', []);
+          const localCatsMap = new Map(localCats.map(c => [c.id, c]));
+          let modified = false;
+
+          let cloudIds = new Set();
+          if (!snapshot.empty) {
+            snapshot.forEach(doc => {
+              const cloudD = doc.data();
+              if (!cloudD || !cloudD.id) return;
+              cloudIds.add(cloudD.id);
+              const existing = localCatsMap.get(cloudD.id);
+              if (!existing || JSON.stringify(existing) !== JSON.stringify(cloudD)) {
+                localCatsMap.set(cloudD.id, cloudD);
+                modified = true;
+              }
+            });
+          }
+
+          if (modified) {
+            const merged = Array.from(localCatsMap.values());
+            const jsonStr = JSON.stringify(merged);
+            if (typeof AndroidStorage !== 'undefined') {
+              AndroidStorage.saveData('ek_categories', jsonStr);
+            }
+            localStorage.setItem('ek_categories', jsonStr);
+            console.log("[Cloud Live Sync] Instantly updated dynamic categories from Cloud firestore stream.");
+            
+            // Re-render home categories pills and admin lists instantly!
+            renderCategoryPills();
+            if (currentScreen === 'screen-admin') {
+              renderAdminDashboard();
+            }
+          }
+        }, err => {
+          console.warn("[Cloud Live Sync] Categories stream interrupted: ", err);
+        });
+      } catch (e) {
+        console.error("[Cloud Live Sync] Failed to attach categories listener:", e);
+      }
     }
 
     function teardownLiveListeners() {
@@ -11327,7 +11763,8 @@
           'ek_products', 'ek_settings', 'ek_orders', 'ek_users', 
           'ek_delivery_persons', 'ek_admin_accounts', 'ek_admin_session', 
           'ek_customer_session', 'ek_last_update', 'ek_lang', 'ek_remembered_credentials',
-          'ek_deleted_order_ids', 'ek_deleted_product_ids', 'ek_deleted_user_ids'
+          'ek_deleted_order_ids', 'ek_deleted_product_ids', 'ek_deleted_user_ids',
+          'ek_categories'
         ];
         syncKeys.forEach(k => {
           try {
