@@ -3454,6 +3454,24 @@
           <div id="admin-categories-list" style="display: flex; flex-direction: column; gap: 4px;">
             <!-- Rendered dynamically by JS -->
           </div>
+
+          <div style="margin-top: 14px; padding-top: 14px; border-top: 1.5px dashed var(--border-color);">
+            <h5 style="font-size: 11px; font-weight: 850; letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 10px; color: var(--accent-orange); display: flex; align-items: center; gap: 4px;">
+              <span>➕ புதிய பிரிவு சேர்க்க / Add Custom Category</span>
+            </h5>
+            <form onsubmit="handleCreateCategory(event)" style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="new-cat-en" class="form-control" placeholder="English (e.g. Fish)" style="flex: 1; font-size: 11.5px; height: 36px;" required>
+                <input type="text" id="new-cat-ta" class="form-control" placeholder="தமிழ் (எ.கா. மீன்)" style="flex: 1; font-size: 11.5px; height: 36px;" required>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="new-cat-icon" class="form-control" placeholder="Emoji (e.g. 🐟)" style="width: 100px; font-size: 11.5px; height: 36px; text-align: center;" required>
+                <button type="submit" class="btn btn-primary" style="flex: 1; height: 36px; padding: 0; font-size: 11.5px; font-weight: 850;">
+                  ⚡ CREATE CATEGORY / உருவாக்கு
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
 
         <!-- ADMIN HERO BANNER IMAGE CONFIGURATION CARD -->
@@ -5807,6 +5825,73 @@
         renderAdminDashboard();
         renderCategoryPills();
       }
+    }
+
+    async function handleCreateCategory(event) {
+      if (event) event.preventDefault();
+      
+      const enInput = document.getElementById('new-cat-en');
+      const taInput = document.getElementById('new-cat-ta');
+      const iconInput = document.getElementById('new-cat-icon');
+      
+      if (!enInput || !taInput || !iconInput) return;
+      
+      const enVal = enInput.value.trim();
+      const taVal = taInput.value.trim();
+      const iconVal = iconInput.value.trim();
+      
+      if (!enVal || !taVal || !iconVal) {
+        showToast("Please fill in all category fields! / அனைத்து விவரங்களையும் பூர்த்தி செய்க.", "error");
+        return;
+      }
+      
+      // Generate standard ID
+      const catId = enVal.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      if (!catId) {
+        showToast("Invalid English category name!", "error");
+        return;
+      }
+      
+      const catList = getCategoriesList();
+      if (catList.some(c => c.id === catId)) {
+        showToast("A category with this English name already exists! ❌", "error");
+        return;
+      }
+      
+      const newCat = {
+        id: catId,
+        nameEn: enVal,
+        nameTa: taVal,
+        icon: iconVal,
+        isHidden: false,
+        order: catList.length
+      };
+      
+      catList.push(newCat);
+      saveData('ek_categories', catList);
+      
+      // Real-time Cloud Sync
+      if (typeof db !== 'undefined' && db) {
+        showToast("Syncing new category to Cloud Database...", "info");
+        try {
+          await db.collection('ek_categories').doc(catId).set(newCat);
+          showToast("Category synchronized to Cloud in real-time! 📡✓", "success");
+        } catch (err) {
+          console.warn("Could not write category to cloud directly:", err);
+        }
+      }
+      
+      // Reset inputs
+      enInput.value = '';
+      taInput.value = '';
+      iconInput.value = '';
+      
+      // Update UI components
+      showToast(currentLang === 'ta' ? "புதிய பிரிவு வெற்றிகரமாக உருவாக்கப்பட்டது! 🎉" : "New category created successfully! 🎉", "success");
+      
+      renderAdminDashboard();
+      renderCategoryPills();
+      populateProductCategoryOptions();
     }
 
     // CUSTOMER HOME FLOW & FILTERS
@@ -8994,11 +9079,20 @@ END OF DUPLICATE BLOCK COMMENT */
         const updatedMs = new Date(order.updatedAt || new Date()).getTime();
         const tripDuration = 120; // 2 minutes trip
         
+        let lastCacheRead = 0;
+        let cachedExe = null;
+
         function interpolateRiderFrame() {
           if (!riderMarker || order.status !== 'delivering') return;
           
-          const currentList = getData('ek_delivery_persons', []);
-          const currentExe = currentList.find(dp => dp.id === order.assignedExecutiveId);
+          const nowTime = Date.now();
+          // Throttle reading full localStorage JSON parsing to once every 1200ms
+          if (nowTime - lastCacheRead > 1200 || !cachedExe) {
+            const currentList = getData('ek_delivery_persons', []);
+            cachedExe = currentList.find(dp => dp.id === order.assignedExecutiveId) || null;
+            lastCacheRead = nowTime;
+          }
+          const currentExe = cachedExe;
           
           let targetLat, targetLng;
           const totalDist = utils_calcLatLonDistanceKm(storePos[0], storePos[1], custPos[0], custPos[1]);
