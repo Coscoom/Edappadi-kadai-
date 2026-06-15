@@ -12,7 +12,7 @@ android {
 
   defaultConfig {
     applicationId = "com.aistudio.edappadikadai.epdfdk"
-    minSdk = 21
+    minSdk = 23
     targetSdk = 35
     versionCode = 4
     versionName = "1.3"
@@ -70,6 +70,7 @@ secrets {
 dependencies {
   implementation(platform(libs.androidx.compose.bom))
   implementation(platform(libs.firebase.bom))
+  implementation(libs.firebase.messaging)
   // implementation(libs.accompanist.permissions)
   implementation(libs.androidx.activity.compose)
   // implementation(libs.androidx.camera.camera2)
@@ -118,4 +119,45 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
+}
+
+tasks.register("gitCleanCached") {
+    doLast {
+        println("🚀 Running gitCleanCached task to untrack heavy files from active Git index...")
+        val targets = listOf(
+            ".gradle/",
+            "**/build/",
+            "build/",
+            ".build-outputs/",
+            "*.apk", "*.aar", "*.ap_", "*.aab",
+            "debug.keystore", "debug.keystore.base64",
+            "local.properties",
+            ".env"
+        )
+        targets.forEach { target ->
+            try {
+                val proc = ProcessBuilder("git", "rm", "-r", "--cached", target)
+                    .redirectErrorStream(true)
+                    .start()
+                val output = proc.inputStream.bufferedReader().readText().trim()
+                proc.waitFor()
+                if (output.isNotEmpty()) {
+                    println("  Untracked $target: $output")
+                }
+            } catch (e: Exception) {
+                println("  Failed to untrack $target: ${e.message}")
+            }
+        }
+        
+        try {
+            val proc = ProcessBuilder("git", "status", "--short")
+                .redirectErrorStream(true)
+                .start()
+            val output = proc.inputStream.bufferedReader().readText().trim()
+            proc.waitFor()
+            println("📊 Updated Git status:\n$output")
+        } catch (e: Exception) {
+            println("Could not run git status: ${e.message}")
+        }
+    }
 }

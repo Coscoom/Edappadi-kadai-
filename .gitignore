@@ -1,18 +1,43 @@
+# Gradle files
+.gradle/
+build/
+**/build/
+
+# IDE files
+.idea/
 *.iml
-.gradle
-.kotlin
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+*.ipr
+*.iws
+
+# Build outputs
+/build-outputs/
+.build-outputs/
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Local configuration file (sdk path, etc.)
 local.properties
-.env
+/local.properties
+
+# Sign/Key files
+*.jks
+*.keystore
 debug.keystore
+debug.keystore.base64
+
+# Log files
+*.log
+
+# Android Studio Packaged/Local files
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+.kotlin/
+.DS_Store
+
+# Secrets
+.env
+
