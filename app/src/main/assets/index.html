@@ -4287,6 +4287,7 @@
     let appliedCouponCode = null;
     let selectedDeliverySlot = 'Now';
     let selectedPaymentMethod = 'Cash on Delivery';
+    let currentDeliveryFilter = 'assigned';
 
     const STRINGS = {
       en: {
@@ -7720,6 +7721,16 @@ END OF DUPLICATE BLOCK COMMENT */
       document.getElementById('count-delivery-ready').innerText = readyForPick.length;
       const histBadg = document.getElementById('count-delivery-history');
       if (histBadg) histBadg.innerText = historyRider.length;
+
+      // Automatically sync active tab classes to match currentDeliveryFilter
+      document.querySelectorAll('#screen-delivery .admin-tab').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      const activeBtnId = `btn-delivery-filter-${currentDeliveryFilter}`;
+      const activeBtn = document.getElementById(activeBtnId);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+      }
 
       // Render delivery map for the first active/delivering order
       const activeDeliveringOrder = assignedRider.find(o => o.status === 'delivering') || assignedRider.find(o => o.status === 'ready');
@@ -14113,7 +14124,7 @@ END OF DUPLICATE BLOCK COMMENT */
             console.log("[Cloud Live Sync] Instantly merged new delivery riders from Firestore stream.");
 
             // Inform active maps to update their markers right away!
-            if (currentScreen === 'screen-active-tracking' && trackerLeafletMap) {
+            if (currentScreen === 'screen-track' && trackerLeafletMap) {
               console.log("[Cloud Live Sync] Active tracking screen live coordinate refresh.");
               const activeOrderId = document.getElementById('tracking-order-id')?.innerText;
               if (activeOrderId) {
