@@ -2157,6 +2157,99 @@
       </div>
     </div>
 
+    <!-- MOBILE NOTIFICATION OVERLAY FOR DELIVERY BOY ASSIGNMENTS (REAL-TIME ALERTS) -->
+    <div id="delivery-assignment-alert-modal" class="modal-backdrop" style="align-items: center; justify-content: center; padding: 20px; display: none; z-index: 10100; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px);">
+      <style>
+        @keyframes border-pulse-orange {
+          0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4), inset 0 0 5px rgba(245, 158, 11, 0.2); }
+          50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.95), inset 0 0 15px rgba(245, 158, 11, 0.4); border-color: #f59e0b; }
+          100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4), inset 0 0 5px rgba(245, 158, 11, 0.2); }
+        }
+        @keyframes neon-flicker-text {
+          0%, 100% { opacity: 0.95; text-shadow: 0 0 2px #fff, 0 0 8px rgba(245, 158, 11, 0.8); }
+          50% { opacity: 1; text-shadow: 0 0 4px #fff, 0 0 18px rgba(245, 158, 11, 1), 0 0 25px rgba(245, 158, 11, 0.6); }
+        }
+        @keyframes delivery-float-icon {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-10px) scale(1.15); filter: drop-shadow(0 15px 12px rgba(245,158,11,0.5)); }
+        }
+        .animate-alert-container {
+          border: 3px solid #d97706; 
+          animation: border-pulse-orange 1.5s infinite ease-in-out; 
+          background: #090a0f; 
+          color: #ffffff; 
+          border-radius: 28px; 
+          width: 100%; 
+          max-width: 390px; 
+          padding: 24px; 
+          position: relative; 
+          box-shadow: 0 25px 60px rgba(0,0,0,0.85); 
+          display: flex; 
+          flex-direction: column; 
+          gap: 16px; 
+          text-align: center;
+          transform: scale(0.9);
+          transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .active-alert .animate-alert-container {
+          transform: scale(1);
+        }
+      </style>
+      <div class="animate-alert-container" onclick="event.stopPropagation()">
+        
+        <!-- Animated top Icon -->
+        <div style="font-size: 56px; margin: 10px auto; animation: delivery-float-icon 2s infinite ease-in-out; user-select: none;">
+          🏍️⚡
+        </div>
+
+        <!-- Alert Title Header -->
+        <h3 style="font-family: 'Poppins', 'Hind Madurai', sans-serif; font-size: 21px; font-weight: 900; color: #fff; margin: 0; line-height: 1.35; animation: neon-flicker-text 2s infinite;">
+          புதிய ஆர்டர் ஒதுக்கப்பட்டுள்ளது!<br>
+          <span style="color: var(--accent-orange); font-size: 14px; font-weight: 850; letter-spacing: 0.5px; text-transform: uppercase;">New Order Assigned!</span>
+        </h3>
+
+        <!-- Card Divider line -->
+        <div style="width: 80px; height: 3.5px; background: linear-gradient(90deg, transparent, #f59e0b, transparent); margin: 0 auto; border-radius: 4px;"></div>
+
+        <!-- Order specifics inside details container card -->
+        <div style="background: rgba(255,255,255,0.03); border: 1.5px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 16px; text-align: left; display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255,255,255,0.08); padding-bottom: 8px;">
+            <span style="font-size: 11px; color: #aaa; font-weight: bold; text-transform: uppercase;">Order Number:</span>
+            <strong id="alert-order-id" style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: #f59e0b; letter-spacing: 0.5px;">#EP1209</strong>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 2px; margin-top: 4px;">
+            <span style="font-size: 10.5px; color: #888; font-weight: 600;">CUSTOMER NAME / வாடிக்கையாளர் பெயர்:</span>
+            <strong id="alert-customer-name" style="font-size: 14.5px; color: #fff; font-weight: 800;">Ananth Samy</strong>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 10.5px; color: #888; font-weight: 600;">ADDRESS / முகவரி:</span>
+            <p id="alert-customer-address" style="font-size: 12.5px; color: #ddd; margin: 0; font-weight: 500; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; text-overflow: ellipsis; line-height: 1.4;"></p>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 8px; margin-top: 4px;">
+            <span style="font-size: 11px; color: #aaa; font-weight: bold; text-transform: uppercase;">Amount target:</span>
+            <strong id="alert-order-amount" style="font-size: 15px; color: #2ecc71; font-weight: 850;">₹0.00</strong>
+          </div>
+
+        </div>
+
+        <!-- Action trigger keys -->
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+          <button onclick="handleDeliveryAlertAction()" class="btn btn-primary" style="background: #10b981; border: none; font-size: 13.5px; font-weight: 850; padding: 13px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 15px rgba(16,185,129,0.35); cursor: pointer; color: #fff; text-shadow: 1px 1px 1px #000; height: 46px;">
+            🏍️ ஆர்டரைத் திற / VIEW ASSIGNED ORDER ➔
+          </button>
+          
+          <button onclick="closeDeliveryAssignmentAlert()" class="btn" style="background: transparent; border: 1.5px solid rgba(255,255,255,0.12); font-size: 12px; font-weight: 700; padding: 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; color: #999; transition: color 0.2s; height: 38px;">
+            மறை / Dismiss
+          </button>
+        </div>
+
+      </div>
+    </div>
+
     <!-- NOTIFICATION CENTER MODAL -->
     <div id="notification-center-modal" class="modal-backdrop" onclick="closeNotificationCenter()" style="align-items: center; padding: 20px; display: none; z-index: 10008; background: rgba(0,0,0,0.85);">
       <div style="background: #0d1117; color: #ffffff; border: 2px solid var(--accent-orange); border-radius: 28px; width: 100%; max-width: 420px; padding: 24px; position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.85); display: flex; flex-direction: column; gap: 14px; max-height: 85vh; overflow: hidden;" onclick="event.stopPropagation()">
@@ -2315,6 +2408,11 @@
           input:checked + .slider-toggle::before {
             transform: translateX(20px);
             background-color: #000;
+          }
+          @keyframes pop-coupon-pill {
+            0% { transform: scale(0.8); opacity: 0; box-shadow: 0 0 0 rgba(16,185,129,0); }
+            50% { transform: scale(1.06); box-shadow: 0 0 16px rgba(16,185,129,0.35); }
+            100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 rgba(16,185,129,0); }
           }
         </style>
 
@@ -3529,7 +3627,7 @@
 
           <div class="form-group">
             <label style="font-size: 11.5px; font-weight: 600;">SMS Gateway Mode / எஸ்எம்எஸ் முறை</label>
-            <select id="setting-sms-provider" class="form-control" onchange="toggleSmsFormFields(); saveAdminSettings();" style="background:#111; border:1px solid #222; border-radius:10px; height: 38px; color: #fff;">
+            <select id="setting-sms-provider" class="form-control" onchange="toggleSmsFormFields(); saveAdminSettings();" style="background:#111; border:1px solid #222; border-radius:10px; height: 46px; padding: 10px 14px; color: #fff; font-size: 13px;">
               <option value="simulator">📱 Simulator Mode (On-Screen Code / இலவச டெமோ)</option>
               <option value="fast2sms">🚀 Fast2SMS (Cheap Indian Gateway - API Key)</option>
               <option value="twilio">🌐 Twilio API (International SMS Service - SID & Token)</option>
@@ -3541,7 +3639,7 @@
           <div id="sms-fields-fast2sms" style="display: none; margin-top: 10px; background: rgba(245,158,11,0.03); padding: 12px; border-radius: 12px; border: 1px dashed #333;">
             <div class="form-group" style="margin-bottom: 0;">
               <label style="font-size: 11px; color: #aaa;">Fast2SMS Authorization API Key</label>
-              <input type="text" id="setting-fast2sms-key" class="form-control" placeholder="Enter Fast2SMS API Key" style="height: 38px; font-size:12px;" onchange="saveAdminSettings()">
+              <input type="text" id="setting-fast2sms-key" class="form-control" placeholder="Enter Fast2SMS API Key" style="height: 46px; padding: 10px 14px; font-size:13px;" onchange="saveAdminSettings()">
               <p style="font-size:10px; color: var(--text-muted); margin-top:4px;">Get your key from fast2sms.com. Uses the dlt route or quick sms route.</p>
             </div>
           </div>
@@ -3550,15 +3648,15 @@
           <div id="sms-fields-twilio" style="display: none; margin-top: 10px; background: rgba(245,158,11,0.03); padding: 12px; border-radius: 12px; border: 1px dashed #333;">
             <div class="form-group" style="margin-bottom: 8px;">
               <label style="font-size: 11px; color: #aaa;">Twilio Account SID</label>
-              <input type="text" id="setting-twilio-sid" class="form-control" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxx" style="height: 38px; font-size:12px;" onchange="saveAdminSettings()">
+              <input type="text" id="setting-twilio-sid" class="form-control" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxx" style="height: 46px; padding: 10px 14px; font-size:13px;" onchange="saveAdminSettings()">
             </div>
             <div class="form-group" style="margin-bottom: 8px;">
               <label style="font-size: 11px; color: #aaa;">Twilio Auth Token</label>
-              <input type="password" id="setting-twilio-token" class="form-control" placeholder="Twilio Secret Token" style="height: 38px; font-size:12px;" onchange="saveAdminSettings()">
+              <input type="password" id="setting-twilio-token" class="form-control" placeholder="Twilio Secret Token" style="height: 46px; padding: 10px 14px; font-size:13px;" onchange="saveAdminSettings()">
             </div>
             <div class="form-group" style="margin-bottom: 0;">
               <label style="font-size: 11px; color: #aaa;">Twilio Sender Phone Number (From)</label>
-              <input type="text" id="setting-twilio-from" class="form-control" placeholder="+1xxxxxxxxxx" style="height: 38px; font-size:12px;" onchange="saveAdminSettings()">
+              <input type="text" id="setting-twilio-from" class="form-control" placeholder="+1xxxxxxxxxx" style="height: 46px; padding: 10px 14px; font-size:13px;" onchange="saveAdminSettings()">
             </div>
           </div>
 
@@ -3566,7 +3664,7 @@
           <div id="sms-fields-custom" style="display: none; margin-top: 10px; background: rgba(245,158,11,0.03); padding: 12px; border-radius: 12px; border: 1px dashed #333;">
             <div class="form-group" style="margin-bottom: 0;">
               <label style="font-size: 11px; color: #aaa;">Custom Gateway Web Hook / API Request URL (HTTP GET)</label>
-              <input type="text" id="setting-sms-custom-url" class="form-control" placeholder="https://api.sms-provider.com/send?apikey=KEY&to={PHONE}&msg=Your+OTP+is+{OTP}" style="height: 42px; font-size:11.5px; font-family:'JetBrains Mono',monospace;" onchange="saveAdminSettings()">
+              <input type="text" id="setting-sms-custom-url" class="form-control" placeholder="https://api.sms-provider.com/send?apikey=KEY&to={PHONE}&msg=Your+OTP+is+{OTP}" style="height: 46px; padding: 10px 14px; font-size:12px; font-family:'JetBrains Mono',monospace;" onchange="saveAdminSettings()">
               <p style="font-size:10px; color: var(--accent-orange); margin-top:4px; line-height: 1.4;">
                 யூசர் மொபைல் மற்றும் OTPயை மாற்ற <strong>{PHONE}</strong> மற்றும் <strong>{OTP}</strong> ஆகிய குறியீட்டைப் பயன்படுத்தலாம்! / Wrap placeholders exactly as <code style="color:#ff9800">{PHONE}</code> and <code style="color:#ff9800">{OTP}</code> – the system dynamically replaces them on trigger!
               </p>
@@ -5984,7 +6082,7 @@
             const cardHtml = `
               <div class="special-card" style="height: 195px; display: flex; flex-direction: column; justify-content: space-between;">
                 ${overlayHtml}
-                <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200'}" class="special-img" style="height: 95px; object-fit: cover;" alt="${p.englishName}" loading="lazy" decoding="async">
+                <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200'}" class="special-img" style="height: 95px; object-fit: cover; cursor: pointer;" alt="${p.englishName}" loading="lazy" decoding="async" ${isOutOfStock ? '' : `onclick="openProductModalDetail('${p.id}')"`}>
                 <div class="special-detail" style="padding: 6px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
                   <div>
                     <h5 style="font-size:12.5px; font-weight:700; color:#ffffff; margin-bottom:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.englishName}</h5>
@@ -6045,7 +6143,7 @@
             <div style="position:absolute; top:6px; left:6px; background:${badgeColor}; font-size:8px; font-weight:800; padding:2px 6px; border-radius:4px; z-index:10; text-transform:uppercase; color:#000; box-shadow:0 2px 4px rgba(0,0,0,0.3);">
               ${getCategoryName(p.category)}
             </div>
-            <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200'}" class="product-img" style="height: 110px; object-fit: cover;" alt="${p.englishName}" loading="lazy" decoding="async">
+            <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200'}" class="product-img" style="height: 110px; object-fit: cover; cursor: pointer;" alt="${p.englishName}" loading="lazy" decoding="async" ${isOutOfStock ? '' : `onclick="openProductModalDetail('${p.id}')"`}>
             <div style="padding:10px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
               <div>
                 <h4 style="font-size:12.5px; font-weight:700; color:#ffffff; max-height: 18px; overflow:hidden; margin-bottom:1px; white-space:nowrap; text-overflow:ellipsis;">${p.englishName}</h4>
@@ -6923,8 +7021,8 @@
 
       let coupDiscount = 0;
       const coupRow = document.getElementById('bill-coupon-row');
-      const coupPill = document.getElementById('bill-coupon-pill');
-      const coupPillVal = document.getElementById('bill-coupon-pill-value');
+      const coupPill = document.getElementById('cart-applied-coupon-pill') || document.getElementById('bill-coupon-pill');
+      const coupPillVal = document.getElementById('cart-applied-coupon-value') || document.getElementById('bill-coupon-pill-value');
 
       if (appliedCouponCode) {
         const coupons = getCoupons();
@@ -6948,6 +7046,10 @@
           if (coupPill && coupPillVal) {
             coupPill.style.display = 'flex';
             coupPillVal.innerText = c.type === 'freeship' ? `${c.code} (Free Delivery)` : `${c.code} (-₹${coupDiscount})`;
+            // Inject bounce/glow entry animation
+            coupPill.style.animation = 'none';
+            coupPill.offsetHeight; // force reflow
+            coupPill.style.animation = 'pop-coupon-pill 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
           }
         } else {
           appliedCouponCode = null;
@@ -7608,6 +7710,25 @@ END OF DUPLICATE BLOCK COMMENT */
       }
 
       let ordersHtml = '';
+      window.expandedDeliveryOrders = window.expandedDeliveryOrders || {};
+
+      // Draw overall collapse controls for the history category
+      if (currentDeliveryFilter === 'history') {
+        ordersHtml += `
+          <div style="background: rgba(245, 158, 11, 0.05); border: 1.5px solid rgba(245, 158, 11, 0.15); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <span style="font-size: 11px; color: #aaa; font-weight: bold; text-transform: uppercase; letter-spacing: 0.3px;">📜 ${currentLang === 'ta' ? "விவரக் கட்டுப்பாடு" : "History Tools"}</span>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn" style="background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.12); color: #fff; font-size: 11px; font-weight: 850; padding: 4px 10px; border-radius: 8px; cursor: pointer; height: auto; margin: 0;" onclick="toggleAllDeliveryOrders(true)">
+                ➕ ${currentLang === 'ta' ? "விரிவாக்கு" : "Expand All"}
+              </button>
+              <button type="button" class="btn" style="background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.12); color: #fff; font-size: 11px; font-weight: 850; padding: 4px 10px; border-radius: 8px; cursor: pointer; height: auto; margin: 0;" onclick="toggleAllDeliveryOrders(false)">
+                ➖ ${currentLang === 'ta' ? "சுருக்கு" : "Collapse All"}
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
       listToDisplay.forEach(o => {
         const dateStr = new Date(o.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         
@@ -7679,61 +7800,115 @@ END OF DUPLICATE BLOCK COMMENT */
         }
 
         const mapQuery = encodeURIComponent(o.deliveryAddress);
-        const cardHtml = `
-          <div class="card" style="margin-bottom:12px; padding:12px; border-color:${o.status === 'delivering' ? 'var(--accent-orange)' : (o.status === 'delivered' ? '#18181b' : '#222')}; border-left:4px solid ${borderLeftColor};">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px dashed #222; padding-bottom:6px;">
-              <div style="display:flex; align-items:center; gap:6px;">
-                <strong style="color:#f59e0b; font-family:'JetBrains Mono',monospace; font-size:15px;">${o.id}</strong>
-                <span style="font-size:11px; color:#888;">${dateStr}</span>
-              </div>
-              ${statusBadge}
-            </div>
- 
-            <div style="font-size:13px; margin-bottom:10px;">
-              <p style="font-weight:700; color:#fff; font-size:14px; margin-bottom:4px; display:flex; align-items:center; gap:6px;">👤 ${o.customerName}</p>
-              <p id="addr-${o.id}" onclick="this.style.webkitLineClamp = this.style.webkitLineClamp === 'unset' ? '2' : 'unset'; this.style.display = this.style.webkitLineClamp === 'unset' ? 'block' : '-webkit-box';" style="color:#888; font-size:12px; line-height:1.45; margin-bottom:6px; cursor:pointer; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; text-overflow:ellipsis; font-family:inherit;" title="Tap to expand">📍 ${o.deliveryAddress}</p>
-              <p style="color:#888; font-size:11px; display:flex; align-items:center; gap:8px; margin-bottom:0; flex-wrap:nowrap; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><span>⏱️ Slot: <strong>${o.deliveryTimeSlot}</strong></span> | <span>💳 Pay: <strong>${o.paymentMethod}</strong></span></p>
-            </div>
- 
-            <div style="background:#1a1a1a; border-radius:10px; padding:10px; margin-bottom:12px; border:1px solid #222;">
-              <span style="font-size:11px; color:#f59e0b; text-transform:uppercase; font-weight:600; display:block; margin-bottom:6px; letter-spacing:0.5px;">BASKET</span>
-              <div style="margin:0; line-height:1.6; font-size:12px; color: #ddd;">${itemsList}</div>
-            </div>
- 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-              <span style="color:#888; font-size:13px;">${o.status === 'delivered' ? 'Total Collected:' : 'Collection Target:'}</span>
-              <span style="color:#2ecc71; font-size:16px; font-weight:bold; text-align:right;">₹${o.totalAmount}</span>
-            </div>
- 
-            <div style="display:flex; gap:8px; margin-bottom:10px;">
-              <a href="tel:${o.customerPhone}" class="btn" style="flex:1; height:40px; border-radius:10px; background:#1a73e8; border:none; color:#fff; font-size:13px; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; padding: 0 16px; white-space: nowrap; box-shadow:0 3px 8px rgba(26,115,232,0.25);" onclick="event.stopPropagation();">📞 Call</a>
-              <a href="https://wa.me/91${o.customerPhone}?text=${encodeURIComponent('Hello ' + o.customerName + ', your order (' + o.id + ') from Edappadi Chicken & Mutton is out for delivery! 🏍️💨')}" target="_blank" class="btn" style="flex:1; height:40px; border-radius:10px; background:#25D366; border:none; color:#fff; font-size:13px; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; padding: 0 16px; white-space: nowrap; box-shadow:0 3px 8px rgba(37,211,102,0.25);" onclick="event.stopPropagation();">💬 WA</a>
-              <button onclick="event.stopPropagation(); openGoogleMapsNavigation('${o.id}')" class="btn" style="flex:1; height:40px; border-radius:10px; background:#FFA500; border:none; color:#000; font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px; padding: 0 16px; white-space: nowrap; box-shadow:0 3px 8px rgba(255,165,0,0.25); cursor:pointer;">📍 Map</button>
-            </div>
- 
-            ${o.status !== 'delivered' ? `
-            <div style="display:grid; grid-template-columns: 1fr; margin-top:6px;">
-              ${actionBtn}
-            </div>
-            ` : ''}
+        const isCollapsed = currentDeliveryFilter === 'history' && !window.expandedDeliveryOrders[o.id];
 
-            ${proofHtml}
-            ${o.rating ? `
-              <div style="margin-top: 8px; border:1px solid rgba(245,158,11,0.15); padding:8px 10px; border-radius:8.5px; background:rgba(245,158,11,0.02)">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span style="font-size:10.5px; color:var(--text-muted);">⭐ Rating:</span>
-                  <span style="font-size:11px; color:var(--accent-orange); font-weight:700;">${'★'.repeat(o.rating)}${'☆'.repeat(5 - o.rating)}</span>
+        let cardHtml = '';
+        if (isCollapsed) {
+          cardHtml = `
+            <div class="card" onclick="toggleDeliveryOrderCollapse('${o.id}')" style="margin-bottom:8px; padding:12px; border-color:#222; border-left:4px solid ${borderLeftColor}; cursor:pointer; background:#111; transition: all 0.2s;" onmouseover="this.style.background='#131317'" onmouseout="this.style.background='#111'">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; margin-right:10px;">
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <strong style="color:#f59e0b; font-family:'JetBrains Mono',monospace; font-size:14px;">#${o.id}</strong>
+                    <span style="font-size:10px; color:#666;">${dateStr}</span>
+                  </div>
+                  <div style="font-size:12px; color:#fff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    👤 ${o.customerName} <span style="font-size:10px; color:#888; font-weight:normal;">(${o.items.length} items)</span>
+                  </div>
                 </div>
-                ${o.feedbackComment ? `
-                  <p style="margin:4px 0 0 0; font-size:11px; color:rgba(255,255,255,0.7); font-style:italic;">"${o.feedbackComment}"</p>
-                ` : ''}
+                <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+                  ${statusBadge}
+                  <strong style="color:#2ecc71; font-size:13px; font-weight:bold;">₹${o.totalAmount}</strong>
+                </div>
               </div>
-            ` : ''}
-          </div>
-        `;
+              <div style="display:flex; justify-content:center; align-items:center; margin-top:8px; border-top:1px solid #1c1c1e; padding-top:6px; font-size:10px; font-weight:800; color:var(--accent-orange); text-transform:uppercase; letter-spacing:0.3px; gap:4px;">
+                <span>📂 ${currentLang === 'ta' ? "விவரத்தைக் காட்ட அழுத்தவும்" : "TAP TO REVEAL DETAILS"} ➔</span>
+              </div>
+            </div>
+          `;
+        } else {
+          cardHtml = `
+            <div class="card" style="margin-bottom:12px; padding:12px; border-color:${o.status === 'delivering' ? 'var(--accent-orange)' : (o.status === 'delivered' ? '#18181b' : '#222')}; border-left:4px solid ${borderLeftColor};">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px dashed #222; padding-bottom:6px;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <strong style="color:#f59e0b; font-family:'JetBrains Mono',monospace; font-size:15px;">${o.id}</strong>
+                  <span style="font-size:11px; color:#888;">${dateStr}</span>
+                </div>
+                ${statusBadge}
+              </div>
+   
+              <div style="font-size:13px; margin-bottom:10px;">
+                <p style="font-weight:700; color:#fff; font-size:14px; margin-bottom:4px; display:flex; align-items:center; gap:6px;">👤 ${o.customerName}</p>
+                <p id="addr-${o.id}" onclick="this.style.webkitLineClamp = this.style.webkitLineClamp === 'unset' ? '2' : 'unset'; this.style.display = this.style.webkitLineClamp === 'unset' ? 'block' : '-webkit-box';" style="color:#888; font-size:12px; line-height:1.45; margin-bottom:6px; cursor:pointer; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; text-overflow:ellipsis; font-family:inherit;" title="Tap to expand">📍 ${o.deliveryAddress}</p>
+                <p style="color:#888; font-size:11px; display:flex; align-items:center; gap:8px; margin-bottom:0; flex-wrap:nowrap; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><span>⏱️ Slot: <strong>${o.deliveryTimeSlot}</strong></span> | <span>💳 Pay: <strong>${o.paymentMethod}</strong></span></p>
+              </div>
+   
+              <div style="background:#1a1a1a; border-radius:10px; padding:10px; margin-bottom:12px; border:1px solid #222;">
+                <span style="font-size:11px; color:#f59e0b; text-transform:uppercase; font-weight:600; display:block; margin-bottom:6px; letter-spacing:0.5px;">BASKET</span>
+                <div style="margin:0; line-height:1.6; font-size:12px; color: #ddd;">${itemsList}</div>
+              </div>
+   
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <span style="color:#888; font-size:13px;">${o.status === 'delivered' ? 'Total Collected:' : 'Collection Target:'}</span>
+                <span style="color:#2ecc71; font-size:16px; font-weight:bold; text-align:right;">₹${o.totalAmount}</span>
+              </div>
+   
+              <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <a href="tel:${o.customerPhone}" class="btn" style="flex:1; height:40px; border-radius:10px; background:#1a73e8; border:none; color:#fff; font-size:13px; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; padding: 0 16px; white-space: nowrap; box-shadow:0 3px 8px rgba(26,115,232,0.25);" onclick="event.stopPropagation();">📞 Call</a>
+                <a href="https://wa.me/91${o.customerPhone}?text=${encodeURIComponent('Hello ' + o.customerName + ', your order (' + o.id + ') from Edappadi Chicken & Mutton is out for delivery! 🏍️💨')}" target="_blank" class="btn" style="flex:1; height:40px; border-radius:10px; background:#25D366; border:none; color:#fff; font-size:13px; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; padding: 0 16px; white-space: nowrap; box-shadow:0 3px 8px rgba(37,211,102,0.25);" onclick="event.stopPropagation();">💬 WA</a>
+                <button onclick="event.stopPropagation(); openGoogleMapsNavigation('${o.id}')" class="btn" style="flex:1; height:40px; border-radius:10px; background:#FFA500; border:none; color:#000; font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px; padding: 0 16px; white-space: nowrap; box-shadow:0 3px 8px rgba(255,165,0,0.25); cursor:pointer;">📍 Map</button>
+              </div>
+   
+              ${o.status !== 'delivered' ? `
+              <div style="display:grid; grid-template-columns: 1fr; margin-top:6px;">
+                ${actionBtn}
+              </div>
+              ` : ''}
+  
+              ${proofHtml}
+              ${o.rating ? `
+                <div style="margin-top: 8px; border:1px solid rgba(245,158,11,0.15); padding:8px 10px; border-radius:8.5px; background:rgba(245,158,11,0.02)">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:10.5px; color:var(--text-muted);">⭐ Rating:</span>
+                    <span style="font-size:11px; color:var(--accent-orange); font-weight:700;">${'★'.repeat(o.rating)}${'☆'.repeat(5 - o.rating)}</span>
+                  </div>
+                  ${o.feedbackComment ? `
+                    <p style="margin:4px 0 0 0; font-size:11px; color:rgba(255,255,255,0.7); font-style:italic;">"${o.feedbackComment}"</p>
+                  ` : ''}
+                </div>
+              ` : ''}
+
+              <!-- Collapse option back to header view -->
+              ${currentDeliveryFilter === 'history' ? `
+                <button type="button" class="btn" style="background:#1c1c1e; border:1px solid #333; color:#aaa; font-weight:700; font-size:11px; height:34px; border-radius:8px; margin-top:10px; width:100%; display:flex; align-items:center; justify-content:center; gap:4px; box-sizing: border-box;" onclick="toggleDeliveryOrderCollapse('${o.id}')">
+                  <span>👆 ${currentLang === 'ta' ? "சுருக்கு / Collapse Details" : "COLLAPSE DETAILS"}</span>
+                </button>
+              ` : ''}
+            </div>
+          `;
+        }
         ordersHtml += cardHtml;
       });
       container.innerHTML = ordersHtml;
+    }
+
+    function toggleDeliveryOrderCollapse(orderId) {
+      window.expandedDeliveryOrders = window.expandedDeliveryOrders || {};
+      window.expandedDeliveryOrders[orderId] = !window.expandedDeliveryOrders[orderId];
+      renderDeliveryScreen();
+    }
+
+    function toggleAllDeliveryOrders(expand) {
+      window.expandedDeliveryOrders = window.expandedDeliveryOrders || {};
+      const orders = getData('ek_orders', []);
+      const session = getData('ek_delivery_session', null);
+      if (session) {
+        const historyRider = orders.filter(o => o.assignedExecutiveId === session.id && o.status === 'delivered');
+        historyRider.forEach(o => {
+          window.expandedDeliveryOrders[o.id] = expand;
+        });
+      }
+      renderDeliveryScreen();
     }
 
     function filterDeliveryOrders(filterType, btnElement) {
@@ -7789,6 +7964,124 @@ END OF DUPLICATE BLOCK COMMENT */
       } else {
         renderDeliveryScreen();
       }
+    }
+
+    // DELIVER BOY REAL-TIME POPUP ASSIGNMENT ALERTS
+    function playNewOrderSound() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        
+        // High quality futuristic double-beep ring alert
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
+        gain1.gain.setValueAtTime(0, ctx.currentTime);
+        gain1.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+        gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+        osc1.start(ctx.currentTime);
+        osc1.stop(ctx.currentTime + 0.3);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.frequency.setValueAtTime(1174.66, ctx.currentTime + 0.15); // D6 pitch jump!
+        gain2.gain.setValueAtTime(0, ctx.currentTime + 0.15);
+        gain2.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 0.2);
+        gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.55);
+        osc2.start(ctx.currentTime + 0.15);
+        osc2.stop(ctx.currentTime + 0.6);
+      } catch (e) {
+        console.warn("New order notification chime ignored:", e);
+      }
+    }
+
+    window.lastTriggeredAssignAlertId = null;
+
+    function triggerNewOrderAssignedAlert(order) {
+      if (!order) return;
+      
+      // Stop duplication loops
+      if (window.lastTriggeredAssignAlertId === order.id) return;
+      window.lastTriggeredAssignAlertId = order.id;
+
+      window.activeDeliveryAlertOrder = order;
+
+      // Populate text UI safely
+      const elId = document.getElementById('alert-order-id');
+      const elName = document.getElementById('alert-customer-name');
+      const elAddr = document.getElementById('alert-customer-address');
+      const elAmt = document.getElementById('alert-order-amount');
+      const modal = document.getElementById('delivery-assignment-alert-modal');
+
+      if (elId) elId.innerText = "#" + order.id;
+      if (elName) elName.innerText = order.customerName || "N/A";
+      if (elAddr) elAddr.innerText = order.deliveryAddress || "Store Pickup Mode";
+      if (elAmt) elAmt.innerText = "₹" + (order.totalAmount || 0);
+
+      if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+          modal.classList.add('active-alert');
+        }, 30);
+      }
+
+      // Play chime alert ring thrice for attention
+      playNewOrderSound();
+      setTimeout(playNewOrderSound, 850);
+      setTimeout(playNewOrderSound, 1700);
+
+      // Flash a light toast too
+      showToast("📢 புதிய ஆர்டர் வந்துள்ளது! / NEW TICKET RECEIVED!", "success");
+    }
+
+    function closeDeliveryAssignmentAlert() {
+      const modal = document.getElementById('delivery-assignment-alert-modal');
+      if (modal) {
+        modal.classList.remove('active-alert');
+        setTimeout(() => {
+          modal.style.display = 'none';
+        }, 150);
+      }
+    }
+
+    function handleDeliveryAlertAction() {
+      const order = window.activeDeliveryAlertOrder;
+      closeDeliveryAssignmentAlert();
+      
+      // Navigate straight to screen-delivery
+      showScreen('screen-delivery');
+
+      // Set filter to Active/Delivering screen dynamically to display instantly
+      currentDeliveryFilter = 'active';
+      document.querySelectorAll('#screen-delivery .admin-tab').forEach(btn => btn.classList.remove('active'));
+      const activeTabBtn = Array.from(document.querySelectorAll('#screen-delivery .admin-tab')).find(btn => btn.innerText.includes('அசைன்') || btn.innerText.includes('Active') || btn.innerText.includes('செயலில்'));
+      if (activeTabBtn) {
+        activeTabBtn.classList.add('active');
+      }
+
+      // If specific order, ensure detail is force expanded
+      if (order && order.id) {
+        window.expandedDeliveryOrders = window.expandedDeliveryOrders || {};
+        window.expandedDeliveryOrders[order.id] = true;
+      }
+      
+      // Re-draw screen delivery
+      renderDeliveryScreen();
+
+      // Smooth scroll target card into view if exists
+      setTimeout(() => {
+        const targetCard = document.getElementById('addr-' + (order ? order.id : ''));
+        if (targetCard) {
+          targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 350);
     }
 
     function claimOrderForDelivery(orderId) {
@@ -13498,6 +13791,18 @@ END OF DUPLICATE BLOCK COMMENT */
               cloudOrderIds.add(cloudOrder.id);
               const existing = localOrdersMap.get(cloudOrder.id);
               
+              const delivSession = getData('ek_delivery_session', null);
+              if (delivSession && cloudOrder.assignedExecutiveId === delivSession.id) {
+                const isNewOrDiff = !existing || existing.assignedExecutiveId !== delivSession.id;
+                const isStatusUp = existing && existing.status !== cloudOrder.status && (cloudOrder.status === 'ready' || cloudOrder.status === 'delivering');
+                if ((isNewOrDiff || isStatusUp) && cloudOrder.status !== 'delivered' && cloudOrder.status !== 'rejected') {
+                  const oAge = Date.now() - new Date(cloudOrder.updatedAt || cloudOrder.createdAt || Date.now()).getTime();
+                  if (oAge < 1000 * 60 * 15) { // within 15 minutes of update time
+                    setTimeout(() => { triggerNewOrderAssignedAlert(cloudOrder); }, 250);
+                  }
+                }
+              }
+              
               if (!existing || (JSON.stringify(existing) !== JSON.stringify(cloudOrder))) {
                 // Trigger real-time alert overlay/message on status change for active orders
                 if (existing && existing.status !== cloudOrder.status) {
@@ -14244,6 +14549,182 @@ END OF DUPLICATE BLOCK COMMENT */
       recalculateBill();
       showToast(currentLang === 'ta' ? `கூப்பன் '${code}' வெற்றிகரமாக சேர்க்கப்பட்டது! 🎉` : `Coupon ${code} applied successfully! 🎉`, "success");
       inp.value = '';
+
+      // Rich physical micro-celebration animation & Web Audio triggers!
+      triggerConfettiExplosion();
+      playCelebrationSound();
+    }
+
+    function playCelebrationSound() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        
+        const playNote = (freq, delay, duration, gainVal) => {
+          const osc = ctx.createOscillator();
+          const gainNode = ctx.createGain();
+          
+          osc.connect(gainNode);
+          gainNode.connect(ctx.destination);
+          
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+          
+          // Sound volume ADSR envelope control
+          gainNode.gain.setValueAtTime(0, ctx.currentTime + delay);
+          gainNode.gain.linearRampToValueAtTime(gainVal, ctx.currentTime + delay + 0.04);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration - 0.02);
+          
+          osc.type = 'sine';
+          osc.start(ctx.currentTime + delay);
+          osc.stop(ctx.currentTime + delay + duration);
+        };
+        
+        // Uplifting arpeggio chime sequence
+        playNote(523.25, 0.0, 0.35, 0.20);  // C5
+        playNote(659.25, 0.1, 0.35, 0.20);  // E5
+        playNote(783.99, 0.2, 0.35, 0.20);  // G5
+        playNote(1046.50, 0.3, 0.5, 0.25);  // C6
+      } catch (e) {
+        console.warn("Coupon applied celebration chime error:", e);
+      }
+    }
+
+    function triggerConfettiExplosion() {
+      let canvas = document.getElementById('coupon-confetti-canvas');
+      if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = 'coupon-confetti-canvas';
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.zIndex = '10050';
+        document.body.appendChild(canvas);
+      }
+
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Handle window sizing dynamically
+      window.addEventListener('resize', function() {
+        if (canvas && canvas.parentNode) {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        }
+      }, { once: true });
+
+      const colors = [
+        '#f59e0b', // Bright orange
+        '#10b981', // Clean green
+        '#3b82f6', // Electric blue
+        '#ec4899', // Cotton candy pink
+        '#8b5cf6', // Violet purple
+        '#f43f5e', // Vibrant red
+        '#06b6d4'  // Electric cyan
+      ];
+
+      const particles = [];
+      const particleCount = 140;
+
+      class ConfettiParticle {
+        constructor(x, y, vx, vy) {
+          this.x = x;
+          this.y = y;
+          this.size = Math.random() * 8 + 6;
+          this.vx = vx;
+          this.vy = vy;
+          this.color = colors[Math.floor(Math.random() * colors.length)];
+          this.rotation = Math.random() * 360;
+          this.rotationSpeed = (Math.random() - 0.5) * 8;
+          this.opacity = 1;
+          this.scaleY = Math.random();
+          this.shape = Math.random() > 0.45 ? 'rect' : (Math.random() > 0.4 ? 'circle' : 'triangle');
+        }
+
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.vy += 0.16; // safe gravity
+          this.vx *= 0.985; // air friction
+          this.vy *= 0.985;
+          this.rotation += this.rotationSpeed;
+          this.scaleY = Math.sin(Date.now() / 200 + this.rotation) * 0.5 + 0.5;
+          this.opacity -= 0.009; // smooth fade Out
+        }
+
+        draw() {
+          if (this.opacity <= 0) return;
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rotation * Math.PI / 180);
+          ctx.scale(1, this.scaleY);
+          ctx.globalAlpha = this.opacity;
+          ctx.fillStyle = this.color;
+
+          ctx.beginPath();
+          if (this.shape === 'rect') {
+            ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+          } else if (this.shape === 'circle') {
+            ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.moveTo(0, -this.size / 2);
+            ctx.lineTo(this.size / 2, this.size / 2);
+            ctx.lineTo(-this.size / 2, this.size / 2);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+      }
+
+      // Configure bottom dual fount arcs
+      const leftX = 0;
+      const rightX = canvas.width;
+      const bottomY = canvas.height;
+
+      // Left corner arch fountain
+      for (let i = 0; i < particleCount / 2; i++) {
+        const vx = Math.random() * 8 + 4;
+        const vy = -(Math.random() * 12 + 10);
+        particles.push(new ConfettiParticle(leftX, bottomY, vx, vy));
+      }
+
+      // Right corner arch fountain
+      for (let i = 0; i < particleCount / 2; i++) {
+        const vx = -(Math.random() * 8 + 4);
+        const vy = -(Math.random() * 12 + 10);
+        particles.push(new ConfettiParticle(rightX, bottomY, vx, vy));
+      }
+
+      function renderFrame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        let stillActive = false;
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.update();
+          p.draw();
+          if (p.opacity > 0 && p.y < canvas.height + 30) {
+            stillActive = true;
+          }
+        }
+
+        if (stillActive) {
+          requestAnimationFrame(renderFrame);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (canvas.parentNode) {
+            canvas.parentNode.removeChild(canvas);
+          }
+        }
+      }
+      
+      requestAnimationFrame(renderFrame);
     }
 
     function removeCartCouponCode() {
