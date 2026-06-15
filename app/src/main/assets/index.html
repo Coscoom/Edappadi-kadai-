@@ -6,6 +6,10 @@
   <title>Edappadi Kadai - Premium Delivery</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://mt1.google.com">
+  <link rel="preconnect" href="https://basemaps.cartocdn.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Hind+Madurai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   
   <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Edappadi Kadai&quot;,&quot;short_name&quot;:&quot;EK Kadai&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0a0a0a&quot;,&quot;theme_color&quot;:&quot;#f59e0b&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;https://img.icons8.com/emoji/96/shopping-cart.png&quot;,&quot;sizes&quot;:&quot;96x96&quot;,&quot;type&quot;:&quot;image/png&quot;}]}">
@@ -6033,7 +6037,8 @@
           }
           pickerLeafletMap = L.map('picker-map', {
             zoomControl: true,
-            attributionControl: false
+            attributionControl: false,
+            preferCanvas: true
           }).setView([currentLat, currentLng], 15);
 
           // Dynamic tile selection (voyager light standard OR google hybrid satellite)
@@ -6043,7 +6048,9 @@
           }
 
           pickerTileLayer = L.tileLayer(initialTileUrl, {
-            maxZoom: 20
+            maxZoom: 20,
+            updateWhenIdle: true,
+            keepBuffer: 2
           }).addTo(pickerLeafletMap);
 
           // Sync button styles
@@ -8145,7 +8152,8 @@ END OF DUPLICATE BLOCK COMMENT */
       try {
         deliveryLeafletMap = L.map('delivery-live-map-container', {
           zoomControl: false,
-          attributionControl: false
+          attributionControl: false,
+          preferCanvas: true
         }).setView(storePos, 14);
 
         let initialTileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
@@ -8154,7 +8162,9 @@ END OF DUPLICATE BLOCK COMMENT */
         }
 
         deliveryTileLayer = L.tileLayer(initialTileUrl, {
-          maxZoom: 20
+          maxZoom: 20,
+          updateWhenIdle: true,
+          keepBuffer: 2
         }).addTo(deliveryLeafletMap);
 
         // Sync button styles
@@ -8353,7 +8363,8 @@ END OF DUPLICATE BLOCK COMMENT */
         // Initialize Map
         trackerLeafletMap = L.map('live-map-container', {
           zoomControl: false,
-          attributionControl: false
+          attributionControl: false,
+          preferCanvas: true
         }).setView(storePos, 14);
 
         // Dynamic theme styling support (Dark, Light, Satellite)
@@ -8367,7 +8378,9 @@ END OF DUPLICATE BLOCK COMMENT */
         }
 
         trackerTileLayer = L.tileLayer(initialTileUrl, {
-          maxZoom: 20
+          maxZoom: 20,
+          updateWhenIdle: true,
+          keepBuffer: 2
         }).addTo(trackerLeafletMap);
 
         const storeIcon = L.divIcon({

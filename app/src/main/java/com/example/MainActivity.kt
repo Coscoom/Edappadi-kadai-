@@ -155,6 +155,10 @@ class MainActivity : ComponentActivity() {
                                     useWideViewPort = true
                                     loadWithOverviewMode = true
                                     cacheMode = WebSettings.LOAD_DEFAULT
+                                    loadsImagesAutomatically = true
+                                    setSupportZoom(false)
+                                    builtInZoomControls = false
+                                    offscreenPreRaster = true
                                 }
 
                                 // Handle native intent actions (tel, whatsapp, intents, maps)
