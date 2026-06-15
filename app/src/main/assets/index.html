@@ -1321,6 +1321,10 @@
           <label>Confirm Password *</label>
           <input type="password" id="reg-confirm" class="form-control" placeholder="••••••" minlength="6" required>
         </div>
+        <div class="form-group" style="margin-top: 10px;">
+          <label>Referral Code / பரிந்துரை குறியீடு (Optional)</label>
+          <input type="text" id="reg-referral" class="form-control" placeholder="e.g. CUST_12345 or 123456" style="text-transform: uppercase;">
+        </div>
         <div class="form-group">
           <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); cursor: pointer; margin-top: 10px;">
             <input type="checkbox" id="reg-whatsapp" style="accent-color: var(--accent-green); width: 18px; height: 18px;" checked> Subscribe to WhatsApp updates
@@ -2030,7 +2034,7 @@
           <div class="form-group" style="margin-bottom: 16px;">
             <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600;" id="fp-label-otp">Enter 6-Digit OTP</label>
             <input type="text" id="fp-otp-input" class="form-control" placeholder="123456" maxlength="6" style="margin-top: 6px; text-align: center; letter-spacing: 6px; font-size: 20px; font-weight: 800; font-family: monospace;">
-            <p style="font-size: 11px; color: var(--accent-orange); margin-top: 4px; text-align: center; line-height: 1.4;" id="fp-otp-help">Hint: You can use any 6-digit number or 123456 to test</p>
+            <p style="font-size: 11px; color: var(--accent-orange); margin-top: 4px; text-align: center; line-height: 1.4;" id="fp-otp-help">Please enter the 6-digit OTP security token sent to your device.</p>
           </div>
 
           <div class="form-group" style="margin-bottom: 16px;">
@@ -2744,7 +2748,13 @@
         <div>
           <h3 id="prof-name" style="font-weight: 800; font-size: 17px; margin-bottom: 4px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); font-family: 'Poppins', sans-serif;"></h3>
           <p id="prof-phone" style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-family: monospace;"></p>
-          <span id="prof-tier-badge" class="badge" style="display: inline-block; padding: 4px 10px; font-size: 10px; font-weight: 800; text-transform: uppercase; border-radius: 8px; background: rgba(245,158,11,0.15); border: 1.2px solid rgba(245,158,11,0.35); color: var(--accent-orange);">🥉 Bronze Tier</span>
+          <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+            <span id="prof-tier-badge" class="badge" style="display: inline-block; padding: 4px 10px; font-size: 10px; font-weight: 800; text-transform: uppercase; border-radius: 8px; background: rgba(245,158,11,0.15); border: 1.2px solid rgba(245,158,11,0.35); color: var(--accent-orange);">🥉 Bronze Tier</span>
+            <div id="prof-referred-by-box" style="display: none; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: #10b981;">
+              <span>👥 Referred by:</span>
+              <span id="prof-referred-by-name" style="color: #fff; background: rgba(16,185,129,0.12); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.2);"></span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -4055,13 +4065,13 @@
           if (passInput && !passInput.value) passInput.value = remembered.password || "";
           if (remCheckbox) remCheckbox.checked = true;
         } else {
-          // Prefill default customer credentials for instant frictionless login out-of-the-box
+          // For authentic production behavior, keep the login fields empty by default
           const idInput = document.getElementById('login-identifier');
           const passInput = document.getElementById('login-password');
           const remCheckbox = document.getElementById('login-remember');
-          if (idInput && !idInput.value) idInput.value = "8778148899";
-          if (passInput && !passInput.value) passInput.value = "test123";
-          if (remCheckbox) remCheckbox.checked = true;
+          if (idInput) idInput.value = "";
+          if (passInput) passInput.value = "";
+          if (remCheckbox) remCheckbox.checked = false;
         }
       } catch (e) {
         console.error("Error prefilling credentials: ", e);
@@ -4642,6 +4652,11 @@
         renderHomeScreen();
       } else if (screenId === 'screen-login') {
         prefillLoginCredentials();
+      } else if (screenId === 'screen-register') {
+        const storedRef = sessionStorage.getItem('ek_referred_by_code');
+        if (storedRef && document.getElementById('reg-referral')) {
+          document.getElementById('reg-referral').value = storedRef;
+        }
       } else if (screenId === 'screen-cart') {
         renderCartScreen();
       } else if (screenId === 'screen-track') {
@@ -4835,18 +4850,18 @@
         otpReceivedText: "We sent a 6-digit OTP code to your inbox at {email}. Enter it below to authorize setting your new password.",
         labelNewPass: "Choose New Password",
         labelConfirmPass: "Confirm New Password",
-        otpHelp: "Hint: Use any 6-digit number or 123456 to test",
+        otpHelp: "Please enter the 6-digit OTP security code sent for authorization.",
         btnSend: "🚀 Send Security Token",
         btnReset: "🔒 Reset & Save Password",
         loadingSending: "Sending Secret Credentials...",
-        loadingConnecting: "Connecting to Google workspace servers...",
+        loadingConnecting: "Connecting to secure servers...",
         successTitle: "Reset Link Dispatched!",
         successText: "A secure password recovery hyperlink has been transmitted to your email ({email}). Use it to configure your new credentials securely.",
         successClose: "Close & Return to Login",
         enterValidIdentifier: "Please enter your registered phone number or email address.",
         userNotFound: "No registered client account found with this phone or email.",
         sendingCodeSuccess: "Success! Verification token sent to {email}.",
-        otpMismatch: "Incorrect security OTP token. Please use 123456 or try again.",
+        otpMismatch: "Incorrect security OTP token. Please check and try again.",
         passMismatch: "New passwords do not match. Please verify and try again.",
         passShort: "Password is too weak. Must be at least 4 characters.",
         resetSuccess: "Congratulations! Your password has been successfully updated. You can now login.",
@@ -4854,7 +4869,7 @@
         methodOtpTitle: "Gmail Instant OTP",
         methodOtpDesc: "Send 6-digit verification code via Gmail SMTP",
         methodLinkTitle: "Reset Link in Mail",
-        methodLinkDesc: "Receive developer reset URL in email inbox"
+        methodLinkDesc: "Receive secure reset URL in email inbox"
       },
       ta: {
         title: "கடவுச்சொல் மீட்பு",
@@ -4865,18 +4880,18 @@
         otpReceivedText: "உங்கள் {email} மின்னஞ்சலுக்கு 6-இலக்க OTP அனுப்பப்பட்டுள்ளது. தொடர அதை இங்கே உள்ளிடவும்.",
         labelNewPass: "புதிய கடவுச்சொல்லை தேர்வு செய்க",
         labelConfirmPass: "புதிய கடவுச்சொல்லை உறுதி செய்க",
-        otpHelp: "குறிப்பு: சோதிக்க ஏதேனும் 6 இலக்கங்கள் அல்லது 123456-ஐப் பயன்படுத்தலாம்",
+        otpHelp: "அனுப்பப்பட்ட 6-இலக்க பாதுகாப்பு குறியீட்டை உள்ளிடவும்",
         btnSend: "🚀 பாதுகாப்பு குறியீடு அனுப்புக",
         btnReset: "🔒 புதிய கடவுச்சொல்லை சேமி",
         loadingSending: "பாதுகாப்பு குறியீடு அனுப்பப்படுகிறது...",
-        loadingConnecting: "கூகுள் சர்வர்களுடன் இணைக்கப்படுகிறது...",
+        loadingConnecting: "பாதுகாப்பான சர்வர்களுடன் இணைக்கப்படுகிறது...",
         successTitle: "இணைப்பு அனுப்பப்பட்டது!",
         successText: "இரகசிய கடவுச்சொல் மீட்டமைப்பு இணைப்பு உங்கள் {email} மின்னஞ்சலுக்கு வெற்றிகரமாக பாதுகாப்பாக அனுப்பப்பட்டது. அதைப் பயன்படுத்தி உங்கள் கடவுச்சொல்லை மாற்றலாம்.",
         successClose: "மூடிவிட்டு உள்நுழையவும்",
         enterValidIdentifier: "பதிவுசெய்த கைபேசி அல்லது மின்னஞ்சல் முகவரியை உள்ளிடவும்.",
         userNotFound: "இந்த கைபேசி அல்லது மின்னஞ்சலில் எந்தக் கணக்கும் பதிவு செய்யப்படவில்லை.",
         sendingCodeSuccess: "வெற்றி! சரிபார்ப்பு குறியீடு {email} முகவரிக்கு அனுப்பப்பட்டது.",
-        otpMismatch: "تவறான OTP குறியீடு. தயவுசெய்து 123456 அல்லது வேறு குறியீட்டைப் பயன்படுத்தவும்.",
+        otpMismatch: "தவறான OTP குறியீடு. தயவுசெய்து சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
         passMismatch: "கடவுச்சொற்கள் பொருந்தவில்லை. மீண்டும் சரிபார்க்கவும்.",
         passShort: "கடவுச்சொல் குறைந்தது 4 எழுத்துக்கள் கொண்டிருக்க வேண்டும்.",
         resetSuccess: "கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது! புதிய கடவுச்சொல்லுடன் உள்நுழையவும்.",
@@ -4884,7 +4899,7 @@
         methodOtpTitle: "ஜிமெயில் உடனடி OTP",
         methodOtpDesc: "ஜிமெயில் மூலம் 6-இலக்க பாதுகாப்பு குறியீட்டைப் பெறுக",
         methodLinkTitle: "மின்னஞ்சல் மீட்டமைப்பு இணைப்பு",
-        methodLinkDesc: "உங்கள் மின்னஞ்சலில் மீட்டமைப்பதற்கான இணைப்பைப் பெறுக"
+        methodLinkDesc: "பதிவு செய்யப்பட்ட மின்னஞ்சல் முகவரிக்கு மீட்டமைப்பு இணைப்பைக் காண்க"
       }
     };
 
@@ -5093,7 +5108,7 @@
             <span style="font-size:9px; text-transform:uppercase; color:#888; display:block; font-weight:700; letter-spacing:0.5px;">🔗 PASSWORD RESET HYPERLINK / கடவுச்சொல் மீட்டமைப்பு</span>
             <strong style="font-size:13px; color:var(--accent-green); display:block; margin:6px 0; font-family:'JetBrains Mono',monospace; word-break:break-all;">https://edappadikadai.com/reset?token=${Math.floor(100000 + Math.random() * 900000)}</strong>
             <span style="font-size:11px; color:#ddd; display:block;">
-              ${isTa ?  'மீட்டமைப்பு இணைப்பு தயாராக உள்ளது! அல்லது நீங்கள் எப்போது வேண்டுமானாலும் உங்கள் புதிய கடவுச்சொல்லை மாற்ற 123456 எனப் பயன்படுத்தலாம்.' : 'A secure recovery connection is active! You can also close this and utilize the developer bypass code 123456.'}
+              ${isTa ? 'மீட்டமைப்பு இணைப்பு தங்களுக்கு வெற்றிகரமாகத் தயார் செய்யப்பட்டுள்ளது! அதைப் பயன்படுத்தித் தொடரவும்.' : 'A secure recovery connection is active! Please use the reset link above to configure your credentials.'}
             </span>
           </div>`;
           
@@ -5116,7 +5131,7 @@
         return;
       }
 
-      if (otpVal !== '123456' && String(otpVal) !== String(window.lastGeneratedOTP)) {
+      if (String(otpVal) !== String(window.lastGeneratedOTP)) {
         showToast(strings.otpMismatch, "error");
         return;
       }
@@ -5483,6 +5498,32 @@
       // Clean deleted safeguard registry for this phone / new registration
       unmarkUserAsDeleted(phone);
 
+      const referralCodeInput = document.getElementById('reg-referral') ? document.getElementById('reg-referral').value.trim().toUpperCase() : '';
+      let referredByUserId = '';
+      
+      if (referralCodeInput) {
+        const allUsers = getData('ek_users', []);
+        let referrer = allUsers.find(u => u.id && u.id.toUpperCase() === referralCodeInput);
+        if (!referrer) {
+          referrer = allUsers.find(u => {
+            if (!u.id) return false;
+            const cleanId = u.id.replace('cust_', '').toUpperCase();
+            return cleanId === referralCodeInput;
+          });
+        }
+        if (!referrer) {
+          referrer = allUsers.find(u => u.phone && u.phone === referralCodeInput);
+        }
+        
+        if (referrer) {
+          referredByUserId = referrer.id;
+          console.log("[Referral System] Found referrer during signup:", referrer.name, referrer.id);
+        } else {
+          referredByUserId = referralCodeInput;
+          console.log("[Referral System] Storing raw referral code since user was not found locally yet:", referralCodeInput);
+        }
+      }
+
       const newUser = {
         id: 'cust_' + Math.floor(100000 + Math.random() * 900000),
         name, phone, email, password, address,
@@ -5494,7 +5535,9 @@
         updatedAt: new Date().toISOString(),
         defaultCut: cut,
         whatsappNotify: whatsapp,
-        preferredLang: currentLang
+        preferredLang: currentLang,
+        referredBy: referredByUserId,
+        referralRewardClaimed: false
       };
 
       users.push(newUser);
@@ -8143,6 +8186,12 @@ END OF DUPLICATE BLOCK COMMENT */
           orders[idx].updatedAt = new Date().toISOString();
 
           saveData('ek_orders', orders);
+          
+          try {
+            checkAndProcessReferralRewards(orders[idx]);
+          } catch (refErr) {
+            console.error("Referral rewards processing error:", refErr);
+          }
 
           if (db) {
             db.collection('ek_orders').doc(orderId).set(orders[idx])
@@ -8386,6 +8435,12 @@ END OF DUPLICATE BLOCK COMMENT */
       orders[idx].updatedAt = new Date().toISOString();
 
       saveData('ek_orders', orders);
+
+      try {
+        checkAndProcessReferralRewards(orders[idx]);
+      } catch (refErr) {
+        console.error("Referral rewards processing error in submitDeliverySignature:", refErr);
+      }
 
       if (db) {
         db.collection('ek_orders').doc(orderId).set(orders[idx])
@@ -10696,6 +10751,18 @@ END OF DUPLICATE BLOCK COMMENT */
       document.getElementById('prof-name').innerText = uName;
       document.getElementById('prof-phone').innerText = `📞 +91 ${uPhone}`;
       document.getElementById('prof-avatar').innerText = uName.charAt(0).toUpperCase();
+
+      const refBox = document.getElementById('prof-referred-by-box');
+      const refNameEl = document.getElementById('prof-referred-by-name');
+      if (user.referredBy) {
+        const usersList = getData('ek_users') || [];
+        const referrer = usersList.find(u => u.id === user.referredBy || u.id.replace('cust_', '').toUpperCase() === user.referredBy.replace('cust_', '').toUpperCase());
+        const displayRefName = referrer ? referrer.name : user.referredBy;
+        if (refNameEl) refNameEl.innerText = displayRefName;
+        if (refBox) refBox.style.display = 'flex';
+      } else {
+        if (refBox) refBox.style.display = 'none';
+      }
       
       const badgeElem = document.getElementById('prof-tier-badge');
       if (user.tier === 'gold') {
@@ -11554,6 +11621,14 @@ END OF DUPLICATE BLOCK COMMENT */
       orders[idx].updatedAt = new Date().toISOString();
       
       saveData('ek_orders', orders);
+
+      if (nextStatus === 'delivered') {
+        try {
+          checkAndProcessReferralRewards(orders[idx]);
+        } catch (refErr) {
+          console.error("Referral rewards processing error in changeOrderStatus:", refErr);
+        }
+      }
 
       // Instantly write status update to Cloud Firestore
       if (db) {
@@ -13811,6 +13886,18 @@ END OF DUPLICATE BLOCK COMMENT */
                     triggerRealTimeStatusNotification(cloudOrder.id, existing.status, cloudOrder.status);
                   }
                 }
+                
+                // Check if the order just completed delivery
+                if (cloudOrder.status === 'delivered' && (!existing || existing.status !== 'delivered')) {
+                  setTimeout(() => {
+                    try {
+                      checkAndProcessReferralRewards(cloudOrder);
+                    } catch (errSync) {
+                      console.warn("Sync referral check skipped or processed:", errSync);
+                    }
+                  }, 500);
+                }
+
                 localOrdersMap.set(cloudOrder.id, cloudOrder);
                 modifiedOrders = true;
               }
@@ -14426,6 +14513,19 @@ END OF DUPLICATE BLOCK COMMENT */
         });
       }
 
+      // Check for referral code in URL search parameter
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        let refParam = urlParams.get('ref');
+        if (refParam) {
+          refParam = refParam.trim().toUpperCase();
+          sessionStorage.setItem('ek_referred_by_code', refParam);
+          console.log("[Referral System] URL referral parameter detected and saved:", refParam);
+        }
+      } catch (err) {
+        console.error("Failed to parse URL referral code:", err);
+      }
+
       // Seed Database logs safely
       try {
         seedDatabase();
@@ -15009,13 +15109,13 @@ END OF DUPLICATE BLOCK COMMENT */
     function generateReferralCodeProfile() {
       const u = getActiveUser();
       if (!u) return;
-      const refId = u.id ? u.id.substring(0, 5).toUpperCase() : 'EDP50';
-      const refLink = `https://edappadikadai.com/join?ref=${refId}`;
+      const refId = u.id ? u.id.replace('cust_', '').toUpperCase() : 'EDP50';
+      const refLink = window.location.origin + window.location.pathname + `?ref=${refId}`;
       
       const linkText = document.getElementById('referral-link-text');
       const areaDiv = document.getElementById('referral-result-area');
       if (linkText && areaDiv) {
-        linkText.innerHTML = `<strong>Your Companion Link:</strong><br><span style="color:var(--accent-orange); font-family:monospace; font-size:11px;">${refLink}</span><br><span style="font-size:10px; color:#adbac7; margin-top:4px; display:block;">Your friend gets ₹50 on signup! You receive 50 loyalty pts automatically on their 1st dispatch.</span>`;
+        linkText.innerHTML = `<strong>Your Companion Link:</strong><br><span style="color:var(--accent-orange); font-family:monospace; font-size:11px;">${refLink}</span><br><span style="font-size:10px; color:#adbac7; margin-top:4px; display:block;">Your friend gets 50 free loyalty points on first order! You receive 50 loyalty pts automatically on their 1st completed order.</span>`;
         areaDiv.style.display = 'block';
         showToast("🎁 Companion referral link loaded! Copy and share it via WhatsApp!", "success");
       }
@@ -15023,10 +15123,89 @@ END OF DUPLICATE BLOCK COMMENT */
 
     function copyReferralLinktoClip() {
       const u = getActiveUser();
-      const refId = u ? (u.id ? u.id.substring(0, 5).toUpperCase() : 'EDP50') : 'EDP50';
-      const refLink = `https://edappadikadai.com/join?ref=${refId}`;
+      const refId = u ? (u.id ? u.id.replace('cust_', '').toUpperCase() : 'EDP50') : 'EDP50';
+      const refLink = window.location.origin + window.location.pathname + `?ref=${refId}`;
       navigator.clipboard.writeText(refLink);
       showToast("Link copied to clipboard! Share direct on WhatsApp/SMS! 🌐", "success");
+    }
+
+    // PROCESS REFERRAL LOYALTY REWARDS ON DELIVERED FIRST ORDER
+    function checkAndProcessReferralRewards(order) {
+      if (!order || order.status !== 'delivered') return;
+      const customerId = order.customerId;
+      if (!customerId) return;
+
+      const users = getData('ek_users', []);
+      const userIdx = users.findIndex(u => u.id === customerId);
+      if (userIdx === -1) return;
+
+      const user = users[userIdx];
+      // Check if user has a referrer and hasn't claimed reward yet
+      if (user.referredBy && !user.referralRewardClaimed) {
+        // Double check first delivered order to confirm first order requirement
+        const allOrders = getData('ek_orders', []);
+        const deliveredOrders = allOrders.filter(o => o.customerId === customerId && o.status === 'delivered');
+        
+        // Count should be 1 (or at most 1, since this order status was just updated)
+        if (deliveredOrders.length <= 1) {
+          const awardAmount = 50; // 50 loyalty points
+          
+          user.referralRewardClaimed = true;
+          user.loyaltyPoints = (user.loyaltyPoints || 0) + awardAmount;
+          if (user.loyaltyPoints >= 500) user.tier = 'gold';
+          else if (user.loyaltyPoints >= 150) user.tier = 'silver';
+          users[userIdx] = user;
+          
+          addNotification(
+            "பரிந்துரை போனஸ்! 🎁",
+            "Referral Bonus Awarded! 🎁",
+            `உங்களை பரிந்துரைத்ததற்காக மற்றும் உங்கள் முதல் ஆர்டர் வெற்றிகரமாக முடிந்ததற்காக உங்களுக்கு ${awardAmount} லாயல்டி புள்ளிகள் உங்கள் கணக்கில் சேர்க்கப்பட்டுள்ளது!`,
+            `You have been awarded ${awardAmount} referral loyalty points because you joined via an invite link and completed your first order!`,
+            "🎁"
+          );
+
+          // Find and award referrer
+          const referrerId = user.referredBy;
+          const referrerIdx = users.findIndex(u => u.id === referrerId || u.id.replace('cust_', '').toUpperCase() === referrerId.replace('cust_', '').toUpperCase());
+          if (referrerIdx !== -1) {
+            const referrer = users[referrerIdx];
+            referrer.loyaltyPoints = (referrer.loyaltyPoints || 0) + awardAmount;
+            if (referrer.loyaltyPoints >= 500) referrer.tier = 'gold';
+            else if (referrer.loyaltyPoints >= 150) referrer.tier = 'silver';
+            users[referrerIdx] = referrer;
+            
+            console.log(`[Referral System] Awarded ${awardAmount} points to referrer: ${referrer.name} (${referrer.id})`);
+            
+            addNotification(
+              "பரிந்துரையாளர் போனஸ்! 👥",
+              "Companion Referral Bonus! 👥",
+              `உங்கள் நண்பர் ${user.name} முதல் ஆர்டரை முடித்துள்ளார்! உங்களுக்கு ${awardAmount} லாயல்டி புள்ளிகள் சேர்க்கப்பட்டுள்ளது.`,
+              `Your companion friend ${user.name} has completed their first order! You have been awarded ${awardAmount} referral points.`,
+              "👥"
+            );
+          } else {
+            console.warn(`[Referral System] Referrer user not found in local users list for: ${referrerId}`);
+          }
+
+          // Save the users back to local storage
+          saveData('ek_users', users);
+
+          // Write/Sync to cloud Firestore
+          if (db) {
+            db.collection('ek_users').doc(user.id).set(user)
+              .then(() => console.log(`[Cloud Referral Sync] Referee updated`))
+              .catch(err => console.error(err));
+            
+            if (referrerIdx !== -1) {
+              db.collection('ek_users').doc(users[referrerIdx].id).set(users[referrerIdx])
+                .then(() => console.log(`[Cloud Referral Sync] Referrer updated`))
+                .catch(err => console.error(err));
+            }
+          }
+          
+          showToast(currentLang === 'ta' ? "பரிந்துரை போனஸ் புள்ளிகள் வழங்கப்பட்டது!" : "Referral reward loyalty points awarded success! 🎁🎉", "success");
+        }
+      }
     }
 
     // CHEF SECRET SCRATCH CARD REWARD POPULATOR
