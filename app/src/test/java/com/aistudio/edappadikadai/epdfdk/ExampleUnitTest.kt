@@ -1,4 +1,4 @@
-package com.example
+package com.aistudio.edappadikadai.epdfdk
 
 import org.junit.Assert.*
 import org.junit.Test

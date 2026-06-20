@@ -1,4 +1,4 @@
-package com.example
+package com.aistudio.edappadikadai.epdfdk
 
 import android.app.Activity
 import android.app.PendingIntent
@@ -22,6 +22,7 @@ import android.print.PrintAttributes
 import android.print.PrintManager
 import android.print.PrintJob
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,7 +32,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
-import com.example.ui.theme.MyApplicationTheme
+import com.aistudio.edappadikadai.epdfdk.ui.theme.MyApplicationTheme
 
 @SuppressLint("InvalidFragmentVersionForActivityResult")
 class MainActivity : ComponentActivity() {
@@ -61,7 +62,7 @@ class MainActivity : ComponentActivity() {
         val coarseGranted = permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
         if (fineGranted || coarseGranted) {
             pendingGeolocationCallback?.let { callback ->
-                callback.invoke(pendingGeolocationOrigin, true, false)
+                callback.invoke(pendingGeolocationOrigin, true, true)
             }
             webView?.reload()
         } else {
@@ -77,42 +78,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Pre-create the WebView cache subdirectories to prevent chromium warning logs on fresh startups
-        try {
-            val cacheDir = cacheDir
-            val jsDir = java.io.File(cacheDir, "WebView/Default/HTTP Cache/Code Cache/js")
-            val wasmDir = java.io.File(cacheDir, "WebView/Default/HTTP Cache/Code Cache/wasm")
-            if (!jsDir.exists()) {
-                jsDir.mkdirs()
-            }
-            if (!wasmDir.exists()) {
-                wasmDir.mkdirs()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        val reqPermissions = mutableListOf(
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            reqPermissions.add("android.permission.POST_NOTIFICATIONS")
-        }
-        locationPermissionLauncher.launch(reqPermissions.toTypedArray())
-
         // Fetch and register Firebase Cloud Messaging (FCM) Token gracefully
         try {
-            if (com.google.firebase.FirebaseApp.getApps(this).isEmpty()) {
-                android.util.Log.i("FCM_INIT", "Initializing FirebaseApp with local mock configuration for virtual device runs")
-                val options = com.google.firebase.FirebaseOptions.Builder()
-                    .setApplicationId("1:123456789012:android:abcdef1234567890abcdef")
-                    .setApiKey("AIzaSyMockApiKeyToAllowInitInLocalDevRuns")
-                    .setProjectId("edappadikadai-mock")
-                    .build()
-                com.google.firebase.FirebaseApp.initializeApp(this, options)
-            }
-            
             com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val token = task.result
@@ -128,6 +95,24 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             MyApplicationTheme {
+                BackHandler {
+                    webView?.let { webViewInstance ->
+                        webViewInstance.evaluateJavascript(
+                            "javascript:(function() { " +
+                            "  if (typeof handleAndroidBack === 'function') { " +
+                            "    return handleAndroidBack(); " +
+                            "  } " +
+                            "  return false; " +
+                            "})()"
+                        ) { result ->
+                            if (result == "false" || result == "null") {
+                                finish()
+                            }
+                        }
+                    } ?: run {
+                        finish()
+                    }
+                }
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
@@ -147,11 +132,17 @@ class MainActivity : ComponentActivity() {
                                     android.view.ViewGroup.LayoutParams.MATCH_PARENT
                                 )
                                 
+                                // Disable native scrollbars and overscroll effect to deliver premium app look
+                                isVerticalScrollBarEnabled = false
+                                isHorizontalScrollBarEnabled = false
+                                overScrollMode = android.view.View.OVER_SCROLL_NEVER
+                                
                                 // Clean WebView settings for Local PWA support
                                 settings.apply {
                                     javaScriptEnabled = true
                                     domStorageEnabled = true
                                     databaseEnabled = true
+                                    setGeolocationEnabled(true)
                                     allowFileAccess = true
                                     allowContentAccess = true
                                     mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
@@ -161,6 +152,7 @@ class MainActivity : ComponentActivity() {
                                     loadsImagesAutomatically = true
                                     setSupportZoom(false)
                                     builtInZoomControls = false
+                                    displayZoomControls = false
                                     offscreenPreRaster = true
                                 }
 
@@ -227,7 +219,7 @@ class MainActivity : ComponentActivity() {
                                         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
                                         if (hasFine || hasCoarse) {
-                                            callback?.invoke(origin, true, false)
+                                            callback?.invoke(origin, true, true)
                                         } else {
                                             pendingGeolocationCallback = callback
                                             pendingGeolocationOrigin = origin
@@ -302,6 +294,15 @@ class MainActivity : ComponentActivity() {
 
     class WebAppInterface(private val context: Context) {
         private val sharedPreferences = context.getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
+
+        @JavascriptInterface
+        fun getGeminiApiKey(): String {
+            return try {
+                com.aistudio.edappadikadai.epdfdk.BuildConfig.GEMINI_API_KEY
+            } catch (e: Exception) {
+                ""
+            }
+        }
 
         @JavascriptInterface
         fun saveData(key: String, value: String) {
@@ -410,7 +411,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val notificationBuilder = NotificationCompat.Builder(context, channelId)
-                    .setSmallIcon(android.R.drawable.ic_dialog_info)
+                    .setSmallIcon(R.mipmap.ic_launcher)
                     .setContentTitle(title)
                     .setContentText(body)
                     .setAutoCancel(true)

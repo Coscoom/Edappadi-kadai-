@@ -1,4 +1,4 @@
-package com.example
+package com.aistudio.edappadikadai.epdfdk
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -81,7 +81,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         // Build native system notification card
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // System standard fallback icon
+            .setSmallIcon(R.mipmap.ic_launcher) // System standard fallback icon
             .setContentTitle(title)
             .setContentText(messageBody)
             .setAutoCancel(true)

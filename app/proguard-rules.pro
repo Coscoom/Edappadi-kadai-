@@ -19,3 +19,10 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keepclassmembers class com.aistudio.edappadikadai.epdfdk.MainActivity$WebAppInterface {
+    @android.webkit.JavascriptInterface <methods>;
+}
+-keep class com.aistudio.edappadikadai.epdfdk.** { *; }
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
