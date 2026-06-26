@@ -1,4 +1,4 @@
-package com.aistudio.edappadikadai.epdfdk.ui.theme
+package com.edappadikadai.app.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

@@ -1,9 +1,10 @@
-package com.aistudio.edappadikadai.epdfdk
+package com.edappadikadai.app
 
 import android.app.Activity
 import android.app.PendingIntent
 import android.app.NotificationManager
 import android.app.NotificationChannel
+import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import android.content.Context
 import android.content.Intent
@@ -32,7 +33,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
-import com.aistudio.edappadikadai.epdfdk.ui.theme.MyApplicationTheme
+import com.edappadikadai.app.ui.theme.MyApplicationTheme
 
 @SuppressLint("InvalidFragmentVersionForActivityResult")
 class MainActivity : ComponentActivity() {
@@ -41,6 +42,64 @@ class MainActivity : ComponentActivity() {
     private var webView: WebView? = null
     private var pendingGeolocationCallback: GeolocationPermissions.Callback? = null
     private var pendingGeolocationOrigin: String? = null
+    private var activeLocationListener: android.location.LocationListener? = null
+    var latestFiredLocation: android.location.Location? = null
+
+    fun startActiveLocationUpdates() {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager ?: return
+        val hasFine = androidx.core.content.ContextCompat.checkSelfPermission(
+            this,
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val hasCoarse = androidx.core.content.ContextCompat.checkSelfPermission(
+            this,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (!hasFine && !hasCoarse) return
+
+        try {
+            // Unregister first if any existing listener is active to avoid duplicate registrations or leaks
+            activeLocationListener?.let { oldListener ->
+                try {
+                    locationManager.removeUpdates(oldListener)
+                } catch (e: Exception) {}
+            }
+
+            val listener = object : android.location.LocationListener {
+                override fun onLocationChanged(location: android.location.Location) {
+                    latestFiredLocation = location
+                    android.util.Log.d("GPS_ACTIVE", "Active Location updated: ${location.latitude}, ${location.longitude}, Acc: ${location.accuracy}")
+                }
+                override fun onStatusChanged(p: String?, s: Int, e: Bundle?) {}
+                override fun onProviderEnabled(p: String) {}
+                override fun onProviderDisabled(p: String) {}
+            }
+            activeLocationListener = listener
+
+            val isGpsEnabled = locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER)
+            val isNetworkEnabled = locationManager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)
+            
+            // Prioritize GPS_PROVIDER. Avoid subscribing the same listener instance to multiple providers 
+            // concurrently, which is a known source of duplicate AppOps tracking mismatch.
+            if (isGpsEnabled) {
+                locationManager.requestLocationUpdates(
+                    android.location.LocationManager.GPS_PROVIDER,
+                    5000L,
+                    10f,
+                    listener
+                )
+            } else if (isNetworkEnabled) {
+                locationManager.requestLocationUpdates(
+                    android.location.LocationManager.NETWORK_PROVIDER,
+                    5000L,
+                    10f,
+                    listener
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -55,7 +114,7 @@ class MainActivity : ComponentActivity() {
         filePathCallback = null
     }
 
-    private val locationPermissionLauncher = registerForActivityResult(
+    val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val fineGranted = permissions[android.Manifest.permission.ACCESS_FINE_LOCATION] ?: false
@@ -64,7 +123,7 @@ class MainActivity : ComponentActivity() {
             pendingGeolocationCallback?.let { callback ->
                 callback.invoke(pendingGeolocationOrigin, true, true)
             }
-            webView?.reload()
+            startActiveLocationUpdates()
         } else {
             pendingGeolocationCallback?.let { callback ->
                 callback.invoke(pendingGeolocationOrigin, false, false)
@@ -80,12 +139,16 @@ class MainActivity : ComponentActivity() {
 
         // Fetch and register Firebase Cloud Messaging (FCM) Token gracefully
         try {
+            com.google.firebase.FirebaseApp.initializeApp(this)
             com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val token = task.result
                     android.util.Log.d("FCM_INIT", "FCM Registration Token: $token")
                     val sharedPrefs = getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
-                    sharedPrefs.edit().putString("fcm_token", token).apply()
+                    sharedPrefs.edit()
+                        .putString("fcm_token", token)
+                        .putString("real_fcm_token", token)
+                        .apply()
                 } else {
                     android.util.Log.w("FCM_INIT", "FCM token registration deferred: running in simulated mode", task.exception)
                 }
@@ -145,7 +208,7 @@ class MainActivity : ComponentActivity() {
                                     setGeolocationEnabled(true)
                                     allowFileAccess = true
                                     allowContentAccess = true
-                                    mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                                    mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
                                     useWideViewPort = true
                                     loadWithOverviewMode = true
                                     cacheMode = WebSettings.LOAD_DEFAULT
@@ -154,6 +217,8 @@ class MainActivity : ComponentActivity() {
                                     builtInZoomControls = false
                                     displayZoomControls = false
                                     offscreenPreRaster = true
+                                    @Suppress("DEPRECATION")
+                                    setRenderPriority(WebSettings.RenderPriority.HIGH)
                                 }
 
                                 // Handle native intent actions (tel, whatsapp, intents, maps)
@@ -278,6 +343,20 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         webView?.requestFocus()
+        startActiveLocationUpdates()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        activeLocationListener?.let { listener ->
+            try {
+                val locationManager = getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
+                locationManager?.removeUpdates(listener)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        activeLocationListener = null
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -289,6 +368,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         webView = null
+        activeLocationListener?.let { listener ->
+            try {
+                val locationManager = getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
+                locationManager?.removeUpdates(listener)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        activeLocationListener = null
         super.onDestroy()
     }
 
@@ -296,9 +384,12 @@ class MainActivity : ComponentActivity() {
         private val sharedPreferences = context.getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
 
         @JavascriptInterface
+        fun getAppVersionCode(): Int = BuildConfig.VERSION_CODE
+
+        @JavascriptInterface
         fun getGeminiApiKey(): String {
             return try {
-                com.aistudio.edappadikadai.epdfdk.BuildConfig.GEMINI_API_KEY
+                com.edappadikadai.app.BuildConfig.GEMINI_API_KEY
             } catch (e: Exception) {
                 ""
             }
@@ -317,6 +408,99 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun removeData(key: String) {
             sharedPreferences.edit().remove(key).apply()
+        }
+
+        @JavascriptInterface
+        fun getNativeLocation(): String {
+            val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
+                ?: return "NO_LOCATION_SERVICE"
+            
+            val hasFine = androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            val hasCoarse = androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            
+            if (!hasFine && !hasCoarse) {
+                (context as? MainActivity)?.runOnUiThread {
+                    (context as? MainActivity)?.locationPermissionLauncher?.launch(
+                        arrayOf(
+                            android.Manifest.permission.ACCESS_FINE_LOCATION,
+                            android.Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
+                return "PERMISSION_REQUIRED"
+            }
+            
+            val isGpsEnabled = locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER)
+            val isNetworkEnabled = locationManager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)
+            if (!isGpsEnabled && !isNetworkEnabled) {
+                (context as? MainActivity)?.runOnUiThread {
+                    android.widget.Toast.makeText(context, "இருப்பிட சேவையை ஆன் செய்யவும் / Please turn on GPS Location!", android.widget.Toast.LENGTH_LONG).show()
+                    try {
+                        val intent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                        context.startActivity(intent)
+                    } catch (secErr: Exception) {}
+                }
+                return "NO_LOCATION_SERVICE"
+            }
+            
+            try {
+                (context as? MainActivity)?.runOnUiThread {
+                    val mainAct = context as? MainActivity
+                    if (mainAct?.activeLocationListener == null) {
+                        mainAct?.startActiveLocationUpdates()
+                    }
+                }
+
+                val mainAct = context as? MainActivity
+                var bestLocation: android.location.Location? = mainAct?.latestFiredLocation
+
+                val providers = locationManager.getProviders(true)
+                for (provider in providers) {
+                    val l = locationManager.getLastKnownLocation(provider) ?: continue
+                    if (bestLocation == null) {
+                        bestLocation = l
+                    } else {
+                        val timeDiff = l.time - bestLocation.time
+                        val isSignificantlyNewer = timeDiff > 15000
+                        val isNewer = timeDiff > 0
+                        val isMoreAccurate = l.accuracy < bestLocation.accuracy
+                        if (isSignificantlyNewer || (isNewer && isMoreAccurate)) {
+                            bestLocation = l
+                        }
+                    }
+                }
+                
+                // Deep fallback support: check even disabled providers for passive cached coordinates
+                if (bestLocation == null) {
+                    val allProviders = locationManager.getProviders(false)
+                    for (provider in allProviders) {
+                        val l = locationManager.getLastKnownLocation(provider) ?: continue
+                        if (bestLocation == null || l.accuracy < bestLocation.accuracy) {
+                            bestLocation = l
+                        }
+                    }
+                }
+
+                bestLocation?.let {
+                    val json = org.json.JSONObject().apply {
+                        put("latitude", it.latitude)
+                        put("longitude", it.longitude)
+                        put("accuracy", it.accuracy.toDouble())
+                    }
+                    return json.toString()
+                }
+            } catch (e: SecurityException) {
+                return "SECURITY_ERROR"
+            } catch (e: Exception) {
+                return "ERROR:" + e.message
+            }
+            return "NO_LOCATION"
         }
 
         @JavascriptInterface
@@ -365,15 +549,99 @@ class MainActivity : ComponentActivity() {
 
         @JavascriptInterface
         fun getFcmToken(): String {
-            val token = sharedPreferences.getString("fcm_token", "")
-            if (!token.isNullOrEmpty()) {
-                return token
+            // ★ MyFirebaseMessagingService.onNewToken() மூலம் சேமிக்கப்பட்ட
+            //   உண்மையான FCM token-ஐ return செய் ★
+            val realToken = sharedPreferences.getString("real_fcm_token", "")
+            if (!realToken.isNullOrEmpty()) {
+                return realToken
             }
-            // Generate a persistent, realistic simulator token prefix for this device if FCM isn't fully registered 
-            // to fulfill push simulation in development environments seamlessly
-            val generated = "fcm_sim_" + java.util.UUID.randomUUID().toString().substring(0, 8)
-            sharedPreferences.edit().putString("fcm_token", generated).apply()
-            return generated
+
+            // Check if FirebaseApp is initialized to avoid E/FCM error logs
+            val isFirebaseInitialized = try {
+                com.google.firebase.FirebaseApp.getInstance()
+                true
+            } catch (e: IllegalStateException) {
+                false
+            }
+
+            if (!isFirebaseInitialized) {
+                // Return a graceful simulated fallback token so that local/simulated runs function without errors
+                val fallbackToken = "simulated_fcm_token_" + java.util.UUID.randomUUID().toString().take(8)
+                sharedPreferences.edit()
+                    .putString("real_fcm_token", fallbackToken)
+                    .putString("fcm_token", fallbackToken)
+                    .apply()
+                android.util.Log.i("FCM", "Firebase not initialized. Provided graceful simulated fallback token: $fallbackToken")
+                return fallbackToken
+            }
+
+            // Token இன்னும் fetch ஆகவில்லை எனில், synchronous-ஆக fetch முயற்சி செய்:
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnSuccessListener { token -> if (!token.isNullOrEmpty()) { sharedPreferences.edit().putString("real_fcm_token", token).putString("fcm_token", token).apply() } }.addOnFailureListener { e -> android.util.Log.e("FCM", "Async token fetch failed: ${e.message}") }; return ""
+        }
+
+        @JavascriptInterface
+        fun simulateFcmPushNotification(token: String, title: String, body: String, dataPayloadJson: String) {
+            android.util.Log.d("FCM_SIMULATOR", "Received FCM simulate request. Token: $token, Title: $title, Body: $body, Data: $dataPayloadJson")
+            
+            // Replicate exactly what MyFirebaseMessagingService does when receiving an FCM message
+            try {
+                val intent = Intent(context, MainActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    // Pass parameters if needed in the future
+                    putExtra("order_id_fcm", "sim_payload")
+                }
+                
+                val pendingIntentFlags = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+                } else {
+                    PendingIntent.FLAG_ONE_SHOT
+                }
+
+                val pendingIntent = PendingIntent.getActivity(
+                    context, 0, intent, pendingIntentFlags
+                )
+
+                val channelId = "status_alerts"
+                val channelName = "Order Status Notifications"
+                val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    val channel = NotificationChannel(
+                        channelId,
+                        channelName,
+                        NotificationManager.IMPORTANCE_HIGH
+                    ).apply {
+                        description = "Real-time updates regarding your ongoing delivery and orders"
+                        enableLights(true)
+                        enableVibration(true)
+                    }
+                    notificationManager.createNotificationChannel(channel)
+                }
+
+                val largeIcon = try {
+                    BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
+                } catch (e: Exception) {
+                    null
+                }
+
+                val notificationBuilder = NotificationCompat.Builder(context, channelId)
+                    .setSmallIcon(R.drawable.ic_notification)
+                    .setContentTitle(title)
+                    .setContentText(body)
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+                    .setAutoCancel(true)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setDefaults(NotificationCompat.DEFAULT_ALL)
+                    .setContentIntent(pendingIntent)
+
+                if (largeIcon != null) {
+                    notificationBuilder.setLargeIcon(largeIcon)
+                }
+
+                notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
         @JavascriptInterface
@@ -410,14 +678,25 @@ class MainActivity : ComponentActivity() {
                     notificationManager.createNotificationChannel(channel)
                 }
 
+                val largeIcon = try {
+                    BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
+                } catch (e: Exception) {
+                    null
+                }
+
                 val notificationBuilder = NotificationCompat.Builder(context, channelId)
-                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setSmallIcon(R.drawable.ic_notification)
                     .setContentTitle(title)
                     .setContentText(body)
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(body))
                     .setAutoCancel(true)
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setDefaults(NotificationCompat.DEFAULT_ALL)
                     .setContentIntent(pendingIntent)
+
+                if (largeIcon != null) {
+                    notificationBuilder.setLargeIcon(largeIcon)
+                }
 
                 notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
             } catch (e: Exception) {

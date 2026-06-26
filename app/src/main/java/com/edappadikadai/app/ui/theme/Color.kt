@@ -1,4 +1,4 @@
-package com.aistudio.edappadikadai.epdfdk.ui.theme
+package com.edappadikadai.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

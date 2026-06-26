@@ -1,10 +1,11 @@
-package com.aistudio.edappadikadai.epdfdk
+package com.edappadikadai.app
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -17,9 +18,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         super.onNewToken(token)
         Log.d("FCM_SERVICE", "Refreshed FCM token: $token")
         
-        // Save the renewed token to SharedPreferences so Web views can access it smoothly
+        // Save the renewed token to SharedPreferences so Web views can access it smoothly (using both legacy fcm_token and real_fcm_token keys)
         val sharedPreferences = getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
-        sharedPreferences.edit().putString("fcm_token", token).apply()
+        sharedPreferences.edit()
+            .putString("fcm_token", token)
+            .putString("real_fcm_token", token)
+            .apply()
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -79,15 +83,27 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        // Load application launcher icon to show as a large icon in notification card
+        val largeIcon = try {
+            BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+        } catch (e: Exception) {
+            null
+        }
+
         // Build native system notification card
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher) // System standard fallback icon
+            .setSmallIcon(R.drawable.ic_notification) // System standard fallback icon
             .setContentTitle(title)
             .setContentText(messageBody)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(messageBody)) // Allow multi-line display to prevent truncation
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setContentIntent(pendingIntent)
+
+        if (largeIcon != null) {
+            notificationBuilder.setLargeIcon(largeIcon)
+        }
 
         notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
     }

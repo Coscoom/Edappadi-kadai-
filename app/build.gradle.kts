@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-  namespace = "com.aistudio.edappadikadai.epdfdk"
+  namespace = "com.edappadikadai.app"
   compileSdk = 35
 
   defaultConfig {
-    applicationId = "com.aistudio.edappadikadai.epdfdk"
+    applicationId = "com.edappadikadai.app"
     minSdk = 23
     targetSdk = 35
     versionCode = 4
