@@ -11221,7 +11221,7 @@
 
     function claimOrderForDelivery(orderId) {
       window.locallyModifiedOrders = window.locallyModifiedOrders || {};
-      window.locallyModifiedOrders[orderId] = Date.now();
+      window.locallyModifiedOrders[orderId] = Date.now() + 120000;
 
       const session = getData('ek_delivery_session', null);
       if (!session) return;
