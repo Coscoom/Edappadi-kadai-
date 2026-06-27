@@ -164,6 +164,19 @@ class MainActivity : ComponentActivity() {
         // Pre-create Chromium WebView Code Cache directories to prevent "No such file or directory" enumerator error on startup
         preCreateWebViewCacheDirs()
 
+        // Asynchronously keep recreating them for the first 10 seconds of startup 
+        // to win any race conditions with Chromium's async initialization.
+        try {
+            Thread {
+                for (i in 1..20) {
+                    try {
+                        preCreateWebViewCacheDirs()
+                        Thread.sleep(500)
+                    } catch (e: Exception) {}
+                }
+            }.start()
+        } catch (e: Exception) {}
+
         // Fetch and register Firebase Cloud Messaging (FCM) Token gracefully
         try {
             if (com.google.firebase.FirebaseApp.getApps(this).isEmpty()) {
