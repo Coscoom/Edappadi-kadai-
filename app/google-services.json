@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "397565375990",
+    "project_id": "edappadi-kadai",
+    "storage_bucket": "edappadi-kadai.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397565375990:android:37b2f6ef829e81f1",
+        "android_client_info": {
+          "package_name": "com.edappadikadai.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCy3JyY1C2LuwtxkkHSTRek7F_cAI9qatg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

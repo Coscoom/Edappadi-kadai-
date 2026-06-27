@@ -113,7 +113,7 @@ android {
   buildTypes {
     release {
       isCrunchPngs = false
-      isMinifyEnabled = true
+      isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
@@ -314,6 +314,34 @@ tasks.register("resetIndexHtml") {
             }
         } catch (e: Exception) {
             println("❌ Failed to restore index.html: ${e.message}")
+        }
+    }
+}
+
+tasks.register("fixIndexHtmlCorruptedLine") {
+    doLast {
+        val indexFile = file("src/main/assets/index.html")
+        if (indexFile.exists()) {
+            var content = indexFile.readText(Charsets.UTF_8)
+            val regex = """\$\{formattedProducts\}[^\n]*?யில் உள்ளன!"\s*:\s*"All items are already in the cart!",\s*"info"\);""".toRegex()
+            if (regex.containsMatchIn(content)) {
+                content = regex.replace(content, """\${'$'}{formattedProducts}கார்ட்டில் உள்ளன!" : "All items are already in the cart!", "info");""")
+                indexFile.writeText(content, Charsets.UTF_8)
+                println("🎉 Successfully replaced the corrupted line in index.html!")
+            } else {
+                println("❌ Could not match the corrupted pattern with UTF-8 Regex! Trying fallback...")
+                var contentIso = indexFile.readText(Charsets.ISO_8859_1)
+                val regexIso = """\$\{formattedProducts\}[^\n]*?யில் உள்ளன!"\s*:\s*"All items are already in the cart!",\s*"info"\);""".toRegex()
+                if (regexIso.containsMatchIn(contentIso)) {
+                    contentIso = regexIso.replace(contentIso, """\${'$'}{formattedProducts}கார்ட்டில் உள்ளன!" : "All items are already in the cart!", "info");""")
+                    indexFile.writeText(contentIso, Charsets.ISO_8859_1)
+                    println("🎉 Successfully replaced the corrupted line using ISO-8859-1!")
+                } else {
+                    println("❌ Could not match pattern with ISO-8859-1 either!")
+                }
+            }
+        } else {
+            println("❌ index.html does not exist!")
         }
     }
 }

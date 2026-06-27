@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Orders: customers can create, admin/delivery can read+update
+    match /ek_orders/{orderId} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null;
+      allow delete: if false;
+    }
+
+    // Users: only the owner can read/write their own doc
+    match /ek_users/{userId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Products: anyone authenticated can read, only admin writes
+    match /ek_products/{productId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // FCM queue: authenticated write only
+    match /ek_fcm_queue/{docId} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null;
+    }
+
+    // Admin accounts: authenticated only
+    match /ek_admin_accounts/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Delivery persons: authenticated only
+    match /ek_delivery_persons/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Settings: authenticated read, write
+    match /ek_settings/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
