@@ -43,10 +43,15 @@ class MainActivity : ComponentActivity() {
     private var pendingGeolocationCallback: GeolocationPermissions.Callback? = null
     private var pendingGeolocationOrigin: String? = null
     private var activeLocationListener: android.location.LocationListener? = null
+    private var isActiveLocationListenerRegistered = false
     var latestFiredLocation: android.location.Location? = null
 
+    private fun getLocationManager(): android.location.LocationManager? {
+        return getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
+    }
+
     fun startActiveLocationUpdates() {
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager ?: return
+        val locationManager = getLocationManager() ?: return
         val hasFine = androidx.core.content.ContextCompat.checkSelfPermission(
             this,
             android.Manifest.permission.ACCESS_FINE_LOCATION
@@ -61,9 +66,13 @@ class MainActivity : ComponentActivity() {
             // Unregister first if any existing listener is active to avoid duplicate registrations or leaks
             activeLocationListener?.let { oldListener ->
                 try {
-                    locationManager.removeUpdates(oldListener)
+                    if (isActiveLocationListenerRegistered) {
+                        locationManager.removeUpdates(oldListener)
+                    }
                 } catch (e: Exception) {}
             }
+            isActiveLocationListenerRegistered = false
+            activeLocationListener = null
 
             val listener = object : android.location.LocationListener {
                 override fun onLocationChanged(location: android.location.Location) {
@@ -74,27 +83,42 @@ class MainActivity : ComponentActivity() {
                 override fun onProviderEnabled(p: String) {}
                 override fun onProviderDisabled(p: String) {}
             }
-            activeLocationListener = listener
 
             val isGpsEnabled = locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER)
             val isNetworkEnabled = locationManager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)
             
+            var registered = false
             // Prioritize GPS_PROVIDER. Avoid subscribing the same listener instance to multiple providers 
             // concurrently, which is a known source of duplicate AppOps tracking mismatch.
             if (isGpsEnabled) {
-                locationManager.requestLocationUpdates(
-                    android.location.LocationManager.GPS_PROVIDER,
-                    5000L,
-                    10f,
-                    listener
-                )
+                try {
+                    locationManager.requestLocationUpdates(
+                        android.location.LocationManager.GPS_PROVIDER,
+                        5000L,
+                        10f,
+                        listener
+                    )
+                    registered = true
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             } else if (isNetworkEnabled) {
-                locationManager.requestLocationUpdates(
-                    android.location.LocationManager.NETWORK_PROVIDER,
-                    5000L,
-                    10f,
-                    listener
-                )
+                try {
+                    locationManager.requestLocationUpdates(
+                        android.location.LocationManager.NETWORK_PROVIDER,
+                        5000L,
+                        10f,
+                        listener
+                    )
+                    registered = true
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            if (registered) {
+                activeLocationListener = listener
+                isActiveLocationListenerRegistered = true
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -137,9 +161,24 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Pre-create Chromium WebView Code Cache directories to prevent "No such file or directory" enumerator error on startup
+        preCreateWebViewCacheDirs()
+
         // Fetch and register Firebase Cloud Messaging (FCM) Token gracefully
         try {
-            com.google.firebase.FirebaseApp.initializeApp(this)
+            if (com.google.firebase.FirebaseApp.getApps(this).isEmpty()) {
+                try {
+                    com.google.firebase.FirebaseApp.initializeApp(this)
+                } catch (defaultEx: Exception) {
+                    val options = com.google.firebase.FirebaseOptions.Builder()
+                        .setApiKey("AIzaSyCy3JyY1C2LuwtxkkHSTRek7F_cAI9qatg")
+                        .setApplicationId("1:397565375990:android:37b2f6ef829e81f1")
+                        .setProjectId("edappadi-kadai")
+                        .setGcmSenderId("397565375990")
+                        .build()
+                    com.google.firebase.FirebaseApp.initializeApp(this, options)
+                }
+            }
             com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val token = task.result
@@ -189,7 +228,6 @@ class MainActivity : ComponentActivity() {
                         factory = { context ->
                             WebView(context).apply {
                                 this@MainActivity.webView = this
-                                setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
                                 layoutParams = android.view.ViewGroup.LayoutParams(
                                     android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                                     android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -223,6 +261,11 @@ class MainActivity : ComponentActivity() {
 
                                 // Handle native intent actions (tel, whatsapp, intents, maps)
                                 webViewClient = object : WebViewClient() {
+                                    override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                                        super.onPageStarted(view, url, favicon)
+                                        preCreateWebViewCacheDirs()
+                                    }
+
                                     override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                                         if (url == null) return false
                                         if (url.startsWith("file:///")) {
@@ -350,13 +393,16 @@ class MainActivity : ComponentActivity() {
         super.onPause()
         activeLocationListener?.let { listener ->
             try {
-                val locationManager = getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
-                locationManager?.removeUpdates(listener)
+                if (isActiveLocationListenerRegistered) {
+                    val locationManager = getLocationManager()
+                    locationManager?.removeUpdates(listener)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
         activeLocationListener = null
+        isActiveLocationListenerRegistered = false
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -370,14 +416,46 @@ class MainActivity : ComponentActivity() {
         webView = null
         activeLocationListener?.let { listener ->
             try {
-                val locationManager = getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
-                locationManager?.removeUpdates(listener)
+                if (isActiveLocationListenerRegistered) {
+                    val locationManager = getLocationManager()
+                    locationManager?.removeUpdates(listener)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
         activeLocationListener = null
+        isActiveLocationListenerRegistered = false
         super.onDestroy()
+    }
+
+    private fun preCreateWebViewCacheDirs() {
+        val roots = arrayOf(cacheDir, filesDir?.parentFile)
+        val relativePaths = arrayOf(
+            "WebView/Default/HTTP Cache/Code Cache",
+            "WebView/Default/Code Cache",
+            "app_webview/Default/HTTP Cache/Code Cache",
+            "app_webview/Default/Code Cache"
+        )
+        for (root in roots) {
+            if (root == null) continue
+            for (rel in relativePaths) {
+                try {
+                    val codeCacheDir = java.io.File(root, rel)
+                    if (!codeCacheDir.exists()) {
+                        codeCacheDir.mkdirs()
+                    }
+                    if (codeCacheDir.exists()) {
+                        val jsDir = java.io.File(codeCacheDir, "js")
+                        if (!jsDir.exists()) jsDir.mkdirs()
+                        val wasmDir = java.io.File(codeCacheDir, "wasm")
+                        if (!wasmDir.exists()) wasmDir.mkdirs()
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("MainActivity", "Failed to pre-create directory $rel: ${e.message}")
+                }
+            }
+        }
     }
 
     class WebAppInterface(private val context: Context) {

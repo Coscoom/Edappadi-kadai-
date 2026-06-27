@@ -300,7 +300,6 @@
 
     body {
       background: radial-gradient(circle at 50% 0%, #0d1527 0%, #030508 70%) !important;
-      background-attachment: fixed;
       color: var(--text-primary);
       display: flex;
       justify-content: center;
@@ -415,11 +414,11 @@
       scroll-behavior: smooth;
       overscroll-behavior-y: contain;
 
-      /* Premium hardware-accelerated transitions */
+      /* Optimized, lightweight hardware-accelerated transitions to prevent CPU lag and screen tearing */
       opacity: 1;
-      transform: scale(1) translateY(0);
-      transition: opacity 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-      will-change: opacity, transform;
+      transition: opacity 0.12s ease-out;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
     }
 
     .screen.active {
@@ -428,7 +427,6 @@
 
     .screen.active.screen-transitioning {
       opacity: 0 !important;
-      transform: scale(0.985) translateY(10px) !important;
     }
 
     .screen > * {
@@ -2931,10 +2929,10 @@
             </label>
             <textarea id="cart-delivery-address" class="form-control" rows="2" style="margin-bottom: 8px;" placeholder="உங்களது வீட்டு முகவரி / Kavandampatti, Idappadi, Salem, pincode..." aria-labelledby="cart-delivery-address-label"></textarea>
             <div style="display: flex; gap: 6px; margin-top: 4px;">
-              <button type="button" class="btn btn-secondary" onclick="openMapAddressPicker('cart-delivery-address')" aria-label="Pick location using map" style="background: rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.35); color: var(--accent-orange); flex: 1.1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; padding: 10px; font-weight: 700; cursor: pointer; border-radius: 8px;">
-                &#x1F5FA;&#xFE0F; Map Pick / வரைபடம்
+              <button type="button" class="btn btn-secondary" onclick="openMapAddressPicker('cart-delivery-address')" aria-label="Pick location using map" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%); border: 1px solid rgba(249, 115, 22, 0.45); color: var(--accent-orange); flex: 1.1; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 9.5px; padding: 6px 10px; font-weight: 800; cursor: pointer; border-radius: 20px; transition: all 0.15s ease;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='none'">
+                🗺️ Map Pick / வரைபடம்
               </button>
-              <button type="button" class="btn btn-secondary" onclick="autoDetectCoordinatesForTarget('cart-delivery-address', this)" aria-label="Auto detect location using GPS" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.35); color: #10b981; flex: 0.9; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; padding: 10px; font-weight: 700; cursor: pointer; border-radius: 8px;">
+              <button type="button" class="btn btn-secondary" onclick="autoDetectCoordinatesForTarget('cart-delivery-address', this)" aria-label="Auto detect location using GPS" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%); border: 1px solid rgba(16, 185, 129, 0.45); color: #10b981; flex: 0.9; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 9.5px; padding: 6px 10px; font-weight: 800; cursor: pointer; border-radius: 20px; transition: all 0.15s ease;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='none'">
                 🛰️ Auto GPS / ஜிபிஎஸ்
               </button>
             </div>
@@ -4668,10 +4666,10 @@
         <div style="display: flex; align-items: center; gap: 8px; border-top: 1px solid rgba(16, 185, 129, 0.15); padding-top: 6px; width: 100%; box-sizing: border-box;">
           <span style="font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;">இருப்பிடம் மாற்ற:</span>
           <div style="display: flex; gap: 6px; flex: 1; justify-content: flex-start;">
-            <button onclick="openMapAddressPicker('cart-delivery-address')" style="background: rgba(249, 115, 22, 0.12); border: 1px solid rgba(249, 115, 22, 0.35); color: var(--accent-orange); font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; outline: none; transition: all 0.15s ease;">
+            <button onclick="openMapAddressPicker('cart-delivery-address')" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%); border: 1px solid rgba(249, 115, 22, 0.45); color: var(--accent-orange); font-size: 8.5px; font-weight: 800; padding: 4.5px 12px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 4px; outline: none; transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='none'">
               🗺️ வரைபடம் / Pick Map
             </button>
-            <button onclick="autoDetectCoordinatesForTarget('cart-delivery-address', this)" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #10b981; font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; outline: none; transition: all 0.15s ease;">
+            <button onclick="autoDetectCoordinatesForTarget('cart-delivery-address', this)" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%); border: 1px solid rgba(16, 185, 129, 0.45); color: #10b981; font-size: 8.5px; font-weight: 800; padding: 4.5px 12px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 4px; outline: none; transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='none'">
               🛰️ என் ஜிபிஎஸ் / Locate Me
             </button>
           </div>
@@ -4728,9 +4726,9 @@
           </svg>
         </button>
 
-        <input type="text" id="lyo-ai-input" style="flex: 1; min-width: 0; height: 40px; border-radius: 22px; background: rgba(21, 26, 34, 0.7); border: 1.5px solid rgba(255,255,255,0.14); color: #fff; font-size: 12.5px; padding: 0 16px; box-sizing: border-box; outline: none; transition: border-color 0.2s;" placeholder="தமிழில் கேளுங்கள்... (mic tap பண்ணலாம்)" onkeydown="if(event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); sendLyoAiMessage(); }">
+        <input type="text" id="lyo-ai-input" enterkeyhint="send" style="flex: 1; min-width: 0; height: 40px; border-radius: 22px; background: rgba(21, 26, 34, 0.7); border: 1.5px solid rgba(255,255,255,0.14); color: #fff; font-size: 12.5px; padding: 0 16px; box-sizing: border-box; outline: none; transition: border-color 0.2s;" placeholder="தமிழில் கேளுங்கள்... (mic tap பண்ணலாம்)" onkeydown="if(event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); sendLyoAiMessage(); }">
 
-        <button type="submit" class="btn" style="width: 44px; height: 44px !important; min-height: 44px !important; min-width: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--accent-orange) 0%, #d97706 100%); border: none; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25); cursor: pointer; color: #fff; padding:0;">
+        <button type="submit" onclick="event.preventDefault(); sendLyoAiMessage();" class="btn" style="width: 44px; height: 44px !important; min-height: 44px !important; min-width: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--accent-orange) 0%, #d97706 100%); border: none; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25); cursor: pointer; color: #fff; padding:0;">
           <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.5; transform: rotate(45deg); position: relative; left: -1px; top: 1px;">
             <line x1="22" y1="2" x2="11" y2="13"/>
             <polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -4982,7 +4980,34 @@
             if (typeof setupCloudRealtimeListeners2 === 'function') setupCloudRealtimeListeners2();
             if (typeof registerRealFcmToken === 'function') registerRealFcmToken();
           } else {
-            console.warn("[Auth Autologin] No Firestore document found for UID:", uid);
+            console.warn("[Auth Autologin] No Firestore doc under UID:", uid, "— trying phone fallback.");
+            try {
+              // Try finding user by phone from Firebase Auth email (format: phone@app.com)
+              const authUser = firebase.auth().currentUser;
+              if (authUser && authUser.email && authUser.email.endsWith('@app.com')) {
+                const phoneFromEmail = authUser.email.replace('@app.com', '');
+                const phoneSnap = await db.collection('ek_users')
+                  .where('phone', '==', phoneFromEmail).get();
+                if (!phoneSnap.empty) {
+                  const userData = normalizeFirestoreData(phoneSnap.docs[0].data());
+                  const users = getData('ek_users', []);
+                  const uIdx = users.findIndex(u => u.phone === userData.phone);
+                  if (uIdx !== -1) { users[uIdx] = userData; } else { users.push(userData); }
+                  saveData('ek_users', users);
+                  const session = { 
+                    loggedIn: true, 
+                    userId: userData.id, 
+                    name: userData.name, 
+                    phone: userData.phone 
+                  };
+                  saveData('ek_customer_session', session);
+                  if (typeof setupCloudRealtimeListeners2 === 'function') setupCloudRealtimeListeners2();
+                  console.log('[Auth Autologin] Old user found via phone fallback:', userData.name);
+                }
+              }
+            } catch (fbErr) {
+              console.warn('[Auth Autologin] Phone fallback failed:', fbErr);
+            }
           }
         }
       } catch (err) {
@@ -4999,10 +5024,13 @@
     function showLoginScreen() {
       const adminSession = typeof getAdminSession === 'function' ? getAdminSession() : null;
       const deliverySession = typeof getData === 'function' ? getData('ek_delivery_session', null) : null;
+      const custSession = typeof getActiveSession === 'function' ? getActiveSession() : null;
       if (adminSession && adminSession.loggedIn) {
         if (typeof showScreen === 'function') showScreen('screen-admin');
       } else if (deliverySession && deliverySession.loggedIn) {
         if (typeof showScreen === 'function') showScreen('screen-delivery');
+      } else if (custSession && custSession.loggedIn) {
+        if (typeof showScreen === 'function') showScreen('screen-home');
       } else {
         if (typeof showScreen === 'function') showScreen('screen-login');
       }
@@ -5647,6 +5675,7 @@
       }
     } catch (e) {}
     let currentScreen = 'screen-splash';
+    let secureGeneratedOTP = null;
     let screenHistory = [];
     let isNavigatingBack = false;
     let activeCategory = 'all';
@@ -6026,8 +6055,7 @@
           target.classList.add('active', 'screen-transitioning');
           currentScreen = screenId;
           
-          // Force layout reflow to register active & screen-transitioning classes
-          void target.offsetWidth;
+          // Removed void target.offsetWidth layout reflow to eliminate main thread lag and UI freezing
           
           setTimeout(() => {
             target.classList.remove('screen-transitioning');
@@ -6350,6 +6378,12 @@
           if (u.password && !u.password.startsWith('hash:')) {
             u.password = 'hash:' + await hashPassword(u.password);
             usersChanged = true;
+            if (typeof db !== 'undefined' && db && u.id) {
+              db.collection('ek_users').doc(u.id).update({ 
+                password: u.password,
+                updatedAt: new Date().toISOString()
+              }).catch(e => console.warn('[Migration] Firestore password sync failed:', u.id, e));
+            }
           }
         }
         if (usersChanged) saveData('ek_users', users);
@@ -6927,7 +6961,7 @@
         
         if (currentFPMethod === 'gmail-otp') {
           const otpCode = Math.floor(100000 + Math.random() * 900000);
-          window.lastGeneratedOTP = otpCode;
+          secureGeneratedOTP = otpCode;
           
           document.getElementById('fp-stage-otp').style.display = 'block';
 
@@ -6950,10 +6984,9 @@
           
           let lTxt = strings.successText.replace('{email}', `<strong>${masked}</strong>`);
           lTxt += `<br><br><div style="padding:12px 14px; background:rgba(34,197,94,0.08); border:1.5px solid var(--accent-green); border-radius:12px; margin-top:10px; text-align:left; line-height: 1.5;">
-            <span style="font-size:9px; text-transform:uppercase; color:#888; display:block; font-weight:700; letter-spacing:0.5px;">🔗 PASSWORD RESET HYPERLINK / கடவுச்சொல் மீட்டமைப்பு</span>
-            <strong style="font-size:13px; color:var(--accent-green); display:block; margin:6px 0; font-family:'JetBrains Mono',monospace; word-break:break-all;">https://edappadikadai.com/reset?token=${Math.floor(100000 + Math.random() * 900000)}</strong>
-            <span style="font-size:11px; color:#ddd; display:block;">
-              ${isTa ? 'மீட்டமைப்பு இணைப்பு தங்களுக்கு வெற்றிகரமாகத் தயார் செய்யப்பட்டுள்ளது! அதைப் பயன்படுத்தித் தொடரவும்.' : 'A secure recovery connection is active! Please use the reset link above to configure your credentials.'}
+            <span style="font-size:9px; text-transform:uppercase; color:#888; display:block; font-weight:700; letter-spacing:0.5px;">🔗 PASSWORD RESET ASSISTANCE / கடவுச்சொல் மீட்டமைப்பு</span>
+            <span style="font-size:11px; color:#ddd; display:block; margin-top:6px;">
+              ${isTa ? 'கடவுச்சொல் மீட்டமைப்பு இணைப்பு தங்களுக்கு வெற்றிகரமாகத் தயார் செய்யப்பட்டுள்ளது! தங்களது பதிவு செய்யப்பட்ட மின்னஞ்சல் முகவரியைச் சரிபார்க்கவும் அல்லது ஆதரவுக் குழுவைத் தொடர்பு கொள்ளவும்.' : 'A secure recovery link has been compiled and dispatched to your registered credentials. Please check your inbox or contact customer assistance.'}
             </span>
           </div>`;
           
@@ -6980,7 +7013,7 @@
       const isSimulator = (settings.smsProvider || 'fast2sms') === 'simulator';
       const isDevOtp = isSimulator && otpVal === '123456';
       
-      if (!isDevOtp && String(otpVal) !== String(window.lastGeneratedOTP)) {
+      if (!isDevOtp && String(otpVal) !== String(secureGeneratedOTP)) {
         showToast(strings.otpMismatch, "error");
         return;
       }
@@ -7168,80 +7201,173 @@
       
       // Cloud direct login fallback if the user resides on a newly initialized device
       if (!matched && db) {
-        showToast("Verifying credentials with cloud...", "info");
+        showToast(currentLang === 'ta' ? "நெட்வொர்க் காப்பகம் சரிபார்க்கப்படுகிறது..." : "Verifying credentials with cloud...", "info");
         try {
           const cleanPhone = identifier.replace(/[\s\-\(\)\+]/g, '');
-          let qSnap = await db.collection('ek_users').where('phone', '==', identifier).get();
-          if (qSnap.empty && /^\d+$/.test(cleanPhone)) {
-            qSnap = await db.collection('ek_users').where('phone', '==', cleanPhone).get();
-          }
-          if (qSnap.empty) {
-            qSnap = await db.collection('ek_users').where('email', '==', identifier).get();
-          }
-          if (qSnap.empty) {
-            qSnap = await db.collection('ek_users').where('email', '==', identifier.toLowerCase()).get();
-          }
-          if (qSnap.empty) {
-            qSnap = await db.collection('ek_users').where('name', '==', identifier).get();
-          }
-          if (qSnap.empty) {
-            const titleCaseId = identifier.charAt(0).toUpperCase() + identifier.slice(1).toLowerCase();
-            qSnap = await db.collection('ek_users').where('name', '==', titleCaseId).get();
-          }
-          if (qSnap.empty) {
-            qSnap = await db.collection('ek_users').where('name', '==', identifier.toLowerCase()).get();
-          }
+          let authUser = null;
           
-          if (!qSnap.empty) {
-            const cloudUser = qSnap.docs[0].data();
-            if (cloudUser && await verifyPassword(pass, cloudUser.password)) {
-              matched = cloudUser;
-              // Save cloud user locally to sync the account
-              if (!users.some(u => u.phone === cloudUser.phone)) {
-                users.push(cloudUser);
-                saveData('ek_users', users);
+          // 1. First, try Firebase Auth directly to verify the user with absolute certainty!
+          if (typeof firebase !== 'undefined' && firebase.auth) {
+            const potentialEmails = [];
+            if (identifier.includes('@')) {
+              potentialEmails.push(identifier.toLowerCase());
+            } else {
+              potentialEmails.push(`${identifier}@app.com`);
+              if (cleanPhone) {
+                potentialEmails.push(`${cleanPhone}@app.com`);
+                potentialEmails.push(`+91${cleanPhone}@app.com`);
+                if (cleanPhone.startsWith('91') && cleanPhone.length > 10) {
+                  potentialEmails.push(`${cleanPhone.slice(2)}@app.com`);
+                  potentialEmails.push(`+${cleanPhone}@app.com`);
+                } else if (cleanPhone.length === 10) {
+                  potentialEmails.push(`91${cleanPhone}@app.com`);
+                  potentialEmails.push(`+91${cleanPhone}@app.com`);
+                }
               }
-              console.log("[Cloud Login] User authenticated directly from Firestore!");
+            }
+            
+            authUser = null;
+            for (const email of potentialEmails) {
+              try {
+                console.log("[Cloud Auth Login] Attempting Firebase Auth:", email);
+                const authUserCredential = await firebase.auth().signInWithEmailAndPassword(email, pass);
+                authUser = authUserCredential.user;
+                console.log("[Cloud Auth Login] Firebase Auth matched successfully! UID:", authUser.uid);
+                break;
+              } catch (ae) {
+                // Ignore failure and try the next potential email
+              }
+            }
+            
+            if (authUser) {
+              const uid = authUser.uid;
+              const docSnap = await db.collection('ek_users').doc(uid).get();
+              if (docSnap.exists) {
+                matched = docSnap.data();
+                console.log("[Cloud Login] Succeeded direct Firebase Auth with Firestore doc retrieval!");
+              }
             }
           }
 
-          // Ultra-robust Name containing/substring & case-insensitive matching fallback for custom entries
-          if (!matched) {
-            const allUsersSnap = await db.collection('ek_users').limit(1000).get();
-            if (!allUsersSnap.empty) {
-              const fetchedUsers = [];
-              allUsersSnap.forEach(doc => {
-                const uData = normalizeFirestoreData(doc.data());
-                if (uData) fetchedUsers.push(uData);
-              });
-              
-              // Local optimization back propagation
-              const localUsers = getData('ek_users', []);
-              const localUsersMap = new Map(localUsers.map(u => [u.id || u.phone, u]));
-              fetchedUsers.forEach(u => {
-                const key = u.id || u.phone;
-                if (key) localUsersMap.set(key, u);
-              });
-              saveData('ek_users', Array.from(localUsersMap.values()));
-              
-              for (let u of fetchedUsers) {
-                const normName = (u.name || '').trim().toLowerCase();
-                const normPhone = (u.phone || '').trim().replace(/[\s\-\(\)\+]/g, '');
-                const normEmail = (u.email || '').trim().toLowerCase();
-                
-                const isPhoneMatch = normPhone === normalizedInputId || 
-                                     (normPhone && normPhone.endsWith(normalizedInputId)) || 
-                                     (normalizedInputId && normalizedInputId.endsWith(normPhone));
-                const isEmailMatch = normEmail === identifier.toLowerCase();
-                const isNameMatch = normName === identifier.toLowerCase() || 
-                                     normName.includes(identifier.toLowerCase()) || 
-                                     identifier.toLowerCase().includes(normName);
-                
-                if ((isPhoneMatch || isEmailMatch || isNameMatch) && await verifyPassword(pass, u.password)) {
-                  matched = u;
-                  break;
+          if (authUser && !matched) {
+            // Old user: Firebase Auth exists but doc was saved under old cust_XXXXX id
+            const cleanPhoneVal = identifier.replace(/[\s\-\(\)\+]/g, '');
+            try {
+              const phoneSnap = await db.collection('ek_users')
+                .where('phone', '==', cleanPhoneVal).get();
+              if (!phoneSnap.empty) {
+                matched = normalizeFirestoreData(phoneSnap.docs[0].data());
+                // Link old doc to new Firebase Auth uid by updating doc
+                if (matched && authUser.uid && matched.id !== authUser.uid) {
+                  const oldId = matched.id;
+                  matched.firebaseUid = authUser.uid;
+                  db.collection('ek_users').doc(oldId).update({ 
+                    firebaseUid: authUser.uid,
+                    updatedAt: new Date().toISOString()
+                  }).catch(e => console.warn('[Migration] UID link failed:', e));
+                  console.log('[Login] Linked old user doc to Firebase Auth uid');
                 }
               }
+            } catch(e) {
+              console.warn('[Login] Phone fallback after Auth failed:', e);
+            }
+          }
+          
+          // 2. Query fallback: if Auth didn't run or find a match, query Firestore directly
+          if (!matched) {
+            let qSnap = await db.collection('ek_users').where('phone', '==', identifier).get();
+            if (qSnap.empty && cleanPhone) {
+              qSnap = await db.collection('ek_users').where('phone', '==', cleanPhone).get();
+            }
+            if (qSnap.empty && cleanPhone) {
+              qSnap = await db.collection('ek_users').where('cleanPhone', '==', cleanPhone).get();
+            }
+            if (qSnap.empty) {
+              qSnap = await db.collection('ek_users').where('email', '==', identifier).get();
+            }
+            if (qSnap.empty) {
+              qSnap = await db.collection('ek_users').where('email', '==', identifier.toLowerCase()).get();
+            }
+            if (qSnap.empty) {
+              qSnap = await db.collection('ek_users').where('name', '==', identifier).get();
+            }
+            if (qSnap.empty) {
+              const titleCaseId = identifier.charAt(0).toUpperCase() + identifier.slice(1).toLowerCase();
+              qSnap = await db.collection('ek_users').where('name', '==', titleCaseId).get();
+            }
+            if (qSnap.empty) {
+              qSnap = await db.collection('ek_users').where('name', '==', identifier.toLowerCase()).get();
+            }
+            
+            if (!qSnap.empty) {
+              const cloudUser = normalizeFirestoreData(qSnap.docs[0].data());
+              if (cloudUser) {
+                let passwordOk = false;
+                if (!cloudUser.password) {
+                  // Empty password: old version bug — trust Firebase Auth if it succeeded
+                  passwordOk = (authUser != null);
+                } else if (!cloudUser.password.startsWith('hash:') && cloudUser.password.length !== 64) {
+                  // Legacy plain text password
+                  passwordOk = (pass === cloudUser.password);
+                } else {
+                  passwordOk = await verifyPassword(pass, cloudUser.password);
+                }
+                if (passwordOk) {
+                  matched = cloudUser;
+                  // Auto-migrate password to hashed in Firestore
+                  if (!cloudUser.password || !cloudUser.password.startsWith('hash:')) {
+                    const migratedHash = 'hash:' + await hashPassword(pass);
+                    db.collection('ek_users').doc(matched.id).update({ password: migratedHash })
+                      .catch(e => console.warn('[Migration] Password hash update failed:', e));
+                  }
+                  console.log('[Cloud Login] Firestore query login succeeded with migration check.');
+                }
+              }
+            }
+          }
+          
+          // 3. Scan fallback: if exact lookups fail, download recent users to match robustly
+          if (!matched) {
+            try {
+              const allUsersSnap = await db.collection('ek_users').limit(200).get();
+              if (!allUsersSnap.empty) {
+                const fetchedUsers = [];
+                allUsersSnap.forEach(doc => {
+                  const uData = normalizeFirestoreData(doc.data());
+                  if (uData) fetchedUsers.push(uData);
+                });
+                
+                for (let u of fetchedUsers) {
+                  const normPhone = (u.phone || '').trim().replace(/[\s\-\(\)\+]/g, '');
+                  const normEmail = (u.email || '').trim().toLowerCase();
+                  const normName = (u.name || '').trim().toLowerCase();
+                  
+                  const isPhoneMatch = normPhone === normalizedInputId || 
+                                       (normPhone && normPhone.endsWith(normalizedInputId)) || 
+                                       (normalizedInputId && normalizedInputId.endsWith(normPhone));
+                  const isEmailMatch = normEmail === identifier.toLowerCase();
+                  const isNameMatch = normName === identifier.toLowerCase() || 
+                                       normName.includes(identifier.toLowerCase()) || 
+                                       identifier.toLowerCase().includes(normName);
+                  
+                  if ((isPhoneMatch || isEmailMatch || isNameMatch) && await verifyPassword(pass, u.password)) {
+                    matched = u;
+                    console.log("[Cloud Login] Succeeded scanning backup lookup!");
+                    break;
+                  }
+                }
+              }
+            } catch (scanErr) {
+              console.warn("User scan backup failed (likely due to security rules):", scanErr);
+            }
+          }
+          
+          // Propagate the matched user back into the local cache map
+          if (matched) {
+            const localUsers = getData('ek_users', []);
+            if (!localUsers.some(u => u.id === matched.id || u.phone === matched.phone)) {
+              localUsers.push(matched);
+              saveData('ek_users', localUsers);
             }
           }
         } catch (err) {
@@ -7260,12 +7386,25 @@
         } else {
           removeData('ek_remembered_credentials');
         }
-        showToast(`Welcome back, ${matched.name}! 🎉`, "success");
+        
+        // Ensure user is signed in to Firebase Auth for session writing integrity
+        if (typeof firebase !== 'undefined' && firebase.auth && matched.phone) {
+          const cleanPhone = matched.phone.replace(/[\s\-\(\)\+]/g, '');
+          firebase.auth().signInWithEmailAndPassword(`${cleanPhone}@app.com`, pass)
+            .then(cred => console.log("[Firebase Auth] Active user signed in successfully:", cred.user.uid))
+            .catch(() => {
+              firebase.auth().signInWithEmailAndPassword(`${matched.phone}@app.com`, pass)
+                .then(cred => console.log("[Firebase Auth] Active user signed in with raw phone successfully:", cred.user.uid))
+                .catch(err => console.warn("[Firebase Auth] Auth sync ignored:", err));
+            });
+        }
+        
+        showToast(currentLang === 'ta' ? `மீண்டும் வருக, ${matched.name}! 🎉` : `Welcome back, ${matched.name}! 🎉`, "success");
         setupCloudRealtimeListeners2();
         registerRealFcmToken();
         showScreen('screen-home');
       } else {
-        showToast("Invalid credentials! Try again or dial admin.", "error");
+        showToast(currentLang === 'ta' ? "தவறான நற்சான்றிதழ்கள்! மீண்டும் முயலவும் அல்லது நிர்வாகியை தொடர்பு கொள்ளவும்." : "Invalid credentials! Try again or contact admin.", "error");
       }
     }
 
@@ -7595,8 +7734,14 @@
             }
           }
         } catch (authErr) {
-          console.error("Firebase Auth registration/login failure:", authErr);
-          throw authErr;
+          console.warn("Firebase Auth registration/login failure, falling back to local registration:", authErr);
+          // Fallback registration
+          newUser.password = 'hash:' + await hashPassword(password);
+          users.push(newUser);
+          saveData('ek_users', users);
+          if (typeof db !== 'undefined' && db) {
+            await db.collection('ek_users').doc(newUser.id).set(newUser).catch(()=>{});
+          }
         }
       } else {
         // Fallback for no firebase.auth
@@ -8645,7 +8790,7 @@
 
           <!-- Interactive Search Container -->
           <div style="position: relative; display: flex; gap: 8px; width: 100%; box-sizing: border-box;">
-            <input type="text" id="map-search-input" placeholder="${currentLang === 'ta' ? '🔍 தெரு அல்லது பகுதி பெயரைத் தேடுங்கள்...' : '🔍 Search street, village, or area name...'}" style="flex: 1; min-width: 0; height: 42px; background: #141416; border: 1.5px solid #2d2d2d; border-radius: 12px; padding: 0 12px; color: #fff; font-size: 13px; font-weight: 600; box-sizing: border-box;" />
+            <input type="text" id="map-search-input" enterkeyhint="search" onkeydown="if(event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); searchMapAddress(); }" placeholder="${currentLang === 'ta' ? '🔍 தெரு அல்லது பகுதி பெயரைத் தேடுங்கள்...' : '🔍 Search street, village, or area name...'}" style="flex: 1; min-width: 0; height: 42px; background: #141416; border: 1.5px solid #2d2d2d; border-radius: 12px; padding: 0 12px; color: #fff; font-size: 13px; font-weight: 600; box-sizing: border-box;" />
             <button onclick="searchMapAddress()" style="background: linear-gradient(135deg, rgba(245,158,11,0.85) 0%, rgba(232,113,10,0.95) 100%); color: #fff; text-shadow:0 1px 1px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); font-weight: 900; border-radius: 12px; width: auto; min-width: 82px; height: 42px; padding: 0 12px; font-size: 11.5px; cursor: pointer; flex-shrink: 0; box-shadow: 0 3px 8px rgba(245,158,11,0.2); transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='none'">SEARCH</button>
           </div>
           <div id="map-search-results" style="display: none; background: #141416; border: 1.5px solid #2d2d2d; border-radius: 12px; max-height: 120px; overflow-y: auto; padding: 6px; font-size: 11.5px; color: #fff; flex-direction: column; gap: 4px; box-sizing: border-box; z-index: 10001;"></div>
@@ -8658,7 +8803,7 @@
               <button id="picker-map-theme-satellite" onclick="setPickerMapTheme('satellite')" style="background: #141416; color: #fff; border: none; padding: 4px 10.5px; font-size: 9.5px; font-weight: 500; border-radius: 6px; cursor: pointer; transition: all 0.2s;">🌍 satellite</button>
             </div>
             <!-- Satellite GPS Target accuracy locating crosshair button -->
-            <button type="button" onclick="locateUserInPickerMap()" style="position: absolute; bottom: 12px; right: 12px; z-index: 10001; background: linear-gradient(135deg, rgba(16, 185, 129, 0.78) 0%, rgba(5, 150, 105, 0.88) 100%); color: white; border: 1.2px solid rgba(255,255,255,0.3); padding: 8px 14px; font-size: 10.5px; font-weight: 850; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(16,185,129,0.4), inset 0 1px 1px rgba(255,255,255,0.45); text-shadow: 0 1px 1px rgba(0,0,0,0.45); transition: transform 0.15s ease;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='none'">
+            <button type="button" onclick="locateUserInPickerMap()" style="position: absolute; bottom: 12px; right: 12px; z-index: 10001; background: linear-gradient(135deg, rgba(16, 185, 129, 0.85) 0%, rgba(5, 150, 105, 0.95) 100%); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 5px 12px; font-size: 9.5px; font-weight: 800; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(16,185,129,0.35); text-shadow: 0 1px 1px rgba(0,0,0,0.4); transition: transform 0.15s ease;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='none'">
               <span>🎯 GPS LOCATE ME / என் இருப்பிடம்</span>
             </button>
           </div>
@@ -8672,7 +8817,7 @@
             <div id="picker-coords-text" style="color: var(--accent-orange); font-size: 10px; font-family: 'JetBrains Mono', monospace; margin-top: 4px;">11.58150, 77.84880</div>
           </div>
 
-          <button class="btn btn-primary" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.82) 0%, rgba(220, 38, 38, 0.92) 100%); border: 1.2px solid rgba(255, 255, 255, 0.35); height: 48px; border-radius: 14px; font-weight: 900; font-size: 12.5px; display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 6px 20px rgba(249,115,22,0.35), inset 0 1px 1px rgba(255, 255, 255, 0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.5); transition: transform 0.15s ease;" onclick="confirmMapAddress('${targetId}')" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='none'">
+          <button class="btn btn-primary" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.9) 0%, rgba(220, 38, 38, 0.95) 100%); border: 1px solid rgba(255, 255, 255, 0.25); height: 38px; border-radius: 20px; font-weight: 800; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 4px; margin: 0; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(249,115,22,0.3); text-shadow: 0 1px 1px rgba(0,0,0,0.4); transition: transform 0.15s ease;" onclick="confirmMapAddress('${targetId}')" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='none'">
             CONFIRM THIS LOCATION / இருப்பிடத்தை உறுதிசெய் ✅
           </button>
 
@@ -9033,7 +9178,7 @@
         targetInput.dispatchEvent(ev);
         
         // Update user session profile address if target is from profile/registration
-        if (targetId === 'prof-address-edit' || targetId === 'reg-address') {
+        if (targetId === 'prof-address-edit' || targetId === 'reg-address' || targetId === 'cart-delivery-address') {
           const session = getActiveSession();
           if (session) {
             const users = getData('ek_users', []);
@@ -10150,27 +10295,27 @@
       }
 
       if (finalLat === null || isNaN(finalLat) || finalLng === null || isNaN(finalLng)) {
-        // Fallback coordinates around Edappadi to prevent checkout block
-        const storeLat = 11.5815;
-        const storeLng = 77.8488;
-        let hash = 0;
-        const hashSeed = (user.id || user.name || "DefaultUser").toString();
-        for (let i = 0; i < hashSeed.length; i++) {
-          hash = hashSeed.charCodeAt(i) + ((hash << 5) - hash);
+        // Try forward geocoding the typed address silently
+        if (address && address.length > 5) {
+          try {
+            const geoResp = await fetch(
+              `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ', Edappadi, Salem, Tamil Nadu')}&limit=1`
+            );
+            const geoData = await geoResp.json();
+            if (geoData && geoData.length > 0) {
+              finalLat = parseFloat(geoData[0].lat);
+              finalLng = parseFloat(geoData[0].lon);
+              console.log('[Checkout Geocode] Address geocoded silently:', finalLat, finalLng);
+            }
+          } catch (geoErr) {
+            console.warn('[Checkout Geocode] Forward geocode failed:', geoErr);
+          }
         }
-        const latOffset = ((Math.abs(hash) % 100) - 50) / 10000;
-        const lngOffset = (((Math.abs(hash) >> 8) % 100) - 50) / 10000;
-        
-        finalLat = storeLat + latOffset;
-        finalLng = storeLng + lngOffset;
-        
-        console.log(`[Checkout Fallback] Coordinates were not detected. Assigned stable coordinates: ${finalLat}, ${finalLng}`);
-        showToast(
-          currentLang === 'ta' 
-            ? "💡 ஜிபிஎஸ் கிடைக்கவில்லை, எழுதப்பட்ட முகவரியின் அடிப்படையில் ஆர்டர் வெற்றிகரமாக செயலாக்கப்படுகிறது!" 
-            : "💡 GPS not detected; order successfully processed using your typed address!", 
-          "info"
-        );
+        if (!finalLat || isNaN(finalLat)) {
+          finalLat = null;
+          finalLng = null;
+          console.log('[Checkout Fallback] Coordinates unavailable, order processed without GPS.');
+        }
       }
 
       const subtotal = cart.reduce((acc, curr) => acc + curr.totalPrice, 0);
@@ -10328,195 +10473,6 @@
         showToast("ஆர்டர் செய்வதில் பிழை ஏற்பட்டது: " + err.message, "error");
       }
     }
-/* START OF DUPLICATE BLOCK COMMENT
-        let statusBadge = `<span class="badge" style="background:rgba(59,130,246,0.12); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); font-size:10px; font-weight:bold; letter-spacing:0.5px;">READY / தயார்</span>`;
-        if (o.status === 'delivering') {
-          statusBadge = `<span class="badge" style="background:rgba(245,158,11,0.15); color:var(--accent-orange); border:1px solid rgba(245,158,11,0.35); font-weight:bold; font-size:10px; letter-spacing:0.5px; animation:pulse 1.8s infinite;">DELIVERING 🚴‍♂️ / பயணத்தில்</span>`;
-        } else if (o.status === 'delivered') {
-          statusBadge = `<span class="badge" style="background:rgba(34,197,94,0.15); color:var(--accent-green); border:1px solid rgba(34,197,94,0.3); font-weight:bold; font-size:10px; letter-spacing:0.5px;">DELIVERED ✅ / முடிந்தது</span>`;
-        }
- 
-        const itemsList = o.items.map(i => {
-          const prep = getLocalizedPrepareText(i.cutStyle, i.category);
-          const prepBadge = prep ? `<span style="font-size: 9.5px; background: rgba(245,158,11,0.12); color: var(--accent-orange); border: 1.5px solid rgba(245,158,11,0.25); padding: 2px 6px; border-radius: 6px; font-weight: 700; margin-left: 6px;">${prep}</span>` : '';
-          return `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
-              <span style="font-size:12.5px; color:#fff; font-weight:600;">🥩 ${i.tamilName || i.englishName}</span>
-              <div style="display:flex; align-items:center; gap:4px;">
-                <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:rgba(255,255,255,0.85); font-weight:700;">${getFormattedItemQty(i, currentLang)}</span>
-                ${prepBadge}
-              </div>
-            </div>
-          `;
-        }).join('');
- 
-        let actionBtn = '';
-        if (currentDeliveryFilter === 'ready') {
-          actionBtn = `
-            <button class="btn" style="background:linear-gradient(135deg, #f59e0b, #ea580c); border:none; color:#ffff; font-size:12.5px; font-weight:800; padding:12px; border-radius:12px; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(245,158,11,0.25); transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="claimOrderForDelivery('${o.id}')">
-              Claim Job / இந்த வேலை
-            </button>
-          `;
-        }
-        if (o.status === 'delivering') {
-          statusBadge = `<span style="font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: bold; background: rgba(245,158,11,0.15); color: var(--accent-orange); white-space: nowrap;">DELIVERING 🚴</span>`;
-        } else if (o.status === 'delivered') {
-          statusBadge = `<span style="font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: bold; background: rgba(34,197,94,0.15); color: var(--accent-green); white-space: nowrap;">DELIVERED ✅</span>`;
-        }
- 
-        const itemsList = o.items.map(i => {
-          const prep = getLocalizedPrepareText(i.cutStyle, i.category);
-          const prepStr = prep ? ` [${prep}]` : '';
-          return `• ${i.tamilName || i.englishName} - <strong>${getFormattedItemQty(i, currentLang)}</strong>${prepStr}`;
-        }).join('<br>');
- 
-        let actionBtn = '';
-        if (currentDeliveryFilter === 'ready') {
-          actionBtn = `
-            <button class="btn" style="background: #f59e0b; border: none; color: #000; font-size: 14px; font-weight: bold; height: 46px; border-radius: 12px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(245,158,11,0.25); box-sizing: border-box;" onclick="claimOrderForDelivery('${o.id}')">
-              🙋‍♂️ Claim order / ஆர்டர் ஏற்றுக்கொள்
-            </button>
-          `;
-        } else if (currentDeliveryFilter === 'assigned') {
-          if (o.status === 'ready') {
-            actionBtn = `
-              <button class="btn" style="background: #3b82f6; border: none; color: #fff; font-size: 14px; font-weight: bold; height: 46px; border-radius: 12px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(59,130,246,0.25); box-sizing: border-box;" onclick="updateDeliveryOrderStatus('${o.id}', 'delivering')">
-                🚴‍♂️ Start Delivery / விநியோகம் தொடங்கு
-              </button>
-            `;
-          } else if (o.status === 'delivering') {
-            actionBtn = `
-              <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-                <button class="btn" style="background: #2ecc71; border: none; color: #fff; font-size: 14px; font-weight: bold; height: 48px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(46,204,113,0.3); box-sizing: border-box;" onclick="quickCompleteDelivery('${o.id}')">
-                  📦 Deliver Order / டெலிவரி செய்
-                </button>
-                <button class="btn" style="background: #1a1a2e; border: 1px solid #444; color: #fff; font-size: 13px; font-weight: 600; height: 42px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box;" onclick="openDeliveryVerification('${o.id}')">
-                  ✍️ Add Digital Signature / கையொப்பம்
-                </button>
-              </div>
-            `;
-          }
-        }
-
-        let proofHtml = '';
-        if (o.status === 'delivered') {
-          if (o.customerSignature && o.customerSignature.startsWith('data:image')) {
-            proofHtml = `
-              <div style="margin-top: 10px; border:1px solid #1c1c1e; padding:6px 10px; border-radius:8px; background:#050505; display:flex; align-items:center; justify-content:space-between;">
-                <span style="font-size:11px; color:var(--text-muted);">✍️ Signature Proof:</span>
-                <img src="${o.customerSignature}" style="max-height:28px; max-width:110px; filter: hue-rotate(140deg); background:#000; border-radius:4px; padding:1.5px; border:1px solid #222;" />
-              </div>
-            `;
-          } else {
-            proofHtml = `
-              <div style="margin-top: 10px; border:1px solid #1c1c1e; padding:6px 10px; border-radius:8px; background:#050505; display:flex; align-items:center; justify-content:space-between;">
-                <span style="font-size:11px; color:var(--text-muted);">✍️ Proof status:</span>
-                <span class="badge" style="background:rgba(34,197,94,0.12); color:var(--accent-green); font-size:9.5px; border:1px solid rgba(34,197,94,0.3);">✓ Done</span>
-              </div>
-            `;
-          }
-        }
- 
-        let borderLeftColor = 'var(--accent-blue)';
-        if (o.status === 'delivering') {
-          borderLeftColor = 'var(--accent-orange)';
-        } else if (o.status === 'delivered') {
-          borderLeftColor = 'var(--accent-green)';
-        }
-
-        const mapQuery = encodeURIComponent(o.deliveryAddress);
-        const cardHtml = `
-          <div class="card" style="margin-bottom:12px; padding:12px; border-color:${o.status === 'delivering' ? 'var(--accent-orange)' : (o.status === 'delivered' ? '#18181b' : '#222')}; border-left:4px solid ${borderLeftColor};">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px dashed #222; padding-bottom:6px;">
-              <div style="display:flex; align-items:center; gap:6px;">
-                <strong style="color:var(--accent-orange); font-family:'JetBrains Mono',monospace; font-size:15px;">${o.id}</strong>
-                <span style="font-size:11px; color:#888;">${dateStr}</span>
-              </div>
-              ${statusBadge}
-            </div>
- 
-            <div style="font-size:13px; margin-bottom:10px;">
-              <p style="font-weight:700; color:#fff; font-size:14px; margin-bottom:4px; display:flex; align-items:center; gap:6px;">👤 ${o.customerName}</p>
-              <p id="addr-${o.id}" onclick="this.style.webkitLineClamp = this.style.webkitLineClamp === 'unset' ? '2' : 'unset'; this.style.display = this.style.webkitLineClamp === 'unset' ? 'block' : '-webkit-box';" style="color:#aaa; font-size:12px; line-height:1.45; margin-bottom:6px; cursor:pointer; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; text-overflow:ellipsis; font-family:inherit;" title="Tap to expand">📍 <strong>Address:</strong> ${o.deliveryAddress}</p>
-              <p style="color:#888; font-size:11px; display:flex; align-items:center; gap:8px; margin-bottom:0; flex-wrap:nowrap; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><span>⏱️ Slot: <strong>${o.deliveryTimeSlot}</strong></span> | <span>💳 Pay: <strong>${o.paymentMethod}</strong></span></p>
-            </div>
- 
-            <div style="background:#1a1a1a; border-radius:10px; padding:10px; margin-bottom:12px; border:1px solid #222;">
-              <span style="font-size:11px; color:var(--accent-orange); text-transform:uppercase; font-weight:600; display:block; margin-bottom:6px; letter-spacing:0.5px;">BASKET / கூடை</span>
-              <div style="margin:0; line-height:1.6; font-size:12px; color: #ddd;">${itemsList}</div>
-            </div>
- 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-              <span style="color:#888; font-size:13px; font-weight:600;">${o.status === 'delivered' ? 'Total Collected:' : 'Collection Target:'}</span>
-              <span style="color:var(--accent-green); font-size:16px; font-weight:bold;">₹${o.totalAmount}</span>
-            </div>
- 
-            <div style="display:flex; gap:8px; margin-bottom:10px;">
-              <a href="tel:${o.customerPhone}" class="btn" style="flex:1; height:40px; border-radius:10px; background:#1a73e8; border:none; color:#fff; font-size:13px; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; padding: 0 16px; white-space: nowrap; box-shadow:0 3px 8px rgba(26,115,232,0.25);" onclick="event.stopPropagation();">📞 Call</a>
-              <a href="https://wa.me/91${o.customerPhone}?text=${encodeURIComponent('வணக்கம் ' + o.customerName + ', எடப்பாடி சிக்கன் & மட்டன் கடையில் இருந்து உங்கள் ஆர்டர் (' + o.id + ') விநியோகிக்க புறப்பட்டு விட்டது! 🏍️💨')}" target="_blank" class="btn" style="flex:1; height:40px; border-radius:10px; background:#25D366; border:none; color:#fff; font-size:13px; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; padding: 0 16px; white-space: nowrap; box-shadow:0 3px 8px rgba(37,211,102,0.25);" onclick="event.stopPropagation();">💬 WA</a>
-              <button onclick="event.stopPropagation(); openGoogleMapsNavigation('${o.id}')" class="btn" style="flex:1; height:40px; border-radius:10px; background:#FFA500; border:none; color:#000; font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px; padding: 0 16px; white-space: nowrap; box-shadow:0 3px 8px rgba(255,165,0,0.25); cursor:pointer;">📍 Map</button>
-            </div>
- 
-            ${o.status !== 'delivered' ? `
-            <div style="display:grid; grid-template-columns: 1fr; margin-top:6px;">
-              ${actionBtn}
-            </div>
-            ` : ''}
- 
-            ${proofHtml}
-            ${o.rating ? `
-              <div style="margin-top: 8px; border:1px solid rgba(245,158,11,0.15); padding:8px 10px; border-radius:8.5px; background:rgba(245,158,11,0.02)">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span style="font-size:10.5px; color:var(--text-muted);">⭐ Rating:</span>
-                  <span style="font-size:11px; color:var(--accent-orange); font-weight:700;">${'★'.repeat(o.rating)}${'☆'.repeat(5 - o.rating)}</span>
-                </div>
-                ${o.feedbackComment ? `
-                  <p style="margin:4px 0 0 0; font-size:11px; color:rgba(255,255,255,0.7); font-style:italic;">"${o.feedbackComment}"</p>
-                ` : ''}
-              </div>
-            ` : ''}
-          </div>
-        `;iv>
- 
-            ${o.status !== 'delivered' ? `
-            <div style="display:grid; grid-template-columns: 1fr; margin-top:6px;">
-              ${actionBtn}
-            </div>
-            ` : ''}
- 
-            ${proofHtml}
-            ${o.rating ? `
-              <div style="margin-top: 8px; border:1px solid rgba(245,158,11,0.15); padding:8px 10px; border-radius:8.5px; background:rgba(245,158,11,0.02)">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span style="font-size:10.5px; color:var(--text-muted); font-weight:600;">⭐ Rating:</span>
-                  <span style="font-size:11px; color:var(--accent-orange); font-weight:700;">${'★'.repeat(o.rating)}${'☆'.repeat(5 - o.rating)}</span>
-                </div>
-                ${o.feedbackComment ? `
-                  <p style="margin:4px 0 0 0; font-size:11px; color:rgba(255,255,255,0.7); font-style:italic;">"${o.feedbackComment}"</p>
-                ` : ''}
-              </div>
-            ` : ''}
-          </div>
-        `;
-        container.innerHTML += cardHtml;
-      });�� // அட்மின் பக்கத்தில் புதுப்பிக்கப்பட்டது! 🛰️
-                renderDeliveryScreen();
-              })
-              .catch(err => {
-                console.error(err);
-                showToast("GPS updated locally, database push pending.", "info");
-              });
-          } else {
-            showToast("GPS updated locally! ✓", "success");
-            renderDeliveryScreen();
-          }
-        }
-      }, err => {
-        console.warn("Rider manual location track failed:", err);
-        showToast("ஜிபிஎஸ் அணுகல் மறுக்கப்பட்டது அல்லது சிக்னல் இல்லை / GPS signal unavailable ❌", "error");
-      });
-    }
-END OF DUPLICATE BLOCK COMMENT */
 
     function updateRiderLiveLocation() {
       const session = getData('ek_delivery_session', null);
@@ -10973,7 +10929,7 @@ END OF DUPLICATE BLOCK COMMENT */
                     <span style="font-size:10px; color:#666;">${dateStr}</span>
                   </div>
                   <div style="font-size:12px; color:#fff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                    👤 ${o.customerName} <span style="font-size:10px; color:#888; font-weight:normal;">(${o.items.length} items)</span>
+                    👤 ${escapeHtml(o.customerName)} <span style="font-size:10px; color:#888; font-weight:normal;">(${o.items.length} items)</span>
                   </div>
                 </div>
                 <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
@@ -10998,8 +10954,8 @@ END OF DUPLICATE BLOCK COMMENT */
               </div>
    
               <div style="font-size:13px; margin-bottom:10px;">
-                <p style="font-weight:700; color:#fff; font-size:14px; margin-bottom:4px; display:flex; align-items:center; gap:6px;">👤 ${o.customerName}</p>
-                <p id="addr-${o.id}" onclick="this.style.webkitLineClamp = this.style.webkitLineClamp === 'unset' ? '2' : 'unset'; this.style.display = this.style.webkitLineClamp === 'unset' ? 'block' : '-webkit-box';" style="color:#888; font-size:12px; line-height:1.45; margin-bottom:6px; cursor:pointer; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; text-overflow:ellipsis; font-family:inherit;" title="Tap to expand">📍 ${o.deliveryAddress}</p>
+                <p style="font-weight:700; color:#fff; font-size:14px; margin-bottom:4px; display:flex; align-items:center; gap:6px;">👤 ${escapeHtml(o.customerName)}</p>
+                <p id="addr-${o.id}" onclick="this.style.webkitLineClamp = this.style.webkitLineClamp === 'unset' ? '2' : 'unset'; this.style.display = this.style.webkitLineClamp === 'unset' ? 'block' : '-webkit-box';" style="color:#888; font-size:12px; line-height:1.45; margin-bottom:6px; cursor:pointer; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; text-overflow:ellipsis; font-family:inherit;" title="Tap to expand">📍 ${escapeHtml(o.deliveryAddress)}</p>
                 <p style="color:#888; font-size:11px; display:flex; align-items:center; gap:8px; margin-bottom:0; flex-wrap:nowrap; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><span>⏱️ Slot: <strong>${o.deliveryTimeSlot}</strong></span> | <span>💳 Pay: <strong>${o.paymentMethod}</strong></span></p>
               </div>
    
@@ -11033,7 +10989,7 @@ END OF DUPLICATE BLOCK COMMENT */
                     <span style="font-size:11px; color:var(--accent-orange); font-weight:700;">${'★'.repeat(o.rating)}${'☆'.repeat(5 - o.rating)}</span>
                   </div>
                   ${o.feedbackComment ? `
-                    <p style="margin:4px 0 0 0; font-size:11px; color:rgba(255,255,255,0.7); font-style:italic;">"${o.feedbackComment}"</p>
+                    <p style="margin:4px 0 0 0; font-size:11px; color:rgba(255,255,255,0.7); font-style:italic;">"${escapeHtml(o.feedbackComment)}"</p>
                   ` : ''}
                 </div>
               ` : ''}
@@ -11347,7 +11303,7 @@ END OF DUPLICATE BLOCK COMMENT */
 
     function updateDeliveryOrderStatus(orderId, nextStatus) {
       window.locallyModifiedOrders = window.locallyModifiedOrders || {};
-      window.locallyModifiedOrders[orderId] = Date.now();
+      window.locallyModifiedOrders[orderId] = Date.now() + 120000;
 
       const orders = getData('ek_orders', []);
       const idx = orders.findIndex(o => o.id === orderId);
@@ -11371,9 +11327,20 @@ END OF DUPLICATE BLOCK COMMENT */
           .then(() => {
             console.log(`Order status of ${orderId} successfully updated to ${nextStatus}.`);
             removePendingSync('ek_orders', orderId);
+            
+            // Re-read from local storage and verify status is still correct
+            const currentOrders = getData('ek_orders', []);
+            const currentIdx = currentOrders.findIndex(o => o.id === orderId);
+            if (currentIdx !== -1 && currentOrders[currentIdx].status !== nextStatus) {
+              console.warn(`[Correction] Local status reverted to ${currentOrders[currentIdx].status}. Resetting back to ${nextStatus}.`);
+              currentOrders[currentIdx].status = nextStatus;
+              saveData('ek_orders', currentOrders);
+              renderDeliveryScreen();
+            }
           })
           .catch(err => {
             console.error("Cloud status update failed, queuing for retry:", err);
+            window.locallyModifiedOrders[orderId] = Date.now() + 120000;
             queueFailedSync('ek_orders', orderId, 'set', orders[idx]);
           });
       } else {
@@ -11479,7 +11446,7 @@ END OF DUPLICATE BLOCK COMMENT */
               <strong style="color: var(--accent-orange); font-size: 15px; font-family: 'JetBrains Mono', monospace;">${order.id}</strong>
               <span style="color: var(--accent-green); font-size: 16px; font-weight: 800;">₹${order.totalAmount}</span>
             </div>
-            <div style="color: #e5e7eb; font-size: 13px; font-weight: 700; margin-top: 4px;">👤 ${order.customerName}</div>
+            <div style="color: #e5e7eb; font-size: 13px; font-weight: 700; margin-top: 4px;">👤 ${escapeHtml(order.customerName)}</div>
             <div style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">📞 ${order.customerPhone}</div>
           </div>
 
@@ -12077,7 +12044,7 @@ END OF DUPLICATE BLOCK COMMENT */
 
       const targetEl = document.getElementById('delivery-map-target');
       if (targetEl) {
-        targetEl.innerHTML = `📍 Customer: ${order.customerName} (${order.deliveryAddress})`;
+        targetEl.innerHTML = `📍 Customer: ${escapeHtml(order.customerName)} (${escapeHtml(order.deliveryAddress)})`;
       }
 
       // Configure driver's visual simple touch action buttons
@@ -12167,7 +12134,7 @@ END OF DUPLICATE BLOCK COMMENT */
           deliveryCustomerMarker.setLatLng(custPos);
         } else {
           deliveryCustomerMarker = L.marker(custPos, { icon: custIcon }).addTo(deliveryLeafletMap)
-            .bindPopup(`<strong>${order.customerName} / வாடிக்கையாளர் இல்லம் 🏠</strong>`);
+            .bindPopup(`<strong>${escapeHtml(order.customerName)} / வாடிக்கையாளர் இல்லம் 🏠</strong>`);
         }
 
         if (deliveryRoutePolyline) {
@@ -12247,7 +12214,7 @@ END OF DUPLICATE BLOCK COMMENT */
           .bindPopup("<strong>Lyo Food Delivery (நம்ம கடை) - Kavandampatti, Edappadi 🏪🍖</strong>");
 
         deliveryCustomerMarker = L.marker(custPos, { icon: custIcon }).addTo(deliveryLeafletMap)
-          .bindPopup(`<strong>${order.customerName} / வாடிக்கையாளர் இல்லம் 🏠</strong>`);
+          .bindPopup(`<strong>${escapeHtml(order.customerName)} / வாடிக்கையாளர் இல்லம் 🏠</strong>`);
 
         deliveryRoutePolyline = L.polyline([storePos, custPos], {
           color: '#ff9800',
@@ -14947,7 +14914,12 @@ END OF DUPLICATE BLOCK COMMENT */
             fcmTokenDisplay.innerText = "Generating fallback system instance...";
           }
         } else {
-          fcmTokenDisplay.innerText = "Simulator default: fcm_web_sim_token_8778148899";
+          let webToken = localStorage.getItem('ek_web_fcm_token');
+          if (!webToken) {
+            webToken = "fcm_web_sim_token_" + Math.floor(10000000 + Math.random() * 90000000);
+            localStorage.setItem('ek_web_fcm_token', webToken);
+          }
+          fcmTokenDisplay.innerText = "Simulator default: " + webToken;
           if (fcmConnectionStatus) {
             fcmConnectionStatus.innerText = "WEB SIMULATION ON 🌐";
             fcmConnectionStatus.style.background = "#f59e0b";
@@ -15908,7 +15880,7 @@ END OF DUPLICATE BLOCK COMMENT */
 
             <!-- Primary Customer Info (Always Visible) -->
             <div style="font-size:13px; margin-bottom:2px; display:flex; flex-direction:column; gap:2.5px;">
-              <p style="margin: 0; font-weight:700; color:#ffffff; font-size:13.5px;">👤 ${o.customerName}</p>
+              <p style="margin: 0; font-weight:700; color:#ffffff; font-size:13.5px;">👤 ${escapeHtml(o.customerName)}</p>
               <p style="margin: 0; font-size:12px; color:var(--text-secondary);">📞 <a href="tel:${o.customerPhone}" style="color:var(--accent-orange); text-decoration:none; font-weight:600;" onclick="event.stopPropagation()">${o.customerPhone}</a></p>
             </div>
             
@@ -15923,7 +15895,7 @@ END OF DUPLICATE BLOCK COMMENT */
             <!-- Expanded Info Section (Toggleable Details) -->
             <div id="order-details-${o.id}" style="display: ${isExpanded ? 'block' : 'none'}; margin-top: 12px; border-top: 1px solid #262626; padding-top: 12px;" onclick="event.stopPropagation()">
               <div style="font-size:12px; margin-bottom:8px; line-height:1.45;">
-                <p style="color:var(--text-secondary);">📍 <strong>Delivery Address:</strong> ${o.deliveryAddress}</p>
+                <p style="color:var(--text-secondary);">📍 <strong>Delivery Address:</strong> ${escapeHtml(o.deliveryAddress)}</p>
                 <p style="color:var(--text-secondary); margin-top:4px;">⏱️ Slot: <strong>${o.deliveryTimeSlot}</strong> | 💳 Payment: <strong>${o.paymentMethod}</strong></p>
               </div>
 
@@ -16003,6 +15975,9 @@ END OF DUPLICATE BLOCK COMMENT */
     }
 
     function changeOrderStatus(id, nextStatus) {
+      window.locallyModifiedOrders = window.locallyModifiedOrders || {};
+      window.locallyModifiedOrders[id] = Date.now() + 120000;
+
       const orders = getData('ek_orders');
       const idx = orders.findIndex(o => o.id === id);
       if (idx === -1) return;
@@ -16013,9 +15988,6 @@ END OF DUPLICATE BLOCK COMMENT */
         orders[idx].customerSignature = "Delivered manually by Admin 👑";
       }
       orders[idx].updatedAt = new Date().toISOString();
-      
-      window.locallyModifiedOrders = window.locallyModifiedOrders || {};
-      window.locallyModifiedOrders[id] = Date.now();
 
       saveData('ek_orders', orders);
 
@@ -16040,9 +16012,20 @@ END OF DUPLICATE BLOCK COMMENT */
           .then(() => {
             console.log(`[Cloud Sync] Order status for ${id} written to Cloud Firestore successfully!`);
             removePendingSync('ek_orders', id);
+
+            // Re-read from local storage and verify status is still correct
+            const currentOrders = getData('ek_orders', []);
+            const currentIdx = currentOrders.findIndex(o => o.id === id);
+            if (currentIdx !== -1 && currentOrders[currentIdx].status !== nextStatus) {
+              console.warn(`[Correction] Local status reverted to ${currentOrders[currentIdx].status}. Resetting back to ${nextStatus}.`);
+              currentOrders[currentIdx].status = nextStatus;
+              saveData('ek_orders', currentOrders);
+              renderAdminDashboard();
+            }
           })
           .catch(err => {
             console.error(`[Cloud Sync] Failed writing updated order status for ${id}:`, err);
+            window.locallyModifiedOrders[id] = Date.now() + 120000;
             queueFailedSync('ek_orders', id, 'set', orders[idx]);
           });
       } else {
@@ -16054,6 +16037,9 @@ END OF DUPLICATE BLOCK COMMENT */
     }
 
     function assignDeliveryPartner(orderId, executiveId) {
+      window.locallyModifiedOrders = window.locallyModifiedOrders || {};
+      window.locallyModifiedOrders[orderId] = Date.now() + 120000;
+
       const orders = getData('ek_orders', []);
       const idx = orders.findIndex(o => o.id === orderId);
       if (idx === -1) return;
@@ -16092,9 +16078,7 @@ END OF DUPLICATE BLOCK COMMENT */
       }
 
       orders[idx].updatedAt = new Date().toISOString();
-      
-      window.locallyModifiedOrders = window.locallyModifiedOrders || {};
-      window.locallyModifiedOrders[orderId] = Date.now();
+      const expectedStatus = orders[idx].status;
 
       saveData('ek_orders', orders);
 
@@ -16110,9 +16094,20 @@ END OF DUPLICATE BLOCK COMMENT */
           .then(() => {
             console.log(`[Cloud Sync] Assignment updated for ${orderId}`);
             removePendingSync('ek_orders', orderId);
+
+            // Re-read from local storage and verify status is still correct
+            const currentOrders = getData('ek_orders', []);
+            const currentIdx = currentOrders.findIndex(o => o.id === orderId);
+            if (currentIdx !== -1 && currentOrders[currentIdx].status !== expectedStatus) {
+              console.warn(`[Correction] Local status reverted to ${currentOrders[currentIdx].status}. Resetting back to ${expectedStatus}.`);
+              currentOrders[currentIdx].status = expectedStatus;
+              saveData('ek_orders', currentOrders);
+              renderAdminDashboard();
+            }
           })
           .catch(err => {
             console.error("Cloud assignment update failed, queuing for retry:", err);
+            window.locallyModifiedOrders[orderId] = Date.now() + 120000;
             queueFailedSync('ek_orders', orderId, 'set', orders[idx]);
           });
       } else {
@@ -17096,7 +17091,7 @@ END OF DUPLICATE BLOCK COMMENT */
           <div class="card" style="border-color:#2a2a2a; margin-bottom:10px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <div onclick="openCustomerDetail('${u.id}')" style="cursor:pointer; flex: 1; padding-right: 8px;">
-                <h4 style="color:#fff; font-size:14px;">👤 ${u.name} <span class="badge" style="background:#222; margin-left:4px;">${u.tier.toUpperCase()}</span></h4>
+                <h4 style="color:#fff; font-size:14px;">👤 ${escapeHtml(u.name)} <span class="badge" style="background:#222; margin-left:4px;">${u.tier.toUpperCase()}</span></h4>
                 <p style="font-size:11px; color:var(--accent-orange); margin-top:2px;">📞 +91 ${u.phone}</p>
                 <p style="font-size:11px; color:var(--text-secondary); margin-top:4px;">Orders counter: <strong>${myOrders.length} times</strong> | Gross Turnout: <strong>₹${spent}</strong></p>
               </div>
@@ -17252,14 +17247,14 @@ END OF DUPLICATE BLOCK COMMENT */
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <div>
                 <span style="font-size:10px; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Order Match: #${o.id}</span>
-                <h4 style="color:#fff; font-size:13.5px; margin: 2px 0 0 0;">👤 ${o.customerName || 'Customer'} <span style="font-size: 11px; color: var(--text-muted); font-weight:normal;">(${dateStr})</span></h4>
+                <h4 style="color:#fff; font-size:13.5px; margin: 2px 0 0 0;">👤 ${escapeHtml(o.customerName || 'Customer')} <span style="font-size: 11px; color: var(--text-muted); font-weight:normal;">(${dateStr})</span></h4>
                 <p style="font-size:11px; color:var(--accent-orange); margin: 2px 0 0 0;">📞 +91 ${o.customerPhone || ''}</p>
               </div>
               <span style="font-size:14px; color:var(--accent-orange); font-weight:700;">${starsStr}</span>
             </div>
             
             <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.04); border-radius:8px; padding: 10px; font-size: 11.5px; line-height: 1.45; color: rgba(255,255,255,0.9); font-style: italic;">
-              "${comment}"
+              "${escapeHtml(comment)}"
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:10.5px; color:var(--text-muted); border-top:1px dashed rgba(255,255,255,0.04); padding-top:6px; margin-top:2px;">
@@ -19318,6 +19313,7 @@ END OF DUPLICATE BLOCK COMMENT */
         const handleOrdersSnapshot = (snapshot) => {
           if (!snapshot) return;
           if (snapshot.metadata && snapshot.metadata.hasPendingWrites) { console.log("[Orders Sync] Skipping pending-write snapshot."); return; }
+          if (snapshot.metadata && snapshot.metadata.fromCache) { console.log("[Orders Sync] Skipping fromCache snapshot."); return; }
           
           if (typeof snapshot.docChanges === 'function') {
             let hasPending = false;
@@ -19344,7 +19340,7 @@ END OF DUPLICATE BLOCK COMMENT */
 
               // GUARD SYSTEM: Sheild freshly generated local updates from being overridden by old cloud snapshot iterations
               const localModifiedTime = window.locallyModifiedOrders ? window.locallyModifiedOrders[cloudOrder.id] : null;
-              if (localModifiedTime && (Date.now() - localModifiedTime < 10000)) {
+              if (localModifiedTime && (Date.now() - localModifiedTime < 120000)) {
                 console.log(`[Cloud Live Sync] Shielding order ${cloudOrder.id} from cloud snapshot overwrites to prevent stale revert rollbacks.`);
                 return;
               }
@@ -19439,14 +19435,6 @@ END OF DUPLICATE BLOCK COMMENT */
               handleLiveStreamError('orders_admin_recent', err);
             });
           unsubs.push(unsubAdminRecent);
-
-          // Backup Admin Orders Stream - Index-free unordered stream of orders to guarantee that ALL orders are synced even if createdAt is missing or index is lagged
-          const unsubAdminBackup = db.collection('ek_orders')
-            .limit(150)
-            .onSnapshot({ includeMetadataChanges: true }, handleOrdersSnapshot, err => {
-              console.warn("[Cloud Live Sync] Admin backup orders stream interrupted:", err);
-            });
-          unsubs.push(unsubAdminBackup);
 
         } else if (dSession) {
           console.log("[Cloud Live Sync] Initializing Delivery Boy Scoped real-time order listeners...");
@@ -19568,6 +19556,7 @@ END OF DUPLICATE BLOCK COMMENT */
           }
         }, err => {
           console.warn("[Cloud Live Sync] Lyo AI Config stream interrupted: ", err);
+          handleLiveStreamError('lyoAiConfig', err);
         });
       } catch (e) {
         console.error("[Cloud Live Sync] Failed to attach Lyo AI Config listener:", e);
@@ -19832,6 +19821,7 @@ END OF DUPLICATE BLOCK COMMENT */
           }
         }, err => {
           console.warn("[Cloud Live Sync] Categories stream interrupted: ", err);
+          handleLiveStreamError('categories', err);
         });
       } catch (e) {
         console.error("[Cloud Live Sync] Failed to attach categories listener:", e);
@@ -19893,6 +19883,7 @@ END OF DUPLICATE BLOCK COMMENT */
           }
         }, err => {
           console.warn("[Cloud Live Sync] Admin accounts stream interrupted: ", err);
+          handleLiveStreamError('adminAccounts', err);
         });
         } catch (e) {
           console.error("[Cloud Live Sync] Failed to attach admin accounts listener:", e);
@@ -21080,30 +21071,27 @@ END OF DUPLICATE BLOCK COMMENT */
         }
         const newC = {
           id: 'CP' + Math.floor(100000 + Math.random() * 900000),
-          code, type, rate, minAmount, descEn, descTa
+          code,
+          type,
+          rate,
+          minAmount,
+          descEn,
+          descTa
         };
         coupons.push(newC);
-        showToast(currentLang === 'ta' ? "புதிய கூப்பன் வெற்றிகரமாக சேர்க்கப்பட்டது!" : "Custom coupon created successfully!", "success");
+        showToast(currentLang === 'ta' ? "கூப்பன் வெற்றிகரமாக சேர்க்கப்பட்டது!" : "Coupon added successfully!", "success");
       }
 
       saveCoupons(coupons);
-      resetCouponForm();
       renderAdminCoupons();
+      resetCouponForm();
     }
 
     function resetCouponForm() {
       document.getElementById('edit-coupon-id').value = '';
-      document.getElementById('add-coupon-code').value = '';
-      document.getElementById('add-coupon-type').value = 'percentage';
-      document.getElementById('add-coupon-rate').value = '10';
-      document.getElementById('add-coupon-min').value = '199';
-      document.getElementById('add-coupon-desc-en').value = '';
-      document.getElementById('add-coupon-desc-ta').value = '';
-
-      const submitBtn = document.getElementById('coupon-submit-btn');
-      if (submitBtn) submitBtn.innerText = "Create Coupon ✓";
-      const cancelBtn = document.getElementById('coupon-cancel-btn');
-      if (cancelBtn) cancelBtn.style.display = 'none';
+      document.getElementById('admin-coupon-form').reset();
+      document.getElementById('coupon-submit-btn').innerText = (currentLang === 'ta' ? "கூப்பன் உருவாக்கு ✓" : "Create Coupon ✓");
+      document.getElementById('coupon-cancel-btn').style.display = 'none';
       onCouponTypeChange();
     }
 
@@ -21120,51 +21108,46 @@ END OF DUPLICATE BLOCK COMMENT */
       document.getElementById('add-coupon-desc-en').value = c.descEn;
       document.getElementById('add-coupon-desc-ta').value = c.descTa;
 
-      const submitBtn = document.getElementById('coupon-submit-btn');
-      if (submitBtn) submitBtn.innerText = "Save Coupon Updates ✓";
-      const cancelBtn = document.getElementById('coupon-cancel-btn');
-      if (cancelBtn) cancelBtn.style.display = 'inline-block';
       onCouponTypeChange();
+      document.getElementById('coupon-submit-btn').innerText = (currentLang === 'ta' ? "கூப்பனை புதுப்பி ✓" : "Update Coupon ✓");
+      document.getElementById('coupon-cancel-btn').style.display = 'inline-block';
       
-      // scroll to edit form
-      document.getElementById('admin-coupon-form').scrollIntoView({ behavior: 'smooth' });
+      const formCard = document.getElementById('admin-coupon-form');
+      if (formCard) formCard.scrollIntoView({ behavior: 'smooth' });
     }
 
     function deleteCoupon(id) {
-      showCustomConfirm("அழிக்க வேண்டுமா?", "Are you sure you want to delete this promotional coupon code?", () => {
+      if (confirm(currentLang === 'ta' ? "இந்த கூப்பனை நீக்க வேண்டுமா?" : "Are you sure you want to delete this coupon?")) {
         let coupons = getCoupons();
         coupons = coupons.filter(c => c.id !== id);
         saveCoupons(coupons);
         renderAdminCoupons();
-        showToast("Promo coupons deleted successfully.", "warning");
-      });
+        showToast(currentLang === 'ta' ? "கூப்பன் நீக்கப்பட்டது." : "Coupon deleted.", "info");
+      }
     }
 
-    // DYNAMIC GREETINGS & BEHAVIORAL TRIGGERS ENGINE on customer profile
     function updateProfileGamification() {
-      const session = getActiveSession();
-      if (!session) return;
-      const users = getData('ek_users');
-      const u = users.find(x => x.id === session.userId);
+      const u = getActiveUser();
       if (!u) return;
 
-      const greetBanner = document.getElementById('prof-dynamic-greeting-banner');
-      const orders = getData('ek_orders').filter(o => o.customerId === u.id);
-      const totalAmountSpent = orders.reduce((acc, curr) => acc + (curr.totalAmount || curr.subtotalAmount || 0), 0);
+      const allOrders = getData('ek_orders', []);
+      const orders = allOrders.filter(o => o.customerId === u.id);
+      const totalAmountSpent = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
-      // Generate localized premium dynamic greeting message
-      let messageEn = `Welcome to the exclusive inner circle, ${u.name}! `;
-      let messageTa = `வணக்கம் ${u.name}! `;
+      const greetBanner = document.getElementById('prof-greet-banner');
+      let messageEn = "";
+      let messageTa = "";
 
       if (orders.length === 0) {
-        messageEn += `Your gourmet journey begins now! Get a massive discount on your first meat bowl today! 🥩`;
-        messageTa += `உங்கள் முதல் சுவையான ஆஃபரை பெற இப்போதே ஒரு ஆர்டர் செய்திடுங்கள்! 🍖`;
-      } else if (orders.length < 3) {
-        messageEn += `Perfect! You are only ${3 - orders.length} orders away from becoming a registered Silver Elite VIP customer! 🚀`;
-        messageTa += `வெறும் ${3 - orders.length} ஆர்டர்கள் மட்டும் முடித்து நீங்கள் சில்வர் விஐபி ஆகலாம்! 🚀`;
+        messageEn = "Welcome! Order high-quality fresh cut meats or daily farm veggies to level up! 🚀";
+        messageTa = "வரவேற்கிறோம்! உயர்தர இறைச்சி அல்லது காய்கறிகளை ஆர்டர் செய்து உங்கள் கணக்கை மேம்படுத்துங்கள்! 🚀";
+      } else if (orders.length < 4) {
+        const remaining = 4 - orders.length;
+        messageEn = `Great job! Just ${remaining} more order${remaining > 1 ? 's' : ''} to become a Silver VIP Member! 🌟`;
+        messageTa = `அற்புதம்! நீங்கள் சில்வர் விஐபி ஆக இன்னும் ${remaining} ஆர்டர்கள் மட்டுமே தேவை! 🌟`;
       } else {
-        messageEn += `Spectacular! Thank you for ordering ${orders.length} times. Keep checking details for hidden gourmet deals! 🔥`;
-        messageTa += `அற்புதம்! எங்களின் எலைட் வாடிக்கையாளராக விளங்குவதற்கு மிக்க நன்றி! 🔥`;
+        messageEn = `Spectacular! Thank you for ordering ${orders.length} times. Keep checking details for hidden gourmet deals! 🔥`;
+        messageTa = `அற்புதம்! எங்களின் எலைட் வாடிக்கையாளராக விளங்குவதற்கு மிக்க நன்றி! 🔥`;
       }
 
       if (greetBanner) {
@@ -22089,22 +22072,22 @@ END OF DUPLICATE BLOCK COMMENT */
       let addedAny = false;
 
       msg.proposalData.forEach(p => {
-        const matched = products.find(prod => prod.id === p.productId);
-        if (matched && !matched.isOutOfStock && matched.stockKg > 0) {
-          const unit = matched.unit || 'kg';
-          const exists = cart.some(item => item.productId === matched.id && item.weightGrams === p.weightGrams);
-          if (!exists) {
+        const matched2 = products.find(prod => prod.id === p.productId);
+        if (matched2 && !matched2.isOutOfStock && matched2.stockKg > 0) {
+          const already = cart.find(c => c.productId === p.productId && c.weightGrams === p.weightGrams);
+          if (!already) {
+            const unit = matched2.unit || 'kg';
             const cartItem = {
-              productId: matched.id,
-              tamilName: matched.tamilName,
-              englishName: matched.englishName,
+              productId: matched2.id,
+              tamilName: matched2.tamilName,
+              englishName: matched2.englishName,
               weightGrams: p.weightGrams,
               unit: unit,
               cutStyle: 'Small Pieces',
-              category: matched.category,
-              specialNote: 'Added via Lyo AI Chatbot Auto-All',
-              pricePerKg: matched.pricePerKg,
-              imageUrl: matched.imageUrl || '',
+              category: matched2.category,
+              specialNote: 'Added via Lyo AI Chatbot Proposal',
+              pricePerKg: matched2.pricePerKg,
+              imageUrl: matched2.imageUrl || '',
               totalPrice: p.totalPrice
             };
             cart.push(cartItem);
@@ -22115,14 +22098,39 @@ END OF DUPLICATE BLOCK COMMENT */
 
       if (addedAny) {
         saveCart();
-        showToast(currentLang === 'ta' ? "அனைத்து பொருட்களும் கூடையில் சேர்க்கப்பட்டது! 🛒" : "All proposal items added to checkout cart!", "success");
+        showToast(currentLang === 'ta' ? "அனைத்து பொருட்களும் கூடையில் சேர்க்கப்பட்டன! 🛒" : "All proposed items added to cart!", "success");
         renderLyoAiMessages();
         updateLyoAiStickyCart();
       } else {
-        showToast(currentLang === 'ta' ? "அனைத்து பொருட்களும் ஏற்கனவே கூடையில் உள்ளன!" : "All items are already in the cart!", "info");
+        showToast(currentLang === 'ta' ? "பொருட்கள் ஏற்கனவே கூடையில் உள்ளன!" : "All items are already in the cart!", "info");
       }
     }
 
+    /*
+        if (matched && !matched.isOutOfStock && matched.stockKg > 0) {
+       14. PRECISE MATHEMATICAL CALCULATION & BILLING DETAILS (துல்லியமான கணிதக் கணக்கீடுகள்!):
+- Whenever the customer asks to order, buy, or inquires about product prices/availabilities, YOU MUST understand their exact requested quantities (e.g. 500g, 1.5Kg, 10 pieces) and perform mathematically precise calculations.
+- In your conversational Salem Tamil response, you must explicitly list out the step-by-step billing calculations:
+  * Product name and selected quantity (e.g., 500g, 2 Kg, 10 pcs).
+  * Unit Rate of the product from the live database (e.g., ₹240/Kg, ₹780/Kg).
+  * Item Total Cost computed mathematically as: (Rate / 1000) * weightGrams, or Rate * pieces (e.g., 500g of Chicken = ₹120, or 2 Kg of Mutton = ₹1560). Show the multiplication equation like: "அரை கிலோ சிக்கன் (500g) = 0.5 x ₹240 = ₹120".
+  * Delivery charge: State the exact delivery charge (e.g., ₹40 standard, or dynamic, or ₹0 FREE for Gold members).
+  * Grand Total: Subtotal + Delivery charge (e.g., ₹120 items + ₹40 delivery = ₹160 total).
+- Reassure them that they can place the order directly in 1-click by tapping the "சரி/Confirm" or "🛍️ உடனே ஆர்டர் செய்" buttons on the action card displayed beneath your response.
+
+15. MULTILINGUAL, SPEECH/VOICE, & SPELLING/PRONUNCIATION ROBUSTNESS (மொழி, குரல் மற்றும் உச்சரிப்பு பிழைகளை கடந்து புரிந்து கொள்ளுதல்!):
+- Customers will interact with you using Voice Input, pure Tamil (தமிழ்), English, or mixed Tanglish (e.g. "chiken oru kilo podunga", "mattan vaanganum", "thakkali rate enna").
+- VOICE TRANSCRIPTION TRANSFORMATION: Voice-to-text engines often produce weird phonetic transcriptions or mild spelling errors (e.g., "chikan", "sicken", "mattan", "venkayam", "vingayam", "முட்ட", "தக்காளி" spelt as "தக்காலி", "சிக்கன்" as "சிகன்", "பாயிலர்" instead of broiler chicken).
+- YOU MUST BE INSANELY LENIENT and use advanced phonetic matching and context awareness! Undergo fuzzy matching inside your brain to identify the exact target product.
+- If a customer types or speaks a word with typos or colloquial phonetic spellings, NEVER say you don't understand, and DO NOT fail. Intelligently map it to the correct live in-stock item (e.g. map "chikan" or "sicken" to "Broiler Chicken" or "Country Chicken", "venkayam" to "Big Onion", "thakkali" to "Country Tomato", "muttai" to "White Eggs").
+- When executing 'parse_customer_order_request', use the corrected official English or Tamil name from our live database as the 'product_name' argument, so that the shopping cart can process it perfectly! Always align spelling mismatches before dispatching the tool call!
+
+LIVE PRODUCTS DATABASE IN STOCK (100% Real Live context):
+${formattedProducts}��யில் உள்ளன!" : "All items are already in the cart!", "info");
+      }
+    }
+
+    */
     async function checkoutAllLyoProposalItems(msgIdx) {
       const msg = lyoAiChatHistory[msgIdx];
       if (!msg || !msg.proposalData) return;
@@ -22699,15 +22707,16 @@ MANDATE 4: DEEP CUSTOMER PERSONALIZATION & PROFILE EMPOWERMENT (வாடிக�
 
 1. SPEECH VIBRANCE & HIGH RESILIENCE (ஒவ்வொரு வினாவிற்கும் துடிப்புடன் பதில் அளி!):
    - Answer all customer requests with immense freshness, high energy, and native Salem-style Tamil slang words like "அண்ணே", "அக்கா", "என்ன சமையல் இன்னைக்கு?". Ensure they feel connected to a warm, enthusiastic neighborhood shopkeeper.
-   - VERY IMPORTANT: Align your speech and praise phrases to the exact categories of food items they chose or asked about.
-     - If they ask for FRUITS (பழங்கள்): Say "பழங்கள் எல்லாம் மரத்துல இருந்து இப்போதான் பறிச்ச தங்கம் மாதிரி நல்லா தித்திப்பா பளபளக்குதுங்க அண்ணே/அக்கா! 🍎🍌"
-     - If they ask for VEGETABLES (காயக்கறிகள்): Say "காய்கறி எல்லாம் தோட்டத்துல இருந்து இப்போதான் பறிச்ச தங்கம் மாதிரி நல்லா பசுமையா பளபளக்குதுங்க அண்ணே/அக்கா! 🥦🥕"
-     - If they ask for FISH (மீன்): Say "மீன் சும்மா ஆத்துல இருந்து இப்போதான் பிடிச்ச தங்கம் மாதிரி நல்லா துடிதுடிப்பா பளபளக்குதுங்க அண்ணே/அக்கா! 🐟"
-     - If they ask for MEAT/CHICKEN/MUTTON (இறைச்சி): Say "கறி சும்மா வெட்டி வச்ச தங்கம் மாதிரி பளபளக்குதுண்ணே! 🥩"
-     - If they ask for DAIRY/EGGS (முட்டை/பால்): Say "முட்டை மற்றும் பால் பொருட்கள் சும்மா தூய்மையா ஊட்டச்சத்துக்கள் நிறைந்து தங்கம் போல பளபளக்குதுங்க அண்ணே/அக்கா! 🥚🥛"
-     - If they ask for GROCERIES (மளிகை): Say "மளிகை பொருட்கள் எல்லாம் தூய்மையா பேக் செய்யப்பட்டு தங்கம் போல பளபளக்குதுங்க அண்ணே/அக்கா! 🧂"
-     - If it's a mixed variety basket: Say "பொருட்கள் அனைத்தும் கடையிலிருந்து மிகத் தரமாக அள்ளித் தங்கம் போலப் பளபளப்பாத் தயார் செஞ்சு வச்சிருக்கேன் அண்ணே/அக்கா! 🛍️"
-     - ALWAYS match the tone beautifully and NEVER use generic "meat-cutting" phrases if the customer's request only contains vegetables, fruits, groceries, dairy, or fish!
+   - VERY IMPORTANT: Align your speech and praise phrases to the exact categories of food items they chose or asked about. This store contains these active categories dynamically synced from database: [${distinctCategories.join(', ')}].
+   - Dynamically praise the products based on their category:
+     - For FRUITS (பழங்கள்) or VEGETABLES (காயக்கறிகள்) categories: Praise with farm-fresh, directly harvested quality: "பொருட்கள் எல்லாம் மரத்துல/தோட்டத்துல இருந்து இப்போதான் பறிச்ச தங்கம் மாதிரி நல்லா தித்திப்பா பசுமையா பளபளக்குதுங்க அண்ணே/அக்கா! 🍎🥦"
+     - For FISH (மீன்) category: Praise with river-freshness: "மீன் சும்மா ஆத்துல இருந்து இப்போதான் பிடிச்ச தங்கம் மாதிரி நல்லா துடிதுடிப்பா பளபளக்குதுங்க அண்ணே/அக்கா! 🐟"
+     - For MEAT, CHICKEN, or MUTTON (இறைச்சி) categories: Praise with freshly cut precision: "கறி சும்மா வெட்டி வச்ச தங்கம் மாதிரி பஞ்சு போல பளபளக்குதுண்ணே! 🥩"
+     - For DAIRY/EGGS (முட்டை/பால்) category: Praise with nutrition and pure quality: "முட்டை மற்றும் பால் பொருட்கள் சும்மா தூய்மையா ஊட்டச்சத்துக்கள் நிறைந்து தங்கம் போல பளபளக்குதுங்க அண்ணே/அக்கா! 🥚🥛"
+     - For GROCERIES (மளிகை) category: Praise with hygienic packing and premium select grains: "மளிகை பொருட்கள் எல்லாம் தூய்மையா பேக் செய்யப்பட்டு தங்கம் போல பளபளக்குதுங்க அண்ணே/அக்கா! 🧂"
+     - For ANY OTHER OR NEWLY CREATED CATEGORIES (such as dynamic additions to the store like Masala, Organic, etc.): Sincerely and enthusiastically praise them with specific mentions of the category name and its premium quality: "நம்ம கடையோட பொருட்கள் அனைத்தும் கடையிலிருந்து மிகத் தரமாக அள்ளித் தங்கம் போலப் பளபளப்பாத் தயார் செஞ்சு வச்சிருக்கேன் அண்ணே/அக்கா! 🛍️"
+   - ALWAYS adapt the speech and praise phrases intelligently to exactly match whatever category names are listed in the dynamic catalogue. Never use meat-cutting metaphors when talking about vegetables, fruits, groceries, or other non-meat categories!
+   - Even if new categories are added or dynamic names are configured, recognize the products under them and describe their organic and hygienic value with high clarity! Ensure the final order can be placed smoothly.
 2. NEVER SAY NO TO A PRODUCT REQUEST (மட்டும் இல்லன்னு மட்டும் சொல்லாதே!):
    - If the customer requests a meat cut, egg type, or vegetable that is OUT OF STOCK, LOW, or NOT listed in our 'LIVE PRODUCTS DATABASE' below, YOU MUST NEVER SAY "Out of stock", "Not available", or "We don't have it"!
    - Instead, immediately offer a highly appetizing and available ALTERNATIVE!
@@ -23431,11 +23440,14 @@ ${adminDirectives}
 
       // Format current active products table for context injection
       let formattedProducts = "ID | Category | Name (English / Tamil) | Rate (₹) | Unit | Stock Kg / Piece\n";
-      products.filter(p => !p.isHidden).forEach(p => {
+      const activeProds = products.filter(p => !p.isHidden);
+      activeProds.forEach(p => {
         const stockStatus = p.isOutOfStock ? 'OUT OF STOCK' : (p.stockKg || 0);
         const u = p.unit || 'Kg';
         formattedProducts += `${p.id} | ${p.category} | ${p.englishName} / ${p.tamilName} | ₹${p.pricePerKg} | ${u} | ${stockStatus}\n`;
       });
+
+      const distinctCategories = Array.from(new Set(activeProds.map(p => p.category || 'General')));
 
       // Format customer recent orders
       let formattedOrders = "Order ID | Status | Subtotal | Total Paid | Items and Quantities\n";
@@ -23629,6 +23641,11 @@ If order status is 'delivering', ALWAYS begin response with "🏍️ உங்�
   * Delivery charge: State the exact delivery charge (e.g., ₹40 standard, or dynamic, or ₹0 FREE for Gold members).
   * Grand Total: Subtotal + Delivery charge (e.g., ₹120 items + ₹40 delivery = ₹160 total).
 - Reassure them that they can place the order directly in 1-click by tapping the "சரி/Confirm" or "🛍️ உடனே ஆர்டர் செய்" buttons on the action card displayed beneath your response.
+
+15. EXTREMELY RESILIENT VOICE, TAMIL, ENGLISH & PHONETIC TYPO UNDERSTANDING (குரல் மற்றும் உச்சரிப்புப் பிழைகளைத் துல்லியமாகப் புரிந்துகொள்ளுதல்!):
+- Customers may interact using voice recording, Tamil text, English text, or Tanglish/Tamil-phonetic text. Their input might contain heavy spelling errors, regional speech-to-text pronunciation inaccuracies, or slang (e.g., "சிகன்", "முட்டை" pronounced as "முட்ட", "தக்காளி" as "தக்காலி", "வெங்காயம்" as "வெங்காய", "chicken" typed as "ciken", "mutton" typed as "muttan").
+- You MUST be extremely tolerant and intelligent when processing these. Map all misspelled words, transcription errors, or regional phonetics to the correct, actual product in the LIVE PRODUCTS DATABASE.
+- Never refuse an order due to incorrect spelling, language mix, or voice recognition errors. Identify their exact intention, clarify gracefully if needed, and confidently call the 'parse_customer_order_request' tool with the correct database product name. Your spoken reply must always be extremely clear and welcoming.
 
 LIVE PRODUCTS DATABASE IN STOCK (100% Real Live context):
 ${formattedProducts}
@@ -24403,6 +24420,61 @@ Store details: Standard Shipping is ₹${settings.deliveryCharge || 40}. Actual 
                 break;
               }
             }
+          }
+        }
+
+        // 4. Advanced similarity score and dynamic token overlap for dynamic names & custom categories
+        if (!matchedProd) {
+          let bestScore = 0;
+          let bestMatch = null;
+          const normalizedQuery = rawName.toLowerCase();
+
+          products.filter(p => !p.isHidden).forEach(p => {
+            const engName = (p.englishName || '').toLowerCase();
+            const tamName = (p.tamilName || '').toLowerCase();
+            const catName = (p.category || '').toLowerCase();
+
+            let score = 0;
+
+            // Direct substring matches
+            if (engName.includes(normalizedQuery) || normalizedQuery.includes(engName)) {
+              score += 0.6;
+            }
+            if (tamName.includes(normalizedQuery) || normalizedQuery.includes(tamName)) {
+              score += 0.6;
+            }
+
+            // Category match bonus
+            if (catName && (normalizedQuery.includes(catName) || catName.includes(normalizedQuery))) {
+              score += 0.2;
+            }
+
+            // Word token matching
+            const queryTokens = normalizedQuery.split(/[\s_+\-,\/]+/);
+            const prodTokens = (engName + " " + tamName + " " + catName).split(/[\s_+\-,\/]+/);
+
+            let tokenMatches = 0;
+            queryTokens.forEach(qToken => {
+              if (qToken.length > 2) {
+                if (prodTokens.some(pToken => pToken.includes(qToken) || qToken.includes(pToken))) {
+                  tokenMatches++;
+                }
+              }
+            });
+
+            if (queryTokens.length > 0) {
+              score += (tokenMatches / queryTokens.length) * 0.5;
+            }
+
+            if (score > bestScore) {
+              bestScore = score;
+              bestMatch = p;
+            }
+          });
+
+          if (bestMatch && bestScore > 0.25) {
+            matchedProd = bestMatch;
+            console.log(`[Lyo AI Matching] Dynamically matched query '${rawName}' to dynamic in-stock product: '${matchedProd.englishName}' (Score: ${bestScore.toFixed(2)})`);
           }
         }
 
