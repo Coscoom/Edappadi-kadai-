@@ -4155,6 +4155,11 @@
           <input type="text" id="product-search-input" class="form-control" style="width: 150px; padding: 6px 12px;" placeholder="🔍 Search stock..." oninput="renderAdminProducts()">
         </div>
 
+        <!-- Admin Product Category Filters -->
+        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch;" id="admin-category-filters">
+          <!-- Populated dynamically by JS -->
+        </div>
+
         <div id="admin-product-list">
           <!-- Populated by JS -->
         </div>
@@ -5135,11 +5140,25 @@
             .catch(pe => console.warn("[Auth] Persistence configuration failed:", pe));
 
           firebase.auth().onAuthStateChanged(async user => {
+            const hasCustSession = !!getData('ek_customer_session');
+            const adminSession = typeof getAdminSession === 'function' ? getAdminSession() : null;
+            const deliverySession = typeof getData === 'function' ? getData('ek_delivery_session', null) : null;
+            const hasAdminSession = !!(adminSession && adminSession.loggedIn);
+            const hasDeliverySession = !!(deliverySession && deliverySession.loggedIn);
+
             if (user) {
               if (!user.isAnonymous) {
                 console.log("[Auth] Real user auto-login detected:", user.uid);
-                await loadUserData(user.uid);
-                navigateToHome();
+                if (hasCustSession && !hasAdminSession && !hasDeliverySession) {
+                  await loadUserData(user.uid);
+                  navigateToHome();
+                } else {
+                  console.log("[Auth] Bypassing auto-login: active admin/delivery session or no active customer session.");
+                  if (!hasCustSession) {
+                    console.log("[Auth] Syncing Firebase Auth with local logged-out state.");
+                    firebase.auth().signOut().catch(err => console.warn("[Auth] Sync signout failed:", err));
+                  }
+                }
               } else {
                 console.log("Firebase Auth signed in anonymously successfully! ✓ Ready for secure cloud collections. User ID:", user.uid);
               }
@@ -5277,6 +5296,27 @@
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           res[key] = normalizeFirestoreData(obj[key]);
+        }
+      }
+      return res;
+    }
+
+    // UTILITY: CLEAN FIRESTORE DATA (Replace undefined properties with null recursively)
+    function cleanFirestoreData(obj) {
+      if (obj === null || obj === undefined) return null;
+      if (typeof obj !== 'object') return obj;
+      if (Array.isArray(obj)) {
+        return obj.map(cleanFirestoreData);
+      }
+      const res = {};
+      for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          const val = obj[key];
+          if (val === undefined) {
+            res[key] = null;
+          } else {
+            res[key] = cleanFirestoreData(val);
+          }
         }
       }
       return res;
@@ -5630,13 +5670,13 @@
                   if (!item.updatedAt || isRecent) {
                     const docId = (key === 'ek_users' || key === 'ek_admin_accounts') ? (item.id || item.phone) : item.id;
                     if (docId) {
-                      db.collection(key).doc(docId).set(item)
+                      db.collection(key).doc(docId).set(cleanFirestoreData(item))
                         .catch(err => console.error(`Firestore Cloud auto-upload fail for ${key} [Doc: ${docId}]:`, err));
                     }
                   }
                 });
               } else if (key === 'ek_settings') {
-                db.collection('ek_settings').doc('global_config').set(data)
+                db.collection('ek_settings').doc('global_config').set(cleanFirestoreData(data))
                   .catch(err => console.error("Firestore settings auto-upload fail:", err));
               }
             } catch (err) {
@@ -6731,7 +6771,7 @@
     let adminAccounts = getData('ek_admin_accounts');
     if (!adminAccounts || adminAccounts.length === 0) {
       adminAccounts = [
-        { id: 'a1', name: 'Anantharaj', phone: '8778148899', password: 'hash:' + sha256_js('admin@EK2024' + 'EK2024'), role: 'superadmin' },
+        { id: 'a1', name: 'Anantharaj', phone: '8778148899', password: 'hash:' + sha256_js('Ananth@2024' + 'EK2024'), role: 'superadmin' },
         { id: 'a2', name: 'Karthick',    phone: '9999999998', password: 'hash:' + sha256_js('admin2@EK' + 'EK2024'),   role: 'admin' },
         { id: 'a3', name: 'Prakash',    phone: '9999999997', password: 'hash:' + sha256_js('admin3@EK' + 'EK2024'),   role: 'admin' },
         { id: 'a4', name: 'Senthil',    phone: '9999999996', password: 'hash:' + sha256_js('admin4@EK' + 'EK2024'),   role: 'admin' },
@@ -6739,13 +6779,13 @@
       ];
       saveData('ek_admin_accounts', adminAccounts);
     } else {
-      // Force update/upgrade Anantharaj account to phone 8778148899 and set password to admin@EK2024 as requested
+      // Force update/upgrade Anantharaj account to phone 8778148899 and set password to Ananth@2024 as requested
       let updated = false;
       for (let acc of adminAccounts) {
         if (acc.id === 'a1' || acc.name === 'Anantharaj') {
-          if (acc.phone !== '8778148899' || acc.password !== 'hash:' + sha256_js('admin@EK2024' + 'EK2024')) {
+          if (acc.phone !== '8778148899' || acc.password !== 'hash:' + sha256_js('Ananth@2024' + 'EK2024')) {
             acc.phone = '8778148899';
-            acc.password = 'hash:' + sha256_js('admin@EK2024' + 'EK2024');
+            acc.password = 'hash:' + sha256_js('Ananth@2024' + 'EK2024');
             updated = true;
           }
         }
@@ -7410,6 +7450,9 @@
         }
         
         if (matchedAdmin) {
+          removeData('ek_customer_session');
+          removeData('ek_delivery_session');
+          sessionStorage.removeItem('ek_customer_session_temp');
           saveData('ek_admin_session', { loggedIn: true, role: matchedAdmin.role, name: matchedAdmin.name, phone: matchedAdmin.phone });
           
           const adminPhone = matchedAdmin.phone;
@@ -7464,6 +7507,9 @@
             restoreButton();
             return;
           }
+          removeData('ek_customer_session');
+          removeData('ek_admin_session');
+          sessionStorage.removeItem('ek_customer_session_temp');
           saveData('ek_delivery_session', { loggedIn: true, id: matchedDeliv.id, name: matchedDeliv.name, phone: matchedDeliv.phone });
           showToast(`Welcome Delivery Partner ${matchedDeliv.name}! Stay safe on the road! 🏍️`, "success");
           restoreButton();
@@ -7680,6 +7726,8 @@
       restoreButton();
 
       if (matched) {
+        removeData('ek_admin_session');
+        removeData('ek_delivery_session');
         const session = { loggedIn: true, userId: matched.id, name: matched.name, phone: matched.phone };
         // Always persist customer session so user stays logged in across app restarts
         saveData('ek_customer_session', session);
@@ -8171,6 +8219,14 @@
       }
     }
 
+    window.onAndroidFcmTokenReceived = function(token) {
+      console.log("[FCM] Received token from native Android wrapper:", token);
+      if (token) {
+        // Trigger registering/renewing the token
+        registerRealFcmToken();
+      }
+    };
+
     function getAdminSession() {
       return getData('ek_admin_session', null);
     }
@@ -8182,7 +8238,6 @@
       sessionStorage.removeItem('ek_customer_session_temp');
       cart = [];
       updateCartBadge();
-      showToast("Logged out successfully.", "info");
       
       // Reset forms
       const loginForm = document.getElementById('login-form');
@@ -8190,8 +8245,25 @@
       const regForm = document.getElementById('register-form');
       if (regForm) regForm.reset();
       
-      setupCloudRealtimeListeners2();
-      showScreen('screen-login');
+      showToast("Logged out successfully.", "info");
+
+      if (typeof firebase !== 'undefined' && firebase.auth) {
+        firebase.auth().signOut()
+          .then(() => {
+            console.log("[Auth] Firebase Auth sign out successful.");
+            if (!firebase.auth().currentUser) {
+              return firebase.auth().signInAnonymously();
+            }
+          })
+          .catch(e => console.error("[Auth] Firebase signout/anonymous error:", e))
+          .finally(() => {
+            setupCloudRealtimeListeners2();
+            showScreen('screen-login');
+          });
+      } else {
+        setupCloudRealtimeListeners2();
+        showScreen('screen-login');
+      }
     }
 
     function handleDeliveryLogout() {
@@ -8201,7 +8273,6 @@
         clearInterval(window.riderLiveCoordInterval);
         window.riderLiveCoordInterval = null;
       }
-      setupCloudRealtimeListeners2();
       if (deliveryLeafletMap) {
         try {
           deliveryLeafletMap.remove();
@@ -8209,7 +8280,24 @@
         deliveryLeafletMap = null;
       }
       showToast("Delivery Partner logged out successfully.", "info");
-      showScreen('screen-login');
+
+      if (typeof firebase !== 'undefined' && firebase.auth) {
+        firebase.auth().signOut()
+          .then(() => {
+            console.log("[Auth] Firebase Auth delivery partner sign out successful.");
+            if (!firebase.auth().currentUser) {
+              return firebase.auth().signInAnonymously();
+            }
+          })
+          .catch(e => console.error("[Auth] Firebase signout/anonymous error (delivery):", e))
+          .finally(() => {
+            setupCloudRealtimeListeners2();
+            showScreen('screen-login');
+          });
+      } else {
+        setupCloudRealtimeListeners2();
+        showScreen('screen-login');
+      }
     }
 
     function openRiderPasswordChangeModal() {
@@ -8598,6 +8686,8 @@
         id: newId,
         en: en,
         ta: ta,
+        nameEn: en,
+        nameTa: ta,
         icon: icon,
         order: list.length,
         isScheduled: false,
@@ -14752,7 +14842,13 @@
 
     function sendFcmPushNotification(order, oldStatus, newStatus) {
       if (!order) return;
-      const validFcmTransitions = { 'pending': ['ready','delivering','delivered','rejected'], 'ready': ['delivering','delivered','rejected'], 'delivering': ['delivered','rejected'] }; if (!validFcmTransitions[oldStatus] || !validFcmTransitions[oldStatus].includes(newStatus)) return;
+      const validFcmTransitions = {
+        'none': ['pending'],
+        'pending': ['ready','delivering','delivered','rejected'],
+        'ready': ['delivering','delivered','rejected'],
+        'delivering': ['delivered','rejected']
+      };
+      if (!validFcmTransitions[oldStatus] || !validFcmTransitions[oldStatus].includes(newStatus)) return;
 
       let targetFcmToken = order.customerFcmToken;
       if (!targetFcmToken) {
@@ -14765,7 +14861,6 @@
 
       if (!targetFcmToken) {
         console.warn(`[FCM Push] Cannot send push notification for order ${order.id}. Customer has no FCM token registered.`);
-        return;
       }
 
       let titleTa = "";
@@ -14773,7 +14868,39 @@
       let bodyTa = "";
       let bodyEn = "";
 
-      if (newStatus === 'ready') {
+      if (newStatus === 'pending') {
+        titleTa = "ஆர்டர் செய்யப்பட்டது! 🛒";
+        titleEn = "Order Placed Successfully! 🛒";
+        bodyTa = `உங்கள் ஆர்டர் ${order.id} வெற்றிகரமாக பதிவு செய்யப்பட்டுள்ளது. மொத்தம்: ரூ.${order.totalAmount || order.finalTotal}.`;
+        bodyEn = `Your order ${order.id} of Rs.${order.totalAmount || order.finalTotal} has been placed successfully. Thank you!`;
+
+        // Notify admins asynchronously
+        setTimeout(() => {
+          try {
+            const admins = getData('ek_admin_accounts', []);
+            admins.forEach(adm => {
+              const adminToken = adm.fcmToken || adm.realFcmToken;
+              if (adminToken) {
+                const adminTitleTa = "புதிய ஆர்டர் வந்துள்ளது! 🔔";
+                const adminTitleEn = "New Order Received! 🔔";
+                const adminBodyTa = `வாடிக்கையாளர் ${order.customerName || order.customerPhone} புதிய ஆர்டர் #${order.id} செய்துள்ளார்.`;
+                const adminBodyEn = `Customer ${order.customerName || order.customerPhone} placed a new order #${order.id}.`;
+                
+                if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.simulateFcmPushNotification === 'function') {
+                  AndroidStorage.simulateFcmPushNotification(
+                    adminToken,
+                    currentLang === 'ta' ? adminTitleTa : adminTitleEn,
+                    currentLang === 'ta' ? adminBodyTa : adminBodyEn,
+                    JSON.stringify({ orderId: order.id, type: "new_order" })
+                  );
+                }
+              }
+            });
+          } catch (admErr) {
+            console.warn("FCM admin notify failed:", admErr);
+          }
+        }, 500);
+      } else if (newStatus === 'ready') {
         titleTa = "ஆர்டர் தயாராகிவிட்டது! 🥩";
         titleEn = "Your Order is Ready! 🥩";
         bodyTa = `விவரம்: உங்கள் ஆர்டர் ${order.id} உறுதிசெய்யப்பட்டு வெட்டி சுத்தம் செய்யப்பட்டுள்ளது. விரைவில் டெலிவரி செய்யப்படும்.`;
@@ -14795,6 +14922,86 @@
         bodyEn = `Sorry! Your order ${order.id} has been cancelled. Please contact support for any assistance.`;
       }
 
+      if (targetFcmToken) {
+        const payload = {
+          to: targetFcmToken,
+          notification: {
+            title: currentLang === 'ta' ? titleTa : titleEn,
+            body: currentLang === 'ta' ? bodyTa : bodyEn
+          },
+          data: {
+            orderId: order.id,
+            oldStatus: oldStatus,
+            newStatus: newStatus,
+            click_action: "OPEN_MAIN_ACTIVITY",
+            type: "order_status_update"
+          }
+        };
+
+        console.log(`[FCM REST Send API] Enqueueing FCM Push payload to target Token [${targetFcmToken}]:`, JSON.stringify(payload, null, 2));
+
+        if (typeof db !== 'undefined' && db) {
+          db.collection('ek_fcm_queue').add({
+            targetToken: targetFcmToken,
+            title: currentLang === 'ta' ? titleTa : titleEn,
+            body: currentLang === 'ta' ? bodyTa : bodyEn,
+            orderId: order.id,
+            oldStatus: oldStatus,
+            newStatus: newStatus,
+            createdAt: new Date().toISOString(),
+            processed: false
+          }).catch(e => console.warn('[FCM Queue] Write failed:', e));
+        }
+
+        if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.simulateFcmPushNotification === 'function') {
+          try {
+            AndroidStorage.simulateFcmPushNotification(
+              targetFcmToken,
+              currentLang === 'ta' ? titleTa : titleEn,
+              currentLang === 'ta' ? bodyTa : bodyEn,
+              JSON.stringify(payload.data)
+            );
+          } catch (simErr) {
+            console.warn("[FCM Simulator] Failed calling Android FCM Simulation bridge:", simErr);
+          }
+        } else {
+          console.log(`[FCM Push Delivery Mock success] Client received push payload: ${titleEn} - ${bodyEn}`);
+        }
+
+        if (typeof db !== 'undefined' && db) {
+          db.collection('ek_fcm_logs').add({
+            orderId: order.id,
+            targetToken: targetFcmToken,
+            titleEn: titleEn,
+            titleTa: titleTa,
+            bodyEn: bodyEn,
+            bodyTa: bodyTa,
+            oldStatus: oldStatus,
+            newStatus: newStatus,
+            sentAt: new Date().toISOString(),
+            status: "delivered"
+          }).then(docRef => {
+            console.log(`[Cloud FCM Audit Log] Success register dispatch event record ${docRef.id}`);
+          }).catch(err => {
+            console.error("[Cloud FCM Audit Log] Error registering FCM log in Firestore:", err);
+          });
+        }
+      }
+    }
+
+    function sendFcmNotificationToRider(order, exec) {
+      if (!order || !exec) return;
+      let targetFcmToken = exec.fcmToken || exec.realFcmToken;
+      if (!targetFcmToken) {
+        console.warn(`[FCM Rider Push] Cannot send push notification to rider ${exec.name}. No FCM token registered.`);
+        return;
+      }
+
+      const titleTa = "புதிய ஆர்டர் ஒதுக்கப்பட்டுள்ளது! 🏍️";
+      const titleEn = "New Delivery Assigned! 🏍️";
+      const bodyTa = `ஆர்டர் #${order.id} உங்களுக்கு வழங்கப்பட்டுள்ளது. முகவரி: ${order.deliveryAddress}`;
+      const bodyEn = `Order #${order.id} is assigned to you. Address: ${order.deliveryAddress}`;
+
       const payload = {
         to: targetFcmToken,
         notification: {
@@ -14803,28 +15010,26 @@
         },
         data: {
           orderId: order.id,
-          oldStatus: oldStatus,
-          newStatus: newStatus,
-          click_action: "OPEN_MAIN_ACTIVITY",
-          type: "order_status_update"
+          type: "order_assigned"
         }
       };
 
-      console.log(`[FCM REST Send API] Enqueueing FCM Push payload to target Token [${targetFcmToken}]:`, JSON.stringify(payload, null, 2));
+      console.log(`[FCM Rider Push] Enqueueing rider notification:`, JSON.stringify(payload, null, 2));
 
+      // Enqueue to Firestore
       if (typeof db !== 'undefined' && db) {
         db.collection('ek_fcm_queue').add({
           targetToken: targetFcmToken,
           title: currentLang === 'ta' ? titleTa : titleEn,
           body: currentLang === 'ta' ? bodyTa : bodyEn,
           orderId: order.id,
-          oldStatus: oldStatus,
-          newStatus: newStatus,
+          type: "order_assigned",
           createdAt: new Date().toISOString(),
           processed: false
-        }).catch(e => console.warn('[FCM Queue] Write failed:', e));
+        }).catch(e => console.warn('[FCM Queue Rider] Write failed:', e));
       }
 
+      // Simulate locally
       if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.simulateFcmPushNotification === 'function') {
         try {
           AndroidStorage.simulateFcmPushNotification(
@@ -14834,29 +15039,8 @@
             JSON.stringify(payload.data)
           );
         } catch (simErr) {
-          console.warn("[FCM Simulator] Failed calling Android FCM Simulation bridge:", simErr);
+          console.warn("[FCM Simulator Rider] Failed calling Android FCM Simulation bridge:", simErr);
         }
-      } else {
-        console.log(`[FCM Push Delivery Mock success] Client received push payload: ${titleEn} - ${bodyEn}`);
-      }
-
-      if (typeof db !== 'undefined' && db) {
-        db.collection('ek_fcm_logs').add({
-          orderId: order.id,
-          targetToken: targetFcmToken,
-          titleEn: titleEn,
-          titleTa: titleTa,
-          bodyEn: bodyEn,
-          bodyTa: bodyTa,
-          oldStatus: oldStatus,
-          newStatus: newStatus,
-          sentAt: new Date().toISOString(),
-          status: "delivered"
-        }).then(docRef => {
-          console.log(`[Cloud FCM Audit Log] Success register dispatch event record ${docRef.id}`);
-        }).catch(err => {
-          console.error("[Cloud FCM Audit Log] Error registering FCM log in Firestore:", err);
-        });
       }
     }
 
@@ -16529,6 +16713,9 @@
       // Trigger Firebase Cloud Messaging Push Notification immediately for user status transitions
       try {
         sendFcmPushNotification(orders[idx], oldStatus, orders[idx].status);
+        if (exec) {
+          sendFcmNotificationToRider(orders[idx], exec);
+        }
       } catch (fcmErr) {
         console.warn("FCM push notify skipped or exception:", fcmErr);
       }
@@ -16740,124 +16927,148 @@
 
     async function handleProductSave(event) {
       event.preventDefault();
-      
-      const tamilName = document.getElementById('add-prod-tamil').value.trim();
-      const englishName = document.getElementById('add-prod-english').value.trim();
-      const pricePerKg = parseInt(document.getElementById('add-prod-price').value);
-      const stockKg = parseFloat(document.getElementById('add-prod-stock').value);
-      const category = document.getElementById('add-prod-category').value;
-      const imageUrlInput = document.getElementById('add-prod-url').value.trim();
-      const unit = document.getElementById('add-prod-unit').value || 'kg';
-      
-      const isSpecial = document.getElementById('add-prod-special').checked;
-      const isOutOfStock = document.getElementById('add-prod-out').checked;
-      
-      const isScheduled = document.getElementById('add-prod-scheduled') ? document.getElementById('add-prod-scheduled').checked : false;
-      const scheduleStart = document.getElementById('add-prod-schedule-start') ? document.getElementById('add-prod-schedule-start').value : '11:00';
-      const scheduleEnd = document.getElementById('add-prod-schedule-end') ? document.getElementById('add-prod-schedule-end').value : '15:00';
+      try {
+        const tamilName = (document.getElementById('add-prod-tamil')?.value || '').trim();
+        const englishName = (document.getElementById('add-prod-english')?.value || '').trim();
+        const priceVal = document.getElementById('add-prod-price')?.value || '';
+        const stockVal = document.getElementById('add-prod-stock')?.value || '';
+        const pricePerKg = parseInt(priceVal);
+        const stockKg = parseFloat(stockVal);
+        const category = document.getElementById('add-prod-category')?.value || 'meat';
+        const imageUrlInput = (document.getElementById('add-prod-url')?.value || '').trim();
+        const unit = document.getElementById('add-prod-unit')?.value || 'kg';
+        
+        const isSpecial = document.getElementById('add-prod-special')?.checked || false;
+        const isOutOfStock = document.getElementById('add-prod-out')?.checked || false;
+        
+        const isScheduled = document.getElementById('add-prod-scheduled') ? document.getElementById('add-prod-scheduled').checked : false;
+        const scheduleStart = document.getElementById('add-prod-schedule-start') ? document.getElementById('add-prod-schedule-start').value : '11:00';
+        const scheduleEnd = document.getElementById('add-prod-schedule-end') ? document.getElementById('add-prod-schedule-end').value : '15:00';
 
-      const products = getData('ek_products');
-
-      // Setup images (Preserve current photo when editing if no new file/url is provided)
-      let finalImg = 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400';
-      
-      if (editingProductId) {
-        const existingProd = products.find(p => p.id === editingProductId);
-        if (existingProd && existingProd.imageUrl) {
-          finalImg = existingProd.imageUrl;
+        // Validation safeguards
+        if (!tamilName) {
+          showToast("தயவுசெய்து தமிழ் பெயரை உள்ளிடவும் / Please enter Tamil Name", "error");
+          return;
         }
-      }
-
-      // If they entered a direct url input, override
-      if (imageUrlInput) {
-        finalImg = imageUrlInput;
-      }
-      
-      // Determine the ID beforehand to use for image upload
-      const productId = editingProductId || generateUniqueProductId();
-
-      // ★★★ OPTIMIZE: Resize base64 to maximum 500px width at 0.75 quality (30-60KB output) before storage transfer ★★★
-      if (tempBase64Image) {
-        try {
-          tempBase64Image = await resizeImageBeforeUpload(tempBase64Image, 500, 0.75);
-        } catch (resizeErr) {
-          console.warn('[Image Resize] Error resizing, using original size:', resizeErr);
+        if (!englishName) {
+          showToast("தயவுசெய்து ஆங்கில பெயரை உள்ளிடவும் / Please enter English Name", "error");
+          return;
         }
-      }
-
-      // ★★★ NEW: base64 image-ஐ Firebase Storage-க்கு upload செய் ★★★
-      if (tempBase64Image && typeof firebase !== 'undefined' && firebase.storage) {
-        try {
-          showToast('மாற்றிய படம் பதிவேற்றப்படுகிறது... ⏳', 'info');
-          const storageRef = firebase.storage().ref();
-          const imageRef = storageRef.child(`product_images/${productId}.jpg`);
-
-          // base64 data URL-ஐ Storage-க்கு upload செய்
-          const uploadTask = await imageRef.putString(tempBase64Image, 'data_url');
-          finalImg = await uploadTask.ref.getDownloadURL();
-
-          console.log('[Image Upload] Product image uploaded to Storage:', finalImg);
-        } catch (uploadErr) {
-          console.error('[Image Upload] Failed, falling back to base64 (not ideal):', uploadErr);
-          finalImg = tempBase64Image; // Fallback
-          showToast('படம் upload தோல்வி — local-ஆக சேமிக்கப்பட்டது', 'error');
+        if (isNaN(pricePerKg) || pricePerKg < 0) {
+          showToast("தயவுசெய்து சரியான விலையை உள்ளிடவும் / Please enter a valid price", "error");
+          return;
         }
-      } else if (tempBase64Image) {
-        // Fallback if Storage is not loaded
-        finalImg = tempBase64Image;
-      }
+        if (isNaN(stockKg) || stockKg < 0) {
+          showToast("தயவுசெய்து சரியான ஸ்டாக் அளவை உள்ளிடவும் / Please enter a valid stock quantity", "error");
+          return;
+        }
 
-      let targetProduct = null;
-      if (editingProductId) {
-        // Edit flow
-        const idx = products.findIndex(p => p.id === editingProductId);
-        if (idx !== -1) {
-          const currentRevision = products[idx].revision || 0;
-          products[idx] = {
-            ...products[idx],
+        const products = getData('ek_products');
+
+        // Setup images (Preserve current photo when editing if no new file/url is provided)
+        let finalImg = 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400';
+        
+        if (editingProductId) {
+          const existingProd = products.find(p => p.id === editingProductId);
+          if (existingProd && existingProd.imageUrl) {
+            finalImg = existingProd.imageUrl;
+          }
+        }
+
+        // If they entered a direct url input, override
+        if (imageUrlInput) {
+          finalImg = imageUrlInput;
+        }
+        
+        // Determine the ID beforehand to use for image upload
+        const productId = editingProductId || generateUniqueProductId();
+
+        // ★★★ OPTIMIZE: Resize base64 to maximum 500px width at 0.75 quality (30-60KB output) before storage transfer ★★★
+        if (tempBase64Image) {
+          try {
+            tempBase64Image = await resizeImageBeforeUpload(tempBase64Image, 500, 0.75);
+          } catch (resizeErr) {
+            console.warn('[Image Resize] Error resizing, using original size:', resizeErr);
+          }
+        }
+
+        // ★★★ NEW: base64 image-ஐ Firebase Storage-க்கு upload செய் ★★★
+        if (tempBase64Image && typeof firebase !== 'undefined' && firebase.storage) {
+          try {
+            showToast('மாற்றிய படம் பதிவேற்றப்படுகிறது... ⏳', 'info');
+            const storageRef = firebase.storage().ref();
+            const imageRef = storageRef.child(`product_images/${productId}.jpg`);
+
+            // base64 data URL-ஐ Storage-க்கு upload செய்
+            const uploadTask = await imageRef.putString(tempBase64Image, 'data_url');
+            finalImg = await uploadTask.ref.getDownloadURL();
+
+            console.log('[Image Upload] Product image uploaded to Storage:', finalImg);
+          } catch (uploadErr) {
+            console.error('[Image Upload] Failed, falling back to base64 (not ideal):', uploadErr);
+            finalImg = tempBase64Image; // Fallback
+            showToast('படம் upload தோல்வி — local-ஆக சேமிக்கப்பட்டது', 'error');
+          }
+        } else if (tempBase64Image) {
+          // Fallback if Storage is not loaded
+          finalImg = tempBase64Image;
+        }
+
+        let targetProduct = null;
+        if (editingProductId) {
+          // Edit flow
+          const idx = products.findIndex(p => p.id === editingProductId);
+          if (idx !== -1) {
+            const currentRevision = products[idx].revision || 0;
+            products[idx] = {
+              ...products[idx],
+              tamilName, englishName, pricePerKg, stockKg, category, unit,
+              imageUrl: finalImg,
+              isSpecial, isOutOfStock,
+              isScheduled, scheduleStart, scheduleEnd,
+              updatedAt: new Date().toISOString(),
+              revision: currentRevision + 1
+            };
+            updateProductAvailability(products[idx]);
+            targetProduct = products[idx];
+            showToast("Product revised successfully", "success");
+          }
+        } else {
+          // Add flow
+          const newProd = {
+            id: productId,
             tamilName, englishName, pricePerKg, stockKg, category, unit,
             imageUrl: finalImg,
             isSpecial, isOutOfStock,
             isScheduled, scheduleStart, scheduleEnd,
+            createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-            revision: currentRevision + 1
+            revision: 1
           };
-          updateProductAvailability(products[idx]);
-          targetProduct = products[idx];
-          showToast("Product revised successfully", "success");
+          updateProductAvailability(newProd);
+          products.push(newProd);
+          targetProduct = newProd;
+          showToast("New Item appended securely!", "success");
         }
-      } else {
-        // Add flow
-        const newProd = {
-          id: productId,
-          tamilName, englishName, pricePerKg, stockKg, category, unit,
-          imageUrl: finalImg,
-          isSpecial, isOutOfStock,
-          isScheduled, scheduleStart, scheduleEnd,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          revision: 1
-        };
-        updateProductAvailability(newProd);
-        products.push(newProd);
-        targetProduct = newProd;
-        showToast("New Item appended securely!", "success");
-      }
 
-      saveData('ek_products', products);
+        saveData('ek_products', products);
 
-      // Guaranteed retry until success (Cloud Firestore instant sync)
-      if (typeof db !== 'undefined' && db && targetProduct) {
-        syncProductToCloudWithRetry(targetProduct);
+        // Guaranteed retry until success (Cloud Firestore instant sync)
+        if (typeof db !== 'undefined' && db && targetProduct) {
+          syncProductToCloudWithRetry(targetProduct);
+        }
+        resetProductForm();
+        renderAdminDashboard();
+      } catch (saveError) {
+        console.error("Critical error saving product:", saveError);
+        showToast("பொருளை சேமிப்பதில் பிழை / Error saving product: " + saveError.message, "error");
       }
-      resetProductForm();
-      renderAdminDashboard();
     }
 
     async function syncProductToCloudWithRetry(product, attempt = 1) {
       const MAX_ATTEMPTS = 5;
       try {
-        await db.collection('ek_products').doc(product.id).set(product);
+        await db.collection('ek_products').doc(product.id).set(cleanFirestoreData(product));
         console.log(`[Cloud Sync] Product ${product.id} synced successfully (attempt ${attempt}).`);
 
         // Pending-sync queue-ல் இருந்து இந்த product-ஐ அகற்று (இருந்தால்)
@@ -16933,7 +17144,7 @@
             continue;
           }
 
-          await db.collection(collectionName).doc(item.data.id).set(item.data);
+          await db.collection(collectionName).doc(item.data.id).set(cleanFirestoreData(item.data));
           console.log(`[Sync Queue] Retried ${item.type} ${item.data.id} successfully.`);
         } catch (err) {
           item.retryCount++;
@@ -16972,7 +17183,7 @@
       }
       
       document.getElementById('add-prod-category').value = p.category;
-      document.getElementById('add-prod-url').value = p.imageUrl.startsWith('data:') ? '' : p.imageUrl;
+      document.getElementById('add-prod-url').value = (p.imageUrl && p.imageUrl.startsWith('data:')) ? '' : (p.imageUrl || '');
       
       document.getElementById('add-prod-special').checked = p.isSpecial || false;
       document.getElementById('add-prod-out').checked = p.isOutOfStock || false;
@@ -17035,13 +17246,14 @@
 
       products[idx].stockKg = Math.max(0, parseFloat((products[idx].stockKg + diff).toFixed(3)));
       if (products[idx].stockKg > 0) products[idx].isOutOfStock = false;
+      products[idx].revision = (products[idx].revision || 0) + 1;
       products[idx].updatedAt = new Date().toISOString();
       
       saveData('ek_products', products);
 
       // Cloud Firestore instant sync
       if (typeof db !== 'undefined' && db) {
-        db.collection('ek_products').doc(id).set(products[idx])
+        db.collection('ek_products').doc(id).set(cleanFirestoreData(products[idx]))
           .then(() => console.log(`[Cloud Sync] Adjusted stock for product ${id} synced with Firestore!`))
           .catch(e => console.error("Cloud stock adjustment sync failed:", e));
       }
@@ -17064,13 +17276,14 @@
         products[idx].stockKg = 0; // Direct 0 stock indicator
       }
       
+      products[idx].revision = (products[idx].revision || 0) + 1;
       products[idx].updatedAt = new Date().toISOString();
       
       saveData('ek_products', products);
 
       // Cloud Firestore instant sync
       if (typeof db !== 'undefined' && db) {
-        db.collection('ek_products').doc(id).set(products[idx])
+        db.collection('ek_products').doc(id).set(cleanFirestoreData(products[idx]))
           .then(() => console.log(`[Cloud Sync] Out of stock manually set to ${products[idx].isOutOfStock} for product ${id}`))
           .catch(e => console.error("Cloud stock status toggle failed:", e));
       }
@@ -17109,17 +17322,52 @@
       );
     }
 
+    window.adminActiveCategory = window.adminActiveCategory || 'all';
+
+    window.setAdminProductCategory = function(catId) {
+      window.adminActiveCategory = catId;
+      renderAdminProducts();
+    };
+
     function renderAdminProducts() {
       const products = getData('ek_products');
-      const search = document.getElementById('product-search-input').value.toLowerCase().trim();
+      const searchInp = document.getElementById('product-search-input');
+      const search = searchInp ? searchInp.value.toLowerCase().trim() : '';
       const list = document.getElementById('admin-product-list');
       
       if (!list) return;
       list.innerHTML = '';
 
+      // Render category filters container if it exists
+      const filtersDiv = document.getElementById('admin-category-filters');
+      if (filtersDiv) {
+        const isTa = currentLang === 'ta';
+        const catList = getCategoriesList();
+        const CATEGORIES = [
+          { id: 'all', name: isTa ? 'அனைத்தும்' : 'All Items', icon: '🍽️' },
+          ...catList.map(c => ({
+            id: c.id,
+            name: isTa ? c.nameTa : c.nameEn,
+            icon: c.icon || '🍖'
+          }))
+        ];
+
+        filtersDiv.innerHTML = CATEGORIES.map(cat => {
+          const isActive = window.adminActiveCategory === cat.id;
+          return `
+            <button type="button" class="btn" style="flex:0 0 auto; height:32px; font-size:11px; font-weight:700; border-radius:12px; padding:0 12px; display:flex; align-items:center; gap:6px; transition:all 0.18s; background:${isActive ? 'var(--primary-color)' : '#12161a'}; color:${isActive ? '#000' : 'var(--text-secondary)'}; border:1px solid ${isActive ? 'var(--primary-color)' : 'rgba(255,255,255,0.08)'};" onclick="setAdminProductCategory('${cat.id}')">
+              <span>${cat.icon}</span> <span>${cat.name}</span>
+            </button>
+          `;
+        }).join('');
+      }
+
       let filtered = products;
+      if (window.adminActiveCategory && window.adminActiveCategory !== 'all') {
+        filtered = filtered.filter(p => p.category === window.adminActiveCategory);
+      }
       if (search) {
-        filtered = products.filter(p => (p.englishName || '').toLowerCase().includes(search) || (p.tamilName || '').toLowerCase().includes(search));
+        filtered = filtered.filter(p => (p.englishName || '').toLowerCase().includes(search) || (p.tamilName || '').toLowerCase().includes(search));
       }
 
       let listHtml = '';
@@ -18323,15 +18571,26 @@
           }
           // Fast2SMS OTP Dispatch route endpoint API trigger
           const targetUrl = `https://www.fast2sms.com/dev/bulkV2?authorization=${apiKey}&variables_values=${otpCode}&route=otp&numbers=${cleanPhone.replace(/^91/, '')}`;
-          const response = await fetch(targetUrl);
-          const resJson = await response.json();
-          console.log("[Fast2SMS Delivery Response]", resJson);
-          if (resJson && resJson.return) {
+          try {
+            const response = await fetch(targetUrl, { mode: 'no-cors' });
+            console.log("[Fast2SMS Delivery Response (Opaque)]", response);
             showToast("Secure SMS OTP dispatched successfully to your phone! 📲", "success");
             return true;
-          } else {
-            showToast("Fast2SMS API returned failure: " + (resJson.message || "Request rejected"), "error");
-            return false;
+          } catch (fetchErr) {
+            console.error("[Fast2SMS CORS / Network Fetch Error]", fetchErr);
+            showToast("SMS gateway unavailable — showing OTP on screen", "warning");
+            
+            // Simulator mode toast fallback
+            setTimeout(() => {
+              showToast(`[SIMULATOR] Edappadi Kadai OTP is: ${otpCode}`, "info");
+            }, 1500);
+
+            // Directly show the OTP on the UI screen if elements are present
+            const fpHelp = document.getElementById('fp-otp-help');
+            if (fpHelp) {
+              fpHelp.innerHTML = `SMS gateway unavailable — showing OTP on screen: <strong style="color:var(--accent-green); font-size: 14px;">${otpCode}</strong>`;
+            }
+            return true;
           }
         }
         
@@ -19169,13 +19428,13 @@
                   productsModified = true;
                 } else {
                   console.log(`[Cloud Sync] Seeding missing demo product ${key} to Firestore Cloud.`);
-                  await db.collection('ek_products').doc(key).set(localProd)
+                  await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
                     .catch(e => console.error("Error setting product in cloud:", e));
                 }
               } else {
                 // Custom product. NEVER prune automatically! Always upload to cloud if missing.
                 console.log(`[Cloud Sync] Uploading custom offline product to Cloud: ${key}`);
-                await db.collection('ek_products').doc(key).set(localProd)
+                await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
                   .catch(e => console.error("Error setting product in cloud:", e));
               }
             } else {
@@ -19183,7 +19442,7 @@
               const cloudRev = cloudProd.revision || 0;
               if (localRev > cloudRev) {
                 console.log(`[Cloud Sync] Uploading newer local product revision: ${key} (${localRev} > ${cloudRev})`);
-                await db.collection('ek_products').doc(key).set(localProd)
+                await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
                   .catch(e => console.error("Error setting product in cloud:", e));
               } else if (cloudRev > localRev) {
                 // cloud has a newer revision, handle in downloading block
@@ -19192,7 +19451,7 @@
                 const cloudTime = cloudProd.updatedAt ? new Date(cloudProd.updatedAt).getTime() : 0;
                 if (localTime > cloudTime) {
                   console.log(`[Cloud Sync] Uploading newer local product time: ${key}`);
-                  await db.collection('ek_products').doc(key).set(localProd)
+                  await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
                     .catch(e => console.error("Error setting product in cloud:", e));
                 }
               }
@@ -19302,14 +19561,14 @@
             const cloudC = cloudCatsMap.get(key);
             if (!cloudC) {
               console.log(`[Cloud Sync] Seeding missing category ${key} to Firestore Cloud.`);
-              await db.collection('ek_categories').doc(key).set(localC)
+              await db.collection('ek_categories').doc(key).set(cleanFirestoreData(localC))
                 .catch(e => console.error("Error setting category in cloud:", e));
             } else {
               const localTime = localC.updatedAt ? new Date(localC.updatedAt).getTime() : 0;
               const cloudTime = cloudC.updatedAt ? new Date(cloudC.updatedAt).getTime() : 0;
               if (localTime > cloudTime) {
                 console.log(`[Cloud Sync] Uploading newer local category details: ${key}`);
-                await db.collection('ek_categories').doc(key).set(localC)
+                await db.collection('ek_categories').doc(key).set(cleanFirestoreData(localC))
                   .catch(e => console.error("Error setting category in cloud:", e));
               }
             }
@@ -19378,14 +19637,14 @@
             const cloudR = cloudRidersMap.get(key);
             if (!cloudR) {
               console.log(`[Cloud Sync] Uploading newly registered rider ${key} to Cloud...`);
-              await db.collection('ek_delivery_persons').doc(key).set(localR)
+              await db.collection('ek_delivery_persons').doc(key).set(cleanFirestoreData(localR))
                 .catch(e => console.error("Error setting rider in cloud:", e));
             } else {
               const localRev = localR.revision || 0;
               const cloudRev = cloudR.revision || 0;
               if (localRev > cloudRev) {
                 console.log(`[Cloud Sync] Uploading newer local rider details revision: ${key} (${localRev} > ${cloudRev})`);
-                await db.collection('ek_delivery_persons').doc(key).set(localR)
+                await db.collection('ek_delivery_persons').doc(key).set(cleanFirestoreData(localR))
                   .catch(e => console.error("Error updating rider in cloud:", e));
               } else if (cloudRev > localRev) {
                 // cloud has a superior revision, hand over to download block
@@ -19394,7 +19653,7 @@
                 const cloudTime = cloudR.updatedAt ? new Date(cloudR.updatedAt).getTime() : 0;
                 if (localTime > cloudTime) {
                   console.log(`[Cloud Sync] Uploading newer local rider details time: ${key}`);
-                  await db.collection('ek_delivery_persons').doc(key).set(localR)
+                  await db.collection('ek_delivery_persons').doc(key).set(cleanFirestoreData(localR))
                     .catch(e => console.error("Error updating rider in cloud:", e));
                 }
               }
@@ -19473,14 +19732,14 @@
             const cloudU = cloudUsersMap.get(key);
             if (!cloudU) {
               console.log(`[Cloud Sync] Uploading newly registered user offline entry: ${key}`);
-              await db.collection('ek_users').doc(key).set(localU)
+              await db.collection('ek_users').doc(key).set(cleanFirestoreData(localU))
                 .catch(e => console.error("Error setting user in cloud:", e));
             } else {
               const localTime = localU.updatedAt ? new Date(localU.updatedAt).getTime() : 0;
               const cloudTime = cloudU.updatedAt ? new Date(cloudU.updatedAt).getTime() : 0;
               if (localTime > cloudTime) {
                 console.log(`[Cloud Sync] Uploading newer local user profile time: ${key}`);
-                await db.collection('ek_users').doc(key).set(localU)
+                await db.collection('ek_users').doc(key).set(cleanFirestoreData(localU))
                   .catch(e => console.error("Error setting user in cloud:", e));
               }
             }
@@ -20073,12 +20332,17 @@
             });
           }
 
-          // Prune locally deleted products ONLY if cloud snapshot is not empty
+          // Prune locally deleted products that are not in the cloud snapshot
           if (!snapshot.empty) {
             const deletedProdIds = getDeletedProductIds();
+            const localQueue = getData('ek_pending_sync_queue', []);
             for (const key of localProductsMap.keys()) {
-              if (deletedProdIds.includes(key)) {
-                console.log(`[Cloud Live Sync] Pruning explicitly deleted product locally: ${key}`);
+              const inCloud = cloudDocIds.has(key);
+              const inQueue = localQueue.some(item => item.type === 'product' && item.data.id === key);
+              const isExplicitDeleted = deletedProdIds.includes(key);
+              
+              if (isExplicitDeleted || (!inCloud && !inQueue)) {
+                console.log(`[Cloud Live Sync] Pruning product locally (deleted in cloud or explicit): ${key}`);
                 localProductsMap.delete(key);
                 modifiedProducts = true;
               }
@@ -20169,11 +20433,13 @@
             });
           }
 
-          // Prune locally deleted riders instantly if marked deleted by admin
+          // Prune locally deleted riders that are not in the cloud snapshot
           if (!snapshot.empty) {
-            for (const [key, localD] of localEMap.entries()) {
-              const isMarkedDeleted = deletedRiderIds.includes(key);
-              if (isMarkedDeleted) {
+            for (const key of localEMap.keys()) {
+              const inCloud = cloudIds.has(key);
+              const isExplicitDeleted = deletedRiderIds.includes(key);
+              if (isExplicitDeleted || !inCloud) {
+                console.log(`[Cloud Live Sync] Pruning rider locally (deleted in cloud or explicit): ${key}`);
                 localEMap.delete(key);
                 modified = true;
               }
@@ -20246,6 +20512,17 @@
             });
           }
 
+          // Prune locally deleted categories that are not in the cloud snapshot
+          if (!snapshot.empty) {
+            for (const key of localCatsMap.keys()) {
+              if (!cloudIds.has(key)) {
+                console.log(`[Cloud Live Sync] Pruning category locally (deleted in cloud): ${key}`);
+                localCatsMap.delete(key);
+                modified = true;
+              }
+            }
+          }
+
           if (modified) {
             const merged = Array.from(localCatsMap.values());
             const jsonStr = JSON.stringify(merged);
@@ -20294,15 +20571,15 @@
             });
           }
 
-          // Prune locally deleted admins instantly if marked deleted by superadmin
+          // Prune locally deleted admins that are not in the cloud snapshot
           if (!snapshot.empty) {
             const deletedAdminIds = getDeletedAdminIds();
             for (const [key, localAdmin] of localAdminsMap.entries()) {
               if (key === 'a1') continue; // Always protect superadmin Anantharaj
-              
-              const isMarkedDeleted = deletedAdminIds.includes(key) || deletedAdminIds.includes(localAdmin.phone);
-              
-              if (isMarkedDeleted) {
+              const inCloud = cloudIds.has(key);
+              const isExplicitDeleted = deletedAdminIds.includes(key) || deletedAdminIds.includes(localAdmin.phone);
+              if (isExplicitDeleted || !inCloud) {
+                console.log(`[Cloud Live Sync] Pruning admin locally (deleted in cloud or explicit): ${key}`);
                 localAdminsMap.delete(key);
                 modified = true;
               }

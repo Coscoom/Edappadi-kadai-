@@ -158,17 +158,17 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
         // Pre-create Chromium WebView Code Cache directories to prevent "No such file or directory" enumerator error on startup
         preCreateWebViewCacheDirs()
 
-        // Asynchronously keep recreating them for the first 10 seconds of startup 
-        // to win any race conditions with Chromium's async initialization.
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        // Asynchronously keep recreating them for the first 30 seconds of startup 
+        // to win any race conditions with Chromium's async initialization or cleanup.
         try {
             Thread {
-                for (i in 1..20) {
+                for (i in 1..60) {
                     try {
                         preCreateWebViewCacheDirs()
                         Thread.sleep(500)
@@ -196,6 +196,15 @@ class MainActivity : ComponentActivity() {
                 if (task.isSuccessful) {
                     val token = task.result
                     android.util.Log.d("FCM_INIT", "FCM Registration Token: $token")
+                    runOnUiThread {
+                        webView?.evaluateJavascript(
+                            "javascript:(function() { " +
+                            "  if (typeof onAndroidFcmTokenReceived === 'function') { " +
+                            "    onAndroidFcmTokenReceived('$token'); " +
+                            "  } " +
+                            "})()", null
+                        )
+                    }
                     val sharedPrefs = getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
                     sharedPrefs.edit()
                         .putString("fcm_token", token)
@@ -274,6 +283,21 @@ class MainActivity : ComponentActivity() {
 
                                 // Handle native intent actions (tel, whatsapp, intents, maps)
                                 webViewClient = object : WebViewClient() {
+                                    override fun onPageFinished(view: WebView?, url: String?) {
+                                        super.onPageFinished(view, url)
+                                        val sharedPrefs = getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
+                                        val token = sharedPrefs.getString("real_fcm_token", "") ?: ""
+                                        if (token.isNotEmpty()) {
+                                            view?.evaluateJavascript(
+                                                "javascript:(function() { " +
+                                                "  if (typeof onAndroidFcmTokenReceived === 'function') { " +
+                                                "    onAndroidFcmTokenReceived('$token'); " +
+                                                "  } " +
+                                                "})()", null
+                                            )
+                                        }
+                                    }
+
                                     override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                                         super.onPageStarted(view, url, favicon)
                                         preCreateWebViewCacheDirs()
