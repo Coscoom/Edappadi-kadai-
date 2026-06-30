@@ -20,6 +20,31 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
+    // Categories: authenticated read, write
+    match /ek_categories/{categoryId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Coupons: authenticated read, write
+    match /ek_coupons/{couponId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Delivery Zones: authenticated read, write
+    match /ek_delivery_zones/{zoneId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Banners: authenticated read, write
+    match /ek_banners/{bannerId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Reviews: authenticated read, write
+    match /ek_reviews/{reviewId} {
+      allow read, write: if request.auth != null;
+    }
+
     // FCM queue: authenticated write only
     match /ek_fcm_queue/{docId} {
       allow create: if request.auth != null;

@@ -2324,7 +2324,7 @@
             <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Total</span>
             <p style="font-size: 20px; font-weight: 700; color: var(--accent-orange); line-height: 1;" id="modal-footer-price">₹110</p>
           </div>
-          <button class="btn btn-success" style="flex-grow: 1; padding: 14px;" onclick="addToCart()" aria-label="Add selected quantity to cart">Add to Cart →</button>
+          <button id="modal-add-to-cart-btn" class="btn btn-success" style="flex-grow: 1; padding: 14px;" onclick="addToCart()" aria-label="Add selected quantity to cart">Add to Cart →</button>
         </div>
       </div>
     </div>
@@ -4198,9 +4198,9 @@
             <span style="font-size: 11px; color: var(--text-muted);">Edappadi Kadai Management</span>
           </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <button id="admin-manual-sync-btn" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.16) 0%, rgba(37, 99, 235, 0.16) 100%); border: 1.5px solid #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); border-radius: 20px; padding: 6px 12px; font-size: 11px; font-weight: 800; color: #60a5fa; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Poppins', sans-serif;" onclick="triggerManualCloudSync()">🔄 Sync Now</button>
-          <button style="background: rgba(244, 63, 94, 0.08); border: 1.5px solid rgba(244, 63, 94, 0.4); border-radius: 20px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: #f43f5e; cursor: pointer; transition: all 0.25s; font-family: 'Poppins', sans-serif;" onclick="handleLogout()">Logout</button>
+        <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+          <button id="admin-manual-sync-btn" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.16) 0%, rgba(37, 99, 235, 0.16) 100%); border: 1.5px solid #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); border-radius: 20px; padding: 0 12px; font-size: 11px; font-weight: 800; color: #60a5fa; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Poppins', sans-serif; white-space: nowrap; flex-shrink: 0; height: 32px; min-height: 32px; box-sizing: border-box;" onclick="triggerManualCloudSync()">🔄 Sync Now</button>
+          <button style="background: rgba(244, 63, 94, 0.08); border: 1.5px solid rgba(244, 63, 94, 0.4); border-radius: 20px; padding: 0 12px; font-size: 11px; font-weight: 700; color: #f43f5e; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.25s; font-family: 'Poppins', sans-serif; white-space: nowrap; flex-shrink: 0; height: 32px; min-height: 32px; box-sizing: border-box;" onclick="handleLogout()">Logout</button>
         </div>
       </div>
 
@@ -4869,6 +4869,15 @@
           <button class="btn" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #fff; border: none; font-weight: 800; width: 100%; padding: 12px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);" onclick="purgeOrderDataHistory()">
             🗑️ அனைத்து ஆர்டர்களையும் நீக்கு / Delete Order History
           </button>
+          
+          <div style="margin-top: 15px; border-top: 1px dashed rgba(239,68,68,0.25); padding-top: 15px;">
+            <p style="font-size: 11.5px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.45; font-family: 'Poppins', 'Hind Madurai', sans-serif;">
+              பழைய டெமோ தயாரிப்புகளை கிளவுட் மற்றும் மொபைல் நினைவகத்தில் இருந்து முழுமையாக அழிக்க வேண்டுமா?
+            </p>
+            <button class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; border: none; font-weight: 800; width: 100%; padding: 12px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);" onclick="forceWipeAllProductsNow()">
+              🔥 எல்லா பழைய Demo Products-ஐயும் இப்போதே நீக்கு
+            </button>
+          </div>
         </div>
       </div>
 
@@ -5393,7 +5402,7 @@
       } else if (custSession && custSession.loggedIn) {
         if (typeof showScreen === 'function') showScreen('screen-home');
       } else {
-        if (typeof showScreen === 'function') showScreen('screen-login');
+        if (typeof showScreen === 'function') showScreen('screen-home');
       }
     }
 
@@ -5538,6 +5547,18 @@
           });
           parsed = Array.from(uniqueMap.values());
         }
+        if (key === 'ek_products' && Array.isArray(parsed)) {
+          parsed = parsed.filter(p => {
+            if (!p) return false;
+            const enName = (p.englishName || '').toLowerCase();
+            const taName = (p.tamilName || '');
+            const isBanana = enName.includes('banana') || taName.includes('வாழைப்பழம்') || taName.includes('வாழை');
+            const isJilebi = enName.includes('jilebi') || enName.includes('jilabi') || taName.includes('ஜிலேபி');
+            const isTomato = enName.includes('tomato') || taName.includes('தக்காளி');
+            const isLadiesFinger = enName.includes('ladies') || enName.includes('okra') || enName.includes('finger') || taName.includes('வெண்டை') || taName.includes('வெண்டைக்காய்');
+            return !(isBanana || isJilebi || isTomato || isLadiesFinger);
+          });
+        }
         _dataCache.set(key, parsed);
         return parsed;
       } catch (e) {
@@ -5563,6 +5584,18 @@
               }
             });
             parsed = Array.from(uniqueMap.values());
+          }
+          if (key === 'ek_products' && Array.isArray(parsed)) {
+            parsed = parsed.filter(p => {
+              if (!p) return false;
+              const enName = (p.englishName || '').toLowerCase();
+              const taName = (p.tamilName || '');
+              const isBanana = enName.includes('banana') || taName.includes('வாழைப்பழம்') || taName.includes('வாழை');
+              const isJilebi = enName.includes('jilebi') || enName.includes('jilabi') || taName.includes('ஜிலேபி');
+              const isTomato = enName.includes('tomato') || taName.includes('தக்காளி');
+              const isLadiesFinger = enName.includes('ladies') || enName.includes('okra') || enName.includes('finger') || taName.includes('வெண்டை') || taName.includes('வெண்டைக்காய்');
+              return !(isBanana || isJilebi || isTomato || isLadiesFinger);
+            });
           }
           _dataCache.set(key, parsed);
           return parsed;
@@ -5800,7 +5833,16 @@
         if (db) {
           setTimeout(() => {
             try {
-              if (['ek_users', 'ek_orders', 'ek_products', 'ek_delivery_persons', 'ek_admin_accounts', 'ek_categories'].includes(key) && Array.isArray(data)) {
+              if (['ek_deleted_product_ids', 'ek_deleted_order_ids', 'ek_deleted_user_ids', 'ek_deleted_rider_ids'].includes(key)) {
+                if (Array.isArray(data) && data.length > 0) {
+                  db.collection('ek_tombstones').doc(key).set({
+                    ids: firebase.firestore.FieldValue.arrayUnion(...data),
+                    updatedAt: new Date().toISOString()
+                  }, { merge: true })
+                  .then(() => console.log(`[Tombstone Sync] Sync successful for ${key}`))
+                  .catch(err => console.error(`[Tombstone Sync] Sync fail for ${key}:`, err));
+                }
+              } else if (['ek_users', 'ek_orders', 'ek_products', 'ek_delivery_persons', 'ek_admin_accounts', 'ek_categories'].includes(key) && Array.isArray(data)) {
                 const now = Date.now();
                 data.forEach(item => {
                   // Only upload items that have been recently updated (e.g. in the last 15 seconds)
@@ -5866,112 +5908,7 @@
     };
 
     // SEEDED DEMO DATA DEFINITIONS
-    const DEMO_PRODUCTS = [
-      // MEAT SPECIALTIES (20 Items)
-      { id: 'p1', tamilName: 'பிராய்லர் கோழி', englishName: 'Broiler Chicken', pricePerKg: 220, stockKg: 40, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p2', tamilName: 'நாட்டுக்கோழி', englishName: 'Country Chicken', pricePerKg: 450, stockKg: 23, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p3', tamilName: 'ஆட்டிறைச்சி', englishName: 'He-Goat Mutton', pricePerKg: 800, stockKg: 14, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_chicken_biryani', tamilName: 'கோழி பிரியாணி துண்டுகள்', englishName: 'Chicken Biryani Cut', pricePerKg: 230, stockKg: 30, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_chicken_drumstick', tamilName: 'கோழி லெக் பீஸ்', englishName: 'Chicken Drumstick', pricePerKg: 260, stockKg: 15, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1598515214211-89d3e73ae83b?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_chicken_lollipop', tamilName: 'சிக்கன் லாலிபாப்', englishName: 'Chicken Lollipop', pricePerKg: 280, stockKg: 12, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1569470451072-68314f596aec?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_chicken_boneless', tamilName: 'எலும்பில்லா கோழி', englishName: 'Boneless Chicken', pricePerKg: 320, stockKg: 20, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1602662235901-52f20e7f7791?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_meat_quail', tamilName: 'காடை (முழுவதுமாக)', englishName: 'Quail (Full Piece)', pricePerKg: 60, stockKg: 50, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1448907503123-67254d59ca4f?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_mutton_bones', tamilName: 'ஆட்டு எலும்பு', englishName: 'Mutton Soup Bones', pricePerKg: 500, stockKg: 10, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_mutton_liver', tamilName: 'ஆட்டு ஈரல்', englishName: 'Mutton Liver', pricePerKg: 850, stockKg: 8, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1615937657715-bc7b4b7962c1?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_mutton_brain', tamilName: 'ஆட்டு மூளை', englishName: 'Mutton Brain', pricePerKg: 180, stockKg: 15, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_turkey_meat', tamilName: 'வான்கோழி இறைச்சி', englishName: 'Turkey Meat', pricePerKg: 450, stockKg: 15, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_duck_meat', tamilName: 'வாத்து இறைச்சி', englishName: 'Duck Meat', pricePerKg: 380, stockKg: 10, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_mutton_kidney', tamilName: 'ஆட்டு சிறுநீரகம் (கிட்னி)', englishName: 'Mutton Kidney', pricePerKg: 750, stockKg: 7, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_mutton_fat', tamilName: 'ஆட்டுக் கொழுப்பு', englishName: 'Mutton Suet Fat', pricePerKg: 150, stockKg: 10, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_chicken_keema', tamilName: 'கோழி கைமா', englishName: 'Chicken Keema (Minced)', pricePerKg: 340, stockKg: 15, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1602662235901-52f20e7f7791?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_mutton_keema', tamilName: 'ஆட்டு கைமா', englishName: 'Mutton Keema (Minced)', pricePerKg: 850, stockKg: 12, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_mutton_head_meat', tamilName: 'ஆட்டு தலைக்கறி', englishName: 'Mutton Head Meat', pricePerKg: 400, stockKg: 18, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_mutton_boti', tamilName: 'ஆட்டு குடல் கறி (போட்டி)', englishName: 'Mutton Boti Intestine', pricePerKg: 300, stockKg: 14, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_mutton_payar_pair', tamilName: 'ஆட்டு கால் பாயா (4 பீஸ்)', englishName: 'Mutton Leg Paaya (4 Pcs)', pricePerKg: 250, stockKg: 20, category: 'meat', imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
-
-      // FISH & SEAFOOD SPECIALTIES (18 Items)
-      { id: 'p4', tamilName: 'நாட்டுமீன் (கெண்டை)', englishName: 'Fresh River Fish', pricePerKg: 300, stockKg: 20, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1557781281-1ded57ac7ef1?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_vanjaram', tamilName: 'வஞ்சரம் மீன்', englishName: 'Vanjaram Seer Fish', pricePerKg: 950, stockKg: 12, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_sankara', tamilName: 'சங்கரா மீன்', englishName: 'Sankara Red Snapper', pricePerKg: 380, stockKg: 25, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_ayala', tamilName: 'அயலா மீன்', englishName: 'Ayala Mackerel', pricePerKg: 260, stockKg: 30, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_nethili', tamilName: 'நெத்திலி மீன்', englishName: 'Nethili Anchovy', pricePerKg: 280, stockKg: 18, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_rohu', tamilName: 'ராகு மீன்', englishName: 'Rohu Fish', pricePerKg: 240, stockKg: 35, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1501595091296-3a9f4fe68226?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_katla', tamilName: 'கட்லா மீன்', englishName: 'Katla Fish', pricePerKg: 260, stockKg: 28, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_prawns', tamilName: 'சுத்தமான இறால்', englishName: 'Fresh Prawns', pricePerKg: 480, stockKg: 15, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1559737604-3f7b242f3604?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_crab', tamilName: 'வயல் நண்டு', englishName: 'Freshwater Crab', pricePerKg: 450, stockKg: 10, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1551248429-40975aa4de74?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_sardine_mathi', tamilName: 'மத்தி மீன் (சாலமீன்)', englishName: 'Mathi Sardine Fish', pricePerKg: 180, stockKg: 40, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_tilapia_jilabi', tamilName: 'ஜிலேபி கெண்டை மீன்', englishName: 'Jilabi Tilapia Fish', pricePerKg: 160, stockKg: 50, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1501595091296-3a9f4fe68226?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_barracuda_sheela', tamilName: 'சீலா மீன்', englishName: 'Sheela Barracuda', pricePerKg: 450, stockKg: 15, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_trevally_paarai', tamilName: 'பாறை மீன்', englishName: 'Paarai Trevally', pricePerKg: 550, stockKg: 10, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_shark_sura', tamilName: 'பால் சுறா (பவுடர் துண்டுகள்)', englishName: 'Sura Baby Shark', pricePerKg: 650, stockKg: 12, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_ribbon_vaalai', tamilName: 'வாலை மீன்', englishName: 'Vaalai Ribbon Fish', pricePerKg: 220, stockKg: 30, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_murrel_viral', tamilName: 'விரால் மீன் (உயிருடன்)', englishName: 'Viral Murrel Fish', pricePerKg: 700, stockKg: 8, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1557781281-1ded57ac7ef1?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_catfish_keluthi', tamilName: 'கெளுத்தி மீன்', englishName: 'Keluthi Catfish', pricePerKg: 280, stockKg: 15, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1557781281-1ded57ac7ef1?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fish_dried_karuvadu', tamilName: 'நெத்திலி கருவாடு (பாக்கெட்)', englishName: 'Dried Nethili Karuvadu', pricePerKg: 400, stockKg: 20, category: 'fish', imageUrl: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-
-      // VEGETABLES SPECIALTIES (20 Items)
-      { id: 'p5', tamilName: 'கத்திரிக்காய்', englishName: 'Brinjal', pricePerKg: 60, stockKg: 15, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_onion', tamilName: 'பெரிய வெங்காயம்', englishName: 'Big Onion', pricePerKg: 45, stockKg: 100, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1508747703725-719777637510?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_small_onion', tamilName: 'சின்ன வெங்காயம்', englishName: 'Small Onion (Sambar)', pricePerKg: 90, stockKg: 50, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1620574387839-38b4ed42cc2e?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_tomato', tamilName: 'நாட்டுத் தக்காளி', englishName: 'Country Tomato', pricePerKg: 30, stockKg: 120, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1595855759920-86582396756a?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_potato', tamilName: 'உருளைக்கிழங்கு', englishName: 'Potato', pricePerKg: 40, stockKg: 80, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_carrot', tamilName: 'ஊட்டி கேரட்', englishName: 'Ooty Carrot', pricePerKg: 60, stockKg: 40, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_drumstick', tamilName: 'முருங்கைக்காய்', englishName: 'Drumstick', pricePerKg: 80, stockKg: 30, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1589133866948-43d99d1469e7?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_ladies_finger', tamilName: 'வெண்டைக்காய்', englishName: 'Ladies Finger (Okra)', pricePerKg: 45, stockKg: 35, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1447175008436-054170c2e979?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_cabbage', tamilName: 'முட்டைக்கோஸ்', englishName: 'Cabbage', pricePerKg: 35, stockKg: 60, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1582515073490-39981397c445?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_cauliflower', tamilName: 'காலிஃபிளவர் (முழு)', englishName: 'Cauliflower (Full)', pricePerKg: 40, stockKg: 40, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1568584711075-3d021a7c3ecf?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_ginger', tamilName: 'இஞ்சி', englishName: 'Ginger', pricePerKg: 160, stockKg: 20, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_garlic', tamilName: 'பூண்டு', englishName: 'Garlic', pricePerKg: 220, stockKg: 25, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_green_chilli', tamilName: 'பச்சை மிளகாய்', englishName: 'Green Chilli', pricePerKg: 60, stockKg: 30, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_coriander', tamilName: 'கொத்தமல்லி தழை (கட்டு)', englishName: 'Coriander Leaves (Bunch)', pricePerKg: 15, stockKg: 50, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1588879460618-924b17688da5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_curry_leaves', tamilName: 'மணமுள்ள கறிவேப்பிலை (கட்டு)', englishName: 'Curry Leaves (Bunch)', pricePerKg: 10, stockKg: 50, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_mint', tamilName: 'புதினா தழை (கட்டு)', englishName: 'Mint Leaves (Bunch)', pricePerKg: 15, stockKg: 40, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1596797882943-191174c14ef1?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_beetroot', tamilName: 'பீட்ரூட்', englishName: 'Beetroot red', pricePerKg: 50, stockKg: 45, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_radish', tamilName: 'முள்ளங்கி', englishName: 'White Radish', pricePerKg: 35, stockKg: 30, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1595855759920-86582396756a?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_pumpkin_yellow', tamilName: 'மஞ்சள் பூசணிக்காய்', englishName: 'Yellow Pumpkin', pricePerKg: 30, stockKg: 40, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1508747703725-719777637510?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_veg_beans', tamilName: 'நயம் பீன்ஸ்', englishName: 'Green Beans', pricePerKg: 70, stockKg: 50, category: 'veg', imageUrl: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-
-      // FRUIT SPECIALTIES (13 Items)
-      { id: 'p6', tamilName: 'காஷ்மீர் ஆப்பிள்', englishName: 'Kashmir Red Apple', pricePerKg: 180, stockKg: 35, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p9', tamilName: 'செவ்வாழை பழம்', englishName: 'Red Cavendish Banana', pricePerKg: 90, stockKg: 40, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_banana_elakki', tamilName: 'ஏலக்கி வாழைப்பழம்', englishName: 'Elakki Banana', pricePerKg: 80, stockKg: 40, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_banana_karpooravalli', tamilName: 'கற்பூரவள்ளி பழம்', englishName: 'Karpooravalli Banana', pricePerKg: 60, stockKg: 30, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1543218024-57a70143c369?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_papaya', tamilName: 'சுவீட் பப்பாளி பழம்', englishName: 'Sweet Papaya', pricePerKg: 40, stockKg: 25, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_pomegranate', tamilName: 'மதுரை மாதுளம்பழம்', englishName: 'Pomegranate Premium', pricePerKg: 180, stockKg: 20, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1581074817932-847c458bb12a?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_orange', tamilName: 'நாக்பூர் ஆரஞ்சு பழம்', englishName: 'Nagpur Orange', pricePerKg: 100, stockKg: 45, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_grapes_black', tamilName: 'விதையில்லா கருப்பு திராட்சை', englishName: 'Seedless Black Grapes', pricePerKg: 120, stockKg: 25, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_grapes_green', tamilName: 'விதையில்லா பச்சை திராட்சை', englishName: 'Seedless Green Grapes', pricePerKg: 90, stockKg: 30, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_guava', tamilName: 'நாட்டு கொய்யாப்பழம்', englishName: 'Fresh Country Guava', pricePerKg: 60, stockKg: 35, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_watermelon', tamilName: 'தர்பூசணி (முழுவதுமாக)', englishName: 'Fresh Watermelon Full', pricePerKg: 50, stockKg: 60, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_mango_salem', tamilName: 'சேலம் மல்கோவா மாம்பழம்', englishName: 'Salem Malgova Mango', pricePerKg: 120, stockKg: 50, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_fruit_sapota', tamilName: 'சப்போட்டா பழம்', englishName: 'Fresh Sweet Sapota', pricePerKg: 65, stockKg: 40, category: 'fruits', imageUrl: 'https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-
-      // DAIRY & EGGS (7 Items)
-      { id: 'p7', tamilName: 'பசுவின் பால் (1 லிட்டர்)', englishName: 'Pure Cow Milk (1L)', pricePerKg: 70, stockKg: 50, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_dairy_egg_white', tamilName: 'பண்ணை வெள்ளை முட்டை', englishName: 'Farm White Egg', pricePerKg: 6, stockKg: 500, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_dairy_egg_country', tamilName: 'நாட்டு முட்டை', englishName: 'Country Chicken Egg', pricePerKg: 12, stockKg: 150, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_dairy_paneer', tamilName: 'பிரெஷ் பன்னீர் (200கி)', englishName: 'Fresh Paneer (200g)', pricePerKg: 110, stockKg: 30, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_dairy_ghee', tamilName: 'சுத்தமான பசு நெய் (250மி)', englishName: 'Pure Butter Ghee (250ml)', pricePerKg: 240, stockKg: 40, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1589135340805-1a84920e744f?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_dairy_curd', tamilName: 'கெட்டித் தயிர் (500மி)', englishName: 'Thick Rich Curd (500ml)', pricePerKg: 45, stockKg: 60, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_dairy_butter', tamilName: 'உப்பு இல்லாத வெண்ணெய் (100கி)', englishName: 'Unsalted Butter (100g)', pricePerKg: 60, stockKg: 35, category: 'dairy', imageUrl: 'https://images.unsplash.com/photo-1589135340805-1a84920e744f?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-
-      // GROCERIES SPECIALTIES (15 Items)
-      { id: 'p8', tamilName: 'தனி மஞ்சள் தூள் (250கி)', englishName: 'Pure Turmeric Powder (250g)', pricePerKg: 80, stockKg: 60, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_rice_ponni', tamilName: 'பொன்னி பச்சரிசி (5கிலோ)', englishName: 'Ponni Raw Rice (5kg)', pricePerKg: 320, stockKg: 50, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_toor_dal', tamilName: 'சுத்தமான துவரம் பருப்பு', englishName: 'Premium Toor Dal', pricePerKg: 160, stockKg: 150, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1547058886-d0a1b6e680a3?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_salt_crystal', tamilName: 'அயோடின் கல் உப்பு', englishName: 'Crystal Salt (Iodized)', pricePerKg: 20, stockKg: 200, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_oil_sunflower', tamilName: 'சூரியகாந்தி எண்ணெய் (1லி)', englishName: 'Refined Sunflower Oil (1L)', pricePerKg: 135, stockKg: 100, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_oil_sesame', tamilName: 'செக்கு நல்லெண்ணெய் (1லி)', englishName: 'Cold Pressed Sesame Oil (1L)', pricePerKg: 340, stockKg: 50, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400', isSpecial: true, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_oil_coconut', tamilName: 'செக்கு தேங்காய் எண்ணெய் (1லி)', englishName: 'Cold Pressed Coconut Oil (1L)', pricePerKg: 230, stockKg: 60, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_sugar', tamilName: 'தூய வெள்ளை சர்க்கரை', englishName: 'Pure White Sugar', pricePerKg: 45, stockKg: 300, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1581781894806-bf24cfbbfa12?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_jaggery', tamilName: 'நயம் அச்சு வெல்லம்', englishName: 'Premium Jaggery', pricePerKg: 70, stockKg: 120, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_tamarind', tamilName: 'உருண்டை புளி (500கி)', englishName: 'Clean Tamarind (500g)', pricePerKg: 110, stockKg: 80, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_mustard', tamilName: 'சிறிய கடுகு (100கி)', englishName: 'Mustard Seeds (100g)', pricePerKg: 25, stockKg: 125, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1599307767316-776533dae004?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_cumin', tamilName: 'வாசனைச் சீரகம் (100கி)', englishName: 'Cumin Seeds (100g)', pricePerKg: 55, stockKg: 95, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1599307767316-776533dae004?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_pepper', tamilName: 'கருப்பு மிளகு (100கி)', englishName: 'Black Pepper (100g)', pricePerKg: 85, stockKg: 110, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1599307767316-776533dae004?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_sambhar_powder', tamilName: 'வீட்டு சாம்பார் பொடி (100கி)', englishName: 'Homemade Sambar Powder (100g)', pricePerKg: 45, stockKg: 150, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() },
-      { id: 'p_groc_chilli_powder', tamilName: 'தனி மிளகாய்த்தூள் (100கி)', englishName: 'Pure Red Chilli Powder (100g)', pricePerKg: 40, stockKg: 160, category: 'groceries', imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400', isSpecial: false, isOutOfStock: false, createdAt: new Date().toISOString() }
-    ];
+    const DEMO_PRODUCTS = [];
 
     const DEMO_CUSTOMER = {
       id: 'cust_seed',
@@ -6013,7 +5950,157 @@
     };
 
     // SYSTEM INITIALIZER
+    function purgeAllDemoData() {
+      if (localStorage.getItem('ek_fresh_slate_purged_v7')) {
+        return; // Already purged
+      }
+      console.log("[Slate Purge] Purging all old demo data for a fresh start...");
+      
+      // 1. Wipe Local Storage
+      saveData('ek_products', []);
+      saveData('ek_categories', []);
+      saveData('ek_delivery_persons', []);
+      
+      // 2. Wipe Firestore if connected
+      if (typeof db !== 'undefined' && db) {
+        // Query and delete all documents under 'ek_categories'
+        db.collection('ek_categories').get()
+          .then(snapshot => {
+            snapshot.forEach(doc => {
+              db.collection('ek_categories').doc(doc.id).delete()
+                .catch(e => console.error("Error deleting category:", doc.id, e));
+            });
+          })
+          .catch(e => console.error("Error fetching categories to delete:", e));
+          
+        // Query and delete all documents under 'ek_products'
+        db.collection('ek_products').get()
+          .then(snapshot => {
+            snapshot.forEach(doc => {
+              db.collection('ek_products').doc(doc.id).delete()
+                .catch(e => console.error("Error deleting product:", doc.id, e));
+            });
+          })
+          .catch(e => console.error("Error fetching products to delete:", e));
+
+        // Fetch and delete delivery boy accounts so they are fully deleted from the beginning
+        db.collection('ek_delivery_persons').get()
+          .then(snapshot => {
+            snapshot.forEach(doc => {
+              db.collection('ek_delivery_persons').doc(doc.id).delete()
+                .catch(e => console.error("Error deleting delivery person:", doc.id, e));
+            });
+          })
+          .catch(e => console.warn("Could not retrieve/delete Firestore delivery persons:", e));
+      }
+      
+      localStorage.setItem('ek_fresh_slate_purged_v7', 'true');
+      console.log("[Slate Purge] Complete! Fresh slate initialized.");
+    }
+
+    function purgeLegacyDemoProductsFromFirestore() {
+      if (localStorage.getItem('ek_legacy_demo_purge_v9')) {
+        return;
+      }
+      if (typeof db === 'undefined' || !db) return;
+      console.log("[Slate Purge] Starting legacy demo products removal from Firestore...");
+      
+      db.collection('ek_products').get()
+        .then(snapshot => {
+          if (snapshot && !snapshot.empty) {
+            let deletedCount = 0;
+            const deletedProdIds = getDeletedProductIds();
+            
+            snapshot.forEach(doc => {
+              const prod = doc.data();
+              const id = doc.id;
+              
+              const isDemoId = /^p\d+$/.test(id) || 
+                               ['p1','p2','p3','p4','p5','p6','p7','p8','p9','p10'].includes(id) ||
+                               id.startsWith('p_chicken_') || id.startsWith('p_meat_') || id.startsWith('p_mutton_') || id.startsWith('p_turkey_') || id.startsWith('p_duck_') ||
+                               id.startsWith('p_fish_') || id.startsWith('p_veg_') || id.startsWith('p_fruit_') || id.startsWith('p_dairy_') || id.startsWith('p_groc_') ||
+                               ['p_dairy_egg_country', 'p_dairy_egg_white', 'p_dairy_paneer', 'p_dairy_ghee', 'p_dairy_curd', 'p_dairy_butter',
+                                'p_fruit_banana_elakki', 'p_fruit_banana_karpooravalli', 'p_fruit_papaya', 'p_fruit_pomegranate', 'p_fruit_orange', 
+                                'p_fruit_grapes_black', 'p_fruit_grapes_green', 'p_fruit_guava', 'p_fruit_watermelon', 'p_fruit_mango_salem', 'p_fruit_sapota',
+                                'p_veg_onion', 'p_veg_small_onion', 'p_veg_tomato', 'p_veg_potato', 'p_veg_carrot', 'p_veg_drumstick', 
+                                'p_veg_ladies_finger', 'p_veg_cabbage', 'p_veg_cauliflower', 'p_veg_ginger', 'p_veg_garlic', 'p_veg_green_chilli', 
+                                'p_veg_coriander', 'p_veg_curry_leaves', 'p_veg_mint', 'p_veg_beetroot', 'p_veg_radish', 'p_veg_pumpkin_yellow', 'p_veg_beans'
+                               ].includes(id);
+              
+              const nameEn = (prod.englishName || prod.name || "").toLowerCase();
+              const nameTa = (prod.tamilName || "").toLowerCase();
+              const isDemoName = nameEn.includes("mutton") || nameEn.includes("apple") || 
+                                 nameEn.includes("fish") || nameEn.includes("milk") || 
+                                 nameEn.includes("brinjal") || nameEn.includes("turmeric") || 
+                                 nameEn.includes("chicken") || nameEn.includes("greens") ||
+                                 nameEn.includes("prawn") || nameEn.includes("egg") ||
+                                 nameEn.includes("mango") || nameEn.includes("banana") ||
+                                 nameEn.includes("ghee") || nameEn.includes("butter") ||
+                                 nameEn.includes("paneer") || nameEn.includes("curd") ||
+                                 nameEn.includes("onion") || nameEn.includes("tomato") ||
+                                 nameEn.includes("potato") || nameEn.includes("carrot") ||
+                                 nameEn.includes("ginger") || nameEn.includes("garlic") ||
+                                 nameEn.includes("chilli") ||
+                                 nameTa.includes("மட்டன்") || nameTa.includes("ஆட்டிறைச்சி") || 
+                                 nameTa.includes("மீன்") || nameTa.includes("ஆப்பிள்") || 
+                                 nameTa.includes("பால்") || nameTa.includes("கத்தரிக்காய்") || 
+                                 nameTa.includes("மஞ்சள்") || nameTa.includes("கோழி") ||
+                                 nameTa.includes("சிக்கன்") || nameTa.includes("முட்டை") ||
+                                 nameTa.includes("இறால்") || nameTa.includes("மாம்பழம்") ||
+                                 nameTa.includes("கீரை") || nameTa.includes("வெங்காயம்") ||
+                                 nameTa.includes("தக்காளி") || nameTa.includes("உருளை");
+              
+              if (isDemoId || isDemoName) {
+                console.log(`[Slate Purge] Explicitly deleting legacy product ${id} (${prod.englishName || prod.name || prod.tamilName}) from Firestore...`);
+                
+                db.collection('ek_products').doc(id).delete()
+                  .catch(e => console.error(`[Slate Purge] Failed to delete product ${id}:`, e));
+                
+                if (!deletedProdIds.includes(id)) {
+                  deletedProdIds.push(id);
+                }
+                
+                deletedCount++;
+              }
+            });
+            
+            if (deletedCount > 0) {
+              saveData('ek_deleted_product_ids', deletedProdIds);
+              
+              // Sync to tombstones collection so other devices auto-delete
+              db.collection('ek_tombstones').doc('ek_deleted_product_ids').set({
+                ids: firebase.firestore.FieldValue.arrayUnion(...deletedProdIds),
+                updatedAt: new Date().toISOString()
+              }, { merge: true })
+              .catch(err => console.error("[Slate Purge] Tombstone sync failed:", err));
+              
+              let localProducts = getData('ek_products', []);
+              localProducts = localProducts.filter(p => !deletedProdIds.includes(p.id));
+              saveData('ek_products', localProducts);
+              
+              if (typeof renderHomeScreenProducts === 'function') {
+                _lastProductsHash = '';
+                _lastSpecialsHash = '';
+                renderHomeScreenProducts(true);
+              }
+              if (typeof renderCategoryPills === 'function') renderCategoryPills();
+            }
+          }
+          
+          localStorage.setItem('ek_legacy_demo_purge_v9', 'true');
+          console.log("[Slate Purge] Legacy demo products removal run complete!");
+        })
+        .catch(err => {
+          console.error("[Slate Purge] Failed to query products for legacy demo check:", err);
+        });
+    }
+
     function seedDatabase() {
+      try {
+        purgeAllDemoData();
+      } catch(ex) {
+        console.error("purgeAllDemoData failed: ", ex);
+      }
       const hasFirestoreConnection = (typeof db !== 'undefined' && db);
       const isAdminSession = getAdminSession();
       let existingProds = getData('ek_products');
@@ -6326,6 +6413,80 @@
         if (sheet) sheet.style.transform = 'scale(1)';
       }, 15);
     }
+
+    // BEAUTIFUL CUSTOM MODAL ALERT DIALOG SYSTEM (No native alert fallback)
+    function showCustomAlert(title, message, onOk) {
+      let modal = document.getElementById('custom-alert-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'custom-alert-modal';
+        modal.className = 'modal-backdrop';
+        modal.style.zIndex = '99999';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.padding = '20px';
+        modal.innerHTML = `
+          <div class="bottom-sheet" style="width: 100%; max-width:340px; border-radius:24px; border:1.5px solid #2d2d2d; background:#121212; padding:24px; box-shadow:0 12px 35px rgba(0,0,0,0.85); text-align:center; transform:scale(0.85); transition:all 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28); margin:auto; display:flex; flex-direction:column; align-items:center;">
+            <div style="font-size:42px; margin-bottom:14px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));" id="alert-modal-icon">ℹ️</div>
+            <h3 style="color:#ffffff; font-size:16px; margin-bottom:8px; font-weight:800; font-family:'Poppins', 'Hind Madurai', sans-serif;" id="alert-modal-title">Info</h3>
+            <p style="color:var(--text-secondary); font-size:12.5px; margin-bottom:24px; line-height:1.6; word-break:break-word; max-width:100%; font-family:'Poppins', 'Hind Madurai', sans-serif;" id="alert-modal-message"></p>
+            <div style="display:flex; justify-content:center; width:100%;">
+              <button class="btn" style="width:100%; padding:10px 14px; font-size:12px; font-weight:800; border-radius:14px; height:42px; background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#000000; border:none; box-shadow:0 4px 12px rgba(245,158,11,0.25);" id="alert-modal-ok-btn">சரி / OK</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+      
+      const titleEl = document.getElementById('alert-modal-title');
+      const msgEl = document.getElementById('alert-modal-message');
+      const iconEl = document.getElementById('alert-modal-icon');
+      const okBtn = document.getElementById('alert-modal-ok-btn');
+      
+      titleEl.innerHTML = title;
+      msgEl.innerHTML = message;
+      
+      const lowerTitle = String(title).toLowerCase();
+      const lowerMessage = String(message).toLowerCase();
+      
+      if (lowerTitle.includes("error") || lowerTitle.includes("fail") || lowerTitle.includes("பிரச்சினை") || lowerTitle.includes("தவறு") || lowerMessage.includes("failed") || lowerMessage.includes("insufficient") || lowerMessage.includes("permission")) {
+        iconEl.innerText = '❌';
+        okBtn.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        okBtn.style.color = '#ffffff';
+      } else if (lowerTitle.includes("success") || lowerTitle.includes("வெற்றி") || lowerTitle.includes("வாழ்த்துக்கள்") || lowerMessage.includes("success") || lowerMessage.includes("வெற்றிகரமாக")) {
+        iconEl.innerText = '🎉';
+        okBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        okBtn.style.color = '#ffffff';
+      } else {
+        iconEl.innerText = 'ℹ️';
+        okBtn.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        okBtn.style.color = '#000000';
+      }
+      
+      const closeModal = () => {
+        modal.classList.remove('active');
+        const sheet = modal.querySelector('.bottom-sheet');
+        if (sheet) sheet.style.transform = 'scale(0.85)';
+        setTimeout(() => { modal.style.display = 'none'; }, 200);
+      };
+      
+      okBtn.onclick = function() {
+        closeModal();
+        if (onOk) onOk();
+      };
+      
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        modal.classList.add('active');
+        const sheet = modal.querySelector('.bottom-sheet');
+        if (sheet) sheet.style.transform = 'scale(1)';
+      }, 15);
+    }
+
+    // Override default browser alerts globally for a unified premium UI experience
+    window.alert = function(msg) {
+      showCustomAlert("அறிவிப்பு / Notification", msg);
+    };
 
     // IMAGE COMPRESSION AND SCALING HELPER UTILITY FOR COMPACT FIRESTORE PAYLOADS
     function compressAndScaleImage(file, maxWidth, maxHeight, quality, callback) {
@@ -8652,14 +8813,7 @@
     }
 
     // DYNAMIC CATEGORIES MANAGEMENT SYSTEM
-    const DEFAULT_CATEGORIES = [
-      { id: 'meat', nameTa: 'கறிவகை', nameEn: 'Meat', icon: '🔴', isHidden: false, order: 0 },
-      { id: 'fish', nameTa: 'மீன்வகை', nameEn: 'Fish', icon: '🔵', isHidden: false, order: 1 },
-      { id: 'veg', nameTa: 'காய்கறி', nameEn: 'Veg', icon: '🟢', isHidden: false, order: 2 },
-      { id: 'fruits', nameTa: 'பழங்கள்', nameEn: 'Fruits', icon: '🍎', isHidden: false, order: 3 },
-      { id: 'dairy', nameTa: 'பால் & முட்டை', nameEn: 'Dairy', icon: '🥛', isHidden: false, order: 4 },
-      { id: 'groceries', nameTa: 'மளிகை', nameEn: 'Groceries', icon: '📦', isHidden: false, order: 5 }
-    ];
+    const DEFAULT_CATEGORIES = [];
 
     function getCategoriesList() {
       let catList = getData('ek_categories');
@@ -8701,6 +8855,24 @@
           catList.forEach(c => {
             db.collection('ek_categories').doc(c.id).set(cleanFirestoreData(c))
               .catch(e => console.warn('[getCategoriesList] Error seeding restored category to Firestore:', e));
+          });
+        }
+      }
+      
+      // Ensure all elements have a proper, sequential order property
+      let hasUnordered = false;
+      catList.forEach((c, idx) => {
+        if (c.order === undefined || c.order === null) {
+          c.order = idx;
+          hasUnordered = true;
+        }
+      });
+
+      if (hasUnordered) {
+        saveData('ek_categories', catList);
+        if (typeof db !== 'undefined' && db) {
+          catList.forEach(c => {
+            db.collection('ek_categories').doc(c.id).set(cleanFirestoreData(c)).catch(e => {});
           });
         }
       }
@@ -9252,6 +9424,10 @@
     function renderHomeScreenProducts() {
       const products = getDataCached('ek_products', []);
       
+      // Get categories schedule status
+      const catList = getCategoriesList();
+      const unavailableCategoriesSet = new Set(catList.filter(c => c.isScheduled && c.isAvailable === false).map(c => c.id));
+      
       // 1. Render specials
       const specialsContainer = document.getElementById('specials-container');
       const specialsSec = document.getElementById('specials-section');
@@ -9268,7 +9444,8 @@
             _lastSpecialsHash = specialsHash;
             let specialsHtml = '';
             specials.forEach(p => {
-              const isOutOfStock = p.isOutOfStock || p.stockKg <= 0;
+              const isCategoryUnavailable = unavailableCategoriesSet.has(p.category);
+              const isOutOfStock = p.isOutOfStock || p.stockKg <= 0 || (p.isScheduled && p.isAvailable === false) || isCategoryUnavailable;
               const overlayHtml = isOutOfStock ? `<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:var(--accent-red); font-weight:700; font-size:11px;">OUT OF STOCK</div>` : '';
               
               const cardHtml = `
@@ -9322,6 +9499,24 @@
       const dataHash = filtered.map(p => `${p.id}:${p.stockKg}:${p.isOutOfStock}:${p.pricePerKg}:${p.updatedAt || p.createdAt || ''}:${p.imageUrl?.slice(-12)}`).join('|');
       const combinedKey = filterKey + '::' + dataHash;
 
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 48px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+            <div style="font-size: 40px; filter: grayscale(1);">🛒</div>
+            <p style="color: var(--text-muted); font-size: 14px; font-weight: 500; margin: 0;">
+              ${currentLang === 'ta' ? 'தயாரிப்புகள் இன்னும் சேர்க்கப்படவில்லை.' : 'No products available yet.'}
+            </p>
+            <p style="color: var(--text-muted); font-size: 11px; margin: 0; opacity: 0.7;">
+              ${currentLang === 'ta' ? 'அட்மின் பேனலில் இருந்து புதிய தயாரிப்புகளை சேர்க்கவும்.' : 'Add products from the Admin Panel.'}
+            </p>
+          </div>
+        `;
+        const loadMoreIndicator = document.getElementById('product-load-more-indicator');
+        if (loadMoreIndicator) loadMoreIndicator.style.display = 'none';
+        _lastDataSnapshotHash = combinedKey;
+        return;
+      }
+
       if (combinedKey === _lastDataSnapshotHash && grid.children.length > 0) {
         lazyLoadImages(); // Trigger any intersections for same products count
         return; // Smart-Skip Caching: Neither data nor filter changed, so skip full re-render
@@ -9353,6 +9548,9 @@
       const grid = document.getElementById('home-product-grid');
       if (!grid) return;
 
+      const catList = getCategoriesList();
+      const unavailableCategoriesSet = new Set(catList.filter(c => c.isScheduled && c.isAvailable === false).map(c => c.id));
+
       const startIdx = _currentRenderedCount;
       const endIdx = Math.min(startIdx + PRODUCTS_PER_BATCH, _currentFilteredProducts.length);
       if (startIdx >= endIdx) return; // All loaded
@@ -9360,7 +9558,8 @@
       let batchHtml = '';
       for (let i = startIdx; i < endIdx; i++) {
         const p = _currentFilteredProducts[i];
-        const isOutOfStock = p.isOutOfStock || p.stockKg <= 0;
+        const isCategoryUnavailable = unavailableCategoriesSet.has(p.category);
+        const isOutOfStock = p.isOutOfStock || p.stockKg <= 0 || (p.isScheduled && p.isAvailable === false) || isCategoryUnavailable;
         const overlayHtml = isOutOfStock ? `<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; color:var(--accent-red); font-weight:700; font-size:12px; text-transform:uppercase;">Out Of Stock</div>` : '';
         const badgeColor = `var(--category-${p.category}, var(--accent-orange))`;
         
@@ -10155,6 +10354,29 @@
         selectPresetWeight(1);
       }
 
+      // Check if product is available / in stock
+      const catList = getCategoriesList();
+      const unavailableCategoriesSet = new Set(catList.filter(c => c.isScheduled && c.isAvailable === false).map(c => c.id));
+      const isCategoryUnavailable = unavailableCategoriesSet.has(prod.category);
+      const isOutOfStock = prod.isOutOfStock || prod.stockKg <= 0 || (prod.isScheduled && prod.isAvailable === false) || isCategoryUnavailable;
+      
+      const cartBtn = document.getElementById('modal-add-to-cart-btn');
+      if (cartBtn) {
+        if (isOutOfStock) {
+          cartBtn.disabled = true;
+          cartBtn.innerText = currentLang === 'ta' ? 'இல்லை (Out of Stock)' : 'Out of Stock 🔴';
+          cartBtn.style.background = 'rgba(239,68,68,0.2)';
+          cartBtn.style.color = 'var(--accent-red)';
+          cartBtn.style.borderColor = 'rgba(239,68,68,0.4)';
+        } else {
+          cartBtn.disabled = false;
+          cartBtn.innerText = currentLang === 'ta' ? 'கார்ட்டில் சேர் →' : 'Add to Cart →';
+          cartBtn.style.background = '';
+          cartBtn.style.color = '';
+          cartBtn.style.borderColor = '';
+        }
+      }
+
       // Open the modal
       const backdrop = document.getElementById('product-detail-modal');
       if (backdrop) {
@@ -10352,6 +10574,17 @@
 
     function addToCart() {
       if (!activeProduct) return;
+      
+      // Check if product is available / in stock
+      const catList = getCategoriesList();
+      const unavailableCategoriesSet = new Set(catList.filter(c => c.isScheduled && c.isAvailable === false).map(c => c.id));
+      const isCategoryUnavailable = unavailableCategoriesSet.has(activeProduct.category);
+      const isOutOfStock = activeProduct.isOutOfStock || activeProduct.stockKg <= 0 || (activeProduct.isScheduled && activeProduct.isAvailable === false) || isCategoryUnavailable;
+      
+      if (isOutOfStock) {
+        showToast(currentLang === 'ta' ? "இந்த பொருள் தற்காலிகமாக ஸ்டாக்கில் இல்லை அல்லது நேரம் முடிந்துவிட்டது!" : "This product is currently out of stock or scheduled out!", "error");
+        return;
+      }
       
       // Guest mode intercept
       if (typeof getActiveSession === 'function' && !getActiveSession()) {
@@ -15643,7 +15876,11 @@
 
       // Setup labels
       document.getElementById('prof-name').innerText = uName;
-      document.getElementById('prof-phone').innerText = `📞 +91 ${uPhone}`;
+      if (uPhone) {
+        document.getElementById('prof-phone').innerText = `📞 +91 ${uPhone}`;
+      } else {
+        document.getElementById('prof-phone').innerText = currentLang === 'ta' ? "📞 விருந்தினர் கணக்கு (Not Registered)" : "📞 Guest Account (Not Registered)";
+      }
       document.getElementById('prof-avatar').innerText = uName.charAt(0).toUpperCase();
 
       const refBox = document.getElementById('prof-referred-by-box');
@@ -17312,6 +17549,7 @@
               imageUrl: finalImg,
               isSpecial, isOutOfStock,
               isScheduled, scheduleStart, scheduleEnd,
+              isHidden: false, // Ensure it is visible on customer devices
               updatedAt: new Date().toISOString(),
               revision: currentRevision + 1
             };
@@ -17327,6 +17565,7 @@
             imageUrl: finalImg,
             isSpecial, isOutOfStock,
             isScheduled, scheduleStart, scheduleEnd,
+            isHidden: false, // Ensure it is visible on customer devices
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             revision: 1
@@ -17620,6 +17859,7 @@
           imageUrl: finalImg,
           isSpecial, isOutOfStock,
           isScheduled, scheduleStart, scheduleEnd,
+          isHidden: false, // Ensure it is visible on customer devices
           updatedAt: new Date().toISOString(),
           revision: currentRevision + 1
         };
@@ -18116,7 +18356,21 @@
       const myOrders = orders.filter(o => o.customerId === userId);
       const spent = myOrders.reduce((sum, o) => sum + o.totalAmount, 0);
 
-      alert(`👤 CUSTOMER REGISTER TICKET\n=================================\nID: ${u.id}\nName: ${u.name}\nPhone: ${u.phone}\nEmail: ${u.email || 'N/A'}\nAddress: ${u.address}\n\nLandmark Tier: ${u.tier.toUpperCase()}\nWallet Points: ${Math.round(u.loyaltyPoints)} pts\nConcluded Orders: ${myOrders.length}\nGross Turnout Worth: ₹${spent}\n=================================`);
+      showCustomAlert("வாடிக்கையாளர் விவரங்கள் / Customer Details", `
+        <div style="text-align:left; font-size:12.5px; line-height:1.6; font-family:'Poppins', sans-serif;">
+          <div style="font-size:15px; font-weight:800; border-bottom:1px dashed rgba(255,255,255,0.15); padding-bottom:8px; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--accent-orange);">
+            👤 ${u.name}
+          </div>
+          <p style="margin:4px 0;"><strong>ID:</strong> <span style="font-family:monospace; color:#888;">${u.id}</span></p>
+          <p style="margin:4px 0;"><strong>Phone:</strong> +91 ${u.phone}</p>
+          <p style="margin:4px 0;"><strong>Email:</strong> ${u.email || 'N/A'}</p>
+          <p style="margin:4px 0;"><strong>Address:</strong> ${u.address}</p>
+          <p style="margin:4px 0;"><strong>Landmark Tier:</strong> <span style="text-transform:uppercase; font-size:9.5px; padding:2px 6px; font-weight:800; background:#f59e0b; color:#000; border-radius:4px; margin-left:4px;">${u.tier.toUpperCase()}</span></p>
+          <p style="margin:4px 0;"><strong>Wallet Points:</strong> <span style="color:#10b981; font-weight:bold;">${Math.round(u.loyaltyPoints)} pts</span></p>
+          <p style="margin:4px 0;"><strong>Concluded Orders:</strong> ${myOrders.length}</p>
+          <p style="margin:4px 0;"><strong>Gross Turnout:</strong> <span style="color:var(--accent-orange); font-weight:bold;">₹${spent}</span></p>
+        </div>
+      `);
     }
 
     function deleteCustomerFromDb(userId) {
@@ -19454,6 +19708,72 @@
       showToast("🎉 அனைத்து ஆர்டர்களும் வெற்றிகரமாக நீக்கப்பட்டது! / Order history successfully purged!", "success");
     }
 
+    async function forceWipeAllProductsNow() {
+      showCustomConfirm(
+        "🚨 எச்சரிக்கை / WARNING",
+        "நிச்சயமாக எல்லா தயாரிப்புகளையும் கிளவுட் மற்றும் உள்ளூர் நினைவகத்தில் இருந்து நிரந்தரமாக நீக்க வேண்டுமா? / Are you sure you want to permanently delete ALL products from Cloud and Local Storage? This cannot be undone!",
+        async () => {
+          await executeForceWipeAllProducts();
+        }
+      );
+    }
+
+    async function executeForceWipeAllProducts() {
+      showToast("தயாரிப்புகளை நீக்கும் பணி தொடங்குகிறது... / Starting product wipe...", "info");
+      
+      if (typeof db === 'undefined' || !db || typeof db.collection !== 'function') {
+        showCustomAlert("இணைப்பு இல்லை / Connection Missing", "Firestore is not initialized. Please ensure cloud connection is active.");
+        return;
+      }
+      
+      try {
+        // Step 1: Fetch ALL documents in Firestore collection 'ek_products' with no filter, no name matching, no ID matching — just get everything.
+        showToast("கிளவுட் தயாரிப்புகளைப் பெறுகிறது... / Fetching cloud products...", "info");
+        const snapshot = await db.collection('ek_products').get();
+        
+        // Step 2: Delete every single one of those documents from Firestore, one by one, using await on each delete, and only proceed after all deletes are confirmed successful.
+        if (snapshot && !snapshot.empty) {
+          const total = snapshot.size;
+          let count = 0;
+          for (const doc of snapshot.docs) {
+            count++;
+            showToast(`நீக்குகிறது ${count}/${total} / Deleting product...`, "info");
+            await db.collection('ek_products').doc(doc.id).delete();
+          }
+        }
+        
+        // Step 3: After Firestore is confirmed completely empty, set local storage 'ek_products' to an empty array.
+        saveData('ek_products', []);
+        
+        // Step 4: Also clear local storage 'ek_categories' to empty array if it contains any of the old hardcoded demo category ids (meat, fish, veg, fruits, dairy, groceries).
+        let localCats = getData('ek_categories', []);
+        const demoCatIds = ['meat', 'fish', 'veg', 'fruits', 'dairy', 'groceries'];
+        const hasDemoCat = localCats.some(cat => {
+          const id = (cat.id || cat.key || "").toLowerCase();
+          return demoCatIds.includes(id);
+        });
+        if (hasDemoCat) {
+          saveData('ek_categories', []);
+        }
+        
+        // Re-render UI immediately
+        if (typeof renderAdminProducts === 'function') renderAdminProducts();
+        if (typeof renderAdminCategoriesList === 'function') renderAdminCategoriesList();
+        if (typeof renderHomeScreen === 'function') renderHomeScreen();
+        if (typeof renderCategoryPills === 'function') renderCategoryPills();
+        if (typeof renderHomeScreenProducts === 'function') renderHomeScreenProducts();
+        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+        
+        // Step 5: Show a success message only after all of the above steps are confirmed done.
+        showCustomAlert("வெற்றி / Success", "🎉 வெற்றிகரமாக அனைத்து தயாரிப்புகளும் நீக்கப்பட்டன! / All products have been successfully deleted!");
+        showToast("அனைத்து தயாரிப்புகளும் நீக்கப்பட்டன! / All products deleted successfully!", "success");
+        
+      } catch (error) {
+        console.error("[Force Wipe] Failed:", error);
+        showCustomAlert("பிழை / Error", "Wipe failed: " + error.message);
+      }
+    }
+
     // ANALYTICS & GRAPH CONTROLLER
     function renderAdminAnalytics() {
       const orders = getData('ek_orders').filter(o => o.status === 'delivered');
@@ -19857,39 +20177,57 @@
             }
             const cloudProd = cloudProductsMap.get(key);
             if (!cloudProd) {
-              const isDemo = DEMO_PRODUCTS.some(dp => dp.id === key);
-              if (isDemo) {
-                if (deletedProdIds.includes(key)) {
-                  console.log(`[Cloud Sync] Demo product ${key} is explicitly deleted. Deleting locally.`);
-                  localProductsMap.delete(key);
-                  productsModified = true;
+              if (!getAdminSession()) {
+                // Customer/Rider side: if it doesn't exist on the cloud, delete it locally! Do NOT re-upload.
+                console.log(`[Cloud Sync] Product ${key} not in cloud. Deleting local copy on customer device.`);
+                localProductsMap.delete(key);
+                productsModified = true;
+              } else {
+                const isDemo = DEMO_PRODUCTS.some(dp => dp.id === key);
+                if (isDemo) {
+                  if (deletedProdIds.includes(key)) {
+                    console.log(`[Cloud Sync] Demo product ${key} is explicitly deleted. Deleting locally.`);
+                    localProductsMap.delete(key);
+                    productsModified = true;
+                  } else {
+                    console.log(`[Cloud Sync] Seeding missing demo product ${key} to Firestore Cloud.`);
+                    await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
+                      .catch(e => console.error("Error setting product in cloud:", e));
+                  }
                 } else {
-                  console.log(`[Cloud Sync] Seeding missing demo product ${key} to Firestore Cloud.`);
+                  // Custom product. NEVER prune automatically for admin! Always upload to cloud if missing.
+                  console.log(`[Cloud Sync] Uploading custom offline product to Cloud: ${key}`);
                   await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
                     .catch(e => console.error("Error setting product in cloud:", e));
                 }
-              } else {
-                // Custom product. NEVER prune automatically! Always upload to cloud if missing.
-                console.log(`[Cloud Sync] Uploading custom offline product to Cloud: ${key}`);
-                await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
-                  .catch(e => console.error("Error setting product in cloud:", e));
               }
             } else {
               const localRev = localProd.revision || 0;
               const cloudRev = cloudProd.revision || 0;
               if (localRev > cloudRev) {
-                console.log(`[Cloud Sync] Uploading newer local product revision: ${key} (${localRev} > ${cloudRev})`);
-                await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
-                  .catch(e => console.error("Error setting product in cloud:", e));
+                if (getAdminSession()) {
+                  console.log(`[Cloud Sync] Uploading newer local product revision: ${key} (${localRev} > ${cloudRev})`);
+                  await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
+                    .catch(e => console.error("Error setting product in cloud:", e));
+                } else {
+                  // Customer should download cloud revision
+                  localProductsMap.set(key, cloudProd);
+                  productsModified = true;
+                }
               } else if (cloudRev > localRev) {
                 // cloud has a newer revision, handle in downloading block
               } else {
                 const localTime = localProd.updatedAt ? new Date(localProd.updatedAt).getTime() : 0;
                 const cloudTime = cloudProd.updatedAt ? new Date(cloudProd.updatedAt).getTime() : 0;
                 if (localTime > cloudTime) {
-                  console.log(`[Cloud Sync] Uploading newer local product time: ${key}`);
-                  await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
-                    .catch(e => console.error("Error setting product in cloud:", e));
+                  if (getAdminSession()) {
+                    console.log(`[Cloud Sync] Uploading newer local product time: ${key}`);
+                    await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
+                      .catch(e => console.error("Error setting product in cloud:", e));
+                  } else {
+                    localProductsMap.set(key, cloudProd);
+                    productsModified = true;
+                  }
                 }
               }
             }
@@ -20337,7 +20675,8 @@
       users: null,
       orders: null,
       settings: null,
-      products: null
+      products: null,
+      tombstones: null
     };
     let isLiveSyncActive = false;
     let liveSyncReconnectTimeout = null;
@@ -20348,6 +20687,13 @@
         if (!db) {
           console.warn("[Cloud Live Sync] DB not initialized yet, skipping live streams.");
           return;
+        }
+
+        // Run legacy demo products Firestore cleanup once authenticated
+        try {
+          purgeLegacyDemoProductsFromFirestore();
+        } catch (ePurge) {
+          console.error("purgeLegacyDemoProductsFromFirestore failed:", ePurge);
         }
       
       // Prevent duplicating active snapshot listeners
@@ -20735,6 +21081,19 @@
               const cloudProd = normalizeFirestoreData(doc.data());
               if (!cloudProd || !cloudProd.id) return;
 
+              // Check if it is a target cleanup product
+              const enName = (cloudProd.englishName || '').toLowerCase();
+              const taName = (cloudProd.tamilName || '');
+              const isBanana = enName.includes('banana') || taName.includes('வாழைப்பழம்') || taName.includes('வாழை');
+              const isJilebi = enName.includes('jilebi') || enName.includes('jilabi') || taName.includes('ஜிலேபி');
+              const isTomato = enName.includes('tomato') || taName.includes('தக்காளி');
+              const isLadiesFinger = enName.includes('ladies') || enName.includes('okra') || enName.includes('finger') || taName.includes('வெண்டை') || taName.includes('வெண்டைக்காய்');
+              if (isBanana || isJilebi || isTomato || isLadiesFinger) {
+                db.collection('ek_products').doc(cloudProd.id).delete().catch(e => {});
+                markProductAsDeleted(cloudProd.id);
+                return;
+              }
+
               // Check deleted safeguard
               const deletedProdIds = getDeletedProductIds();
               if (deletedProdIds.includes(cloudProd.id)) return;
@@ -20778,7 +21137,7 @@
           }
 
           // Prune locally deleted products that are not in the cloud snapshot
-          if (!snapshot.empty) {
+          if (true) {
             const deletedProdIds = getDeletedProductIds();
             const localQueue = getData('ek_pending_sync_queue', []);
             for (const key of localProductsMap.keys()) {
@@ -20830,6 +21189,9 @@
             } else if (currentScreen === 'screen-admin') {
               renderAdminDashboard();
             }
+            
+            // Auto cleanup target products if any synced down
+            autoCleanupFourProducts();
           }
         }, err => {
           console.warn("[Cloud Live Sync] Products stream interrupted: ", err);
@@ -20879,7 +21241,7 @@
           }
 
           // Prune locally deleted riders that are not in the cloud snapshot
-          if (!snapshot.empty) {
+          if (true) {
             for (const key of localEMap.keys()) {
               const inCloud = cloudIds.has(key);
               const isExplicitDeleted = deletedRiderIds.includes(key);
@@ -20958,7 +21320,7 @@
           }
 
           // Prune locally deleted categories that are not in the cloud snapshot
-          if (!snapshot.empty) {
+          if (true) {
             for (const key of localCatsMap.keys()) {
               if (!cloudIds.has(key)) {
                 const isDefault = DEFAULT_CATEGORIES.some(def => def.id === key);
@@ -21031,7 +21393,7 @@
             }
 
             // Prune locally deleted admins that are not in the cloud snapshot
-            if (!snapshot.empty) {
+            if (true) {
               const deletedAdminIds = getDeletedAdminIds();
               for (const [key, localAdmin] of localAdminsMap.entries()) {
                 if (key === 'a1') continue; // Always protect superadmin Anantharaj
@@ -21068,6 +21430,57 @@
         }
       } catch (e) {
         console.error("[Cloud Live Sync] Failed to attach admin accounts listener:", e);
+      }
+
+      // H. Real-time stream for Deletion Tombstones
+      try {
+        liveSyncUnsubscribers.tombstones = db.collection('ek_tombstones').onSnapshot(snapshot => {
+          if (!snapshot) return;
+          let modifiedAny = false;
+          
+          snapshot.forEach(doc => {
+            const docId = doc.id;
+            const cloudIds = doc.data()?.ids || [];
+            if (Array.isArray(cloudIds) && cloudIds.length > 0) {
+              let localList = [];
+              if (docId === 'ek_deleted_product_ids') localList = getDeletedProductIds();
+              else if (docId === 'ek_deleted_order_ids') localList = getDeletedOrderIds();
+              else if (docId === 'ek_deleted_user_ids') localList = getDeletedUserIds();
+              else if (docId === 'ek_deleted_rider_ids') localList = getDeletedRiderIds();
+              
+              if (!Array.isArray(localList)) localList = [];
+              const originalLength = localList.length;
+              
+              // Merge and deduplicate
+              const mergedMap = new Set([...localList, ...cloudIds]);
+              const mergedList = Array.from(mergedMap);
+              
+              if (mergedList.length !== originalLength) {
+                saveData(docId, mergedList);
+                modifiedAny = true;
+                console.log(`[Tombstone Live Stream] Merged live deleted IDs for ${docId}: new count is ${mergedList.length}`);
+              }
+            }
+          });
+          
+          if (modifiedAny) {
+            // Trigger UI and rendering refreshes immediately to filter out newly deleted products / orders / etc.
+            if (typeof renderHomeScreenProducts === 'function') {
+              _lastProductsHash = '';
+              _lastSpecialsHash = '';
+              renderHomeScreenProducts(true);
+            }
+            if (typeof renderCategoryPills === 'function') renderCategoryPills();
+            if (typeof renderAdminProducts === 'function') renderAdminProducts();
+            if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+            if (typeof renderDeliveryScreen === 'function') renderDeliveryScreen();
+          }
+        }, err => {
+          console.warn("[Cloud Live Sync] Tombstones stream interrupted: ", err);
+          handleLiveStreamError('tombstones', err);
+        });
+      } catch (e) {
+        console.error("[Cloud Live Sync] Failed to attach tombstones listener:", e);
       }
       } catch (eGlobalRealtime) {
         console.error("[Cloud Live Sync] Critical error inside setupCloudRealtimeListeners2:", eGlobalRealtime);
@@ -21650,7 +22063,7 @@
         if (c.isAvailable !== oldAvail) {
           catChanged = true;
           console.log(`[Time Scheduler] Category ${c.id} availability changed from ${oldAvail} to ${c.isAvailable}`);
-          if (typeof db !== 'undefined' && db) {
+          if (typeof db !== 'undefined' && db && getAdminSession()) {
             db.collection('ek_categories').doc(c.id).set(c).catch(e => console.error(e));
           }
         }
@@ -21670,7 +22083,7 @@
         if (p.isAvailable !== oldAvail) {
           prodChanged = true;
           console.log(`[Time Scheduler] Product ${p.id} availability changed from ${oldAvail} to ${p.isAvailable}`);
-          if (typeof db !== 'undefined' && db) {
+          if (typeof db !== 'undefined' && db && getAdminSession()) {
             db.collection('ek_products').doc(p.id).set(p).catch(e => console.error(e));
           }
         }
@@ -21684,6 +22097,51 @@
           renderHomeScreenProducts(true);
         }
         if (typeof renderAdminProducts === 'function') renderAdminProducts();
+      }
+    }
+
+    function autoCleanupFourProducts() {
+      try {
+        const products = getData('ek_products', []);
+        if (products.length === 0) return;
+
+        const targets = products.filter(p => {
+          const enName = (p.englishName || '').toLowerCase();
+          const taName = (p.tamilName || '');
+          
+          const isBanana = enName.includes('banana') || taName.includes('வாழைப்பழம்') || taName.includes('வாழை');
+          const isJilebi = enName.includes('jilebi') || enName.includes('jilabi') || taName.includes('ஜிலேபி');
+          const isTomato = enName.includes('tomato') || taName.includes('தக்காளி');
+          const isLadiesFinger = enName.includes('ladies') || enName.includes('okra') || enName.includes('finger') || taName.includes('வெண்டை') || taName.includes('வெண்டைக்காய்');
+
+          return isBanana || isJilebi || isTomato || isLadiesFinger;
+        });
+
+        if (targets.length > 0) {
+          console.log(`[Auto Cleanup] Found ${targets.length} products to auto-delete:`, targets.map(p => p.englishName));
+          
+          let localProducts = getData('ek_products', []);
+          targets.forEach(t => {
+            // Mark as deleted in safeguard
+            markProductAsDeleted(t.id);
+            // Remove from local list
+            localProducts = localProducts.filter(p => p.id !== t.id);
+            // Delete from Firestore Cloud
+            if (typeof db !== 'undefined' && db) {
+              db.collection('ek_products').doc(t.id).delete()
+                .then(() => console.log(`[Auto Cleanup] Deleted ${t.id} from cloud.`))
+                .catch(e => console.error(e));
+            }
+          });
+
+          saveData('ek_products', localProducts);
+          _lastProductsHash = '';
+          _lastSpecialsHash = '';
+          if (typeof renderHomeScreenProducts === 'function') renderHomeScreenProducts(true);
+          if (typeof renderAdminProducts === 'function') renderAdminProducts();
+        }
+      } catch (err) {
+        console.error("[Auto Cleanup] Error cleaning up target products:", err);
       }
     }
 
@@ -21718,6 +22176,7 @@
       }
 
       initApp();
+      autoCleanupFourProducts();
       // Attach infinite scroll listener for future-proof product rendering
       try {
         attachInfiniteScrollListener();
@@ -21732,15 +22191,15 @@
         if (splash && splash.classList.contains('active')) {
           console.warn('[Hard Fallback] Splash stuck beyond 2s — routing safely based on active session.');
           try {
-            showLoginScreen();
+            showScreen('screen-home');
           } catch (e) {
-            console.error('[Hard Fallback] Safely routing failed, fallback to login screen:', e);
+            console.error('[Hard Fallback] Safely routing failed, fallback to home screen:', e);
             try {
               document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-              const loginScreen = document.getElementById('screen-login');
-              if (loginScreen) {
-                loginScreen.classList.add('active');
-                currentScreen = 'screen-login';
+              const homeScreen = document.getElementById('screen-home');
+              if (homeScreen) {
+                homeScreen.classList.add('active');
+                currentScreen = 'screen-home';
               }
             } catch (innerErr) {
               console.error("[Hard Fallback] Complete fallback failed:", innerErr);
@@ -21776,6 +22235,103 @@
             console.error("Sync error", e);
           }
         });
+      }
+
+      // ── LOCAL LEGACY DEMO PRODUCTS CLEANUP ON STARTUP ──
+      try {
+        if (!localStorage.getItem('ek_legacy_demo_purge_v9')) {
+          let localProducts = getData('ek_products', []);
+          const deletedProdIds = getDeletedProductIds();
+          
+          let modifiedLocal = false;
+          
+          localProducts.forEach(p => {
+            const id = p.id;
+            const isDemoId = /^p\d+$/.test(id) || 
+                             ['p1','p2','p3','p4','p5','p6','p7','p8','p9','p10'].includes(id) ||
+                             id.startsWith('p_chicken_') || id.startsWith('p_meat_') || id.startsWith('p_mutton_') || id.startsWith('p_turkey_') || id.startsWith('p_duck_') ||
+                             id.startsWith('p_fish_') || id.startsWith('p_veg_') || id.startsWith('p_fruit_') || id.startsWith('p_dairy_') || id.startsWith('p_groc_') ||
+                             ['p_dairy_egg_country', 'p_dairy_egg_white', 'p_dairy_paneer', 'p_dairy_ghee', 'p_dairy_curd', 'p_dairy_butter',
+                              'p_fruit_banana_elakki', 'p_fruit_banana_karpooravalli', 'p_fruit_papaya', 'p_fruit_pomegranate', 'p_fruit_orange', 
+                              'p_fruit_grapes_black', 'p_fruit_grapes_green', 'p_fruit_guava', 'p_fruit_watermelon', 'p_fruit_mango_salem', 'p_fruit_sapota',
+                              'p_veg_onion', 'p_veg_small_onion', 'p_veg_tomato', 'p_veg_potato', 'p_veg_carrot', 'p_veg_drumstick', 
+                              'p_veg_ladies_finger', 'p_veg_cabbage', 'p_veg_cauliflower', 'p_veg_ginger', 'p_veg_garlic', 'p_veg_green_chilli', 
+                              'p_veg_coriander', 'p_veg_curry_leaves', 'p_veg_mint', 'p_veg_beetroot', 'p_veg_radish', 'p_veg_pumpkin_yellow', 'p_veg_beans'
+                             ].includes(id);
+
+            const nameEn = (p.englishName || p.name || "").toLowerCase();
+            const nameTa = (p.tamilName || "").toLowerCase();
+            const isDemoName = nameEn.includes("mutton") || nameEn.includes("apple") || 
+                               nameEn.includes("fish") || nameEn.includes("milk") || 
+                               nameEn.includes("brinjal") || nameEn.includes("turmeric") || 
+                               nameEn.includes("chicken") || nameEn.includes("greens") ||
+                               nameEn.includes("prawn") || nameEn.includes("egg") ||
+                               nameEn.includes("mango") || nameEn.includes("banana") ||
+                               nameEn.includes("ghee") || nameEn.includes("butter") ||
+                               nameEn.includes("paneer") || nameEn.includes("curd") ||
+                               nameEn.includes("onion") || nameEn.includes("tomato") ||
+                               nameEn.includes("potato") || nameEn.includes("carrot") ||
+                               nameEn.includes("ginger") || nameEn.includes("garlic") ||
+                               nameEn.includes("chilli") ||
+                               nameTa.includes("மட்டன்") || nameTa.includes("ஆட்டிறைச்சி") || 
+                               nameTa.includes("மீன்") || nameTa.includes("ஆப்பிள்") || 
+                               nameTa.includes("பால்") || nameTa.includes("கத்தரிக்காய்") || 
+                               nameTa.includes("மஞ்சள்") || nameTa.includes("கோழி") ||
+                               nameTa.includes("சிக்கன்") || nameTa.includes("முட்டை") ||
+                               nameTa.includes("இறால்") || nameTa.includes("மாம்பழம்") ||
+                               nameTa.includes("கீரை") || nameTa.includes("வெங்காயம்") ||
+                               nameTa.includes("தக்காளி") || nameTa.includes("உருளை");
+                               
+            if (isDemoId || isDemoName) {
+              if (!deletedProdIds.includes(p.id)) {
+                deletedProdIds.push(p.id);
+              }
+              modifiedLocal = true;
+            }
+          });
+          
+          if (modifiedLocal) {
+            saveData('ek_deleted_product_ids', deletedProdIds);
+            const filteredProducts = localProducts.filter(p => !deletedProdIds.includes(p.id));
+            saveData('ek_products', filteredProducts);
+            console.log(`[Startup Legacy Purge] Filtered out legacy demo products. Remaining products: ${filteredProducts.length}`);
+          }
+        }
+      } catch (err) {
+        console.error("Error during startup legacy products cleanup:", err);
+      }
+
+      // ── BOOTSTRAP TOMBSTONES FROM FIRESTORE ──
+      if (typeof db !== 'undefined' && db) {
+        db.collection('ek_tombstones').get().then(snapshot => {
+          if (snapshot && !snapshot.empty) {
+            snapshot.forEach(doc => {
+              const docId = doc.id;
+              const cloudIds = doc.data()?.ids || [];
+              if (Array.isArray(cloudIds) && cloudIds.length > 0) {
+                let localList = [];
+                if (docId === 'ek_deleted_product_ids') localList = getDeletedProductIds();
+                else if (docId === 'ek_deleted_order_ids') localList = getDeletedOrderIds();
+                else if (docId === 'ek_deleted_user_ids') localList = getDeletedUserIds();
+                else if (docId === 'ek_deleted_rider_ids') localList = getDeletedRiderIds();
+                
+                if (!Array.isArray(localList)) localList = [];
+                const mergedMap = new Set([...localList, ...cloudIds]);
+                const mergedList = Array.from(mergedMap);
+                saveData(docId, mergedList);
+                console.log(`[Tombstone Bootstrap] Merged and saved ${mergedList.length} tombstone IDs for ${docId}`);
+              }
+            });
+            
+            // Re-render home products, categories, orders, etc., to filter out tombstones immediately
+            if (typeof renderHomeScreenProducts === 'function') {
+              _lastProductsHash = '';
+              _lastSpecialsHash = '';
+              renderHomeScreenProducts(true);
+            }
+            if (typeof renderCategoryPills === 'function') renderCategoryPills();
+          }
+        }).catch(err => console.error("[Tombstone Bootstrap] Fetch failed:", err));
       }
 
       // Check for referral code in URL search parameter
@@ -21917,7 +22473,7 @@
           } else if (custSession && custSession.loggedIn) {
             showScreen('screen-home');
           } else {
-            showScreen('screen-login');
+            showScreen('screen-home');
           }
         } catch (e) {
           console.error("Splash sequence routing failed, forcing home screen:", e);
@@ -24253,6 +24809,25 @@ ${adminDirectives}
       const currentLang = localStorage.getItem('ek_lang') || 'en';
       const isTamil = (currentLang === 'ta');
 
+      const activeProducts = (products || []).filter(p => !p.isHidden);
+      const isStoreEmpty = (activeProducts.length === 0);
+
+      let honorific = "அண்ணே";
+      if (qLower.includes("அக்கா") || qLower.includes("அக்காவுக்கு") || qLower.includes("அக்காவுக்குள்") || (user && user.name && (user.name.toLowerCase().includes("sister") || user.name.toLowerCase().includes("devi") || user.name.toLowerCase().includes("priya") || user.name.toLowerCase().includes("selvi") || user.name.toLowerCase().includes("mariyammal") || user.name.toLowerCase().includes("akka")))) {
+        honorific = "அக்கா";
+      }
+
+      if (isStoreEmpty) {
+        return {
+          text: currentLang === 'ta'
+            ? `வணக்கமுங்க ${honorific}! தற்பொழுது நமது கடையில் தயாரிப்புகள் எதுவும் சேர்க்கப்படவில்லை ${honorific}. அட்மின் பேனலில் இருந்து புதிய தயாரிப்புகளைச் சேர்த்த பிறகு என்னிடம் கூறினால், நான் சட்டுனு கூடையில் சேர்த்து விடுகிறேன் ${honorific}! 🛒🥦`
+            : `Hello ${honorific === 'அக்கா' ? 'Sister' : 'Brother'}! Currently, there are no products available in our shop. Once products are added from the Admin Panel, please let me know and I will assist you! 🛒🥦`,
+          proposalData: null,
+          phone: null,
+          showTrack: false
+        };
+      }
+
       // 1. Greeting Fallback
       if (qLower.includes('hello') || qLower.includes('வணக்கம்') || qLower.includes('நலம்') || qLower.includes('hi lyo') || qLower.includes('ஹலோ') || qLower.includes('நலமா') || qLower.includes('vanakkam') || qLower.includes('epdi irukinga')) {
         return {
@@ -24614,6 +25189,31 @@ ${adminDirectives}
       const orders = getData('ek_orders', []);
       const settings = getSettings();
       const user = getActiveUser() || { name: 'Valued Customer', id: 'unknown_guest', loyaltyPoints: 0, tier: 'bronze' };
+
+      const activeProducts = (products || []).filter(p => !p.isHidden);
+      const isStoreEmpty = (activeProducts.length === 0);
+
+      if (isStoreEmpty) {
+        setTimeout(() => {
+          removeLyoAiTypingBubble();
+          
+          let honorific = "அண்ணே";
+          const qLower = queryText.toLowerCase();
+          if (qLower.includes("அக்கா") || qLower.includes("அக்காவுக்கு") || qLower.includes("அக்காவுக்குள்") || (user && user.name && (user.name.toLowerCase().includes("sister") || user.name.toLowerCase().includes("devi") || user.name.toLowerCase().includes("priya") || user.name.toLowerCase().includes("selvi") || user.name.toLowerCase().includes("mariyammal") || user.name.toLowerCase().includes("akka")))) {
+            honorific = "அக்கா";
+          }
+          
+          const currentLang = localStorage.getItem('ek_lang') || 'en';
+          const replyText = currentLang === 'ta'
+            ? `வணக்கமுங்க ${honorific}! தற்பொழுது நமது கடையில் தயாரிப்புகள் எதுவும் சேர்க்கப்படவில்லை ${honorific}. அட்மின் பேனலில் இருந்து புதிய தயாரிப்புகளைச் சேர்த்த பிறகு என்னிடம் கூறினால், நான் சட்டுனு கூடையில் சேர்த்து விடுகிறேன் ${honorific}! 🛒🥦`
+            : `Hello ${honorific === 'அக்கா' ? 'Sister' : 'Brother'}! Currently, there are no products available in our shop. Once products are added from the Admin Panel, please let me know and I will assist you! 🛒🥦`;
+            
+          addLyoAiMessage('lyo_ai', replyText);
+          if (typeof playLyoChimeSound === 'function') playLyoChimeSound();
+          lyoIsReplying = false;
+        }, 500);
+        return;
+      }
 
       // Check if query is off-topic (meaning not related to food, groceries, fresh meat, ordering, tracking, or store info)
       if (checkLyoQueryOffTopic(queryText, products)) {
