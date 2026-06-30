@@ -261,6 +261,7 @@ class MainActivity : ComponentActivity() {
                                 overScrollMode = android.view.View.OVER_SCROLL_NEVER
                                 
                                 // Clean WebView settings for Local PWA support
+                                clearCache(true)
                                 settings.apply {
                                     javaScriptEnabled = true
                                     domStorageEnabled = true

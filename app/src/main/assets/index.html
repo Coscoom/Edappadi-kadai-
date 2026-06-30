@@ -2329,6 +2329,219 @@
       </div>
     </div>
 
+    <!-- SCREEN 5C: ADMIN ADD PRODUCT MODAL (POP-UP DETAILED) -->
+    <div id="admin-add-product-modal" class="modal-backdrop" onclick="closeAdminAddProductModal(event)" style="align-items: center; padding: 20px; display: none; z-index: 10005;">
+      <div style="background: linear-gradient(135deg, rgba(16, 22, 34, 0.98) 0%, rgba(8, 12, 18, 0.99) 100%) !important; backdrop-filter: blur(28px) saturate(160%) !important; -webkit-backdrop-filter: blur(28px) saturate(160%) !important; color: #ffffff; border-radius: 24px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; padding: 22px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.85); border: 1.5px solid rgba(255,255,255,0.15);" onclick="event.stopPropagation()">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
+          <div>
+            <h3 style="color: var(--accent-orange); font-size: 16px; font-weight: 800; text-transform: uppercase; margin: 0;">Add Product / புதிய தயாரிப்பு</h3>
+            <p style="color: var(--text-muted); font-size: 11px; margin: 2px 0 0 0;">Create a new product with Tamil/English names, prices, stock, categories and hours</p>
+          </div>
+          <button onclick="closeAdminAddProductModalDetail()" aria-label="Close add modal" style="background: rgba(255,255,255,0.06); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">×</button>
+        </div>
+
+        <form id="admin-product-form" onsubmit="handleProductSave(event)" autocomplete="off">
+          
+          <div class="grid-2col" style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Tamil Name *</label>
+              <input type="text" id="add-prod-tamil" class="form-control" placeholder="நாட்டுக்கோழி" required autocomplete="off">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">English Name *</label>
+              <input type="text" id="add-prod-english" class="form-control" placeholder="Country Chicken" required autocomplete="off">
+            </div>
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Selling Unit Type (விற்பனை அலகு வகை) *</label>
+            <select id="add-prod-unit" class="form-control" onchange="onProductUnitChanged(this.value, 'add-prod')" required>
+              <option value="kg" selected>Kilogram (கிலோகிராம் - Kg)</option>
+              <option value="g">Gram (கிராம் - g)</option>
+              <option value="piece">Piece (பீஸ் / எண்ணிக்கை - pc)</option>
+              <option value="bunch">Bunch (கட்டு - bunch)</option>
+              <option value="packet">Packet (பாக்கெட் - pack)</option>
+              <option value="dozen">Dozen (டஜன் - dozen)</option>
+            </select>
+          </div>
+          
+          <div class="grid-2col" style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label id="add-prod-price-label" style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Price (₹) *</label>
+              <input type="number" id="add-prod-price" class="form-control" placeholder="450" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label id="add-prod-stock-label" style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Current Stock *</label>
+              <input type="number" id="add-prod-stock" class="form-control" step="0.1" placeholder="25" required>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Category *</label>
+            <select id="add-prod-category" class="form-control" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <!-- Photo upload container -->
+          <div class="card" style="background: rgba(0,0,0,0.3); padding: 12px; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Upload Photo (Device Picker)</label>
+              <input type="file" id="add-prod-file" class="form-control" accept="image/*" style="padding: 6px 12px; font-size: 11px;" onchange="convertBase64Image(event)">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">OR Direct Image URL</label>
+              <input type="url" id="add-prod-url" class="form-control" placeholder="https://images.unsplash.com/..." oninput="updateUrlPreview()">
+            </div>
+          </div>
+
+          <!-- Preview of selected image in Add Modal -->
+          <div id="add-prod-preview-container" style="display: none; margin-bottom: 14px; text-align: center; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; border: 1.5px dashed rgba(255,255,255,0.12);">
+            <p style="font-size: 10px; color: var(--text-secondary); margin-bottom: 6px;">Image Loaded Preview:</p>
+            <img id="add-prod-preview-img" src="" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px; border: 1.5px solid var(--accent-orange); display: inline-block;">
+          </div>
+
+          <div style="display: flex; gap: 16px; margin-bottom: 14px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04);">
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer; user-select: none;">
+              <input type="checkbox" id="add-prod-special" style="accent-color: var(--accent-orange);"> Today's Special ⭐
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer; user-select: none;">
+              <input type="checkbox" id="add-prod-out" style="accent-color: var(--accent-red);"> Out of Stock 🔴
+            </label>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;">
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer; user-select: none;">
+              <input type="checkbox" id="add-prod-scheduled" style="accent-color: var(--accent-orange);" onchange="toggleProductScheduleFields(this.checked, 'add-prod')"> Enable Time Schedule
+            </label>
+            <div id="add-prod-schedule-inputs" style="display: none; align-items: center; gap: 8px;">
+              <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Start Time</label>
+                <input type="time" id="add-prod-schedule-start" class="form-control" style="height: 32px; font-size: 11px; padding: 4px;" value="11:00">
+              </div>
+              <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">End Time</label>
+                <input type="time" id="add-prod-schedule-end" class="form-control" style="height: 32px; font-size: 11px; padding: 4px;" value="15:00">
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn btn-success" style="flex: 2; height: 42px; font-weight: 700; border-radius: 12px;" id="prod-submit-btn">Save Product / தயாரிப்பை சேமி ✓</button>
+            <button type="button" class="btn btn-secondary" onclick="closeAdminAddProductModalDetail()" style="flex: 1; height: 42px; font-weight: 700; border-radius: 12px; background: rgba(255,255,255,0.08);">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- SCREEN 5B: ADMIN EDIT PRODUCT MODAL (POP-UP DETAILED) -->
+    <div id="admin-edit-product-modal" class="modal-backdrop" onclick="closeAdminEditProductModal(event)" style="align-items: center; padding: 20px; display: none; z-index: 10005;">
+      <div style="background: linear-gradient(135deg, rgba(16, 22, 34, 0.98) 0%, rgba(8, 12, 18, 0.99) 100%) !important; backdrop-filter: blur(28px) saturate(160%) !important; -webkit-backdrop-filter: blur(28px) saturate(160%) !important; color: #ffffff; border-radius: 24px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; padding: 22px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.85); border: 1.5px solid rgba(255,255,255,0.15);" onclick="event.stopPropagation()">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
+          <div>
+            <h3 style="color: var(--accent-orange); font-size: 16px; font-weight: 800; text-transform: uppercase; margin: 0;">Edit Product / தயாரிப்பை திருத்தவும்</h3>
+            <p style="color: var(--text-muted); font-size: 11px; margin: 2px 0 0 0;">Update product name, image, pricing, stock and schedule</p>
+          </div>
+          <button onclick="closeAdminEditProductModalDetail()" aria-label="Close edit modal" style="background: rgba(255,255,255,0.06); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">×</button>
+        </div>
+
+        <form id="admin-edit-product-form" onsubmit="handleAdminProductSave(event)" autocomplete="off">
+          <input type="hidden" id="edit-prod-id">
+          
+          <div class="grid-2col" style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Tamil Name *</label>
+              <input type="text" id="edit-prod-tamil" class="form-control" placeholder="நாட்டுக்கோழி" required autocomplete="off">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">English Name *</label>
+              <input type="text" id="edit-prod-english" class="form-control" placeholder="Country Chicken" required autocomplete="off">
+            </div>
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Selling Unit Type (விற்பனை அலகு வகை) *</label>
+            <select id="edit-prod-unit" class="form-control" onchange="onProductUnitChanged(this.value, 'edit-prod')" required>
+              <option value="kg">Kilogram (கிலோகிராம் - Kg)</option>
+              <option value="g">Gram (கிராம் - g)</option>
+              <option value="piece">Piece (பீஸ் / எண்ணிக்கை - pc)</option>
+              <option value="bunch">Bunch (கட்டு - bunch)</option>
+              <option value="packet">Packet (பாக்கெட் - pack)</option>
+              <option value="dozen">Dozen (டஜன் - dozen)</option>
+            </select>
+          </div>
+          
+          <div class="grid-2col" style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label id="edit-prod-price-label" style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Price (₹) *</label>
+              <input type="number" id="edit-prod-price" class="form-control" placeholder="450" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label id="edit-prod-stock-label" style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Current Stock *</label>
+              <input type="number" id="edit-prod-stock" class="form-control" step="0.1" placeholder="25" required>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Category *</label>
+            <select id="edit-prod-category" class="form-control" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <!-- Photo upload container -->
+          <div class="card" style="background: rgba(0,0,0,0.3); padding: 12px; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Change Photo (Device Picker)</label>
+              <input type="file" id="edit-prod-file" class="form-control" accept="image/*" style="padding: 6px 12px; font-size: 11px;" onchange="convertEditBase64Image(event)">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">OR Direct Image URL</label>
+              <input type="url" id="edit-prod-url" class="form-control" placeholder="https://images.unsplash.com/..." oninput="updateEditUrlPreview()">
+            </div>
+          </div>
+
+          <!-- Preview of selected image in Edit Modal -->
+          <div id="edit-prod-preview-container" style="display: none; margin-bottom: 14px; text-align: center; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; border: 1.5px dashed rgba(255,255,255,0.12);">
+            <p style="font-size: 10px; color: var(--text-secondary); margin-bottom: 6px;">Image Loaded Preview:</p>
+            <img id="edit-prod-preview-img" src="" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px; border: 1.5px solid var(--accent-orange); display: inline-block;">
+          </div>
+
+          <div style="display: flex; gap: 16px; margin-bottom: 14px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04);">
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer; user-select: none;">
+              <input type="checkbox" id="edit-prod-special" style="accent-color: var(--accent-orange);"> Today's Special ⭐
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer; user-select: none;">
+              <input type="checkbox" id="edit-prod-out" style="accent-color: var(--accent-red);"> Out of Stock 🔴
+            </label>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;">
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer; user-select: none;">
+              <input type="checkbox" id="edit-prod-scheduled" style="accent-color: var(--accent-orange);" onchange="toggleProductScheduleFields(this.checked, 'edit-prod')"> Enable Time Schedule
+            </label>
+            <div id="edit-prod-schedule-inputs" style="display: none; align-items: center; gap: 8px;">
+              <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Start Time</label>
+                <input type="time" id="edit-prod-schedule-start" class="form-control" style="height: 32px; font-size: 11px; padding: 4px;" value="11:00">
+              </div>
+              <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">End Time</label>
+                <input type="time" id="edit-prod-schedule-end" class="form-control" style="height: 32px; font-size: 11px; padding: 4px;" value="15:00">
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn btn-success" style="flex: 2; height: 42px; font-weight: 700; border-radius: 12px;">Save Changes / திருத்தங்களை சேமி ✓</button>
+            <button type="button" class="btn btn-secondary" onclick="closeAdminEditProductModalDetail()" style="flex: 1; height: 42px; font-weight: 700; border-radius: 12px; background: rgba(255,255,255,0.08);">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- DEVELOPER INFO MODAL (CENTERED POPUP COSCOOM BRANDED) -->
     <div id="developer-info-modal" class="modal-backdrop" onclick="closeDeveloperModal(event)" style="align-items: center; padding: 20px;">
       <div style="background: #06070d; color: #ffffff; border-radius: 28px; width: 100%; max-width: 360px; max-height: 90vh; overflow-y: auto; padding: 24px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.9), 0 0 40px rgba(168,85,247,0.1); border: 1.5px solid rgba(255,255,255,0.08);" onclick="event.stopPropagation()">
@@ -4050,114 +4263,23 @@
 
       <!-- ADMIN TAB 3: PRODUCTS -->
       <div id="admin-tab-products" class="admin-subtab-container" style="display: none;">
-        <!-- Add New Product Form Wrapper -->
-        <div class="card" style="border-color: var(--accent-orange); margin-bottom: 20px;">
-          <h4 style="color: var(--accent-orange); font-size: 14px; text-transform: uppercase; margin-bottom: 12px;">Manage / Add Product</h4>
-          
-          <form id="admin-product-form" onsubmit="handleProductSave(event)" autocomplete="off">
-            <input type="hidden" id="edit-prod-id">
-            <div class="grid-2col">
-              <div class="form-group">
-                <label>Tamil Name *</label>
-                <input type="text" id="add-prod-tamil" class="form-control" placeholder="நாட்டுக்கோழி" required autocomplete="off">
-              </div>
-              <div class="form-group">
-                <label>English Name *</label>
-                <input type="text" id="add-prod-english" class="form-control" placeholder="Country Chicken" required autocomplete="off">
-              </div>
-            </div>
-            
-            <div class="form-group" style="margin-bottom: 12px;">
-              <label>Selling Unit Type (விற்பனை அலகு வகை) *</label>
-              <select id="add-prod-unit" class="form-control" onchange="onProductUnitChanged(this.value)" required>
-                <option value="kg" selected>Kilogram (கிலோகிராம் - Kg)</option>
-                <option value="g">Gram (கிராம் - g)</option>
-                <option value="piece">Piece (பீஸ் / எண்ணிக்கை - pc)</option>
-                <option value="bunch">Bunch (கட்டு - bunch)</option>
-                <option value="packet">Packet (பாக்கெட் - pack)</option>
-                <option value="dozen">Dozen (டஜன் - dozen)</option>
-              </select>
-            </div>
-            
-            <div class="grid-2col">
-              <div class="form-group">
-                <label id="add-prod-price-label">Price per Kg (₹) *</label>
-                <input type="number" id="add-prod-price" class="form-control" placeholder="450" required>
-              </div>
-              <div class="form-group">
-                <label id="add-prod-stock-label">Current Stock (Kg) *</label>
-                <input type="number" id="add-prod-stock" class="form-control" step="0.1" placeholder="25" required>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Category *</label>
-              <select id="add-prod-category" class="form-control" required>
-                <option value="meat">Meat (🔴 கறிவகை)</option>
-                <option value="fish">Fish (🔵 மீன்வகை)</option>
-                <option value="veg">Veg (🟢 காய்கறி)</option>
-                <option value="fruits">Fruits (🍎 பழங்கள்)</option>
-                <option value="dairy">Dairy & Eggs (🥛 பால் & முட்டை)</option>
-                <option value="groceries">Groceries & Masalas (📦 மளிகை & மசாலா)</option>
-              </select>
-            </div>
-
-             <!-- Upload Base64 -->
-            <div class="card" style="background: #0f0f0f; padding: 12px; border-color: #2c2c2c;">
-              <div class="form-group" style="margin-bottom: 8px;">
-                <label>Optional: Upload Local Photo (Device Picker)</label>
-                <input type="file" id="add-prod-file" class="form-control" accept="image/*" style="padding: 6px 12px; font-size: 11px;" onchange="convertBase64Image(event)">
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label>OR Direct Image URL</label>
-                <input type="url" id="add-prod-url" class="form-control" placeholder="https://images.unsplash.com/..." oninput="updateUrlPreview()">
-              </div>
-            </div>
-
-            <!-- Preview of uploaded/selected image -->
-            <div id="add-prod-preview-container" style="display: none; margin-top: 10px; text-align: center; background: #0c0c0c; padding: 10px; border-radius: 8px; border: 1px dashed #333;">
-              <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">Image Loaded Preview:</p>
-              <img id="add-prod-preview-img" src="" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1.5px solid var(--accent-orange); display: inline-block;">
-            </div>
-
-            <div style="display: flex; gap: 12px; margin-top: 10px;">
-              <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer;">
-                <input type="checkbox" id="add-prod-special" style="accent-color: var(--accent-orange);"> Today's Special
-              </label>
-              <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer;">
-                <input type="checkbox" id="add-prod-out" style="accent-color: var(--accent-red);"> Out of Stock 🔴
-              </label>
-            </div>
-
-            <div style="margin-top: 12px; border-top: 1.5px dashed var(--border-color); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
-              <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer;">
-                <input type="checkbox" id="add-prod-scheduled" style="accent-color: var(--accent-orange);" onchange="toggleProductScheduleFields(this.checked)"> Enable Time Schedule
-              </label>
-              <div id="add-prod-schedule-inputs" style="display: none; align-items: center; gap: 8px;">
-                <div class="form-group" style="margin-bottom: 0; flex: 1;">
-                  <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Start Time</label>
-                  <input type="time" id="add-prod-schedule-start" class="form-control" style="height: 32px; font-size: 11px; padding: 4px;" value="11:00">
-                </div>
-                <div class="form-group" style="margin-bottom: 0; flex: 1;">
-                  <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">End Time</label>
-                  <input type="time" id="add-prod-schedule-end" class="form-control" style="height: 32px; font-size: 11px; padding: 4px;" value="15:00">
-                </div>
-              </div>
-            </div>
-
-            <button type="submit" class="btn btn-success" style="margin-top: 14px;" id="prod-submit-btn">Save Product ✓</button>
-            <button type="button" class="btn btn-secondary" style="margin-top: 6px; display: none;" id="prod-cancel-btn" onclick="resetProductForm()">Cancel Edit</button>
-          </form>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <h4 style="font-size: 13px; text-transform: uppercase; color: var(--text-secondary);">Product Database</h4>
-          <input type="text" id="product-search-input" class="form-control" style="width: 150px; padding: 6px 12px;" placeholder="🔍 Search stock..." oninput="renderAdminProducts()">
+        
+        <!-- Search and Category Filters at the top -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 5px;">
+          <h4 style="font-size: 13px; text-transform: uppercase; color: var(--text-secondary); margin: 0;">Product Database / தயாரிப்புகள்</h4>
+          <input type="text" id="product-search-input" class="form-control" style="width: 170px; padding: 6px 12px; margin: 0;" placeholder="🔍 Search stock..." oninput="renderAdminProducts()">
         </div>
 
         <!-- Admin Product Category Filters -->
-        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch;" id="admin-category-filters">
+        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; -webkit-overflow-scrolling: touch;" id="admin-category-filters">
           <!-- Populated dynamically by JS -->
+        </div>
+
+        <!-- Beautiful Button to trigger Add Product Modal -->
+        <div style="margin-bottom: 20px;">
+          <button type="button" class="btn btn-success" style="width: 100%; height: 46px; border-radius: 14px; font-weight: 800; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(34,197,94,0.25); background: linear-gradient(135deg, var(--accent-green) 0%, #15803d 100%); border: none;" onclick="openAdminAddProductModal()">
+            <span>➕</span> <span>Add New Product / புதிய தயாரிப்பை சேர்க்க</span>
+          </button>
         </div>
 
         <div id="admin-product-list">
@@ -5348,6 +5470,25 @@
       _cacheTimestamps.delete(key);
     }
 
+    function getImageUrlWithCacheBuster(url, updatedAt) {
+      if (!url) return 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200';
+      if (url.startsWith('data:')) return url;
+      
+      let buster = Date.now();
+      if (updatedAt) {
+        const parsed = new Date(updatedAt).getTime();
+        if (!isNaN(parsed)) {
+          buster = parsed;
+        }
+      }
+      
+      if (url.includes('?')) {
+        return url + '&t=' + buster;
+      } else {
+        return url + '?t=' + buster;
+      }
+    }
+
     // Intercept localStorage writes to automatically invalidate memory cache
     const _originalSetItem = localStorage.setItem;
     localStorage.setItem = function(key, value) {
@@ -5509,29 +5650,30 @@
       }
     }
 
-    function onProductUnitChanged(val) {
-      const priceLabel = document.getElementById('add-prod-price-label');
-      const stockLabel = document.getElementById('add-prod-stock-label');
+    function onProductUnitChanged(val, prefix = 'add-prod') {
+      const priceLabel = document.getElementById(`${prefix}-price-label`);
+      const stockLabel = document.getElementById(`${prefix}-stock-label`);
       if (!priceLabel || !stockLabel) return;
       
+      const isTa = currentLang === 'ta';
       if (val === 'kg') {
-        priceLabel.innerText = "Price per Kg (₹) *";
-        stockLabel.innerText = "Current Stock (Kg) *";
+        priceLabel.innerText = isTa ? "விலை (1 கிலோ) (₹) *" : "Price per Kg (₹) *";
+        stockLabel.innerText = isTa ? "இருப்பு அளவு (கிலோ) *" : "Current Stock (Kg) *";
       } else if (val === 'g') {
-        priceLabel.innerText = "Price per Gram (₹) *";
-        stockLabel.innerText = "Current Stock (Grams) *";
+        priceLabel.innerText = isTa ? "விலை (1 கிராம்) (₹) *" : "Price per Gram (₹) *";
+        stockLabel.innerText = isTa ? "இருப்பு அளவு (கிராம்) *" : "Current Stock (Grams) *";
       } else if (val === 'piece') {
-        priceLabel.innerText = "Price per Piece (₹) *";
-        stockLabel.innerText = "Current Stock (Pieces Count) *";
+        priceLabel.innerText = isTa ? "விலை (1 பீஸ்) (₹) *" : "Price per Piece (₹) *";
+        stockLabel.innerText = isTa ? "இருப்பு அளவு (எண்ணிக்கை) *" : "Current Stock (Pieces Count) *";
       } else if (val === 'bunch') {
-        priceLabel.innerText = "Price per Bunch (₹) *";
-        stockLabel.innerText = "Current Stock (Bunches Count) *";
+        priceLabel.innerText = isTa ? "விலை (1 கட்டு) (₹) *" : "Price per Bunch (₹) *";
+        stockLabel.innerText = isTa ? "இருப்பு அளவு (கட்டுகள்) *" : "Current Stock (Bunches Count) *";
       } else if (val === 'packet') {
-        priceLabel.innerText = "Price per Packet (₹) *";
-        stockLabel.innerText = "Current Stock (Packets Count) *";
+        priceLabel.innerText = isTa ? "விலை (1 பாக்கெட்) (₹) *" : "Price per Packet (₹) *";
+        stockLabel.innerText = isTa ? "இருப்பு அளவு (பாக்கெட்டுகள்) *" : "Current Stock (Packets Count) *";
       } else if (val === 'dozen') {
-        priceLabel.innerText = "Price per Dozen (₹) *";
-        stockLabel.innerText = "Current Stock (Dozens Count) *";
+        priceLabel.innerText = isTa ? "விலை (1 டஜன்) (₹) *" : "Price per Dozen (₹) *";
+        stockLabel.innerText = isTa ? "இருப்பு அளவு (டஜன்) *" : "Current Stock (Dozens Count) *";
       }
     }
 
@@ -6236,6 +6378,11 @@
     function convertBase64Image(event) {
       const file = event.target.files[0];
       if (!file) return;
+      
+      // Clear direct URL input so that the newly selected file takes absolute priority
+      const urlInput = document.getElementById('add-prod-url');
+      if (urlInput) urlInput.value = '';
+      
       showToast("Optimizing product image for high dynamic quality...", "info");
       compressAndScaleImage(file, 850, 850, 0.88, function(compressedUrl) {
         tempBase64Image = compressedUrl;
@@ -6263,6 +6410,81 @@
         } else if (!tempBase64Image) {
           previewContainer.style.display = 'none';
         }
+      }
+    }
+
+    function convertEditBase64Image(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const urlInput = document.getElementById('edit-prod-url');
+      if (urlInput) urlInput.value = '';
+      
+      showToast("Optimizing product image for high dynamic quality...", "info");
+      compressAndScaleImage(file, 850, 850, 0.88, function(compressedUrl) {
+        tempBase64Image = compressedUrl;
+        
+        const previewImg = document.getElementById('edit-prod-preview-img');
+        const previewContainer = document.getElementById('edit-prod-preview-container');
+        if (previewImg && previewContainer) {
+          previewImg.src = compressedUrl;
+          previewContainer.style.display = 'block';
+        }
+        
+        showToast("Product photo compressed and linked! ✓", "success");
+      });
+    }
+
+    function updateEditUrlPreview() {
+      const url = document.getElementById('edit-prod-url').value.trim();
+      const previewImg = document.getElementById('edit-prod-preview-img');
+      const previewContainer = document.getElementById('edit-prod-preview-container');
+      if (previewImg && previewContainer) {
+        if (url) {
+          previewImg.src = url;
+          previewContainer.style.display = 'block';
+        } else if (!tempBase64Image) {
+          previewContainer.style.display = 'none';
+        }
+      }
+    }
+
+    function closeAdminEditProductModalDetail() {
+      document.getElementById('admin-edit-product-modal').style.display = 'none';
+      editingProductId = null;
+      tempBase64Image = null;
+    }
+
+    function closeAdminEditProductModal(event) {
+      if (event.target.id === 'admin-edit-product-modal') {
+        closeAdminEditProductModalDetail();
+      }
+    }
+
+    function openAdminAddProductModal() {
+      // Clear inputs first
+      resetProductForm();
+      if (typeof populateProductCategoryOptions === 'function') {
+        populateProductCategoryOptions();
+      }
+      // Auto-select the active category in the modal if it's not 'all'
+      if (window.adminActiveCategory && window.adminActiveCategory !== 'all') {
+        const selectAdd = document.getElementById('add-prod-category');
+        if (selectAdd) {
+          selectAdd.value = window.adminActiveCategory;
+        }
+      }
+      document.getElementById('admin-add-product-modal').style.display = 'flex';
+    }
+
+    function closeAdminAddProductModalDetail() {
+      document.getElementById('admin-add-product-modal').style.display = 'none';
+      tempBase64Image = null;
+    }
+
+    function closeAdminAddProductModal(event) {
+      if (event.target.id === 'admin-add-product-modal') {
+        closeAdminAddProductModalDetail();
       }
     }
 
@@ -8441,10 +8663,48 @@
 
     function getCategoriesList() {
       let catList = getData('ek_categories');
-      if (!catList || !Array.isArray(catList) || catList.length === 0) {
-        saveData('ek_categories', DEFAULT_CATEGORIES);
-        return DEFAULT_CATEGORIES;
+      if (!catList || !Array.isArray(catList)) {
+        catList = [];
       }
+      
+      let modified = false;
+      DEFAULT_CATEGORIES.forEach(defCat => {
+        let existingIdx = catList.findIndex(c => c && c.id === defCat.id);
+        if (existingIdx === -1) {
+          catList.push({ ...defCat, isAvailable: true });
+          modified = true;
+        } else {
+          // Check if it's missing essential fields and heal them
+          const existing = catList[existingIdx];
+          let healed = false;
+          if (!existing.nameTa) { existing.nameTa = defCat.nameTa; healed = true; }
+          if (!existing.nameEn) { existing.nameEn = defCat.nameEn; healed = true; }
+          if (!existing.icon) { existing.icon = defCat.icon; healed = true; }
+          if (healed) {
+            catList[existingIdx] = { ...existing };
+            modified = true;
+          }
+        }
+      });
+      
+      // Filter out any null/undefined or completely broken entries
+      catList = catList.filter(c => c && c.id);
+      
+      if (modified || catList.length === 0) {
+        if (catList.length === 0) {
+          catList = DEFAULT_CATEGORIES.map(c => ({ ...c, isAvailable: true }));
+        }
+        saveData('ek_categories', catList);
+        
+        // Seed to cloud if db is connected
+        if (typeof db !== 'undefined' && db) {
+          catList.forEach(c => {
+            db.collection('ek_categories').doc(c.id).set(cleanFirestoreData(c))
+              .catch(e => console.warn('[getCategoriesList] Error seeding restored category to Firestore:', e));
+          });
+        }
+      }
+      
       return catList.sort((a, b) => (a.order || 0) - (b.order || 0));
     }
 
@@ -8453,7 +8713,7 @@
       const catList = getCategoriesList();
       const matched = catList.find(c => c.id === cat);
       if (matched) {
-        return isTa ? matched.nameTa : matched.nameEn;
+        return isTa ? (matched.nameTa || matched.ta) : (matched.nameEn || matched.en);
       }
       const map = {
         meat: isTa ? 'கறிவகை' : 'Meat',
@@ -8467,18 +8727,30 @@
     }
 
     function populateProductCategoryOptions() {
-      const select = document.getElementById('add-prod-category');
-      if (!select) return;
-      
-      const currentSelection = select.value;
+      const selectAdd = document.getElementById('add-prod-category');
+      const selectEdit = document.getElementById('edit-prod-category');
       const catList = getCategoriesList();
       
-      select.innerHTML = catList.map(c => {
-        return `<option value="${c.id}">${c.nameEn} (${c.icon} ${c.nameTa})</option>`;
+      const optionsHtml = catList.map(c => {
+        const nameEn = c.nameEn || c.en || c.id || 'Category';
+        const nameTa = c.nameTa || c.ta || nameEn;
+        const icon = c.icon || '📦';
+        return `<option value="${c.id}">${nameEn} (${icon} ${nameTa})</option>`;
       }).join('');
       
-      if (currentSelection && catList.some(c => c.id === currentSelection)) {
-        select.value = currentSelection;
+      if (selectAdd) {
+        const currentSelection = selectAdd.value;
+        selectAdd.innerHTML = optionsHtml;
+        if (currentSelection && catList.some(c => c.id === currentSelection)) {
+          selectAdd.value = currentSelection;
+        }
+      }
+      if (selectEdit) {
+        const currentSelection = selectEdit.value;
+        selectEdit.innerHTML = optionsHtml;
+        if (currentSelection && catList.some(c => c.id === currentSelection)) {
+          selectEdit.value = currentSelection;
+        }
       }
     }
 
@@ -8493,11 +8765,16 @@
       
       const CATEGORIES = [
         { id: 'all', name: isTa ? 'அனைத்தும்' : 'All Items', icon: '🍽️' },
-        ...visibleCategories.map(c => ({
-          id: c.id,
-          name: isTa ? c.nameTa : c.nameEn,
-          icon: c.icon
-        }))
+        ...visibleCategories.map(c => {
+          const nameEn = c.nameEn || c.en || c.id || 'Category';
+          const nameTa = c.nameTa || c.ta || nameEn;
+          const icon = c.icon || '📦';
+          return {
+            id: c.id,
+            name: isTa ? nameTa : nameEn,
+            icon: icon
+          };
+        })
       ];
 
       if (!CATEGORIES.some(cat => cat.id === activeCategory)) {
@@ -8800,7 +9077,7 @@
                onmouseleave="this.style.background='transparent'"
                onmousedown="selectHomeSearchSuggestion('${p.id}', '${nameText.replace(/'/g, "\\'")}')">
             <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex-grow: 1;">
-              <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=100'}" 
+              <img src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" 
                    style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;" />
               <div style="min-width: 0; display: flex; flex-direction: column;">
                 <span style="font-size: 13px; font-weight: 700; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${nameText}</span>
@@ -8986,7 +9263,7 @@
           _lastSpecialsHash = '';
         } else {
           specialsSec.style.display = 'block';
-          const specialsHash = currentLang + '::' + specials.map(p => `${p.id}:${p.stockKg}:${p.isOutOfStock}:${p.pricePerKg}:${p.imageUrl?.slice(-15)}`).join('|');
+          const specialsHash = currentLang + '::' + specials.map(p => `${p.id}:${p.stockKg}:${p.isOutOfStock}:${p.pricePerKg}:${p.updatedAt || p.createdAt || ''}:${p.imageUrl?.slice(-15)}`).join('|');
           if (specialsHash !== _lastSpecialsHash || specialsContainer.children.length === 0) {
             _lastSpecialsHash = specialsHash;
             let specialsHtml = '';
@@ -8998,8 +9275,8 @@
                 <div class="special-card" id="card-special-${p.id}" style="height: 195px; display: flex; flex-direction: column; justify-content: space-between;">
                   ${overlayHtml}
                   <div class="lazy-image-container" style="height: 95px; cursor: pointer;" ${isOutOfStock ? '' : `onclick="openProductModalDetail('${p.id}')"`}>
-                    <img data-src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200'}" class="lazy-image-main special-img" style="height: 95px;" alt="${p.englishName}">
-                    <img src="${getBlurPlaceholderUrl(p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200')}" class="lazy-image-placeholder" style="height: 95px;" alt="${p.englishName} loader">
+                    <img data-src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" class="lazy-image-main special-img" style="height: 95px;" alt="${p.englishName}">
+                    <img src="${getBlurPlaceholderUrl(getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt))}" class="lazy-image-placeholder" style="height: 95px;" alt="${p.englishName} loader">
                   </div>
                   <div class="special-detail" style="padding: 6px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
@@ -9042,7 +9319,7 @@
       }
 
       const filterKey = activeCategory + '::' + searchQuery;
-      const dataHash = filtered.map(p => `${p.id}:${p.stockKg}:${p.isOutOfStock}:${p.pricePerKg}:${p.imageUrl?.slice(-12)}`).join('|');
+      const dataHash = filtered.map(p => `${p.id}:${p.stockKg}:${p.isOutOfStock}:${p.pricePerKg}:${p.updatedAt || p.createdAt || ''}:${p.imageUrl?.slice(-12)}`).join('|');
       const combinedKey = filterKey + '::' + dataHash;
 
       if (combinedKey === _lastDataSnapshotHash && grid.children.length > 0) {
@@ -9098,8 +9375,8 @@
               ${getCategoryName(p.category)}
             </div>
             <div class="lazy-image-container" style="height: 110px; cursor: pointer;" ${isOutOfStock ? '' : `onclick="openProductModalDetail('${p.id}')"`}>
-              <img data-src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200'}" class="lazy-image-main product-img" style="height: 110px;" alt="${p.englishName}">
-              <img src="${getBlurPlaceholderUrl(p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200')}" class="lazy-image-placeholder" style="height: 110px;" alt="${p.englishName} loader">
+              <img data-src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" class="lazy-image-main product-img" style="height: 110px;" alt="${p.englishName}">
+              <img src="${getBlurPlaceholderUrl(getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt))}" class="lazy-image-placeholder" style="height: 110px;" alt="${p.englishName} loader">
             </div>
             <div style="padding:10px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
               <div>
@@ -9845,7 +10122,7 @@
       const priceKgEl = document.getElementById('calc-price-kg');
       if (priceKgEl) priceKgEl.innerText = getProductPriceText(prod, currentLang);
       const imgEl = document.getElementById('modal-product-img');
-      if (imgEl) imgEl.src = prod.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200';
+      if (imgEl) imgEl.src = getImageUrlWithCacheBuster(prod.imageUrl, prod.updatedAt);
 
       // Clear special request notes
       const noteEl = document.getElementById('modal-special-notes');
@@ -17067,6 +17344,9 @@
           syncProductToCloudWithRetry(targetProduct);
         }
         resetProductForm();
+        if (typeof closeAdminAddProductModalDetail === 'function') {
+          closeAdminAddProductModalDetail();
+        }
         renderAdminDashboard();
       } catch (saveError) {
         console.error("Critical error saving product:", saveError);
@@ -17167,64 +17447,64 @@
     window.addEventListener('online', () => { try { processPendingProductSyncQueue(); } catch(e){console.error(e);} });
 
     function editProductForm(id) {
+      tempBase64Image = null; // Clear any leftover base64 cache
       const products = getData('ek_products');
       const p = products.find(prod => prod.id === id);
       if (!p) return;
 
       editingProductId = p.id;
-      tempBase64Image = null; // Clear any leftover base64 cache
-      const fileInput = document.getElementById('add-prod-file');
+      const fileInput = document.getElementById('edit-prod-file');
       if (fileInput) fileInput.value = ''; // Reset file input selection
       
-      // Load values inputs
+      // Load values into modal inputs
       document.getElementById('edit-prod-id').value = p.id;
-      document.getElementById('add-prod-tamil').value = p.tamilName;
-      document.getElementById('add-prod-english').value = p.englishName;
-      document.getElementById('add-prod-price').value = p.pricePerKg;
-      document.getElementById('add-prod-stock').value = p.stockKg;
+      document.getElementById('edit-prod-tamil').value = p.tamilName;
+      document.getElementById('edit-prod-english').value = p.englishName;
+      document.getElementById('edit-prod-price').value = p.pricePerKg;
+      document.getElementById('edit-prod-stock').value = p.stockKg;
       
       const unitVal = p.unit || 'kg';
-      document.getElementById('add-prod-unit').value = unitVal;
-      onProductUnitChanged(unitVal);
+      document.getElementById('edit-prod-unit').value = unitVal;
+      onProductUnitChanged(unitVal, 'edit-prod');
       
       if (typeof populateProductCategoryOptions === 'function') {
         populateProductCategoryOptions();
       }
       
-      document.getElementById('add-prod-category').value = p.category;
-      document.getElementById('add-prod-url').value = (p.imageUrl && p.imageUrl.startsWith('data:')) ? '' : (p.imageUrl || '');
+      document.getElementById('edit-prod-category').value = p.category;
+      document.getElementById('edit-prod-url').value = (p.imageUrl && p.imageUrl.startsWith('data:')) ? '' : (p.imageUrl || '');
       
-      document.getElementById('add-prod-special').checked = p.isSpecial || false;
-      document.getElementById('add-prod-out').checked = p.isOutOfStock || false;
+      document.getElementById('edit-prod-special').checked = p.isSpecial || false;
+      document.getElementById('edit-prod-out').checked = p.isOutOfStock || false;
       
       // Populate scheduling fields
-      const addProdSched = document.getElementById('add-prod-scheduled');
-      if (addProdSched) addProdSched.checked = p.isScheduled || false;
-      const addProdStart = document.getElementById('add-prod-schedule-start');
-      if (addProdStart) addProdStart.value = p.scheduleStart || '11:00';
-      const addProdEnd = document.getElementById('add-prod-schedule-end');
-      if (addProdEnd) addProdEnd.value = p.scheduleEnd || '15:00';
-      toggleProductScheduleFields(p.isScheduled || false);
+      const editProdSched = document.getElementById('edit-prod-scheduled');
+      if (editProdSched) editProdSched.checked = p.isScheduled || false;
+      const editProdStart = document.getElementById('edit-prod-schedule-start');
+      if (editProdStart) editProdStart.value = p.scheduleStart || '11:00';
+      const editProdEnd = document.getElementById('edit-prod-schedule-end');
+      if (editProdEnd) editProdEnd.value = p.scheduleEnd || '15:00';
+      toggleProductScheduleFields(p.isScheduled || false, 'edit-prod');
 
       // Update image preview element
-      const previewImg = document.getElementById('add-prod-preview-img');
-      const previewContainer = document.getElementById('add-prod-preview-container');
-      if (previewImg && previewContainer && p.imageUrl) {
-        previewImg.src = p.imageUrl;
-        previewContainer.style.display = 'block';
+      const previewImg = document.getElementById('edit-prod-preview-img');
+      const previewContainer = document.getElementById('edit-prod-preview-container');
+      if (previewImg && previewContainer) {
+        if (p.imageUrl) {
+          previewImg.src = getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt);
+          previewContainer.style.display = 'block';
+        } else {
+          previewContainer.style.display = 'none';
+        }
       }
 
-      // Adjust text buttons
-      document.getElementById('prod-submit-btn').innerText = "Revise (Edit) Product ✓";
-      document.getElementById('prod-cancel-btn').style.display = "block";
-      
-      // Scroll to forms
-      document.getElementById('admin-product-form').scrollIntoView();
+      // Open the modal
+      document.getElementById('admin-edit-product-modal').style.display = 'flex';
       showToast("Configuring Edit Frame for " + p.englishName, "info");
     }
 
-    function toggleProductScheduleFields(checked) {
-      const el = document.getElementById('add-prod-schedule-inputs');
+    function toggleProductScheduleFields(checked, prefix = 'add-prod') {
+      const el = document.getElementById(`${prefix}-schedule-inputs`);
       if (el) el.style.display = checked ? 'flex' : 'none';
     }
 
@@ -17234,7 +17514,7 @@
       document.getElementById('admin-product-form').reset();
       
       document.getElementById('add-prod-unit').value = 'kg';
-      onProductUnitChanged('kg');
+      onProductUnitChanged('kg', 'add-prod');
       
       // Reset image preview container
       const previewContainer = document.getElementById('add-prod-preview-container');
@@ -17242,11 +17522,127 @@
         previewContainer.style.display = 'none';
       }
       
-      toggleProductScheduleFields(false);
+      toggleProductScheduleFields(false, 'add-prod');
       
       document.getElementById('prod-submit-btn').innerText = "Save Product ✓";
-      document.getElementById('prod-cancel-btn').style.display = "none";
+      const cancelBtn = document.getElementById('prod-cancel-btn');
+      if (cancelBtn) cancelBtn.style.display = "none";
     }
+
+    async function handleAdminProductSave(event) {
+      event.preventDefault();
+      try {
+        const id = document.getElementById('edit-prod-id').value;
+        if (!id) return;
+
+        const tamilName = (document.getElementById('edit-prod-tamil')?.value || '').trim();
+        const englishName = (document.getElementById('edit-prod-english')?.value || '').trim();
+        const priceVal = document.getElementById('edit-prod-price')?.value || '';
+        const stockVal = document.getElementById('edit-prod-stock')?.value || '';
+        const pricePerKg = parseInt(priceVal);
+        const stockKg = parseFloat(stockVal);
+        const category = document.getElementById('edit-prod-category')?.value || 'meat';
+        const imageUrlInput = (document.getElementById('edit-prod-url')?.value || '').trim();
+        const unit = document.getElementById('edit-prod-unit')?.value || 'kg';
+        
+        const isSpecial = document.getElementById('edit-prod-special')?.checked || false;
+        const isOutOfStock = document.getElementById('edit-prod-out')?.checked || false;
+        
+        const isScheduled = document.getElementById('edit-prod-scheduled') ? document.getElementById('edit-prod-scheduled').checked : false;
+        const scheduleStart = document.getElementById('edit-prod-schedule-start') ? document.getElementById('edit-prod-schedule-start').value : '11:00';
+        const scheduleEnd = document.getElementById('edit-prod-schedule-end') ? document.getElementById('edit-prod-schedule-end').value : '15:00';
+
+        // Validation safeguards
+        if (!tamilName) {
+          showToast("தயவுசெய்து தமிழ் பெயரை உள்ளிடவும் / Please enter Tamil Name", "error");
+          return;
+        }
+        if (!englishName) {
+          showToast("தயவுசெய்து ஆங்கில பெயரை உள்ளிடவும் / Please enter English Name", "error");
+          return;
+        }
+        if (isNaN(pricePerKg) || pricePerKg < 0) {
+          showToast("தயவுசெய்து சரியான விலையை உள்ளிடவும் / Please enter a valid price", "error");
+          return;
+        }
+        if (isNaN(stockKg) || stockKg < 0) {
+          showToast("தயவுசெய்து சரியான ஸ்டாக் அளவை உள்ளிடவும் / Please enter a valid stock quantity", "error");
+          return;
+        }
+
+        const products = getData('ek_products');
+        const idx = products.findIndex(p => p.id === id);
+        if (idx === -1) {
+          showToast("தயாரிப்பு கண்டறியப்படவில்லை / Product not found", "error");
+          return;
+        }
+
+        // Setup images (Preserve current photo when editing if no new file/url is provided)
+        let finalImg = products[idx].imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400';
+        
+        // If they entered a direct url input, override
+        if (imageUrlInput) {
+          finalImg = imageUrlInput;
+        }
+        
+        // ★ Resize base64 to maximum 500px width at 0.75 quality before storage transfer
+        if (tempBase64Image) {
+          try {
+            tempBase64Image = await resizeImageBeforeUpload(tempBase64Image, 500, 0.75);
+          } catch (resizeErr) {
+            console.warn('[Image Resize] Error resizing, using original size:', resizeErr);
+          }
+        }
+
+        // Upload new image if present
+        if (tempBase64Image && typeof firebase !== 'undefined' && firebase.storage) {
+          try {
+            showToast('மாற்றிய படம் பதிவேற்றப்படுகிறது... ⏳', 'info');
+            const storageRef = firebase.storage().ref();
+            const imageRef = storageRef.child(`product_images/${id}.jpg`);
+
+            const uploadTask = await imageRef.putString(tempBase64Image, 'data_url');
+            finalImg = await uploadTask.ref.getDownloadURL();
+            console.log('[Image Upload] Product image uploaded to Storage:', finalImg);
+          } catch (uploadErr) {
+            console.error('[Image Upload] Failed, falling back to base64:', uploadErr);
+            finalImg = tempBase64Image; // Fallback
+            showToast('படம் upload தோல்வி — local-ஆக சேமிக்கப்பட்டது', 'error');
+          }
+        } else if (tempBase64Image) {
+          finalImg = tempBase64Image;
+        }
+
+        const currentRevision = products[idx].revision || 0;
+        products[idx] = {
+          ...products[idx],
+          tamilName, englishName, pricePerKg, stockKg, category, unit,
+          imageUrl: finalImg,
+          isSpecial, isOutOfStock,
+          isScheduled, scheduleStart, scheduleEnd,
+          updatedAt: new Date().toISOString(),
+          revision: currentRevision + 1
+        };
+        updateProductAvailability(products[idx]);
+        const targetProduct = products[idx];
+
+        saveData('ek_products', products);
+
+        // Instant sync to Firebase
+        if (typeof db !== 'undefined' && db && targetProduct) {
+          syncProductToCloudWithRetry(targetProduct);
+        }
+
+        closeAdminEditProductModalDetail();
+        renderAdminDashboard();
+        showToast("Product revised successfully / திருத்தம் சேமிக்கப்பட்டது! ✓", "success");
+      } catch (saveError) {
+        console.error("Critical error saving edited product:", saveError);
+        showToast("பொருளை சேமிப்பதில் பிழை / Error saving product: " + saveError.message, "error");
+      }
+    }
+
+
 
     function adjustAdminProductStock(id, diff) {
       const products = getData('ek_products');
@@ -17354,17 +17750,22 @@
         const catList = getCategoriesList();
         const CATEGORIES = [
           { id: 'all', name: isTa ? 'அனைத்தும்' : 'All Items', icon: '🍽️' },
-          ...catList.map(c => ({
-            id: c.id,
-            name: isTa ? c.nameTa : c.nameEn,
-            icon: c.icon || '🍖'
-          }))
+          ...catList.map(c => {
+            const nameEn = c.nameEn || c.en || c.id || 'Category';
+            const nameTa = c.nameTa || c.ta || nameEn;
+            const icon = c.icon || '🍖';
+            return {
+              id: c.id,
+              name: isTa ? nameTa : nameEn,
+              icon: icon
+            };
+          })
         ];
 
         filtersDiv.innerHTML = CATEGORIES.map(cat => {
           const isActive = window.adminActiveCategory === cat.id;
           return `
-            <button type="button" class="btn" style="flex:0 0 auto; height:32px; font-size:11px; font-weight:700; border-radius:12px; padding:0 12px; display:flex; align-items:center; gap:6px; transition:all 0.18s; background:${isActive ? 'var(--primary-color)' : '#12161a'}; color:${isActive ? '#000' : 'var(--text-secondary)'}; border:1px solid ${isActive ? 'var(--primary-color)' : 'rgba(255,255,255,0.08)'};" onclick="setAdminProductCategory('${cat.id}')">
+            <button type="button" class="pill ${isActive ? 'active' : ''}" style="flex:0 0 auto; font-size:12px; padding:6px 14px; height:32px; min-height:32px;" onclick="setAdminProductCategory('${cat.id}')">
               <span>${cat.icon}</span> <span>${cat.name}</span>
             </button>
           `;
@@ -17391,7 +17792,7 @@
         const item = `
           <div class="card" style="padding:0; overflow:hidden; border-color:#2c2c2c; margin-bottom:14px; position:relative;">
             <div style="display:flex; align-items:stretch; padding:10px; gap:12px;">
-              <img src="${p.imageUrl}" style="width:80px; height:80px; object-fit:cover; border-radius:12px; border:1px solid #222;" alt="">
+              <img src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" style="width:80px; height:80px; object-fit:cover; border-radius:12px; border:1px solid #222;" alt="">
               <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:space-between; min-width:0;">
                 <div>
                   <h4 style="font-size:14px; font-weight:700; color:#fff; display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0; line-height:1.2;">
@@ -18694,6 +19095,10 @@
       const file = event.target.files[0];
       if (!file) return;
       
+      // Clear direct URL input so that the newly selected file takes absolute priority
+      const urlInput = document.getElementById('admin-banner-url-input');
+      if (urlInput) urlInput.value = '';
+      
       showToast("Optimizing banner photo for high definition...", "info");
       
       const reader = new FileReader();
@@ -18724,7 +19129,7 @@
       reader.readAsDataURL(file);
     }
 
-    function addNewSlidingBanner() {
+    async function addNewSlidingBanner() {
       const settings = getData('ek_settings', DEFAULT_SETTINGS);
       if (!settings.slidingBanners) {
         // Seed default ones if first time
@@ -18747,7 +19152,29 @@
       const subTa = document.getElementById('admin-banner-sub-ta').value.trim();
       const subEn = document.getElementById('admin-banner-sub-en').value.trim();
       
-      const activeImg = fileUrl || directUrl;
+      let activeImg = directUrl;
+      
+      if (fileUrl) {
+        if (typeof firebase !== 'undefined' && firebase.storage) {
+          try {
+            showToast('விளம்பரப் படம் பதிவேற்றப்படுகிறது... ⏳', 'info');
+            const storageRef = firebase.storage().ref();
+            const slideId = 'b_' + Date.now();
+            const imageRef = storageRef.child(`banner_images/${slideId}.jpg`);
+
+            // base64 data URL-ஐ Storage-க்கு upload செய்
+            const uploadTask = await imageRef.putString(fileUrl, 'data_url');
+            activeImg = await uploadTask.ref.getDownloadURL();
+
+            console.log('[Banner Upload] Banner image uploaded to Storage:', activeImg);
+          } catch (uploadErr) {
+            console.error('[Banner Upload] Failed, falling back to base64:', uploadErr);
+            activeImg = fileUrl; // Fallback
+          }
+        } else {
+          activeImg = fileUrl;
+        }
+      }
       
       if (!activeImg) {
         showToast("Please choose an image file or paste an image URL!", "error");
@@ -18764,7 +19191,8 @@
         titleTa: titleTa || titleEn,
         titleEn: titleEn || titleTa,
         subTa: subTa || subEn || "",
-        subEn: subEn || subTa || ""
+        subEn: subEn || subTa || "",
+        updatedAt: new Date().toISOString()
       };
       
       settings.slidingBanners.push(newSlide);
@@ -18834,7 +19262,7 @@
       banners.forEach(b => {
         html += `
           <div style="display: flex; gap: 8px; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 6px; border-radius: 8px;">
-            <div style="width: 50px; height: 35px; border-radius: 4px; overflow: hidden; background-size: cover; background-position: center; background-image: url('${b.image}'); flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);"></div>
+            <div style="width: 50px; height: 35px; border-radius: 4px; overflow: hidden; background-size: cover; background-position: center; background-image: url('${getImageUrlWithCacheBuster(b.image, b.updatedAt)}'); flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);"></div>
             <div style="flex-grow: 1; overflow: hidden;">
               <div style="font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.titleTa || b.titleEn}</div>
               <div style="font-size: 9px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.titleEn || b.titleTa}</div>
@@ -18874,7 +19302,7 @@
         ];
       }
       
-      const bannersHash = currentLang + '::' + banners.map(b => `${b.id}:${b.image.slice(-15)}:${(b.titleEn || '').slice(-5)}`).join('|');
+      const bannersHash = currentLang + '::' + banners.map(b => `${b.id}:${b.image.slice(-15)}:${(b.titleEn || '').slice(-5)}:${b.updatedAt || ''}`).join('|');
       if (bannersHash === _lastBannersHash && container.children.length > 0) {
         return; // Fast skip: Carousel configuration did not change
       }
@@ -18888,7 +19316,7 @@
         const sub = currentLang === 'ta' ? (b.subTa || b.subEn) : (b.subEn || b.subTa);
         
         slidesHtml += `
-          <div class="carousel-slide" style="flex: 0 0 100%; min-width: 100%; height: 140px; position: relative; overflow: hidden; background-size: cover; background-position: center; background-image: url('${b.image}'); border-radius: 16px;">
+          <div class="carousel-slide" style="flex: 0 0 100%; min-width: 100%; height: 140px; position: relative; overflow: hidden; background-size: cover; background-position: center; background-image: url('${getImageUrlWithCacheBuster(b.image, b.updatedAt)}'); border-radius: 16px;">
             <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.45) 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 14px; box-sizing: border-box;">
               <span class="badge" style="align-self: flex-start; background: rgba(245, 158, 11, 0.4); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #fff; font-size: 8px; margin-bottom: 4px; padding: 1px 6px; border-radius: 6px; text-transform: uppercase;">Premium</span>
               <h3 style="margin: 0; font-size: 14px; color: #fff; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">${title}</h3>
@@ -19566,18 +19994,26 @@
           }
 
           // A. Upload local categories that don't exist in cloud or are newer
-          for (const [key, localC] of localCatsMap.entries()) {
+          for (const [key, rawLocalC] of localCatsMap.entries()) {
+            let localC = { ...rawLocalC };
+            const isDefault = DEFAULT_CATEGORIES.some(def => def.id === key);
+            if (isDefault) {
+              if (!localC.nameTa || !localC.nameEn || !localC.icon) {
+                const fallback = DEFAULT_CATEGORIES.find(def => def.id === key);
+                localC = { ...fallback, ...localC, nameTa: fallback.nameTa, nameEn: fallback.nameEn, icon: fallback.icon };
+              }
+            }
             const cloudC = cloudCatsMap.get(key);
             if (!cloudC) {
               console.log(`[Cloud Sync] Seeding missing category ${key} to Firestore Cloud.`);
-              await db.collection('ek_categories').doc(key).set(cleanFirestoreData(localC))
+              await db.collection('ek_categories').doc(key).set(cleanFirestoreData({ ...localC, isAvailable: true }))
                 .catch(e => console.error("Error setting category in cloud:", e));
             } else {
               const localTime = localC.updatedAt ? new Date(localC.updatedAt).getTime() : 0;
               const cloudTime = cloudC.updatedAt ? new Date(cloudC.updatedAt).getTime() : 0;
               if (localTime > cloudTime) {
                 console.log(`[Cloud Sync] Uploading newer local category details: ${key}`);
-                await db.collection('ek_categories').doc(key).set(cleanFirestoreData(localC))
+                await db.collection('ek_categories').doc(key).set(cleanFirestoreData({ ...localC, isAvailable: true }))
                   .catch(e => console.error("Error setting category in cloud:", e));
               }
             }
@@ -20525,9 +20961,21 @@
           if (!snapshot.empty) {
             for (const key of localCatsMap.keys()) {
               if (!cloudIds.has(key)) {
-                console.log(`[Cloud Live Sync] Pruning category locally (deleted in cloud): ${key}`);
-                localCatsMap.delete(key);
-                modified = true;
+                const isDefault = DEFAULT_CATEGORIES.some(def => def.id === key);
+                if (isDefault) {
+                  console.log(`[Cloud Live Sync] Restoring default category to cloud: ${key}`);
+                  let localC = localCatsMap.get(key) || DEFAULT_CATEGORIES.find(def => def.id === key);
+                  if (!localC.nameTa || !localC.nameEn || !localC.icon) {
+                    const fallback = DEFAULT_CATEGORIES.find(def => def.id === key);
+                    localC = { ...fallback, ...localC, nameTa: fallback.nameTa, nameEn: fallback.nameEn, icon: fallback.icon };
+                  }
+                  db.collection('ek_categories').doc(key).set(cleanFirestoreData({ ...localC, isAvailable: true }))
+                    .catch(e => console.error(e));
+                } else {
+                  console.log(`[Cloud Live Sync] Pruning category locally (deleted in cloud): ${key}`);
+                  localCatsMap.delete(key);
+                  modified = true;
+                }
               }
             }
           }
@@ -21240,6 +21688,35 @@
     }
 
     function bootstrapApplication() {
+      // Version-based cache buster and local storage cleaner
+      try {
+        const LATEST_VERSION = "2.1.8";
+        const lastVersion = localStorage.getItem('ek_app_version');
+        if (lastVersion !== LATEST_VERSION) {
+          console.log("[Cache Buster] Version mismatch. Upgrading from " + lastVersion + " to " + LATEST_VERSION);
+          
+          // List of cached data keys to clear (keep sessions/credentials so user is not logged out)
+          const keysToClear = [
+            'ek_products', 'ek_settings', 'ek_coupons', 'ek_categories', 'ek_delivery_persons',
+            'ek_last_update', 'ek_lyo_ai_config'
+          ];
+          
+          keysToClear.forEach(k => {
+            localStorage.removeItem(k);
+            if (typeof AndroidStorage !== 'undefined') {
+              try {
+                AndroidStorage.saveData(k, "");
+              } catch(ae) {}
+            }
+          });
+          
+          localStorage.setItem('ek_app_version', LATEST_VERSION);
+          console.log("[Cache Buster] Cached background data purged successfully for version " + LATEST_VERSION);
+        }
+      } catch (verErr) {
+        console.error("Cache buster execution failed:", verErr);
+      }
+
       initApp();
       // Attach infinite scroll listener for future-proof product rendering
       try {
@@ -21253,18 +21730,21 @@
       const hardFallbackTimer = setTimeout(() => {
         const splash = document.getElementById('screen-splash');
         if (splash && splash.classList.contains('active')) {
-          console.warn('[Hard Fallback] Splash stuck beyond 2s — forcing home screen.');
+          console.warn('[Hard Fallback] Splash stuck beyond 2s — routing safely based on active session.');
           try {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            const home = document.getElementById('screen-home');
-            if (home) {
-              home.classList.add('active');
-              currentScreen = 'screen-home';
-            }
-            const bottomNav = document.getElementById('app-bottom-nav');
-            if (bottomNav) bottomNav.style.display = 'flex';
+            showLoginScreen();
           } catch (e) {
-            console.error('[Hard Fallback] Direct home transition failed too:', e);
+            console.error('[Hard Fallback] Safely routing failed, fallback to login screen:', e);
+            try {
+              document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+              const loginScreen = document.getElementById('screen-login');
+              if (loginScreen) {
+                loginScreen.classList.add('active');
+                currentScreen = 'screen-login';
+              }
+            } catch (innerErr) {
+              console.error("[Hard Fallback] Complete fallback failed:", innerErr);
+            }
           }
         }
       }, 2000);
@@ -21437,7 +21917,7 @@
           } else if (custSession && custSession.loggedIn) {
             showScreen('screen-home');
           } else {
-            showScreen('screen-home');
+            showScreen('screen-login');
           }
         } catch (e) {
           console.error("Splash sequence routing failed, forcing home screen:", e);
@@ -23031,7 +23511,7 @@ ${formattedProducts}கார்ட்டில் உள்ளன!" : "All item
               propHtml += `
                 <div class="card" style="background: linear-gradient(135deg, rgba(23, 31, 46, 0.9) 0%, rgba(13, 20, 31, 0.95) 100%) !important; backdrop-filter: blur(8px) saturate(140%) !important; -webkit-backdrop-filter: blur(8px) saturate(140%) !important; border: 1.5px solid rgba(16,185,129,0.38) !important; border-radius:16px; padding:12px; margin-bottom:0; display:flex; flex-direction:column; gap:8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1.2px 1.2px rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.12) !important; contain: layout style paint;">
                   <div style="display:flex; align-items:center; gap:8px;">
-                    <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=100'}" style="width:36px; height:36px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,0.06);">
+                    <img src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" style="width:36px; height:36px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,0.06);">
                     <div style="flex:1;">
                       <h4 style="margin:0; font-size:12.5px; font-weight:800; color:#fff;">${currentLang==='ta' ? p.tamilName : p.englishName}</h4>
                       <p style="margin:0; font-size:10px; color:var(--text-muted);">${currentLang==='ta'?'விலை':'Price'}: ₹${p.pricePerKg} / ${(p.unit==='piece'||p.unit==='unit'||p.unit==='bunch'||p.unit==='packet')?p.unit:'Kg'}</p>
