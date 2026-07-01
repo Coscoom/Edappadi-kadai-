@@ -157,12 +157,39 @@ class MainActivity : ComponentActivity() {
         pendingGeolocationOrigin = null
     }
 
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            android.util.Log.d("NOTIF_PERM", "Notification permission granted.")
+        } else {
+            android.util.Log.d("NOTIF_PERM", "Notification permission denied.")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Pre-create Chromium WebView Code Cache directories to prevent "No such file or directory" enumerator error on startup
         preCreateWebViewCacheDirs()
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Request Notification permission for Android 13+ (Tiramisu API 33)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val hasNotificationPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            if (!hasNotificationPermission) {
+                try {
+                    notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                } catch (e: Exception) {
+                    try {
+                        requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
+                    } catch (e2: Exception) {}
+                }
+            }
+        }
 
         // Asynchronously keep recreating them for the first 30 seconds of startup 
         // to win any race conditions with Chromium's async initialization or cleanup.
@@ -184,8 +211,8 @@ class MainActivity : ComponentActivity() {
                     com.google.firebase.FirebaseApp.initializeApp(this)
                 } catch (defaultEx: Exception) {
                     val options = com.google.firebase.FirebaseOptions.Builder()
-                        .setApiKey("AIzaSyCy3JyY1C2LuwtxkkHSTRek7F_cAI9qatg")
-                        .setApplicationId("1:397565375990:android:37b2f6ef829e81f1")
+                        .setApiKey("AIzaSyDtlKng15Cyixb6HJx-mToBXHVVy28SXSA")
+                        .setApplicationId("1:397565375990:android:a645b16c604372d7ce83d7")
                         .setProjectId("edappadi-kadai")
                         .setGcmSenderId("397565375990")
                         .build()
@@ -260,8 +287,9 @@ class MainActivity : ComponentActivity() {
                                 isHorizontalScrollBarEnabled = false
                                 overScrollMode = android.view.View.OVER_SCROLL_NEVER
                                 
-                                // Clean WebView settings for Local PWA support
-                                clearCache(true)
+                                // Enable WebView caching for high performance PWA loading
+                                clearCache(false)
+                                preCreateWebViewCacheDirs()
                                 settings.apply {
                                     javaScriptEnabled = true
                                     domStorageEnabled = true

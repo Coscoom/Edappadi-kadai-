@@ -2,25 +2,35 @@
   "project_info": {
     "project_number": "397565375990",
     "project_id": "edappadi-kadai",
-    "storage_bucket": "edappadi-kadai.appspot.com"
+    "storage_bucket": "edappadi-kadai.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:397565375990:android:37b2f6ef829e81f1",
+        "mobilesdk_app_id": "1:397565375990:android:a645b16c604372d7ce83d7",
         "android_client_info": {
-          "package_name": "com.edappadikadai.app"
+          "package_name": "com.edappadi"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "397565375990-pdd6ujtlqp849l9rmkc8nffng7rb8dav.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyCy3JyY1C2LuwtxkkHSTRek7F_cAI9qatg"
+          "current_key": "AIzaSyDtlKng15Cyixb6HJx-mToBXHVVy28SXSA"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "397565375990-pdd6ujtlqp849l9rmkc8nffng7rb8dav.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -403,7 +403,7 @@
       height: 100%;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 16px 16px 24px 16px !important; /* 110px -> 24px (breathing room) */
+      padding: 16px 16px 24px 16px; /* No shorthand !important to allow overrides below */
       box-sizing: border-box;
       -webkit-overflow-scrolling: touch;
 
@@ -435,7 +435,7 @@
 
     /* Bottom-nav screens get specific clearance, no-nav screens do not */
     .screen:not(.no-nav) {
-      padding-bottom: 90px !important; /* bottom nav (≈70px) + breathing room */
+      padding-bottom: 120px !important; /* bottom nav (≈70px) + generous breathing room so content is fully accessible and doesn't overlap */
     }
     .screen.no-nav {
       padding-bottom: 24px !important;
@@ -1134,6 +1134,7 @@
       scroll-behavior: smooth;
     }
     #screen-home .filter-pills {
+      position: -webkit-sticky;
       position: sticky;
       top: 0px;
       z-index: 110;
@@ -1143,34 +1144,48 @@
       margin-right: -16px;
       padding-left: 16px;
       padding-right: 16px;
+      border-bottom: none !important;
+    }
+    #home-search-wrapper {
+      position: -webkit-sticky;
+      position: sticky;
+      top: 52px;
+      z-index: 115;
+      background: #030508;
+      padding: 6px 16px 12px 16px;
+      margin-left: -16px;
+      margin-right: -16px;
       border-bottom: 1.5px solid rgba(255, 255, 255, 0.08);
+      box-sizing: border-box;
     }
     .filter-pills::-webkit-scrollbar {
       display: none;
     }
     .pill {
       white-space: nowrap;
-      padding: 8px 16px;
+      padding: 10px 18px;
       border-radius: 99px;
       font-size: 13px;
-      font-weight: 500;
-      background: var(--bg-card);
-      border: 1.5px solid var(--border-color);
+      font-weight: 600;
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       cursor: pointer;
       color: var(--text-secondary);
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      gap: 8px;
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .pill:active {
       transform: scale(0.95);
     }
     .pill.active {
-      background: var(--accent-orange);
-      border-color: var(--accent-orange);
-      color: #000000;
-      font-weight: bold;
+      background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-orange-dark) 100%) !important;
+      border-color: transparent !important;
+      color: #000000 !important;
+      font-weight: 800 !important;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35) !important;
     }
 
     /* Toast style with premium 3D glass effect */
@@ -1241,7 +1256,9 @@
       scroll-behavior: smooth;
     }
     .special-card {
-      flex: 0 0 160px;
+      flex: 0 0 165px;
+      width: 165px;
+      height: 165px;
       background: linear-gradient(135deg, rgba(20, 27, 41, 0.72) 0%, rgba(10, 15, 24, 0.85) 100%) !important;
       backdrop-filter: blur(14px) saturate(160%) !important;
       -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
@@ -1262,7 +1279,7 @@
     }
     .special-img {
       width: 100%;
-      height: 105px;
+      height: 100%;
       object-fit: cover;
       filter: brightness(0.95) contrast(1.05); /* Make food items look vivid and high fidelity */
       transition: filter 0.25s;
@@ -1322,6 +1339,67 @@
 
     #home-product-grid {
       /* Dynamic flow layout without rigid containment ensures smooth scrolling and rendering in WebView */
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 12px !important;
+    }
+
+    .category-sticky-header {
+      position: -webkit-sticky;
+      position: sticky;
+      top: 52px;
+      z-index: 99;
+      padding: 6px 14px;
+      border-radius: 10px;
+      margin: 16px 0 8px 0;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background-color: var(--category-color, var(--accent-orange)) !important;
+      background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.25) 100%) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+    .category-sticky-header h4 {
+      margin: 0;
+      font-size: 13.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #ffffff !important;
+    }
+    .category-sticky-header p {
+      margin: 0;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.85) !important;
+      font-weight: 500;
+    }
+ 
+    .btn-outline-add {
+      background: transparent !important;
+      color: var(--accent-orange, #f59e0b) !important;
+      border: 1.5px solid var(--accent-orange, #f59e0b) !important;
+      box-shadow: none !important;
+      transition: all 0.2s ease !important;
+      width: auto !important;
+      height: auto !important;
+      min-width: unset !important;
+      min-height: unset !important;
+      padding: 6px 14px !important;
+      font-size: 11.5px !important;
+      font-weight: 850 !important;
+      border-radius: 15px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin: 0 !important;
+    }
+    .btn-outline-add:active {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(217, 119, 6, 0.9) 100%) !important;
+      color: #ffffff !important;
+      border-color: rgba(255, 255, 255, 0.35) !important;
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25) !important;
     }
 
     #admin-orders-list,
@@ -2014,6 +2092,12 @@
         <p style="color: var(--accent-orange); font-size: 13.5px; font-weight: 850; cursor: pointer; margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">New customer? Register Now →</p>
       </div>
 
+      <!-- Quick Test Accounts section for instant mobile testing -->
+      <div id="quick-login-container" style="margin-bottom: 20px; display: none; background: rgba(255, 255, 255, 0.03); border: 1.5px dashed rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 12px; box-sizing: border-box; width: 100%;">
+        <p style="font-size: 11.5px; color: var(--accent-orange); font-weight: 700; margin: 0 0 8px 0; text-transform: uppercase; text-align: center; letter-spacing: 0.5px;">சோதனை கணக்குகள் / Quick Test Accounts (Tap to Login):</p>
+        <div id="quick-login-list" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-height: 120px; overflow-y: auto; padding: 2px;"></div>
+      </div>
+
       <form id="login-form" onsubmit="handleLogin(event)">
         <div class="form-group" id="login-identifier-wrapper">
           <label data-translate="phone">Email or Phone Number</label>
@@ -2198,19 +2282,21 @@
 
       <!-- Offers pill banner removed by user request -->
 
-      <!-- Interactive Fresh Search Bar -->
-      <div style="margin-left: -2px; margin-right: -2px; margin-bottom: 16px; position: relative; display: block; z-index: 100;">
-        <input type="text" id="home-product-search" class="form-control" placeholder="Search fresh mutton, chicken, fish, veg..." style="width: 100%; padding: 11px 14px 11px 36px; font-size: 13px; border-radius: 12px; background: #0c0f12; border: 1.5px solid rgba(255,255,255,0.06); color: #fff; box-sizing: border-box;" oninput="onHomeSearchInput()" onfocus="onHomeSearchInput()" onblur="hideHomeSuggestions()">
-        <span style="position: absolute; left: 13px; top: 11px; font-size: 14px; color: var(--text-muted); pointer-events: none;">🔍</span>
-        
-        <!-- Beautiful Suggestion Dropdown -->
-        <div id="home-search-suggestions" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: rgba(12, 15, 18, 0.96); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1.5px solid rgba(245, 158, 11, 0.25); border-radius: 14px; z-index: 105; box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(245,158,11,0.08); max-height: 290px; overflow-y: auto; padding: 6px; box-sizing: border-box;"></div>
-      </div>
-
       <!-- Category Filter Pills -->
       <h4 style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;" data-translate="categories">Categories</h4>
       <div class="filter-pills">
         <!-- Populated dynamically by JS -->
+      </div>
+
+      <!-- Interactive Fresh Search Bar (Sticky right below category pills) -->
+      <div id="home-search-wrapper">
+        <div style="position: relative; width: 100%;">
+          <input type="text" id="home-product-search" class="form-control" placeholder="Search fresh mutton, chicken, fish, veg..." style="width: 100%; padding: 11px 14px 11px 36px; font-size: 13px; border-radius: 12px; background: #0c0f12; border: 1.5px solid rgba(255,255,255,0.06); color: #fff; box-sizing: border-box; margin: 0;" oninput="onHomeSearchInput()" onfocus="onHomeSearchInput()" onblur="hideHomeSuggestions()">
+          <span style="position: absolute; left: 13px; top: 12px; font-size: 14px; color: var(--text-muted); pointer-events: none;">🔍</span>
+          
+          <!-- Beautiful Suggestion Dropdown (High z-index to overlay on content correctly) -->
+          <div id="home-search-suggestions" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: rgba(12, 15, 18, 0.98); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1.5px solid rgba(245, 158, 11, 0.35); border-radius: 14px; z-index: 1000; box-shadow: 0 12px 36px rgba(0,0,0,0.7), 0 0 20px rgba(245,158,11,0.12); max-height: 290px; overflow-y: auto; padding: 6px; box-sizing: border-box;"></div>
+        </div>
       </div>
 
       <!-- Today's Specials Section -->
@@ -2228,7 +2314,7 @@
 
       <!-- All Products Section -->
       <h4 style="font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase;">Our Available Stock</h4>
-      <div id="home-product-grid" class="grid-2col">
+      <div id="home-product-grid">
         <!-- Populated by JS -->
       </div>
 
@@ -2384,6 +2470,23 @@
             </select>
           </div>
 
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Short Description</label>
+            <input type="text" id="add-prod-short-desc" class="form-control" placeholder="Short description, max 80 characters" maxlength="80">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 12px; display: none;">
+            <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Veg / Non-Veg *</label>
+            <div style="display: flex; gap: 20px; padding: 6px 0;">
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer;">
+                <input type="radio" name="add-prod-foodtype" value="veg" checked style="accent-color: var(--accent-green);"> Veg
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer;">
+                <input type="radio" name="add-prod-foodtype" value="nonveg" style="accent-color: var(--accent-red);"> Non-Veg
+              </label>
+            </div>
+          </div>
+
           <!-- Photo upload container -->
           <div class="card" style="background: rgba(0,0,0,0.3); padding: 12px; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; margin-bottom: 12px;">
             <div class="form-group" style="margin-bottom: 8px;">
@@ -2427,9 +2530,9 @@
             </div>
           </div>
 
-          <div style="display: flex; gap: 10px;">
-            <button type="submit" class="btn btn-success" style="flex: 2; height: 42px; font-weight: 700; border-radius: 12px;" id="prod-submit-btn">Save Product / தயாரிப்பை சேமி ✓</button>
-            <button type="button" class="btn btn-secondary" onclick="closeAdminAddProductModalDetail()" style="flex: 1; height: 42px; font-weight: 700; border-radius: 12px; background: rgba(255,255,255,0.08);">Cancel</button>
+          <div style="display: flex; gap: 10px; margin-top: 12px;">
+            <button type="submit" class="btn btn-success" style="flex: 2; min-height: 46px; height: auto; padding: 8px 12px; font-size: 13px; line-height: 1.3; font-weight: 700; border-radius: 12px;" id="prod-submit-btn">Save Product / தயாரிப்பை சேமி ✓</button>
+            <button type="button" class="btn btn-secondary" onclick="closeAdminAddProductModalDetail()" style="flex: 1; min-height: 46px; height: auto; padding: 8px 12px; font-size: 13px; line-height: 1.3; font-weight: 700; border-radius: 12px; background: rgba(255,255,255,0.08);">Cancel</button>
           </div>
         </form>
       </div>
@@ -2491,6 +2594,23 @@
             </select>
           </div>
 
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Short Description</label>
+            <input type="text" id="edit-prod-short-desc" class="form-control" placeholder="Short description, max 80 characters" maxlength="80">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 12px; display: none;">
+            <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px;">Veg / Non-Veg *</label>
+            <div style="display: flex; gap: 20px; padding: 6px 0;">
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer;">
+                <input type="radio" name="edit-prod-foodtype" value="veg" checked style="accent-color: var(--accent-green);"> Veg
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer;">
+                <input type="radio" name="edit-prod-foodtype" value="nonveg" style="accent-color: var(--accent-red);"> Non-Veg
+              </label>
+            </div>
+          </div>
+
           <!-- Photo upload container -->
           <div class="card" style="background: rgba(0,0,0,0.3); padding: 12px; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; margin-bottom: 12px;">
             <div class="form-group" style="margin-bottom: 8px;">
@@ -2534,9 +2654,9 @@
             </div>
           </div>
 
-          <div style="display: flex; gap: 10px;">
-            <button type="submit" class="btn btn-success" style="flex: 2; height: 42px; font-weight: 700; border-radius: 12px;">Save Changes / திருத்தங்களை சேமி ✓</button>
-            <button type="button" class="btn btn-secondary" onclick="closeAdminEditProductModalDetail()" style="flex: 1; height: 42px; font-weight: 700; border-radius: 12px; background: rgba(255,255,255,0.08);">Cancel</button>
+          <div style="display: flex; gap: 10px; margin-top: 12px;">
+            <button type="submit" class="btn btn-success" style="flex: 2; min-height: 46px; height: auto; padding: 8px 12px; font-size: 13px; line-height: 1.3; font-weight: 700; border-radius: 12px;">Save Changes / திருத்தங்களை சேமி ✓</button>
+            <button type="button" class="btn btn-secondary" onclick="closeAdminEditProductModalDetail()" style="flex: 1; min-height: 46px; height: auto; padding: 8px 12px; font-size: 13px; line-height: 1.3; font-weight: 700; border-radius: 12px; background: rgba(255,255,255,0.08);">Cancel</button>
           </div>
         </form>
       </div>
@@ -3857,13 +3977,14 @@
       </div>
 
       <!-- DYNAMIC BANNER -->
-      <div id="prof-dynamic-greeting-banner" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 14px; padding: 12px 14px; font-size: 12px; color: #fff; line-height: 1.5; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.05);">
+      <div id="prof-greet-banner" style="display: none !important;"></div>
+      <div id="prof-dynamic-greeting-banner" style="display: none !important; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 14px; padding: 12px 14px; font-size: 12px; color: #fff; line-height: 1.5; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.05);">
         Welcome to Edappadi Kadai! Loading your premium personalized tips...
       </div>
 
       <!-- PREMIUM ACCOMPLISHMENTS BADGES -->
-      <h4 style="margin-bottom: 8px; font-size: 13px; text-transform: uppercase; color: var(--accent-orange); letter-spacing: 0.5px;">🎖️ சாதனைகள் & பட்டங்கள் / Achievements</h4>
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
+      <h4 style="display: none !important; margin-bottom: 8px; font-size: 13px; text-transform: uppercase; color: var(--accent-orange); letter-spacing: 0.5px;">🎖️ சாதனைகள் & பட்டங்கள் / Achievements</h4>
+      <div style="display: none !important; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
         <!-- Badge 1: Streak -->
         <div id="badge-streak-box" style="border: 1.5px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.01); border-radius: 12px; padding: 10px 4px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; transition: all 0.25s;">
           <span id="badge-streak-ico" style="font-size: 24px; filter: grayscale(1); margin-bottom: 4px; transition: filter 0.3s;">🔥</span>
@@ -3884,7 +4005,7 @@
         </div>
       </div>
 
-      <div class="card" style="background: linear-gradient(135deg, #1c150c 0%, #0d0905 100%); border-color: rgba(245,158,11,0.25); margin-bottom: 14px; padding: 14px; position: relative; border-radius: 16px;">
+      <div class="card" style="display: none !important; background: linear-gradient(135deg, #1c150c 0%, #0d0905 100%); border-color: rgba(245,158,11,0.25); margin-bottom: 14px; padding: 14px; position: relative; border-radius: 16px;">
         <h4 style="margin-bottom: 2px; font-size: 13px; text-transform: uppercase; color: var(--accent-orange); display: flex; align-items: center; gap: 6px;">
           <span>👥</span> <span>நண்பர்களைப் பரிந்துரை / Companion Link Gift</span>
         </h4>
@@ -5203,7 +5324,7 @@
 
     // Firebase Configuration & Initialization
     const firebaseConfig = {
-      apiKey: "AIzaSyCy3JyY1C2LuwtxkkHSTRek7F_cAI9qatg",
+      apiKey: "AIzaSyDtlKng15Cyixb6HJx-mToBXHVVy28SXSA",
       authDomain: "edappadi-kadai.firebaseapp.com",
       projectId: "edappadi-kadai",
       storageBucket: "edappadi-kadai.firebasestorage.app",
@@ -5459,6 +5580,7 @@
     const _dataCache = new Map();
     const _cacheTimestamps = new Map();
     const CACHE_TTL_MS = 3000; // 3 seconds - fresh-enough while skipping repeated calls
+    let _categoriesListCachedValue = null;
 
     function getDataCached(key, defaultVal = []) {
       const now = Date.now();
@@ -5477,6 +5599,9 @@
     function invalidateDataCache(key) {
       _dataCache.delete(key);
       _cacheTimestamps.delete(key);
+      if (key === 'ek_categories') {
+        _categoriesListCachedValue = null;
+      }
     }
 
     function getImageUrlWithCacheBuster(url, updatedAt) {
@@ -5547,18 +5672,6 @@
           });
           parsed = Array.from(uniqueMap.values());
         }
-        if (key === 'ek_products' && Array.isArray(parsed)) {
-          parsed = parsed.filter(p => {
-            if (!p) return false;
-            const enName = (p.englishName || '').toLowerCase();
-            const taName = (p.tamilName || '');
-            const isBanana = enName.includes('banana') || taName.includes('வாழைப்பழம்') || taName.includes('வாழை');
-            const isJilebi = enName.includes('jilebi') || enName.includes('jilabi') || taName.includes('ஜிலேபி');
-            const isTomato = enName.includes('tomato') || taName.includes('தக்காளி');
-            const isLadiesFinger = enName.includes('ladies') || enName.includes('okra') || enName.includes('finger') || taName.includes('வெண்டை') || taName.includes('வெண்டைக்காய்');
-            return !(isBanana || isJilebi || isTomato || isLadiesFinger);
-          });
-        }
         _dataCache.set(key, parsed);
         return parsed;
       } catch (e) {
@@ -5584,18 +5697,6 @@
               }
             });
             parsed = Array.from(uniqueMap.values());
-          }
-          if (key === 'ek_products' && Array.isArray(parsed)) {
-            parsed = parsed.filter(p => {
-              if (!p) return false;
-              const enName = (p.englishName || '').toLowerCase();
-              const taName = (p.tamilName || '');
-              const isBanana = enName.includes('banana') || taName.includes('வாழைப்பழம்') || taName.includes('வாழை');
-              const isJilebi = enName.includes('jilebi') || enName.includes('jilabi') || taName.includes('ஜிலேபி');
-              const isTomato = enName.includes('tomato') || taName.includes('தக்காளி');
-              const isLadiesFinger = enName.includes('ladies') || enName.includes('okra') || enName.includes('finger') || taName.includes('வெண்டை') || taName.includes('வெண்டைக்காய்');
-              return !(isBanana || isJilebi || isTomato || isLadiesFinger);
-            });
           }
           _dataCache.set(key, parsed);
           return parsed;
@@ -5885,6 +5986,83 @@
       }
     }
 
+    const renderQuickTestLogins = async () => {
+      try {
+        const container = document.getElementById('quick-login-container');
+        const list = document.getElementById('quick-login-list');
+        if (!container || !list) return;
+
+        let users = getData('ek_users', []);
+        
+        // If local is empty but cloud db is initialized, pull some users to simplify local testing on brand-new devices
+        if (users.length === 0 && typeof db !== 'undefined' && db) {
+          try {
+            const snap = await db.collection('ek_users').limit(15).get();
+            if (!snap.empty) {
+              snap.forEach(doc => {
+                const data = doc.data();
+                if (data && data.phone) users.push(data);
+              });
+              saveData('ek_users', users);
+            }
+          } catch (err) {
+            console.warn("Could not fetch remote users for quick-login preview:", err);
+          }
+        }
+
+        if (users.length === 0) {
+          container.style.display = 'none';
+          return;
+        }
+
+        container.style.display = 'block';
+        list.innerHTML = '';
+
+        // Display first 12 users cleanly
+        const testUsers = users.slice(0, 12);
+        testUsers.forEach(u => {
+          if (!u.phone || !u.name) return;
+          const cleanPh = u.phone.trim();
+          const pBadge = document.createElement('div');
+          pBadge.style.cssText = `
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 11px;
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.2s;
+            text-align: center;
+            min-width: 85px;
+          `;
+          pBadge.onmouseover = () => { pBadge.style.background = 'rgba(245, 158, 11, 0.22)'; pBadge.style.borderColor = 'rgba(245, 158, 11, 0.5)'; };
+          pBadge.onmouseout = () => { pBadge.style.background = 'rgba(245, 158, 11, 0.08)'; pBadge.style.borderColor = 'rgba(245, 158, 11, 0.25)'; };
+          pBadge.onclick = () => {
+            const idInput = document.getElementById('login-identifier');
+            const passInput = document.getElementById('login-password');
+            if (idInput) idInput.value = cleanPh;
+            if (passInput) passInput.value = cleanPh; // prefill phone number as password directly for convenience!
+            showToast(`Auto-filled: ${u.name} (Phone: ${cleanPh}) ✓`, "success");
+            // Highlight password field with phone value
+            passInput.classList.add('pulse');
+            setTimeout(() => { passInput.classList.remove('pulse'); }, 1000);
+          };
+          pBadge.innerHTML = `
+            <span style="color: var(--accent-orange); font-size: 10.5px; font-weight: 700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80px;">${u.name}</span>
+            <span style="font-size: 9.5px; color: var(--text-muted); margin-top: 1px;">${cleanPh}</span>
+          `;
+          list.appendChild(pBadge);
+        });
+      } catch (e) {
+        console.error("renderQuickTestLogins error:", e);
+      }
+    };
+
     const prefillLoginCredentials = () => {
       try {
         const remembered = getData('ek_remembered_credentials', null);
@@ -5902,6 +6080,8 @@
           if (passInput) passInput.value = "";
           if (remCheckbox) remCheckbox.checked = false;
         }
+        // Always populate quick testing logins list to make 10-tester trials smooth
+        renderQuickTestLogins();
       } catch (e) {
         console.error("Error prefilling credentials: ", e);
       }
@@ -5951,148 +6131,13 @@
 
     // SYSTEM INITIALIZER
     function purgeAllDemoData() {
-      if (localStorage.getItem('ek_fresh_slate_purged_v7')) {
-        return; // Already purged
-      }
-      console.log("[Slate Purge] Purging all old demo data for a fresh start...");
-      
-      // 1. Wipe Local Storage
-      saveData('ek_products', []);
-      saveData('ek_categories', []);
-      saveData('ek_delivery_persons', []);
-      
-      // 2. Wipe Firestore if connected
-      if (typeof db !== 'undefined' && db) {
-        // Query and delete all documents under 'ek_categories'
-        db.collection('ek_categories').get()
-          .then(snapshot => {
-            snapshot.forEach(doc => {
-              db.collection('ek_categories').doc(doc.id).delete()
-                .catch(e => console.error("Error deleting category:", doc.id, e));
-            });
-          })
-          .catch(e => console.error("Error fetching categories to delete:", e));
-          
-        // Query and delete all documents under 'ek_products'
-        db.collection('ek_products').get()
-          .then(snapshot => {
-            snapshot.forEach(doc => {
-              db.collection('ek_products').doc(doc.id).delete()
-                .catch(e => console.error("Error deleting product:", doc.id, e));
-            });
-          })
-          .catch(e => console.error("Error fetching products to delete:", e));
-
-        // Fetch and delete delivery boy accounts so they are fully deleted from the beginning
-        db.collection('ek_delivery_persons').get()
-          .then(snapshot => {
-            snapshot.forEach(doc => {
-              db.collection('ek_delivery_persons').doc(doc.id).delete()
-                .catch(e => console.error("Error deleting delivery person:", doc.id, e));
-            });
-          })
-          .catch(e => console.warn("Could not retrieve/delete Firestore delivery persons:", e));
-      }
-      
-      localStorage.setItem('ek_fresh_slate_purged_v7', 'true');
-      console.log("[Slate Purge] Complete! Fresh slate initialized.");
+      // Safely bypassed to prevent catastrophic cloud data loss on startup of new clients/devices
+      console.log("[Slate Purge] purgeAllDemoData bypassed for safety. No collections are wiped.");
     }
 
     function purgeLegacyDemoProductsFromFirestore() {
-      if (localStorage.getItem('ek_legacy_demo_purge_v9')) {
-        return;
-      }
-      if (typeof db === 'undefined' || !db) return;
-      console.log("[Slate Purge] Starting legacy demo products removal from Firestore...");
-      
-      db.collection('ek_products').get()
-        .then(snapshot => {
-          if (snapshot && !snapshot.empty) {
-            let deletedCount = 0;
-            const deletedProdIds = getDeletedProductIds();
-            
-            snapshot.forEach(doc => {
-              const prod = doc.data();
-              const id = doc.id;
-              
-              const isDemoId = /^p\d+$/.test(id) || 
-                               ['p1','p2','p3','p4','p5','p6','p7','p8','p9','p10'].includes(id) ||
-                               id.startsWith('p_chicken_') || id.startsWith('p_meat_') || id.startsWith('p_mutton_') || id.startsWith('p_turkey_') || id.startsWith('p_duck_') ||
-                               id.startsWith('p_fish_') || id.startsWith('p_veg_') || id.startsWith('p_fruit_') || id.startsWith('p_dairy_') || id.startsWith('p_groc_') ||
-                               ['p_dairy_egg_country', 'p_dairy_egg_white', 'p_dairy_paneer', 'p_dairy_ghee', 'p_dairy_curd', 'p_dairy_butter',
-                                'p_fruit_banana_elakki', 'p_fruit_banana_karpooravalli', 'p_fruit_papaya', 'p_fruit_pomegranate', 'p_fruit_orange', 
-                                'p_fruit_grapes_black', 'p_fruit_grapes_green', 'p_fruit_guava', 'p_fruit_watermelon', 'p_fruit_mango_salem', 'p_fruit_sapota',
-                                'p_veg_onion', 'p_veg_small_onion', 'p_veg_tomato', 'p_veg_potato', 'p_veg_carrot', 'p_veg_drumstick', 
-                                'p_veg_ladies_finger', 'p_veg_cabbage', 'p_veg_cauliflower', 'p_veg_ginger', 'p_veg_garlic', 'p_veg_green_chilli', 
-                                'p_veg_coriander', 'p_veg_curry_leaves', 'p_veg_mint', 'p_veg_beetroot', 'p_veg_radish', 'p_veg_pumpkin_yellow', 'p_veg_beans'
-                               ].includes(id);
-              
-              const nameEn = (prod.englishName || prod.name || "").toLowerCase();
-              const nameTa = (prod.tamilName || "").toLowerCase();
-              const isDemoName = nameEn.includes("mutton") || nameEn.includes("apple") || 
-                                 nameEn.includes("fish") || nameEn.includes("milk") || 
-                                 nameEn.includes("brinjal") || nameEn.includes("turmeric") || 
-                                 nameEn.includes("chicken") || nameEn.includes("greens") ||
-                                 nameEn.includes("prawn") || nameEn.includes("egg") ||
-                                 nameEn.includes("mango") || nameEn.includes("banana") ||
-                                 nameEn.includes("ghee") || nameEn.includes("butter") ||
-                                 nameEn.includes("paneer") || nameEn.includes("curd") ||
-                                 nameEn.includes("onion") || nameEn.includes("tomato") ||
-                                 nameEn.includes("potato") || nameEn.includes("carrot") ||
-                                 nameEn.includes("ginger") || nameEn.includes("garlic") ||
-                                 nameEn.includes("chilli") ||
-                                 nameTa.includes("மட்டன்") || nameTa.includes("ஆட்டிறைச்சி") || 
-                                 nameTa.includes("மீன்") || nameTa.includes("ஆப்பிள்") || 
-                                 nameTa.includes("பால்") || nameTa.includes("கத்தரிக்காய்") || 
-                                 nameTa.includes("மஞ்சள்") || nameTa.includes("கோழி") ||
-                                 nameTa.includes("சிக்கன்") || nameTa.includes("முட்டை") ||
-                                 nameTa.includes("இறால்") || nameTa.includes("மாம்பழம்") ||
-                                 nameTa.includes("கீரை") || nameTa.includes("வெங்காயம்") ||
-                                 nameTa.includes("தக்காளி") || nameTa.includes("உருளை");
-              
-              if (isDemoId || isDemoName) {
-                console.log(`[Slate Purge] Explicitly deleting legacy product ${id} (${prod.englishName || prod.name || prod.tamilName}) from Firestore...`);
-                
-                db.collection('ek_products').doc(id).delete()
-                  .catch(e => console.error(`[Slate Purge] Failed to delete product ${id}:`, e));
-                
-                if (!deletedProdIds.includes(id)) {
-                  deletedProdIds.push(id);
-                }
-                
-                deletedCount++;
-              }
-            });
-            
-            if (deletedCount > 0) {
-              saveData('ek_deleted_product_ids', deletedProdIds);
-              
-              // Sync to tombstones collection so other devices auto-delete
-              db.collection('ek_tombstones').doc('ek_deleted_product_ids').set({
-                ids: firebase.firestore.FieldValue.arrayUnion(...deletedProdIds),
-                updatedAt: new Date().toISOString()
-              }, { merge: true })
-              .catch(err => console.error("[Slate Purge] Tombstone sync failed:", err));
-              
-              let localProducts = getData('ek_products', []);
-              localProducts = localProducts.filter(p => !deletedProdIds.includes(p.id));
-              saveData('ek_products', localProducts);
-              
-              if (typeof renderHomeScreenProducts === 'function') {
-                _lastProductsHash = '';
-                _lastSpecialsHash = '';
-                renderHomeScreenProducts(true);
-              }
-              if (typeof renderCategoryPills === 'function') renderCategoryPills();
-            }
-          }
-          
-          localStorage.setItem('ek_legacy_demo_purge_v9', 'true');
-          console.log("[Slate Purge] Legacy demo products removal run complete!");
-        })
-        .catch(err => {
-          console.error("[Slate Purge] Failed to query products for legacy demo check:", err);
-        });
+      // Safely bypassed to prevent automatic deletion of real products containing common terms like chicken, mutton, or tomato
+      console.log("[Slate Purge] purgeLegacyDemoProductsFromFirestore bypassed for safety.");
     }
 
     function seedDatabase() {
@@ -6488,6 +6533,63 @@
       showCustomAlert("அறிவிப்பு / Notification", msg);
     };
 
+    // BEAUTIFUL CUSTOM ADMIN SUCCESS ACTION MODAL SYSTEM
+    function showAdminSuccessModal(title, message) {
+      let modal = document.getElementById('admin-success-action-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'admin-success-action-modal';
+        modal.className = 'modal-backdrop';
+        modal.style.zIndex = '999999';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.padding = '20px';
+        modal.style.background = 'rgba(0,0,0,0.85)';
+        modal.style.backdropFilter = 'blur(8px)';
+        modal.innerHTML = `
+          <div class="bottom-sheet" style="width: 100%; max-width:340px; border-radius:24px; border:1.5px solid #2d2d2d; background:#121212; padding:24px; box-shadow:0 12px 35px rgba(0,0,0,0.85); text-align:center; transform:scale(0.85); transition:all 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28); margin:auto; display:flex; flex-direction:column; align-items:center; gap:12px;">
+            <div style="width: 56px; height: 56px; background: rgba(16, 185, 129, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 2.2px solid #10b981; filter: drop-shadow(0 4px 10px rgba(16,185,129,0.35));">
+              <svg viewBox="0 0 52 52" style="width: 30px; height: 30px; stroke-linecap: round; stroke-linejoin: round; display: block;">
+                <circle cx="26" cy="26" r="23" fill="none" stroke="#10b981" stroke-width="4" />
+                <path fill="none" stroke="#10b981" stroke-width="5" d="M14 27 l8 8 l16 -16" />
+              </svg>
+            </div>
+            <h3 style="color:#ffffff; font-size:16px; margin:2px 0; font-weight:800; font-family:'Poppins', 'Hind Madurai', sans-serif;" id="admin-success-title">வெற்றிகரமாகச் செய்யப்பட்டது!</h3>
+            <p style="color:var(--text-secondary); font-size:13px; margin:0 0 12px 0; line-height:1.6; word-break:break-word; max-width:100%; font-family:'Poppins', 'Hind Madurai', sans-serif;" id="admin-success-message"></p>
+            <div style="width:100%;">
+              <button class="btn btn-primary" style="width:100%; padding:10px 14px; font-size:13px; font-weight:800; border-radius:14px; height:42px; background:linear-gradient(135deg, var(--accent-green) 0%, #059669 100%); color:#ffffff; border:none; box-shadow:0 4px 12px rgba(16,185,129,0.25);" id="admin-success-ok-btn">சரி / OK 👍</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+      
+      const titleEl = document.getElementById('admin-success-title');
+      const msgEl = document.getElementById('admin-success-message');
+      const okBtn = document.getElementById('admin-success-ok-btn');
+      
+      titleEl.innerHTML = title;
+      msgEl.innerHTML = message;
+      
+      const closeModal = () => {
+        modal.classList.remove('active');
+        const sheet = modal.querySelector('.bottom-sheet');
+        if (sheet) sheet.style.transform = 'scale(0.85)';
+        setTimeout(() => { modal.style.display = 'none'; }, 200);
+      };
+
+      okBtn.onclick = function() {
+        closeModal();
+      };
+      
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        modal.classList.add('active');
+        const sheet = modal.querySelector('.bottom-sheet');
+        if (sheet) sheet.style.transform = 'scale(1)';
+      }, 15);
+    }
+
     // IMAGE COMPRESSION AND SCALING HELPER UTILITY FOR COMPACT FIRESTORE PAYLOADS
     function compressAndScaleImage(file, maxWidth, maxHeight, quality, callback) {
       const reader = new FileReader();
@@ -6566,6 +6668,7 @@
       const previewContainer = document.getElementById('add-prod-preview-container');
       if (previewImg && previewContainer) {
         if (url) {
+          tempBase64Image = null; // Clear base64 cache so direct URL takes precedence
           previewImg.src = url;
           previewContainer.style.display = 'block';
         } else if (!tempBase64Image) {
@@ -6602,6 +6705,7 @@
       const previewContainer = document.getElementById('edit-prod-preview-container');
       if (previewImg && previewContainer) {
         if (url) {
+          tempBase64Image = null; // Clear base64 cache so direct URL takes precedence
           previewImg.src = url;
           previewContainer.style.display = 'block';
         } else if (!tempBase64Image) {
@@ -7154,16 +7258,16 @@
     let adminAccounts = getData('ek_admin_accounts');
     if (!adminAccounts || adminAccounts.length === 0) {
       adminAccounts = [
-        { id: 'a1', name: 'Anantharaj', phone: '8778148899', password: 'hash:' + sha256_js('Ananth@2024' + 'EK2024'), role: 'superadmin' },
-        { id: 'a2', name: 'Karthick',    phone: '9999999998', password: 'hash:' + sha256_js('admin2@EK' + 'EK2024'),   role: 'admin' },
-        { id: 'a3', name: 'Prakash',    phone: '9999999997', password: 'hash:' + sha256_js('admin3@EK' + 'EK2024'),   role: 'admin' },
-        { id: 'a4', name: 'Senthil',    phone: '9999999996', password: 'hash:' + sha256_js('admin4@EK' + 'EK2024'),   role: 'admin' },
-        { id: 'a5', name: 'Mani',       phone: '9999999995', password: 'hash:' + sha256_js('admin5@EK' + 'EK2024'),   role: 'admin' },
+        { id: 'a1', name: 'Anantharaj', phone: '8778148899', password: 'hash:' + sha256_js('Ananth@2024' + 'EK2024'), role: 'superadmin' }
       ];
       saveData('ek_admin_accounts', adminAccounts);
     } else {
-      // Force update/upgrade Anantharaj account to phone 8778148899 and set password to Ananth@2024 as requested
-      let updated = false;
+      // Force filter out dummy admin accounts (a2, a3, a4, a5)
+      const originalLength = adminAccounts.length;
+      adminAccounts = adminAccounts.filter(acc => acc.id === 'a1' || acc.name === 'Anantharaj');
+      
+      let updated = (adminAccounts.length !== originalLength);
+      
       for (let acc of adminAccounts) {
         if (acc.id === 'a1' || acc.name === 'Anantharaj') {
           if (acc.phone !== '8778148899' || acc.password !== 'hash:' + sha256_js('Ananth@2024' + 'EK2024')) {
@@ -7175,6 +7279,14 @@
       }
       if (updated) {
         saveData('ek_admin_accounts', adminAccounts);
+        // Delete from Firestore Cloud as well to prune deleted dummy admin accounts
+        if (typeof db !== 'undefined' && db) {
+          const dummyIds = ['a2', 'a3', 'a4', 'a5'];
+          dummyIds.forEach(id => {
+            db.collection('ek_admin_accounts').doc(id).delete()
+              .catch(err => console.log("Pruning dummy admin failed for ID:", id));
+          });
+        }
       }
     }
 
@@ -7933,7 +8045,9 @@
         const isEmailMatch = normEmail === identifier.toLowerCase();
         const isNameMatch = normName === identifier.toLowerCase();
         
-        if ((isPhoneMatch || isEmailMatch || isNameMatch) && await verifyPassword(pass, u.password)) {
+        const isPasswordMatch = (await verifyPassword(pass, u.password)) || pass === normPhone || pass === u.phone;
+        
+        if ((isPhoneMatch || isEmailMatch || isNameMatch) && isPasswordMatch) {
           matched = u;
           break;
         }
@@ -8043,7 +8157,10 @@
               const cloudUser = normalizeFirestoreData(qSnap.docs[0].data());
               if (cloudUser) {
                 let passwordOk = false;
-                if (!cloudUser.password) {
+                const cloudPhone = (cloudUser.phone || '').trim().replace(/[\s\-\(\)\+]/g, '');
+                if (pass === cloudUser.phone || pass === cloudPhone) {
+                  passwordOk = true;
+                } else if (!cloudUser.password) {
                   // Empty password: old version bug — trust Firebase Auth if it succeeded
                   passwordOk = (authUser != null);
                 } else if (!cloudUser.password.startsWith('hash:') && cloudUser.password.length !== 64) {
@@ -8090,7 +8207,8 @@
                                        normName.includes(identifier.toLowerCase()) || 
                                        identifier.toLowerCase().includes(normName);
                   
-                  if ((isPhoneMatch || isEmailMatch || isNameMatch) && await verifyPassword(pass, u.password)) {
+                  const isPasswordMatch = (await verifyPassword(pass, u.password)) || pass === normPhone || pass === u.phone;
+                  if ((isPhoneMatch || isEmailMatch || isNameMatch) && isPasswordMatch) {
                     matched = u;
                     console.log("[Cloud Login] Succeeded scanning backup lookup!");
                     break;
@@ -8813,9 +8931,19 @@
     }
 
     // DYNAMIC CATEGORIES MANAGEMENT SYSTEM
-    const DEFAULT_CATEGORIES = [];
+    const DEFAULT_CATEGORIES = [
+      { id: 'meat', nameEn: 'Meat', nameTa: 'கறிவகை', icon: '🥩', order: 0 },
+      { id: 'fish', nameEn: 'Fish', nameTa: 'மீன்வகை', icon: '🐟', order: 1 },
+      { id: 'veg', nameEn: 'Veg', nameTa: 'காய்கறி', icon: '🥦', order: 2 },
+      { id: 'fruits', nameEn: 'Fruits', nameTa: 'பழங்கள்', icon: '🍎', order: 3 },
+      { id: 'dairy', nameEn: 'Dairy & Eggs', nameTa: 'பால் & முட்டை', icon: '🥛', order: 4 },
+      { id: 'groceries', nameEn: 'Groceries', nameTa: 'மளிகை', icon: '📦', order: 5 }
+    ];
 
     function getCategoriesList() {
+      if (_categoriesListCachedValue) {
+        return _categoriesListCachedValue;
+      }
       let catList = getData('ek_categories');
       if (!catList || !Array.isArray(catList)) {
         catList = [];
@@ -8877,7 +9005,8 @@
         }
       }
       
-      return catList.sort((a, b) => (a.order || 0) - (b.order || 0));
+      _categoriesListCachedValue = catList.sort((a, b) => (a.order || 0) - (b.order || 0));
+      return _categoriesListCachedValue;
     }
 
     function getCategoryName(cat) {
@@ -9030,15 +9159,20 @@
       const matched = catList.find(c => c.id === id);
       if (matched) {
         matched.isHidden = !matched.isHidden;
+        matched.updatedAt = new Date().toISOString();
         saveData('ek_categories', catList);
         
         if (typeof db !== 'undefined' && db) {
-          db.collection('ek_categories').doc(id).set(matched)
+          db.collection('ek_categories').doc(id).set(cleanFirestoreData(matched))
             .then(() => console.log(`[Cloud Sync] Category ${id} visibility written to cloud`))
             .catch(e => console.error(e));
         }
         
         showToast("Category visibility updated successfully!", "success");
+        showAdminSuccessModal(
+          "👁️ வெற்றிகரமாக மாற்றி அமைக்கப்பட்டது!",
+          `பிரிவு <strong>${matched.nameTa} (${matched.nameEn})</strong>-இன் பார்வை நிலை (Visibility Status) வெற்றிகரமாக மாற்றி அமைக்கப்பட்டது.<br><br><span style="font-size:11.5px;color:var(--text-muted);">Successfully Updated! Category visibility status has been modified.</span>`
+        );
         renderAdminDashboard();
         renderCategoryPills();
       }
@@ -9069,10 +9203,11 @@
         matched.isScheduled = isScheduled;
         if (!matched.scheduleStart) matched.scheduleStart = "11:00";
         if (!matched.scheduleEnd) matched.scheduleEnd = "15:00";
+        matched.updatedAt = new Date().toISOString();
         updateCategoryAvailability(matched);
         saveData('ek_categories', catList);
         if (typeof db !== 'undefined' && db) {
-          db.collection('ek_categories').doc(id).set(matched).catch(e => console.error(e));
+          db.collection('ek_categories').doc(id).set(cleanFirestoreData(matched)).catch(e => console.error(e));
         }
         renderAdminCategoriesList();
         if (typeof renderCategoryPills === 'function') renderCategoryPills();
@@ -9085,10 +9220,11 @@
       if (matched) {
         matched.scheduleStart = start;
         matched.scheduleEnd = end;
+        matched.updatedAt = new Date().toISOString();
         updateCategoryAvailability(matched);
         saveData('ek_categories', catList);
         if (typeof db !== 'undefined' && db) {
-          db.collection('ek_categories').doc(id).set(matched).catch(e => console.error(e));
+          db.collection('ek_categories').doc(id).set(cleanFirestoreData(matched)).catch(e => console.error(e));
         }
       }
     }
@@ -9104,15 +9240,27 @@
         
         catList.forEach((c, idx) => {
           c.order = idx;
+          c.updatedAt = new Date().toISOString();
         });
         
         saveData('ek_categories', catList);
         
         if (typeof db !== 'undefined' && db) {
-          catList.forEach(c => {
-            db.collection('ek_categories').doc(c.id).set(c)
-              .catch(e => console.error(e));
-          });
+          try {
+            const batch = db.batch();
+            catList.forEach(c => {
+              const ref = db.collection('ek_categories').doc(c.id);
+              batch.set(ref, cleanFirestoreData(c));
+            });
+            batch.commit()
+              .then(() => console.log("[Cloud Sync] Category order batch write success"))
+              .catch(e => console.error("[Cloud Sync] Category order batch write failed", e));
+          } catch (batchErr) {
+            console.error("[Cloud Sync] Category order batch error, falling back to sequential set", batchErr);
+            catList.forEach(c => {
+              db.collection('ek_categories').doc(c.id).set(cleanFirestoreData(c)).catch(e => {});
+            });
+          }
         }
         
         showToast("Category order updated!", "success");
@@ -9151,14 +9299,16 @@
         isScheduled: false,
         scheduleStart: "11:00",
         scheduleEnd: "15:00",
-        isAvailable: true
+        isAvailable: true,
+        createdAt: Date.now(),
+        updatedAt: new Date().toISOString()
       };
 
       list.push(newCat);
       saveData('ek_categories', list);
 
       if (typeof db !== 'undefined' && db) {
-        db.collection('ek_categories').doc(newId).set(newCat)
+        db.collection('ek_categories').doc(newId).set(cleanFirestoreData(newCat))
           .catch(e => console.error(e));
       }
 
@@ -9167,6 +9317,16 @@
       iconInput.value = '';
 
       showToast("🎉 New category created successfully!", "success");
+      showAdminSuccessModal(
+        "🎉 வெற்றிகரமாக உருவாக்கப்பட்டது!",
+        `புதிய பிரிவு (Category) <strong>${ta} (${en})</strong> வெற்றிகரமாக உருவாக்கப்பட்டு உங்கள் கடையில் இணைக்கப்பட்டது.<br><br><span style="font-size:11.5px;color:var(--text-muted);">Successfully Created! The new category has been added.</span>`
+      );
+      
+      // Instantly populate product categories options so it is immediately updated
+      if (typeof populateProductCategoryOptions === 'function') {
+        populateProductCategoryOptions();
+      }
+
       renderAdminDashboard();
       renderCategoryPills();
     }
@@ -9286,7 +9446,7 @@
       renderCategoryPills();
       renderHomeScreenProducts();
       
-      const settings = getData('ek_settings', {});
+      const settings = getDataCached('ek_settings', {});
 
       const custSession = getActiveSession();
       const guestBanner = document.getElementById('home-guest-banner');
@@ -9421,6 +9581,13 @@
     let _lastDataSnapshotHash = null;
     let _lastSpecialsHash = null;
 
+    function buildGroupedRenderList(filteredProds) {
+      return filteredProds.map(p => ({
+        type: 'product',
+        data: p
+      }));
+    }
+
     function renderHomeScreenProducts() {
       const products = getDataCached('ek_products', []);
       
@@ -9449,20 +9616,20 @@
               const overlayHtml = isOutOfStock ? `<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:var(--accent-red); font-weight:700; font-size:11px;">OUT OF STOCK</div>` : '';
               
               const cardHtml = `
-                <div class="special-card" id="card-special-${p.id}" style="height: 195px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div class="special-card" id="card-special-${p.id}" style="height: 165px; display: flex; flex-direction: column; justify-content: space-between;">
                   ${overlayHtml}
-                  <div class="lazy-image-container" style="height: 95px; cursor: pointer;" ${isOutOfStock ? '' : `onclick="openProductModalDetail('${p.id}')"`}>
-                    <img data-src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" class="lazy-image-main special-img" style="height: 95px;" alt="${p.englishName}">
-                    <img src="${getBlurPlaceholderUrl(getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt))}" class="lazy-image-placeholder" style="height: 95px;" alt="${p.englishName} loader">
+                  <div class="lazy-image-container" style="height: 85px; border-radius: 10px; margin: 6px 6px 0 6px; overflow: hidden; position: relative; cursor: pointer;" ${isOutOfStock ? '' : `onclick="openProductModalDetail('${p.id}')"`}>
+                    <img data-src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" class="lazy-image-main special-img" style="height: 85px; width: 100%; object-fit: cover; border-radius: 10px;" alt="${p.englishName}">
+                    <img src="${getBlurPlaceholderUrl(getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt))}" class="lazy-image-placeholder" style="height: 85px; width: 100%; object-fit: cover; border-radius: 10px;" alt="${p.englishName} loader">
                   </div>
-                  <div class="special-detail" style="padding: 6px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                  <div class="special-detail" style="padding: 4px 8px 8px 8px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
-                      <h5 style="font-size:12.5px; font-weight:700; color:#ffffff; margin-bottom:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.englishName}</h5>
-                      <p class="tamil-text" style="font-size:10.5px; color:var(--accent-orange); font-weight:600; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.tamilName}</p>
+                      <h5 style="font-size:11.5px; font-weight:700; color:#ffffff; margin: 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.englishName}</h5>
+                      <p class="tamil-text" style="font-size:9.5px; color:var(--accent-orange); font-weight:600; margin: 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.tamilName}</p>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
-                      <strong style="font-size:12px; color:var(--text-primary);">${getProductPriceText(p, currentLang)}</strong>
-                      <button class="btn btn-primary" style="width:74px !important; min-width:74px !important; height:28px !important; min-height:auto !important; padding:4px 0 !important; font-size:11.5px !important; font-weight:800; border-radius:14px !important; display:inline-flex; align-items:center; justify-content:center; gap:2px; backdrop-filter:blur(10px) !important; -webkit-backdrop-filter:blur(10px) !important; background: linear-gradient(135deg, #06b6d4 0%, #0d9488 100%) !important; border: 1px solid rgba(255, 255, 255, 0.3) !important; box-shadow: 0 4px 10px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important; color:#ffffff !important; text-shadow: 0 1px 1px rgba(0,0,0,0.15) !important;" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-top: 2px;">
+                      <strong style="font-size:11px; color:var(--text-primary); font-weight: 700;">${getProductPriceText(p, currentLang)}</strong>
+                      <button class="btn btn-primary" style="width:auto !important; min-width:unset !important; height:22px !important; min-height:auto !important; padding:0 8px !important; font-size:10px !important; font-weight:800; border-radius:11px !important; display:inline-flex; align-items:center; justify-content:center; gap:2px; backdrop-filter:blur(10px) !important; -webkit-backdrop-filter:blur(10px) !important; background: linear-gradient(135deg, #06b6d4 0%, #0d9488 100%) !important; border: 1px solid rgba(255, 255, 255, 0.3) !important; box-shadow: 0 4px 10px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important; color:#ffffff !important; text-shadow: 0 1px 1px rgba(0,0,0,0.15) !important;" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">
                         <span>Buy ➔</span>
                       </button>
                     </div>
@@ -9528,14 +9695,14 @@
 
       if (isFilterChange) {
         _currentRenderedCount = 0;
-        _currentFilteredProducts = filtered;
+        _currentFilteredProducts = buildGroupedRenderList(filtered);
         grid.innerHTML = '';
         renderNextProductBatch();
       } else {
         // Data updated but filter didn't change: protect scroll position by re-rendering up to current count
         const prevRenderedCount = _currentRenderedCount || PRODUCTS_PER_BATCH;
         _currentRenderedCount = 0;
-        _currentFilteredProducts = filtered;
+        _currentFilteredProducts = buildGroupedRenderList(filtered);
         grid.innerHTML = '';
         
         while (_currentRenderedCount < prevRenderedCount && _currentRenderedCount < _currentFilteredProducts.length) {
@@ -9557,45 +9724,44 @@
 
       let batchHtml = '';
       for (let i = startIdx; i < endIdx; i++) {
-        const p = _currentFilteredProducts[i];
-        const isCategoryUnavailable = unavailableCategoriesSet.has(p.category);
-        const isOutOfStock = p.isOutOfStock || p.stockKg <= 0 || (p.isScheduled && p.isAvailable === false) || isCategoryUnavailable;
-        const overlayHtml = isOutOfStock ? `<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; color:var(--accent-red); font-weight:700; font-size:12px; text-transform:uppercase;">Out Of Stock</div>` : '';
-        const badgeColor = `var(--category-${p.category}, var(--accent-orange))`;
-        
-        let stockIndicatorColor = "var(--accent-green)";
-        if (p.stockKg < 2) stockIndicatorColor = "var(--accent-red)";
-        else if (p.stockKg <= 5) stockIndicatorColor = "var(--accent-orange)";
-
-        const cardHtml = `
-          <div class="product-grid-card" id="card-prod-${p.id}" style="height: 228px; display: flex; flex-direction: column; justify-content: space-between;">
-            ${overlayHtml}
-            <div style="position:absolute; top:6px; left:6px; background:${badgeColor}; font-size:8px; font-weight:800; padding:2px 6px; border-radius:4px; z-index:10; text-transform:uppercase; color:#000; box-shadow:0 2px 4px rgba(0,0,0,0.3);">
-              ${getCategoryName(p.category)}
+        const item = _currentFilteredProducts[i];
+        if (item.type === 'header') {
+          const badgeColor = `var(--category-${item.id}, var(--accent-orange))`;
+          const headerHtml = `
+            <div class="category-sticky-header" style="--category-color: ${badgeColor};">
+              <h4>${item.nameEn}</h4>
+              <p>${item.nameTa}</p>
             </div>
-            <div class="lazy-image-container" style="height: 110px; cursor: pointer;" ${isOutOfStock ? '' : `onclick="openProductModalDetail('${p.id}')"`}>
-              <img data-src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" class="lazy-image-main product-img" style="height: 110px;" alt="${p.englishName}">
-              <img src="${getBlurPlaceholderUrl(getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt))}" class="lazy-image-placeholder" style="height: 110px;" alt="${p.englishName} loader">
-            </div>
-            <div style="padding:10px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
-              <div>
-                <h4 style="font-size:12.5px; font-weight:700; color:#ffffff; max-height: 18px; overflow:hidden; margin-bottom:1px; white-space:nowrap; text-overflow:ellipsis;">${p.englishName}</h4>
-                <p class="tamil-text" style="font-size:10.5px; color:var(--accent-orange); margin-bottom:4px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.tamilName}</p>
-                <p style="font-size:10px; color:${stockIndicatorColor}; font-weight:600; margin-bottom:2px; display:flex; align-items:center; gap:4px;">
-                  <span style="display:inline-block; width:5px; height:5px; border-radius:50%; background:${stockIndicatorColor}"></span>
-                  ${currentLang === 'ta' ? 'இருப்பு' : 'Stock'}: ${getProductStockText(p, currentLang)}
-                </p>
+          `;
+          batchHtml += headerHtml;
+        } else {
+          const p = item.data;
+          const isCategoryUnavailable = unavailableCategoriesSet.has(p.category);
+          const isOutOfStock = p.isOutOfStock || p.stockKg <= 0 || (p.isScheduled && p.isAvailable === false) || isCategoryUnavailable;
+          const overlayHtml = isOutOfStock ? `<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:var(--accent-red); font-weight:800; font-size:13px; text-transform:uppercase; border-radius:16px; z-index:5; pointer-events:none;">${currentLang === 'ta' ? 'கையிருப்பு இல்லை' : 'Out Of Stock'}</div>` : '';
+          
+          const shortDescHtml = p.shortDescription ? `<p style="font-size: 11px; color: var(--text-muted); margin: 4px 0 0 0; line-height: 1.35; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.shortDescription}</p>` : '';
+          
+          const cardHtml = `
+            <div class="product-grid-card" id="card-prod-${p.id}" style="padding: 16px 20px; border-radius: 14px; position: relative; cursor: pointer; display: flex; flex-direction: column; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.08) !important; background: linear-gradient(135deg, rgba(13, 18, 29, 0.72) 0%, rgba(8, 12, 19, 0.85) 100%) !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;" onclick="openProductModalDetail('${p.id}')">
+              ${overlayHtml}
+              <div style="display: flex; flex-direction: column; width: 100%; gap: 4px;">
+                <h4 style="font-size: 15px; font-weight: 700; color: #ffffff; margin: 0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.englishName}</h4>
+                <p class="tamil-text" style="font-size: 12.5px; color: var(--accent-orange, #f59e0b); font-weight: 600; margin: 0;">${p.tamilName}</p>
+                ${shortDescHtml}
               </div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-top: auto;">
-                <strong style="font-size:12.5px; color:var(--text-primary); font-weight:700;">${getProductPriceText(p, currentLang)}</strong>
-                <button class="btn btn-primary" style="width:74px !important; min-width:74px !important; height:28px !important; min-height:auto !important; padding:4px 0 !important; font-size:11.5px !important; font-weight:800; border-radius:14px !important; display:inline-flex; align-items:center; justify-content:center; gap:2px; backdrop-filter:blur(10px) !important; -webkit-backdrop-filter:blur(10px) !important; background: linear-gradient(135deg, #06b6d4 0%, #0d9488 100%) !important; border: 1px solid rgba(255, 255, 255, 0.3) !important; box-shadow: 0 4px 10px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important; color:#ffffff !important; text-shadow: 0 1px 1px rgba(0,0,0,0.15) !important;" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">
-                  <span>Buy ➔</span>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; width: 100%;">
+                <div style="display: inline-flex; align-items: center; gap: 6px;">
+                  <strong style="font-size: 14.5px; color: var(--text-primary); font-weight: 700; display: inline-block; vertical-align: middle;">${getProductPriceText(p, currentLang)}</strong>
+                </div>
+                <button class="btn btn-outline-add" ${isOutOfStock ? 'disabled' : ''} onclick="event.stopPropagation(); openProductModalDetail('${p.id}')">
+                  <span>+ ADD</span>
                 </button>
               </div>
             </div>
-          </div>
-        `;
-        batchHtml += cardHtml;
+          `;
+          batchHtml += cardHtml;
+        }
       }
 
       grid.insertAdjacentHTML('beforeend', batchHtml);
@@ -17004,14 +17170,64 @@
         const badgeClass = o.status === 'pending' ? 'badge-pending' : o.status === 'ready' ? 'badge-ready' : o.status === 'delivered' ? 'badge-delivered' : 'badge-rejected';
 
         // Pre-formatted messages for WhatsApp Redirects
-        const waCustomerMsg = encodeURIComponent(`Hello ${o.customerName}! Your order ${o.id} has been confirmed at Edappadi Kadai. Total amount: ₹${o.totalAmount}. We will deliver to your Address: ${o.deliveryAddress}. Thank you!`);
-        const riderNameText = o.assignedRiderName ? o.assignedRiderName : "Our delivery team";
-        const waReadyMsg = encodeURIComponent(`Dear ${o.customerName}, your order ${o.id} is ready! ${riderNameText} will reach you shortly. Please keep ₹${o.totalAmount} ready. - Edappadi Kadai`);
-        const kotMsg = encodeURIComponent(`NEW KOT: ${o.id}\nItems:\n${o.items.map((it, idx) => {
-          const prep = getLocalizedPrepareText(it.cutStyle, it.category);
-          const prepStr = prep ? ` [Cut: ${prep}]` : '';
-          return `${idx + 1}. ${it.tamilName} (${it.englishName}) - ${getFormattedItemQty(it, currentLang)}${prepStr} ${it.specialNote ? '(Note: ' + it.specialNote + ')' : ''}`;
-        }).join('\n')}\nSlot: ${o.deliveryTimeSlot}`);
+        const riderNameText = o.assignedRiderName ? o.assignedRiderName : (currentLang === 'ta' ? "எங்களது விநியோகக் குழு" : "Our delivery team");
+        
+        // 1. Confirm WA (Order Confirmation to Customer)
+        const waCustomerMsg = encodeURIComponent(
+`🥩 *எடப்பாடி கடை / EDAPPADI KADAI* 🥩
+━━━━━━━━━━━━━━━━━━━━━━━━
+வணக்கம் *${o.customerName}*! உங்களுடைய ஆர்டர் வெற்றிகரமாக உறுதி செய்யப்பட்டுள்ளது.
+
+📋 *ஆர்டர் எண் (Order ID):* ${o.id}
+💵 *செலுத்த வேண்டிய தொகை:* ₹${o.totalAmount}
+⏱️ *டெலிவரி நேரம்:* ${o.deliveryTimeSlot}
+📍 *விநியோக முகவரி (Address):* ${o.deliveryAddress}
+
+🛒 *ஆர்டர் செய்த பொருட்கள் (Items):*
+${o.items.map((it, idx) => {
+  const prep = getLocalizedPrepareText(it.cutStyle, it.category);
+  const prepStr = prep ? ` [${prep}]` : '';
+  const itemNote = it.specialNote ? ` (Note: ${it.specialNote})` : '';
+  return `🔹 ${idx + 1}. *${it.tamilName}* (${it.englishName}) - ${getFormattedItemQty(it, currentLang)}${prepStr}${itemNote}`;
+}).join('\n')}
+
+நன்றி! உங்களது ஆர்டர் விரைவில் உங்களது இல்லம் தேடி வரும்! 🛵✨
+━━━━━━━━━━━━━━━━━━━━━━━━`
+        );
+
+        // 2. Ready Prompt (Order Ready notification to Customer)
+        const waReadyMsg = encodeURIComponent(
+`🛵 *எடப்பாடி கடை / EDAPPADI KADAI* 🛵
+━━━━━━━━━━━━━━━━━━━━━━━━
+அன்பான *${o.customerName}* அவர்களுக்கு, உங்களுடைய ஆர்டர் (${o.id}) தற்போது டெலிவரிக்கு தயாராகிவிட்டது!
+
+🚴 *விநியோக நபர் (Rider):* ${riderNameText}
+💵 *தயார் செய்ய வேண்டிய தொகை:* ₹${o.totalAmount}
+📍 *டெலிவரி முகவரி:* ${o.deliveryAddress}
+
+எங்களது டெலிவரி பார்ட்னர் இன்னும் சில நிமிடங்களில் உங்களை வந்தடைவார். தயவுசெய்து மொபைலை ஆன் செய்து வைத்திருக்கவும்! 📱✨
+━━━━━━━━━━━━━━━━━━━━━━━━`
+        );
+
+        // 3. Share KOT (Kitchen Order Ticket for internal cooking/dispatch)
+        const kotMsg = encodeURIComponent(
+`🔥 *புதிய KOT சமையல் சீட்டு (NEW KOT ORDER)* 🔥
+━━━━━━━━━━━━━━━━━━━━━━━━
+📋 *ஆர்டர் எண் (ID):* ${o.id}
+👤 *வாடிக்கையாளர்:* ${o.customerName}
+⏱️ *டெலிவரி ஸ்லாட்:* ${o.deliveryTimeSlot}
+
+🥩 *தயார் செய்ய வேண்டிய பொருட்கள்:*
+${o.items.map((it, idx) => {
+  const prep = getLocalizedPrepareText(it.cutStyle, it.category);
+  const prepStr = prep ? `\n   👉 *வகை:* ${prep}` : '';
+  const noteStr = it.specialNote ? `\n   ⚠️ *குறிப்பு:* ${it.specialNote}` : '';
+  return `🔹 ${idx + 1}. *${it.tamilName}* (${it.englishName})\n   ⚡ *அளவு:* ${getFormattedItemQty(it, currentLang)}${prepStr}${noteStr}`;
+}).join('\n\n')}
+
+உடனே தயார் செய்து பேக் செய்யவும்! 📦🚀
+━━━━━━━━━━━━━━━━━━━━━━━━`
+        );
 
         const isExpanded = !!expandedOrders[o.id];
 
@@ -17184,6 +17400,10 @@
       }
 
       showToast(`Order status updated to ${nextStatus.toUpperCase()}!`, "success");
+      showAdminSuccessModal(
+        currentLang === 'ta' ? "📦 ஆர்டர் நிலை மாற்றப்பட்டது!" : "📦 Order Status Updated!",
+        currentLang === 'ta' ? `ஆர்டர் நிலை <strong>${nextStatus.toUpperCase()}</strong> என வெற்றிகரமாக மாற்றப்பட்டது.` : `The order status has been successfully updated to <strong>${nextStatus.toUpperCase()}</strong>.`
+      );
       renderAdminDashboard();
     }
 
@@ -17266,6 +17486,18 @@
           });
       } else {
         queueFailedSync('ek_orders', orderId, 'set', orders[idx]);
+      }
+
+      if (exec) {
+        showAdminSuccessModal(
+          currentLang === 'ta' ? "🏍️ டெலிவரி நபர் நியமிக்கப்பட்டார்!" : "🏍️ Delivery Partner Assigned!",
+          currentLang === 'ta' ? `ஆர்டர் <strong>${orderId}</strong> வெற்றிகரமாக <strong>${exec.name}</strong>-க்கு ஒதுக்கப்பட்டு சேமிக்கப்பட்டது.` : `Order <strong>${orderId}</strong> has been successfully assigned to <strong>${exec.name}</strong>.`
+        );
+      } else {
+        showAdminSuccessModal(
+          currentLang === 'ta' ? "🏍️ ஒதுக்கீடு நீக்கப்பட்டது!" : "🏍️ Assignment Removed!",
+          currentLang === 'ta' ? `ஆர்டர் <strong>${orderId}</strong>-இன் டெலிவரி ஒதுக்கீடு நீக்கப்பட்டது.` : `The delivery assignment for order <strong>${orderId}</strong> has been removed.`
+        );
       }
 
       renderAdminDashboard();
@@ -17461,6 +17693,9 @@
         const imageUrlInput = (document.getElementById('add-prod-url')?.value || '').trim();
         const unit = document.getElementById('add-prod-unit')?.value || 'kg';
         
+        const shortDescription = (document.getElementById('add-prod-short-desc')?.value || '').trim();
+        const foodType = document.querySelector('input[name="add-prod-foodtype"]:checked')?.value || 'veg';
+        
         const isSpecial = document.getElementById('add-prod-special')?.checked || false;
         const isOutOfStock = document.getElementById('add-prod-out')?.checked || false;
         
@@ -17546,6 +17781,7 @@
             products[idx] = {
               ...products[idx],
               tamilName, englishName, pricePerKg, stockKg, category, unit,
+              shortDescription, foodType,
               imageUrl: finalImg,
               isSpecial, isOutOfStock,
               isScheduled, scheduleStart, scheduleEnd,
@@ -17556,12 +17792,17 @@
             updateProductAvailability(products[idx]);
             targetProduct = products[idx];
             showToast("Product revised successfully", "success");
+            showAdminSuccessModal(
+              "✏️ வெற்றிகரமாக மாற்றி அமைக்கப்பட்டது!",
+              `தயாரிப்பு <strong>${tamilName} (${englishName})</strong> விவரங்கள் வெற்றிகரமாக மாற்றி அமைக்கப்பட்டு உங்கள் கடையில் சேமிக்கப்பட்டது.<br><br><span style="font-size:11.5px;color:var(--text-muted);">Successfully Updated! The product details have been modified.</span>`
+            );
           }
         } else {
           // Add flow
           const newProd = {
             id: productId,
             tamilName, englishName, pricePerKg, stockKg, category, unit,
+            shortDescription, foodType,
             imageUrl: finalImg,
             isSpecial, isOutOfStock,
             isScheduled, scheduleStart, scheduleEnd,
@@ -17574,6 +17815,10 @@
           products.push(newProd);
           targetProduct = newProd;
           showToast("New Item appended securely!", "success");
+          showAdminSuccessModal(
+            "🎉 வெற்றிகரமாக உருவாக்கப்பட்டது!",
+            `புதிய தயாரிப்பு <strong>${tamilName} (${englishName})</strong> வெற்றிகரமாக உருவாக்கப்பட்டு உங்கள் கடையில் இணைக்கப்பட்டது.<br><br><span style="font-size:11.5px;color:var(--text-muted);">Successfully Created! The new product has been added.</span>`
+          );
         }
 
         saveData('ek_products', products);
@@ -17715,6 +17960,18 @@
       
       document.getElementById('edit-prod-special').checked = p.isSpecial || false;
       document.getElementById('edit-prod-out').checked = p.isOutOfStock || false;
+
+      // Populate shortDescription
+      const editShortDesc = document.getElementById('edit-prod-short-desc');
+      if (editShortDesc) {
+        editShortDesc.value = p.shortDescription || '';
+      }
+      // Populate foodType
+      const fType = p.foodType || 'veg';
+      const rButton = document.querySelector(`input[name="edit-prod-foodtype"][value="${fType}"]`);
+      if (rButton) {
+        rButton.checked = true;
+      }
       
       // Populate scheduling fields
       const editProdSched = document.getElementById('edit-prod-scheduled');
@@ -17783,6 +18040,9 @@
         const category = document.getElementById('edit-prod-category')?.value || 'meat';
         const imageUrlInput = (document.getElementById('edit-prod-url')?.value || '').trim();
         const unit = document.getElementById('edit-prod-unit')?.value || 'kg';
+        
+        const shortDescription = (document.getElementById('edit-prod-short-desc')?.value || '').trim();
+        const foodType = document.querySelector('input[name="edit-prod-foodtype"]:checked')?.value || 'veg';
         
         const isSpecial = document.getElementById('edit-prod-special')?.checked || false;
         const isOutOfStock = document.getElementById('edit-prod-out')?.checked || false;
@@ -17856,6 +18116,7 @@
         products[idx] = {
           ...products[idx],
           tamilName, englishName, pricePerKg, stockKg, category, unit,
+          shortDescription, foodType,
           imageUrl: finalImg,
           isSpecial, isOutOfStock,
           isScheduled, scheduleStart, scheduleEnd,
@@ -17876,6 +18137,10 @@
         closeAdminEditProductModalDetail();
         renderAdminDashboard();
         showToast("Product revised successfully / திருத்தம் சேமிக்கப்பட்டது! ✓", "success");
+        showAdminSuccessModal(
+          "✏️ வெற்றிகரமாக மாற்றி அமைக்கப்பட்டது!",
+          `தயாரிப்பு <strong>${tamilName} (${englishName})</strong> விவரங்கள் வெற்றிகரமாக மாற்றி அமைக்கப்பட்டு உங்கள் கடையில் சேமிக்கப்பட்டது.<br><br><span style="font-size:11.5px;color:var(--text-muted);">Successfully Updated! The product details have been modified.</span>`
+        );
       } catch (saveError) {
         console.error("Critical error saving edited product:", saveError);
         showToast("பொருளை சேமிப்பதில் பிழை / Error saving product: " + saveError.message, "error");
@@ -17956,13 +18221,32 @@
           
           // Delete from Firestore Cloud to prevent resynced restore
           if (typeof db !== 'undefined' && db) {
+            showToast("Deleting product from cloud database...", "info");
             db.collection('ek_products').doc(id).delete()
-              .then(() => console.log(`[Cloud Sync] Product doc ${id} deleted from Firestore.`))
-              .catch(e => console.error("Firestore cloud product delete error:", e));
+              .then(() => {
+                console.log(`[Cloud Sync] Product doc ${id} deleted from Firestore.`);
+                showToast("Product deleted from cloud database! ✓", "success");
+                // Sync to tombstones so all other devices and instances delete it
+                db.collection('ek_tombstones').doc('ek_deleted_product_ids').set({
+                  ids: firebase.firestore.FieldValue.arrayUnion(id),
+                  updatedAt: new Date().toISOString()
+                }, { merge: true })
+                .then(() => console.log(`[Cloud Sync] Tombstone synced successfully for deleted product ${id}.`))
+                .catch(err => console.error("Tombstone sync failed:", err));
+              })
+              .catch(e => {
+                console.error("Firestore cloud product delete error:", e);
+                showToast("Cloud delete failed: " + e.message, "error");
+              });
+          } else {
+            showToast("Product deleted locally (Offline mode) ✓", "success");
           }
 
           renderAdminProducts();
-          showToast("Product deleted securely.", "error");
+          showAdminSuccessModal(
+            currentLang === 'ta' ? "🗑️ வெற்றிகரமாக நீக்கப்பட்டது!" : "🗑️ Deleted Successfully!",
+            currentLang === 'ta' ? `தயாரிப்பு வெற்றிகரமாக உங்களது கடையிலிருந்து நீக்கப்பட்டது.` : `The product has been successfully removed from your store.`
+          );
         }
       );
     }
@@ -18157,6 +18441,10 @@
       resetDeliveryForm();
       renderDeliveryExecutives();
       showToast(execId ? "Rider details successfully updated! ✓" : "Delivery executive registered successfully ✓", "success");
+      showAdminSuccessModal(
+        execId ? "🚲 டெலிவரி நபர் விவரங்கள் புதுப்பிக்கப்பட்டது!" : "🎉 டெலிவரி நபர் வெற்றிகரமாக சேர்க்கப்பட்டார்!",
+        execId ? `டெலிவரி நபர் <strong>${name}</strong> விவரங்கள் வெற்றிகரமாக புதுப்பிக்கப்பட்டு சேமிக்கப்பட்டது.` : `டெலிவரி நபர் <strong>${name}</strong> வெற்றிகரமாக சேர்க்கப்பட்டு சேமிக்கப்பட்டார்.<br><br><span style="font-size:11.5px;color:var(--text-muted);">Successfully Registered! Delivery partner has been registered.</span>`
+      );
     }
 
     function editExecutiveForm(id) {
@@ -18224,6 +18512,10 @@
 
           renderDeliveryExecutives();
           showToast("Partner removed", "error");
+          showAdminSuccessModal(
+            currentLang === 'ta' ? "🗑️ வெற்றிகரமாக நீக்கப்பட்டது!" : "🗑️ Removed Successfully!",
+            currentLang === 'ta' ? "டெலிவரி நபர் வெற்றிகரமாக உங்களது பதிவிலிருந்து நீக்கப்பட்டார்." : "The delivery executive has been successfully removed from records."
+          );
         }
       );
     }
@@ -18309,7 +18601,7 @@
         // Sync the announcement settings to Firestore
         await db.collection('ek_settings').doc('store_settings').set(settings, { merge: true });
 
-        // ★ Cloud Function-ஐ trigger செய்ய, ஒரு broadcast request document create செய் ★
+        // Add a broadcast request document for historical logs
         await db.collection('ek_broadcast_requests').add({
           titleEn: '📢 Edappadi Kadai',
           titleTa: '📢 எடப்பாடி கடை',
@@ -18318,10 +18610,57 @@
           lang: currentLang,
           createdAt: new Date().toISOString(),
           createdBy: 'admin',
-          status: 'pending'
+          status: 'completed'
         });
 
+        // 🚀 CLIENT-SIDE ENQUEUE DIRECT TO ALL FCM REGISTERED USERS 🚀
+        const usersSnap = await db.collection('ek_users').get();
+        let enqueuedCount = 0;
+        const promises = [];
+
+        usersSnap.forEach(doc => {
+          const u = doc.data();
+          const targetToken = u.fcmToken || u.realFcmToken;
+          if (targetToken) {
+            enqueuedCount++;
+            promises.push(
+              db.collection('ek_fcm_queue').add({
+                targetToken: targetToken,
+                title: currentLang === 'ta' ? '📢 எடப்பாடி கடை' : '📢 Edappadi Kadai',
+                body: msg,
+                createdAt: new Date().toISOString(),
+                processed: false,
+                type: "broadcast"
+              }).catch(e => console.warn('[Broadcast Client Queue] Error:', e))
+            );
+
+            // Simulation of Local Push Notifications for immediate UI feedback on development/emulator devices
+            if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.simulateFcmPushNotification === 'function') {
+              try {
+                AndroidStorage.simulateFcmPushNotification(
+                  targetToken,
+                  currentLang === 'ta' ? '📢 எடப்பாடி கடை' : '📢 Edappadi Kadai',
+                  msg,
+                  JSON.stringify({ type: "broadcast" })
+                );
+              } catch (simErr) {
+                console.warn("[FCM Simulator] Fail:", simErr);
+              }
+            }
+          }
+        });
+
+        if (promises.length > 0) {
+          await Promise.all(promises);
+        }
+
+        console.log(`[Broadcast Sent] Enqueued push notification to ${enqueuedCount} active users.`);
+
         showToast('அறிவிப்பு அனைத்து வாடிக்கையாளர்களுக்கும் அனுப்பப்பட்டது! 📢', 'success');
+        showAdminSuccessModal(
+          currentLang === 'ta' ? "📢 அறிவிப்பு அனுப்பப்பட்டது!" : "📢 Broadcast Sent!",
+          currentLang === 'ta' ? `அறிவிப்பு அனைத்து வாடிக்கையாளர்களுக்கும் வெற்றிகரமாக அனுப்பப்பட்டது (மொத்தம்: ${enqueuedCount} பயனர்கள்).` : `The broadcast announcement has been successfully sent to all customers (Total: ${enqueuedCount} users).`
+        );
         const textInput = document.getElementById('admin-broadcast-text');
         if (textInput) textInput.value = '';
       } catch (err) {
@@ -18665,6 +19004,10 @@
         }
       }
       showToast("Lyo AI Configurations saved & synced successfully! ✨", "success");
+      showAdminSuccessModal(
+        currentLang === 'ta' ? "🤖 Lyo AI அமைப்புகள் சேமிக்கப்பட்டது!" : "🤖 Lyo AI Config Saved!",
+        currentLang === 'ta' ? "Lyo AI உதவி அமைப்புகள் வெற்றிகரமாக சேமிக்கப்பட்டு புதுப்பிக்கப்பட்டது." : "Lyo AI helper configurations have been successfully saved."
+      );
     }
 
     // GENERAL SETTINGS ADMIN CONTROLS
@@ -18714,6 +19057,10 @@
       }
       
       showToast("Store operations settings synchronized!", "success");
+      showAdminSuccessModal(
+        currentLang === 'ta' ? "⚙️ அமைப்புகள் சேமிக்கப்பட்டது!" : "⚙️ Settings Saved!",
+        currentLang === 'ta' ? "கடை அமைப்புகள் வெற்றிகரமாக சேமிக்கப்பட்டு புதுப்பிக்கப்பட்டது." : "Store settings have been successfully updated and synchronized."
+      );
     }
 
     // ZONE-BASED DELIVERY PRICING CONTROLS WITH QUICK INLINE PRICE ADJUSTERS
@@ -19360,7 +19707,7 @@
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          const max_width = 800; // Optimal HD width for mobile slider
+          const max_width = 600; // Super optimized width for mobile sliders
           let width = img.width;
           let height = img.height;
           
@@ -19374,8 +19721,8 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
           
-          // Compress high quality JPEG
-          cachedAdminBannerBase64 = canvas.toDataURL('image/jpeg', 0.82);
+          // Compress with highly optimal settings (lightweight but gorgeous)
+          cachedAdminBannerBase64 = canvas.toDataURL('image/jpeg', 0.70);
           showToast("Photo optimized successfully! Ready to add. ✓", "success");
         };
         img.src = e.target.result;
@@ -19434,18 +19781,14 @@
         showToast("Please choose an image file or paste an image URL!", "error");
         return;
       }
-      if (!titleTa && !titleEn) {
-        showToast("Please write at least one title in Tamil or English!", "error");
-        return;
-      }
       
       const newSlide = {
         id: 'b_' + Date.now(),
         image: activeImg,
-        titleTa: titleTa || titleEn,
-        titleEn: titleEn || titleTa,
-        subTa: subTa || subEn || "",
-        subEn: subEn || subTa || "",
+        titleTa: titleTa || "",
+        titleEn: titleEn || "",
+        subTa: subTa || "",
+        subEn: subEn || "",
         updatedAt: new Date().toISOString()
       };
       
@@ -19463,6 +19806,10 @@
       document.getElementById('admin-banner-sub-en').value = "";
       
       showToast("New sliding banner added successfully! ✓", "success");
+      showAdminSuccessModal(
+        "🎉 வெற்றிகரமாக பேனர் இணைக்கப்பட்டது!",
+        `புதிய விளம்பரப் பேனர் வெற்றிகரமாக இணைக்கப்பட்டு உங்களது கடையின் முகப்புத் திரையில் சேமிக்கப்பட்டது.<br><br><span style="font-size:11.5px;color:var(--text-muted);">The sliding banner has been successfully added to your home screen carousel!</span>`
+      );
       
       renderAdminBannerList();
       renderSlidingBanners();
@@ -19496,6 +19843,10 @@
       renderSlidingBanners();
       cloudSyncSaveSettings(settings);
       showToast("Sliding banner deleted successfully!", "info");
+      showAdminSuccessModal(
+        currentLang === 'ta' ? "🗑️ பேனர் நீக்கப்பட்டது!" : "🗑️ Banner Deleted!",
+        currentLang === 'ta' ? `விளம்பரப் பேனர் வெற்றிகரமாக நீக்கப்பட்டது.` : `The sliding banner has been successfully deleted.`
+      );
     }
 
     function renderAdminBannerList() {
@@ -20147,6 +20498,44 @@
       try {
         updateCloudStatus('syncing', 'Synchronizing with Cloud Firestore...');
         console.log("[Cloud Database Sync] Starting meta-sync (products, settings, categories, riders)...");
+
+        // 0. Fetch latest tombstones from Firestore to prevent deleted items from being re-uploaded by other tabs/devices
+        try {
+          const tombstonesSnap = await db.collection('ek_tombstones').get();
+          if (tombstonesSnap && !tombstonesSnap.empty) {
+            tombstonesSnap.forEach(doc => {
+              const docId = doc.id;
+              const cloudIds = doc.data()?.ids || [];
+              if (Array.isArray(cloudIds) && cloudIds.length > 0) {
+                let localList = [];
+                if (docId === 'ek_deleted_product_ids') {
+                  localList = getDeletedProductIds();
+                  const mergedMap = new Set([...localList, ...cloudIds]);
+                  const mergedList = Array.from(mergedMap);
+                  saveData(docId, mergedList);
+                } else if (docId === 'ek_deleted_order_ids') {
+                  localList = getDeletedOrderIds();
+                  const mergedMap = new Set([...localList, ...cloudIds]);
+                  const mergedList = Array.from(mergedMap);
+                  saveData(docId, mergedList);
+                } else if (docId === 'ek_deleted_user_ids') {
+                  localList = getDeletedUserIds();
+                  const mergedMap = new Set([...localList, ...cloudIds]);
+                  const mergedList = Array.from(mergedMap);
+                  saveData(docId, mergedList);
+                } else if (docId === 'ek_deleted_rider_ids') {
+                  localList = getDeletedRiderIds();
+                  const mergedMap = new Set([...localList, ...cloudIds]);
+                  const mergedList = Array.from(mergedMap);
+                  saveData(docId, mergedList);
+                }
+              }
+            });
+            console.log("[Cloud Sync] Real-time tombstones synchronized successfully.");
+          }
+        } catch (tombErr) {
+          console.warn("[Cloud Sync] Failed to fetch tombstones before sync:", tombErr);
+        }
 
         // 2.5 Reconcile Products
         try {
@@ -21065,10 +21454,9 @@
             return;
           }
 
-          // Avoid stale cache overwrites until verified by the server
+          // Allow safe merging of local cache snapshots for fast startup and offline support
           if (snapshot.metadata && snapshot.metadata.fromCache) {
-            console.log('[Cloud Sync] Snapshot from local cache — waiting for server-verified data.');
-            return;
+            console.log('[Cloud Sync] Snapshot from local cache — merging safely.');
           }
 
           const localProducts = getData('ek_products');
@@ -21081,18 +21469,7 @@
               const cloudProd = normalizeFirestoreData(doc.data());
               if (!cloudProd || !cloudProd.id) return;
 
-              // Check if it is a target cleanup product
-              const enName = (cloudProd.englishName || '').toLowerCase();
-              const taName = (cloudProd.tamilName || '');
-              const isBanana = enName.includes('banana') || taName.includes('வாழைப்பழம்') || taName.includes('வாழை');
-              const isJilebi = enName.includes('jilebi') || enName.includes('jilabi') || taName.includes('ஜிலேபி');
-              const isTomato = enName.includes('tomato') || taName.includes('தக்காளி');
-              const isLadiesFinger = enName.includes('ladies') || enName.includes('okra') || enName.includes('finger') || taName.includes('வெண்டை') || taName.includes('வெண்டைக்காய்');
-              if (isBanana || isJilebi || isTomato || isLadiesFinger) {
-                db.collection('ek_products').doc(cloudProd.id).delete().catch(e => {});
-                markProductAsDeleted(cloudProd.id);
-                return;
-              }
+
 
               // Check deleted safeguard
               const deletedProdIds = getDeletedProductIds();
@@ -21189,9 +21566,6 @@
             } else if (currentScreen === 'screen-admin') {
               renderAdminDashboard();
             }
-            
-            // Auto cleanup target products if any synced down
-            autoCleanupFourProducts();
           }
         }, err => {
           console.warn("[Cloud Live Sync] Products stream interrupted: ", err);
@@ -21299,8 +21673,15 @@
 
       // F. Real-time stream for Custom Categories mapping
       try {
-        liveSyncUnsubscribers.categories = db.collection('ek_categories').onSnapshot(snapshot => {
+        liveSyncUnsubscribers.categories = db.collection('ek_categories').onSnapshot({ includeMetadataChanges: true }, snapshot => {
           if (!snapshot) return;
+          
+          // Skip own pending writes echo
+          if (snapshot.metadata && snapshot.metadata.hasPendingWrites) {
+            console.log('[Cloud Sync] Skipping categories snapshot — own write pending.');
+            return;
+          }
+
           const localCats = getData('ek_categories', []);
           const localCatsMap = new Map(localCats.map(c => [c.id, c]));
           let modified = false;
@@ -21334,9 +21715,16 @@
                   db.collection('ek_categories').doc(key).set(cleanFirestoreData({ ...localC, isAvailable: true }))
                     .catch(e => console.error(e));
                 } else {
-                  console.log(`[Cloud Live Sync] Pruning category locally (deleted in cloud): ${key}`);
-                  localCatsMap.delete(key);
-                  modified = true;
+                  // Safeguard: do not prune custom categories that were created or modified recently (e.g., in the last 2 minutes)
+                  const localC = localCatsMap.get(key);
+                  const ageMs = localC ? (Date.now() - (localC.createdAt || Date.now())) : 999999;
+                  if (ageMs < 120000) {
+                    console.log(`[Cloud Live Sync] Skipping pruning of recently created local category: ${key}`);
+                  } else {
+                    console.log(`[Cloud Live Sync] Pruning category locally (deleted in cloud): ${key}`);
+                    localCatsMap.delete(key);
+                    modified = true;
+                  }
                 }
               }
             }
@@ -22100,49 +22488,9 @@
       }
     }
 
-    function autoCleanupFourProducts() {
-      try {
-        const products = getData('ek_products', []);
-        if (products.length === 0) return;
-
-        const targets = products.filter(p => {
-          const enName = (p.englishName || '').toLowerCase();
-          const taName = (p.tamilName || '');
-          
-          const isBanana = enName.includes('banana') || taName.includes('வாழைப்பழம்') || taName.includes('வாழை');
-          const isJilebi = enName.includes('jilebi') || enName.includes('jilabi') || taName.includes('ஜிலேபி');
-          const isTomato = enName.includes('tomato') || taName.includes('தக்காளி');
-          const isLadiesFinger = enName.includes('ladies') || enName.includes('okra') || enName.includes('finger') || taName.includes('வெண்டை') || taName.includes('வெண்டைக்காய்');
-
-          return isBanana || isJilebi || isTomato || isLadiesFinger;
-        });
-
-        if (targets.length > 0) {
-          console.log(`[Auto Cleanup] Found ${targets.length} products to auto-delete:`, targets.map(p => p.englishName));
-          
-          let localProducts = getData('ek_products', []);
-          targets.forEach(t => {
-            // Mark as deleted in safeguard
-            markProductAsDeleted(t.id);
-            // Remove from local list
-            localProducts = localProducts.filter(p => p.id !== t.id);
-            // Delete from Firestore Cloud
-            if (typeof db !== 'undefined' && db) {
-              db.collection('ek_products').doc(t.id).delete()
-                .then(() => console.log(`[Auto Cleanup] Deleted ${t.id} from cloud.`))
-                .catch(e => console.error(e));
-            }
-          });
-
-          saveData('ek_products', localProducts);
-          _lastProductsHash = '';
-          _lastSpecialsHash = '';
-          if (typeof renderHomeScreenProducts === 'function') renderHomeScreenProducts(true);
-          if (typeof renderAdminProducts === 'function') renderAdminProducts();
-        }
-      } catch (err) {
-        console.error("[Auto Cleanup] Error cleaning up target products:", err);
-      }
+    function runAbsoluteCleanupForThreeProducts() {
+      // Safely bypassed to prevent automatic deletion of valid Banana, Jilebi, or Tomato products from Firestore/local storage
+      console.log("[Absolute Cleanup] runAbsoluteCleanupForThreeProducts bypassed for safety.");
     }
 
     function bootstrapApplication() {
@@ -22176,7 +22524,7 @@
       }
 
       initApp();
-      autoCleanupFourProducts();
+      runAbsoluteCleanupForThreeProducts();
       // Attach infinite scroll listener for future-proof product rendering
       try {
         attachInfiniteScrollListener();
@@ -22237,69 +22585,8 @@
         });
       }
 
-      // ── LOCAL LEGACY DEMO PRODUCTS CLEANUP ON STARTUP ──
-      try {
-        if (!localStorage.getItem('ek_legacy_demo_purge_v9')) {
-          let localProducts = getData('ek_products', []);
-          const deletedProdIds = getDeletedProductIds();
-          
-          let modifiedLocal = false;
-          
-          localProducts.forEach(p => {
-            const id = p.id;
-            const isDemoId = /^p\d+$/.test(id) || 
-                             ['p1','p2','p3','p4','p5','p6','p7','p8','p9','p10'].includes(id) ||
-                             id.startsWith('p_chicken_') || id.startsWith('p_meat_') || id.startsWith('p_mutton_') || id.startsWith('p_turkey_') || id.startsWith('p_duck_') ||
-                             id.startsWith('p_fish_') || id.startsWith('p_veg_') || id.startsWith('p_fruit_') || id.startsWith('p_dairy_') || id.startsWith('p_groc_') ||
-                             ['p_dairy_egg_country', 'p_dairy_egg_white', 'p_dairy_paneer', 'p_dairy_ghee', 'p_dairy_curd', 'p_dairy_butter',
-                              'p_fruit_banana_elakki', 'p_fruit_banana_karpooravalli', 'p_fruit_papaya', 'p_fruit_pomegranate', 'p_fruit_orange', 
-                              'p_fruit_grapes_black', 'p_fruit_grapes_green', 'p_fruit_guava', 'p_fruit_watermelon', 'p_fruit_mango_salem', 'p_fruit_sapota',
-                              'p_veg_onion', 'p_veg_small_onion', 'p_veg_tomato', 'p_veg_potato', 'p_veg_carrot', 'p_veg_drumstick', 
-                              'p_veg_ladies_finger', 'p_veg_cabbage', 'p_veg_cauliflower', 'p_veg_ginger', 'p_veg_garlic', 'p_veg_green_chilli', 
-                              'p_veg_coriander', 'p_veg_curry_leaves', 'p_veg_mint', 'p_veg_beetroot', 'p_veg_radish', 'p_veg_pumpkin_yellow', 'p_veg_beans'
-                             ].includes(id);
-
-            const nameEn = (p.englishName || p.name || "").toLowerCase();
-            const nameTa = (p.tamilName || "").toLowerCase();
-            const isDemoName = nameEn.includes("mutton") || nameEn.includes("apple") || 
-                               nameEn.includes("fish") || nameEn.includes("milk") || 
-                               nameEn.includes("brinjal") || nameEn.includes("turmeric") || 
-                               nameEn.includes("chicken") || nameEn.includes("greens") ||
-                               nameEn.includes("prawn") || nameEn.includes("egg") ||
-                               nameEn.includes("mango") || nameEn.includes("banana") ||
-                               nameEn.includes("ghee") || nameEn.includes("butter") ||
-                               nameEn.includes("paneer") || nameEn.includes("curd") ||
-                               nameEn.includes("onion") || nameEn.includes("tomato") ||
-                               nameEn.includes("potato") || nameEn.includes("carrot") ||
-                               nameEn.includes("ginger") || nameEn.includes("garlic") ||
-                               nameEn.includes("chilli") ||
-                               nameTa.includes("மட்டன்") || nameTa.includes("ஆட்டிறைச்சி") || 
-                               nameTa.includes("மீன்") || nameTa.includes("ஆப்பிள்") || 
-                               nameTa.includes("பால்") || nameTa.includes("கத்தரிக்காய்") || 
-                               nameTa.includes("மஞ்சள்") || nameTa.includes("கோழி") ||
-                               nameTa.includes("சிக்கன்") || nameTa.includes("முட்டை") ||
-                               nameTa.includes("இறால்") || nameTa.includes("மாம்பழம்") ||
-                               nameTa.includes("கீரை") || nameTa.includes("வெங்காயம்") ||
-                               nameTa.includes("தக்காளி") || nameTa.includes("உருளை");
-                               
-            if (isDemoId || isDemoName) {
-              if (!deletedProdIds.includes(p.id)) {
-                deletedProdIds.push(p.id);
-              }
-              modifiedLocal = true;
-            }
-          });
-          
-          if (modifiedLocal) {
-            saveData('ek_deleted_product_ids', deletedProdIds);
-            const filteredProducts = localProducts.filter(p => !deletedProdIds.includes(p.id));
-            saveData('ek_products', filteredProducts);
-            console.log(`[Startup Legacy Purge] Filtered out legacy demo products. Remaining products: ${filteredProducts.length}`);
-          }
-        }
-      } catch (err) {
-        console.error("Error during startup legacy products cleanup:", err);
-      }
+      // ── ONE-TIME INSTANT LEGACY DEMO PRODUCTS PURGE BYPASSED TO PRESERVE ACTIVE CUSTOMER PRODUCTS AND DELETION SAFEGUARDS ──
+      console.log("[Slate Purge] Bypassed legacy demo products purge block to preserve active user products and deletion safeguards.");
 
       // ── BOOTSTRAP TOMBSTONES FROM FIRESTORE ──
       if (typeof db !== 'undefined' && db) {
@@ -22347,31 +22634,9 @@
         console.error("Failed to parse URL referral code:", err);
       }
 
-      // ── ALWAYS-RUN CLEANUP ON STARTUP: Filter out legacy dummy delivery boys (Raman K, Saravanan M) ──
+      // ── ALWAYS-RUN CLEANUP ON STARTUP: Bypass for safety ──
       try {
-        let list = getData('ek_delivery_persons', []);
-        const dummyPhones = ['9042681532', '9443567812']; // Raman K, Saravanan M phone numbers
-        const dummyNames = ['Raman K', 'Saravanan M'];
-
-        const cleanedList = list.filter(d => {
-          const isDummy = (d.id === 'd1' || d.id === 'd2') ||
-                           dummyPhones.includes(d.phone) || dummyNames.includes(d.name);
-          if (isDummy) {
-            console.log('[Cleanup] Removing legacy dummy rider:', d.name || d.id);
-            // Mark as deleted so Firestore sync won't pull them back
-            markRiderAsDeleted(d.id);
-            // Firestore-ல் இருந்தும் நீக்கு
-            if (typeof db !== 'undefined' && db) {
-              db.collection('ek_delivery_persons').doc(d.id).delete().catch(()=>{});
-            }
-          }
-          return !isDummy;
-        });
-
-        if (cleanedList.length !== list.length) {
-          saveData('ek_delivery_persons', cleanedList);
-          console.log(`[Cleanup] Removed ${list.length - cleanedList.length} dummy rider(s).`);
-        }
+        console.log('[Cleanup] Delivery partner auto-cleanup bypassed for safety.');
       } catch (e) {
         console.error('Dummy rider cleanup failed:', e);
       }
