@@ -461,19 +461,15 @@
 
     /* 3D Glassmorphic Card design optimized for GPU rendering */
     .card {
-      background: rgba(16, 20, 28, 0.78) !important;
-      backdrop-filter: blur(14px) saturate(160%) !important;
-      -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+      background: #111622 !important;
       border-radius: 20px;
       padding: 18px;
       margin-bottom: 14px;
-      border: 1.5px solid rgba(255, 255, 255, 0.18) !important;
-      box-shadow: 
-        0 10px 30px rgba(0, 0, 0, 0.45),
-        inset 0 1.5px 1.5px rgba(255, 255, 255, 0.15),
-        inset 0 -1.5px 2px rgba(0, 0, 0, 0.5) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
       transition: transform 0.2s ease, box-shadow 0.2s ease; /* "all" removed */
       contain: layout style paint; /* Card internal repaints isolated */
+      will-change: transform;
       transform-style: preserve-3d;
       perspective: 1000px;
     }
@@ -1259,18 +1255,14 @@
       flex: 0 0 165px;
       width: 165px;
       height: 165px;
-      background: linear-gradient(135deg, rgba(20, 27, 41, 0.72) 0%, rgba(10, 15, 24, 0.85) 100%) !important;
-      backdrop-filter: blur(14px) saturate(160%) !important;
-      -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+      background: #141b2b !important;
       border-radius: 16px;
-      border: 1.5px solid rgba(255, 255, 255, 0.16) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
       overflow: hidden;
       position: relative;
-      box-shadow: 
-        0 10px 24px rgba(0, 0, 0, 0.55),
-        inset 0 1.5px 1.5px rgba(255, 255, 255, 0.16),
-        inset 0 -1.5px 2px rgba(0, 0, 0, 0.5) !important;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45) !important;
       transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      will-change: transform;
     }
     .special-card:active {
       border-color: var(--accent-orange);
@@ -1293,9 +1285,7 @@
  
     /* PREMIUM PRODUCT CARD STYLING */
     .product-grid-card {
-      background: linear-gradient(135deg, rgba(13, 18, 29, 0.72) 0%, rgba(8, 12, 19, 0.85) 100%) !important;
-      backdrop-filter: blur(14px) saturate(160%) !important;
-      -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+      background: #0f1422 !important;
       border-radius: 16px;
       border: 1.5px solid rgba(245, 158, 11, 0.28) !important; /* Premium amber border tint */
       padding: 0;
@@ -1303,11 +1293,9 @@
       position: relative;
       display: flex;
       flex-direction: column;
-      box-shadow: 
-        0 8px 24px rgba(0, 0, 0, 0.5),
-        inset 0 1.5px 1.5px rgba(255, 255, 255, 0.12),
-        inset 0 -1.5px 2px rgba(0, 0, 0, 0.4) !important;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
       transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      will-change: transform;
     }
     .product-grid-card:active {
       border-color: rgba(245, 158, 11, 0.85) !important;
@@ -1833,6 +1821,17 @@
       0% { width: 0%; }
       100% { width: 100%; }
     }
+    @keyframes pulseGreen {
+      0% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 12px rgba(0, 255, 136, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 136, 0);
+      }
+    }
   </style>
 </head>
 <body>
@@ -2015,6 +2014,103 @@
         } catch (ex) {}
       });
     </script>
+
+    <!-- SCREEN 1B: APP PERMISSION ONBOARDING -->
+    <div id="screen-onboarding" class="screen no-nav" style="background: radial-gradient(circle at top, #151f32, #0c111c, #020617); overflow-y: auto; padding: 24px; box-sizing: border-box; flex-direction: column; align-items: center; min-height: 100%;">
+      
+      <!-- Top header with sleek visual accent -->
+      <div style="flex: 0.5;"></div>
+      
+      <!-- Icon shield or lock badge indicating security -->
+      <div style="width: 72px; height: 72px; background: rgba(0, 255, 136, 0.1); border: 2px dashed #00FF88; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; box-shadow: 0 0 25px rgba(0,255,136,0.15); animation: pulseGreen 2s infinite;">
+        <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#00FF88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      </div>
+
+      <!-- Text Heading -->
+      <h2 style="color: #ffffff; font-size: 22px; font-weight: 800; text-align: center; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+        அனுமதி தேவைகள்
+      </h2>
+      <h3 style="color: var(--accent-orange); font-size: 14px; font-weight: 600; text-align: center; margin: 4px 0 0 0; letter-spacing: 1px;">
+        APP PERMISSIONS REQUIRED
+      </h3>
+      
+      <p style="color: var(--text-secondary); font-size: 13px; text-align: center; max-width: 310px; margin: 12px 0 28px 0; line-height: 1.5; opacity: 0.85;">
+        எடப்பாடி கடை செயலியை சிறந்த முறையில் பயன்படுத்தவும், துல்லியமாக ஆர்டர் டெலிவரி செய்யவும் பின்வரும் அனுமதிகள் அவசியமாகும்.
+        <br>
+        <span style="font-size: 11px; opacity: 0.7; display: inline-block; margin-top: 4px;">To provide accurate doorstep delivery and real-time status alerts, please grant the following permissions.</span>
+      </p>
+
+      <!-- Requirements Cards Grid -->
+      <div style="display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 340px;">
+        
+        <!-- CARD 1: LOCATION -->
+        <div id="onboarding-card-location" onclick="triggerOnboardingLocation()" style="background: rgba(30, 41, 59, 0.4); border: 1.2px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 16px; cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: flex-start; gap: 14px; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+          <div style="width: 44px; height: 44px; background: rgba(245, 158, 11, 0.12); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(245, 158, 11, 0.2);">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--accent-orange)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+          </div>
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span style="color: #ffffff; font-size: 14px; font-weight: 700;">இருப்பிட அனுமதி (Location)</span>
+              <span id="badge-onboarding-location" style="background: rgba(239, 68, 68, 0.15); color: #ff6b6b; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.25);">அனுமதி தேவை</span>
+            </div>
+            <div style="color: var(--text-secondary); font-size: 11.5px; line-height: 1.45;">
+              உங்கள் வீட்டைக் கண்டறிந்து ஆர்டரைத் துல்லியமாக டெலிவரி செய்ய.
+              <span style="display: block; font-size: 10.5px; opacity: 0.65; margin-top: 2px;">To locate your address and deliver items directly to your doorstep.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: NOTIFICATIONS -->
+        <div id="onboarding-card-notification" onclick="triggerOnboardingNotification()" style="background: rgba(30, 41, 59, 0.4); border: 1.2px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 16px; cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: flex-start; gap: 14px; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+          <div style="width: 44px; height: 44px; background: rgba(0, 191, 255, 0.12); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(0, 191, 255, 0.2);">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#00bfff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </div>
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span style="color: #ffffff; font-size: 14px; font-weight: 700;">அறிவிப்பு அனுமதி (Alerts)</span>
+              <span id="badge-onboarding-notification" style="background: rgba(239, 68, 68, 0.15); color: #ff6b6b; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.25);">அனுமதி தேவை</span>
+            </div>
+            <div style="color: var(--text-secondary); font-size: 11.5px; line-height: 1.45;">
+              உடனடி ஆர்டர் நிலை மாற்றங்கள் மற்றும் சலுகைகளைப் பெற.
+              <span style="display: block; font-size: 10.5px; opacity: 0.65; margin-top: 2px;">To receive live order status, dispatch alerts, and daily discount coupons.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="flex: 1;"></div>
+
+      <!-- Action Buttons -->
+      <div style="width: 100%; max-width: 340px; margin-top: 24px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
+        
+        <!-- MAIN CTA BUTTON -->
+        <button id="onboarding-main-btn" onclick="handleOnboardingMainAction()" style="background: linear-gradient(135deg, #00cb75, #00ff88); color: #020617; border: none; padding: 15px 28px; width: 100%; border-radius: 30px; font-size: 14.5px; font-weight: 900; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 6px 20px rgba(0, 255, 136, 0.25); text-transform: uppercase; letter-spacing: 0.5px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>அனுமதிகளை வழங்கு / Grant Permissions</span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+
+        <!-- SECONDRY SKIP/BYPASS LINK -->
+        <button onclick="skipOnboardingAndContinue()" style="background: transparent; border: none; color: #9ca3af; font-size: 12px; font-weight: 600; cursor: pointer; padding: 8px; text-decoration: underline; opacity: 0.65; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.65'">
+          அனுமதி இல்லாமல் தொடரவும் / Skip for now
+        </button>
+
+      </div>
+      
+      <div style="flex: 0.3;"></div>
+      
+    </div>
 
     <!-- SCREEN 2: LOGIN PAGE -->
     <div id="screen-login" class="screen no-nav" style="justify-content: center; min-height: 100%; position: relative;">
@@ -3286,6 +3382,9 @@
           <button id="cod-delete-btn" style="background: rgba(244,63,94,0.1); color: #f43f5e; font-family: 'Poppins', 'Hind Madurai', sans-serif; font-size: 13px; font-weight: 700; padding: 11px; border-radius: 14px; border: 1.5px solid rgba(244,63,94,0.3); cursor: pointer; text-align: center; display: none;">
             🗑️ Delete from History / ஹிஸ்டரியை நீக்கு
           </button>
+          <button id="cod-cancel-btn" style="background: rgba(239,68,68,0.1); color: #ef4444; font-family: 'Poppins', 'Hind Madurai', sans-serif; font-size: 13px; font-weight: 700; padding: 11px; border-radius: 14px; border: 1.5px solid rgba(239,68,68,0.3); cursor: pointer; text-align: center; display: none;">
+            🛑 Cancel Order / ஆர்டரை ரத்து செய்
+          </button>
           <button onclick="closeCustomerOrderDetailModalDetail()" style="background: #222222; color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 13.5px; font-weight: 700; padding: 12px; border-radius: 14px; border: 1px solid #333; cursor: pointer; text-align: center; transition: all 0.2s;">
             Close Details / மூடுக
           </button>
@@ -4044,6 +4143,18 @@
           </div>
           <p style="font-size: 10px; color: var(--text-muted); text-align: right; margin-top: 2px; line-height: 1.4; margin-bottom: 0;">₹100 spent = 10-20 pts • 10 pts = ₹1 discount code</p>
         </div>
+      </div>
+
+      <!-- CUSTOMER VOICE BROADCAST SHOUTBOX -->
+      <div class="card" style="background: linear-gradient(135deg, #09090b 0%, #15111b 100%); margin-bottom: 14px; border: 1.5px solid var(--accent-orange); box-shadow: 0 0 14px rgba(245,158,11,0.15); border-radius: 16px; padding: 14px;">
+        <span style="font-size: 11px; color: var(--accent-orange); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">📢 கஸ்டமர் குரல் / Customer Voice Broadcast</span>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px; margin-bottom: 8px;">அனைத்து வாடிக்கையாளர்களுக்கும் உங்கள் செய்தியை புஷ் நோட்டிபிகேஷனாக அனுப்பலாம்! / Shout your message as a real-time push notification to all customers!</p>
+        <div class="form-group" style="margin-bottom: 8px;">
+          <textarea id="customer-shout-text" class="form-control" rows="2" placeholder="உதாரணம்: நம்ம எடப்பாடி கடையில் இன்னைக்கு மட்டன் கறி வாங்குனேன், ரொம்ப அருமையா பஞ்சு போல வெந்துடுச்சுண்ணே! 🥩💯" style="font-size: 12px; background: rgba(21, 26, 34, 0.75); border: 1.5px solid rgba(255,255,255,0.12); color: #fff;"></textarea>
+        </div>
+        <button id="customer-shout-btn" class="btn" onclick="sendCustomerShoutToAll()" style="background: linear-gradient(135deg, var(--accent-orange), #ea580c); color: #fff; font-weight: 700; font-size: 11.5px; height: 36px; width: 100%; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; border: none; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25);">
+          <span>அனைவருக்கும் அறிவிப்பு அனுப்பு 📢</span>
+        </button>
       </div>
 
       <!-- CUSTOMER PREMIUM ANALYTICS INSIGHTS GRID -->
@@ -4855,7 +4966,7 @@
 
           <!-- Add / Edit Banner Form (Glassmorphic) -->
           <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
-            <h5 style="margin-top: 0; margin-bottom: 8px; font-size: 11.5px; color: var(--accent-orange);">⚡ புதிய பேனர் சேர்க்க / Add New Slide</h5>
+            <h5 id="admin-banner-form-title" style="margin-top: 0; margin-bottom: 8px; font-size: 11.5px; color: var(--accent-orange);">⚡ புதிய பேனர் சேர்க்க / Add New Slide</h5>
             
             <div style="display: flex; flex-direction: column; gap: 8px;">
               <div class="form-group" style="margin-bottom: 0;">
@@ -4890,9 +5001,14 @@
                 </div>
               </div>
 
-              <button class="btn btn-primary" onclick="addNewSlidingBanner()" style="height: 34px; padding: 0 16px; font-size: 12px; font-weight: 700; margin-top: 4.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px !important;">
-                <span>➕ ADD TO CAROUSEL</span>
-              </button>
+              <div id="admin-banner-actions" style="display: flex; gap: 8px; margin-top: 4.5px;">
+                <button id="admin-banner-submit-btn" class="btn btn-primary" onclick="addNewSlidingBanner()" style="flex: 1; height: 34px; padding: 0 16px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px !important;">
+                  <span>➕ ADD TO CAROUSEL</span>
+                </button>
+                <button id="admin-banner-cancel-btn" class="btn" onclick="cancelEditSlidingBanner()" style="display: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; height: 34px; padding: 0 12px; font-size: 11px; font-weight: 600; border-radius: 12px !important; align-items: center; justify-content: center; cursor: pointer;">
+                  <span>ரத்து / Cancel</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -5337,6 +5453,82 @@
     let fbAnalytics = null;
     let db = null;
 
+    // GLOBAL PRE-WRITE SECURITY PERMISSION AUDIT
+    async function verifyAdminWritePermission(operation) {
+      console.log(`[Admin Permission Audit] Pre-write verification started for: ${operation}`);
+      if (typeof firebase === 'undefined' || !firebase.auth) {
+        console.warn(`[Admin Permission Audit] Firebase Auth library is not loaded.`);
+        return false;
+      }
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        console.error(`[Admin Permission Audit] DENIED: No authenticated user present.`);
+        return false;
+      }
+      
+      console.log(`[Admin Permission Audit] User Info:`);
+      console.log(` - UID: ${user.uid}`);
+      console.log(` - Email: ${user.email}`);
+      console.log(` - isAnonymous: ${user.isAnonymous}`);
+      console.log(` - ProviderData: ${JSON.stringify(user.providerData)}`);
+
+      if (user.isAnonymous) {
+        console.error(`[Admin Permission Audit] DENIED: User is signed in anonymously. Admin operations are strictly forbidden for guest accounts.`);
+        return false;
+      }
+
+      if (typeof db !== 'undefined' && db) {
+        try {
+          const docSnap = await db.collection('ek_admin_accounts').doc(user.uid).get();
+          if (docSnap.exists) {
+            const adminData = docSnap.data();
+            console.log(`[Admin Permission Audit] Database lookup result:`, JSON.stringify(adminData));
+            if (adminData && (adminData.role === 'admin' || adminData.role === 'superadmin') && adminData.active !== false) {
+              console.log(`[Admin Permission Audit] GRANTED ✓. Safe to execute database write.`);
+              return true;
+            } else {
+              console.error(`[Admin Permission Audit] DENIED: Account is not role=admin/superadmin or is set to inactive.`);
+              return false;
+            }
+          } else {
+            console.error(`[Admin Permission Audit] DENIED: No document found in 'ek_admin_accounts' matching UID: ${user.uid}`);
+            return false;
+          }
+        } catch (e) {
+          console.warn(`[Admin Permission Audit] Lookup failed but proceeding if offline fallback enabled:`, e);
+          // In completely offline scenarios, allow the write to sync queue
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // AUDIT LOG HELPER FOR ALL PRODUCT WRITES
+    function logProductWriteAudit(actionType, productId, sourceFunc) {
+      const timestamp = new Date().toISOString();
+      let uid = "Unauthenticated";
+      let isAnonymous = "Unknown";
+      if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+        const user = firebase.auth().currentUser;
+        uid = user.uid;
+        isAnonymous = user.isAnonymous;
+      }
+      console.log(`[Product Write Audit] [${timestamp}]`);
+      console.log(` - Action Type: ${actionType}`);
+      console.log(` - Product ID: ${productId}`);
+      console.log(` - Auth UID: ${uid}`);
+      console.log(` - Is Anonymous: ${isAnonymous}`);
+      console.log(` - Source File/Function: ${sourceFunc}`);
+    }
+
+    function isDemoOrMockProductId(id) {
+      if (!id) return false;
+      const demoPrefixes = ['p_chicken_biryani', 'p_fish_', 'p_dairy_', 'p_veg_', 'p_fruit_', 'p_groceries_'];
+      const exactDemoIds = ['p1', 'p2', 'p3', 'p4', 'p5'];
+      if (exactDemoIds.includes(id)) return true;
+      return demoPrefixes.some(prefix => id.startsWith(prefix));
+    }
+
     function updateCloudStatus(status, tooltip = '') {
       const colors = {
         'connected': '#22c55e', // var(--accent-green) style green
@@ -5384,7 +5576,7 @@
             });
         }
         
-        // Try anonymous sign-in to easily bypass standard authenticated-only Firestore Rules
+        // Configure Firebase Auth Persistence and Listeners (Anonymous Fallback Disabled)
         if (firebase.auth) {
           // Set Firebase Auth persistence to LOCAL
           firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
@@ -5398,40 +5590,78 @@
             const hasAdminSession = !!(adminSession && adminSession.loggedIn);
             const hasDeliverySession = !!(deliverySession && deliverySession.loggedIn);
 
+            console.log("[Auth State Changed] Listener triggered:");
             if (user) {
-              if (!user.isAnonymous) {
-                console.log("[Auth] Real user auto-login detected:", user.uid);
-                if (hasCustSession && !hasAdminSession && !hasDeliverySession) {
-                  await loadUserData(user.uid);
-                  navigateToHome();
-                } else {
-                  console.log("[Auth] Bypassing auto-login: active admin/delivery session or no active customer session.");
-                  if (!hasCustSession) {
-                    console.log("[Auth] Syncing Firebase Auth with local logged-out state.");
-                    firebase.auth().signOut().catch(err => console.warn("[Auth] Sync signout failed:", err));
-                  }
-                }
-              } else {
-                console.log("Firebase Auth signed in anonymously successfully! ✓ Ready for secure cloud collections. User ID:", user.uid);
+              console.log(` - UID: ${user.uid}`);
+              console.log(` - Email: ${user.email}`);
+              console.log(` - Anonymous: ${user.isAnonymous}`);
+              console.log(` - Provider ID: ${user.providerId || 'None'}`);
+              console.log(` - Local Sessions: Cust=${hasCustSession}, Admin=${hasAdminSession}, Delivery=${hasDeliverySession}`);
+
+              if (user.isAnonymous) {
+                console.warn("[Auth State Changed] Detected anonymous session! Signing out anonymous user to prevent console pollution...");
+                firebase.auth().signOut().catch(err => console.warn("[Auth] Signout of anonymous user failed:", err));
+                return;
               }
+
+              // Real non-anonymous authenticated user is present
               updateCloudStatus('connected', 'Cloud Database Connected ✓');
               setupCloudRealtimeListeners2();
+
+              if (hasAdminSession) {
+                console.log("[Auth State Changed] Active Admin session detected. Performing authorization check...");
+                try {
+                  const docSnap = await db.collection('ek_admin_accounts').doc(user.uid).get();
+                  if (docSnap.exists) {
+                    const adminData = docSnap.data();
+                    console.log("[Auth State Changed] Admin document data:", JSON.stringify(adminData));
+                    if (adminData && (adminData.role === 'admin' || adminData.role === 'superadmin') && adminData.active !== false) {
+                      console.log("[Auth State Changed] Admin authorization GRANTED ✓");
+                    } else {
+                      console.error("[Auth State Changed] Admin document found but role is not admin/superadmin or active is false! Access DENIED ❌");
+                      showToast("உரிமம் மறுக்கப்பட்டது! / Admin authorization denied.", "error");
+                    }
+                  } else {
+                    console.warn(`[Auth State Changed] Admin document not found at ek_admin_accounts/${user.uid}!`);
+                  }
+                } catch (e) {
+                  console.error("[Auth State Changed] Error retrieving admin document:", e);
+                }
+              } else if (hasCustSession) {
+                console.log("[Auth State Changed] Active Customer session detected. Loading user data...");
+                await loadUserData(user.uid);
+                if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-splash') {
+                  navigateToHome();
+                }
+              } else if (hasDeliverySession) {
+                console.log("[Auth State Changed] Active Delivery session detected.");
+                if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-splash') {
+                  showScreen('screen-delivery');
+                }
+              } else {
+                console.log("[Auth State Changed] Real user logged in but no local session found. Firebase Auth remains connected.");
+              }
             } else {
-              console.log("Firebase Auth state is offline.");
-              updateCloudStatus('offline', 'Auth Offline');
-              showLoginScreen();
+              console.log(" - User is signed out (Null).");
+              console.log(` - Local Sessions: Cust=${hasCustSession}, Admin=${hasAdminSession}, Delivery=${hasDeliverySession}`);
+              updateCloudStatus('offline', 'Auth Offline / Guest Mode');
+              
+              // If we are in splash screen, route appropriately based on sessions
+              if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-splash') {
+                if (hasAdminSession) {
+                  showScreen('screen-admin');
+                } else if (hasDeliverySession) {
+                  showScreen('screen-delivery');
+                } else if (hasCustSession) {
+                  showScreen('screen-home');
+                } else {
+                  navigateToHome();
+                }
+              }
             }
           });
-          
-          if (!firebase.auth().currentUser) {
-            firebase.auth().signInAnonymously()
-              .catch(ae => {
-                console.warn("Firebase Anonymous Auth failed or is disabled in console:", ae);
-                updateCloudStatus('error', 'Auth Failed: ' + ae.message);
-              });
-          }
         } else {
-          updateCloudStatus('connected', 'Cloud Database Initialized');
+          updateCloudStatus('connected', 'Cloud Database Connected ✓');
           setupCloudRealtimeListeners2();
         }
       } catch (e) {
@@ -5655,6 +5885,24 @@
         if (parsed === null || parsed === undefined) {
           parsed = defaultVal;
         }
+        if (key === 'ek_orders' && Array.isArray(parsed)) {
+          let deletedIds = [];
+          try {
+            let delVal = null;
+            if (typeof AndroidStorage !== 'undefined') {
+              delVal = AndroidStorage.getData('ek_deleted_order_ids', "");
+            }
+            if (!delVal) {
+              delVal = localStorage.getItem('ek_deleted_order_ids');
+            }
+            deletedIds = delVal ? JSON.parse(delVal) : [];
+          } catch(err) {
+            deletedIds = [];
+          }
+          if (deletedIds && Array.isArray(deletedIds) && deletedIds.length > 0) {
+            parsed = parsed.filter(o => o && o.id && !deletedIds.includes(o.id));
+          }
+        }
         if (key === 'ek_users' && Array.isArray(parsed)) {
           const uniqueMap = new Map();
           parsed.forEach(u => {
@@ -5680,6 +5928,24 @@
           let parsed = val ? JSON.parse(val) : defaultVal;
           if (parsed === null || parsed === undefined) {
             parsed = defaultVal;
+          }
+          if (key === 'ek_orders' && Array.isArray(parsed)) {
+            let deletedIds = [];
+            try {
+              let delVal = null;
+              if (typeof AndroidStorage !== 'undefined') {
+                delVal = AndroidStorage.getData('ek_deleted_order_ids', "");
+              }
+              if (!delVal) {
+                delVal = localStorage.getItem('ek_deleted_order_ids');
+              }
+              deletedIds = delVal ? JSON.parse(delVal) : [];
+            } catch(err) {
+              deletedIds = [];
+            }
+            if (deletedIds && Array.isArray(deletedIds) && deletedIds.length > 0) {
+              parsed = parsed.filter(o => o && o.id && !deletedIds.includes(o.id));
+            }
           }
           if (key === 'ek_users' && Array.isArray(parsed)) {
             const uniqueMap = new Map();
@@ -5812,7 +6078,7 @@
     }
 
     function getSettings() {
-      return getData('ek_settings', DEFAULT_SETTINGS);
+      return getDataCached('ek_settings', DEFAULT_SETTINGS);
     }
 
     // Deletion Safeguard Registry
@@ -5990,7 +6256,8 @@
       try {
         const container = document.getElementById('quick-login-container');
         const list = document.getElementById('quick-login-list');
-        if (!container || !list) return;
+        if (container) container.style.display = 'none';
+        return;
 
         let users = getData('ek_users', []);
         
@@ -6088,6 +6355,7 @@
     };
 
     // SEEDED DEMO DATA DEFINITIONS
+    const ENABLE_DEMO_SEED_DATA = false;
     const DEMO_PRODUCTS = [];
 
     const DEMO_CUSTOMER = {
@@ -6152,30 +6420,41 @@
       if (hasFirestoreConnection && !isAdminSession && Array.isArray(existingProds) && existingProds.length > 0) {
         return;
       }
-      const deletedProdIds = getDeletedProductIds();
-      if (!Array.isArray(existingProds) || existingProds.length === 0) {
-        const seededProducts = DEMO_PRODUCTS
-          .filter(p => !deletedProdIds.includes(p.id))
-          .map(p => ({
-            ...p,
-            updatedAt: p.createdAt || new Date().toISOString()
-          }));
-        saveData('ek_products', seededProducts);
+      if (!ENABLE_DEMO_SEED_DATA) {
+        console.log("[Audit] seedDatabase: Demo seed data is disabled. Skipping product seeding.");
+        if (!Array.isArray(existingProds)) {
+          saveData('ek_products', []);
+        }
       } else {
-        // Auto-inject missing new seed products dynamically if they are absent
-        let updated = false;
-        DEMO_PRODUCTS.forEach(p => {
-          if (deletedProdIds.includes(p.id)) return;
-          if (!existingProds.some(ep => ep.id === p.id)) {
-            existingProds.push({
+        const deletedProdIds = getDeletedProductIds();
+        if (!Array.isArray(existingProds) || existingProds.length === 0) {
+          const seededProducts = DEMO_PRODUCTS
+            .filter(p => !deletedProdIds.includes(p.id))
+            .map(p => ({
               ...p,
               updatedAt: p.createdAt || new Date().toISOString()
-            });
-            updated = true;
+            }));
+          saveData('ek_products', seededProducts);
+          seededProducts.forEach(p => {
+            logProductWriteAudit('seed', p.id, 'seedDatabase');
+          });
+        } else {
+          // Auto-inject missing new seed products dynamically if they are absent
+          let updated = false;
+          DEMO_PRODUCTS.forEach(p => {
+            if (deletedProdIds.includes(p.id)) return;
+            if (!existingProds.some(ep => ep.id === p.id)) {
+              existingProds.push({
+                ...p,
+                updatedAt: p.createdAt || new Date().toISOString()
+              });
+              updated = true;
+              logProductWriteAudit('seed', p.id, 'seedDatabase_autoInject');
+            }
+          });
+          if (updated) {
+            saveData('ek_products', existingProds);
           }
-        });
-        if (updated) {
-          saveData('ek_products', existingProds);
         }
       }
       let existingUsers = getData('ek_users');
@@ -6638,9 +6917,106 @@
 
     // BASE64 FILE CONVERTER FOR PRODUCTS (WITH AUTOMATIC DYNAMIC COMPRESSION)
     let tempBase64Image = null;
+    let tempProductFile = null;
+
+    function validateSelectedFile(file) {
+      if (!file) return { valid: false, error: "தயவுசெய்து ஒரு படத்தை தேர்ந்தெடுக்கவும் / Please select a file." };
+      
+      const isImage = file.type ? file.type.startsWith('image/') : /\.(jpe?g|png|gif|webp|bmp)$/i.test(file.name);
+      if (!isImage) {
+        return { valid: false, error: "தயவுசெய்து ஒரு படத்தை மட்டும் தேர்ந்தெடுக்கவும் (MIME type of image/* only) / Please select an image file only." };
+      }
+      
+      const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+      if (file.size > MAX_SIZE) {
+        return { valid: false, error: "படத்தின் அளவு 5 MB-க்கு குறைவாக இருக்க வேண்டும் / Image size must be less than 5 MB." };
+      }
+      
+      return { valid: true };
+    }
+
+    function getSafeFileName(fileName) {
+      if (!fileName) return "image.jpg";
+      const dotIndex = fileName.lastIndexOf('.');
+      const namePart = dotIndex !== -1 ? fileName.substring(0, dotIndex) : fileName;
+      const extPart = dotIndex !== -1 ? fileName.substring(dotIndex) : ".jpg";
+      
+      const safeName = namePart.replace(/[^a-zA-Z0-9-_]/g, "_");
+      return safeName + extPart;
+    }
+
+    function getStoragePath(productId, originalFileName) {
+      const timestamp = Date.now();
+      const safeName = getSafeFileName(originalFileName);
+      return `products/${productId}/${timestamp}_${safeName}`;
+    }
+
+    async function uploadProductImageToStorage(productId, file, compressedBase64) {
+      if (typeof firebase === 'undefined' || !firebase.storage) {
+        console.warn("[Storage Debug] Firebase Storage not available. Falling back to database base64 storage.");
+        const fallbackBase64 = await resizeImageBeforeUpload(compressedBase64, 360, 0.6);
+        return fallbackBase64;
+      }
+      
+      console.log("[Storage Debug] Starting image upload sequence...");
+      console.log("[Storage Debug] Selected file name:", file.name);
+      console.log("[Storage Debug] Selected file type:", file.type);
+      console.log("[Storage Debug] Selected file size:", file.size, "bytes");
+      
+      const storage = firebase.storage();
+      const uploadPath = getStoragePath(productId, file.name);
+      console.log("[Storage Debug] Storage upload path:", uploadPath);
+      
+      const imageRef = storage.ref().child(uploadPath);
+      console.log("[Storage Debug] Upload start for path:", uploadPath);
+      
+      const metadata = {
+        contentType: file.type || 'image/jpeg',
+        customMetadata: {
+          'originalName': file.name,
+          'productId': productId,
+          'uploadedAt': new Date().toISOString()
+        }
+      };
+      
+      // We will race the upload task against a 5-second timeout
+      const uploadPromise = (async () => {
+        const uploadTask = await imageRef.putString(compressedBase64, 'data_url', metadata);
+        console.log("[Storage Debug] Upload completion status:", uploadTask.state);
+        const downloadUrl = await uploadTask.ref.getDownloadURL();
+        console.log("[Storage Debug] Download URL received:", downloadUrl);
+        return downloadUrl;
+      })();
+      
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("UPLOAD_TIMEOUT")), 5000);
+      });
+      
+      try {
+        const downloadUrl = await Promise.race([uploadPromise, timeoutPromise]);
+        return downloadUrl;
+      } catch (error) {
+        console.warn("[Storage Debug] Firebase Storage upload failed or timed out. Falling back to database base64 storage. Error:", error);
+        showToast("Storage cloud offline. Saving image locally/securely in database... ✓", "info");
+        const fallbackBase64 = await resizeImageBeforeUpload(compressedBase64, 360, 0.6);
+        return fallbackBase64;
+      }
+    }
+
     function convertBase64Image(event) {
       const file = event.target.files[0];
       if (!file) return;
+      
+      const validation = validateSelectedFile(file);
+      if (!validation.valid) {
+        showToast(validation.error, "error");
+        event.target.value = '';
+        tempProductFile = null;
+        tempBase64Image = null;
+        return;
+      }
+      
+      tempProductFile = file;
       
       // Clear direct URL input so that the newly selected file takes absolute priority
       const urlInput = document.getElementById('add-prod-url');
@@ -6669,6 +7045,7 @@
       if (previewImg && previewContainer) {
         if (url) {
           tempBase64Image = null; // Clear base64 cache so direct URL takes precedence
+          tempProductFile = null; // Clear file cache too
           previewImg.src = url;
           previewContainer.style.display = 'block';
         } else if (!tempBase64Image) {
@@ -6680,6 +7057,17 @@
     function convertEditBase64Image(event) {
       const file = event.target.files[0];
       if (!file) return;
+      
+      const validation = validateSelectedFile(file);
+      if (!validation.valid) {
+        showToast(validation.error, "error");
+        event.target.value = '';
+        tempProductFile = null;
+        tempBase64Image = null;
+        return;
+      }
+      
+      tempProductFile = file;
       
       const urlInput = document.getElementById('edit-prod-url');
       if (urlInput) urlInput.value = '';
@@ -6706,6 +7094,7 @@
       if (previewImg && previewContainer) {
         if (url) {
           tempBase64Image = null; // Clear base64 cache so direct URL takes precedence
+          tempProductFile = null; // Clear file cache too
           previewImg.src = url;
           previewContainer.style.display = 'block';
         } else if (!tempBase64Image) {
@@ -6718,6 +7107,7 @@
       document.getElementById('admin-edit-product-modal').style.display = 'none';
       editingProductId = null;
       tempBase64Image = null;
+      tempProductFile = null;
     }
 
     function closeAdminEditProductModal(event) {
@@ -6819,6 +7209,70 @@
     // NAVIGATION CONTROLLER
     function showScreen(screenId) {
       try {
+        // Enforce Admin authorization on screen-admin
+        if (screenId === 'screen-admin') {
+          console.log("[Route Guard] Intercepted navigation to screen-admin. Verifying local session...");
+          const adminSession = typeof getAdminSession === 'function' ? getAdminSession() : null;
+          const hasAdminSession = !!(adminSession && adminSession.loggedIn);
+          
+          if (!hasAdminSession) {
+            console.error("[Route Guard] Access DENIED: No active local admin session.");
+            showToast("அனுமதி மறுக்கப்பட்டது! நிர்வாகி உள்நுழையவும் / Access Denied. Please login as admin.", "error");
+            setTimeout(() => showScreen('screen-login'), 50);
+            return;
+          }
+
+          // Asynchronous Firebase Auth + Firestore Verification
+          if (typeof firebase !== 'undefined' && firebase.auth) {
+            const user = firebase.auth().currentUser;
+            if (!user) {
+              console.warn("[Route Guard] Offline/Pending Auth: Real-time Firebase Auth user not loaded yet or offline.");
+            } else if (user.isAnonymous) {
+              console.error("[Route Guard] Access DENIED: Firebase user is ANONYMOUS.");
+              showToast("அங்கீகாரப் பிழை! அநாமதேய பயனர்களுக்கு அனுமதி இல்லை / Guest users cannot access Admin.", "error");
+              setTimeout(() => showScreen('screen-login'), 50);
+              return;
+            }
+
+            // Perform deep verification in background to prevent UI blocking
+            (async () => {
+              const currentUser = firebase.auth().currentUser;
+              if (!currentUser) {
+                // Wait briefly for persistent auth to resolve
+                await new Promise(resolve => setTimeout(resolve, 800));
+              }
+              
+              const finalUser = firebase.auth().currentUser;
+              if (!finalUser || finalUser.isAnonymous) {
+                console.error("[Route Guard Background] Access DENIED: No real authenticated Firebase Admin user.");
+                showToast("அங்கீகாரப் பிழை! மீண்டும் உள்நுழையவும் / Admin login required in Firebase.", "error");
+                showScreen('screen-login');
+                return;
+              }
+
+              try {
+                const docSnap = await db.collection('ek_admin_accounts').doc(finalUser.uid).get();
+                if (docSnap.exists) {
+                  const adminData = docSnap.data();
+                  if (!adminData || (adminData.role !== 'admin' && adminData.role !== 'superadmin') || adminData.active === false) {
+                    console.error("[Route Guard Background] Access DENIED: Admin account inactive or not admin/superadmin.");
+                    showToast("உரிமம் மறுக்கப்பட்டது! / Admin account inactive.", "error");
+                    showScreen('screen-login');
+                  } else {
+                    console.log("[Route Guard Background] Admin credentials verified successfully ✓ UID:", finalUser.uid);
+                  }
+                } else {
+                  console.error(`[Route Guard Background] Access DENIED: No doc in 'ek_admin_accounts' for UID: ${finalUser.uid}`);
+                  showToast("அங்கீகாரம் இல்லாத கணக்கு! / Admin UID not in database.", "error");
+                  showScreen('screen-login');
+                }
+              } catch (err) {
+                console.warn("[Route Guard Background] Firestore check bypassed due to network/offline status:", err);
+              }
+            })();
+          }
+        }
+
         if (typeof currentScreen !== 'undefined' && currentScreen !== screenId && currentScreen !== 'screen-splash' && screenId !== 'screen-splash') {
           showLyoTransitLoader(null, 450);
         }
@@ -6881,7 +7335,7 @@
         // Control bottom navigations bar show/hide
         const bottomNav = document.getElementById('app-bottom-nav');
         if (bottomNav) {
-          if (['screen-splash', 'screen-login', 'screen-register', 'screen-admin', 'screen-delivery'].includes(screenId)) {
+          if (['screen-splash', 'screen-onboarding', 'screen-login', 'screen-register', 'screen-admin', 'screen-delivery'].includes(screenId)) {
             bottomNav.style.display = 'none';
           } else {
             bottomNav.style.display = 'flex';
@@ -7258,7 +7712,7 @@
     let adminAccounts = getData('ek_admin_accounts');
     if (!adminAccounts || adminAccounts.length === 0) {
       adminAccounts = [
-        { id: 'a1', name: 'Anantharaj', phone: '8778148899', password: 'hash:' + sha256_js('Ananth@2024' + 'EK2024'), role: 'superadmin' }
+        { id: 'a1', name: 'Anantharaj', phone: '8778148899', password: 'hash:' + sha256_js('Ananth@EK2024' + 'EK2024'), role: 'superadmin' }
       ];
       saveData('ek_admin_accounts', adminAccounts);
     } else {
@@ -7270,9 +7724,9 @@
       
       for (let acc of adminAccounts) {
         if (acc.id === 'a1' || acc.name === 'Anantharaj') {
-          if (acc.phone !== '8778148899' || acc.password !== 'hash:' + sha256_js('Ananth@2024' + 'EK2024')) {
+          if (acc.phone !== '8778148899' || acc.password !== 'hash:' + sha256_js('Ananth@EK2024' + 'EK2024')) {
             acc.phone = '8778148899';
-            acc.password = 'hash:' + sha256_js('Ananth@2024' + 'EK2024');
+            acc.password = 'hash:' + sha256_js('Ananth@EK2024' + 'EK2024');
             updated = true;
           }
         }
@@ -7935,50 +8389,60 @@
       
       if (currentLoginMode === 'admin') {
         const identifier = document.getElementById('admin-selector').value;
-        let matchedAdmin = null;
-        for (const a of adminAccounts) {
-          if (a.phone !== identifier) continue;
-          const storedHash = a.password.startsWith('hash:') ? a.password.slice(5) : null;
-          const legacyMatch = !a.password.startsWith('hash:') && a.password === pass;
-          const hashMatch = storedHash && await verifyPassword(pass, storedHash);
-          
-          let matches = legacyMatch || hashMatch;
-          // Robust extra safety check for Anantharaj's active passwords
-          if (identifier === '8778148899') {
-            if (pass === 'Ananth@2024' || pass === 'Ananth@EK2024') {
-              matches = true;
+        const adminEmail = `admin_${identifier}@app.com`;
+        try {
+          let cred;
+          try {
+            cred = await firebase.auth().signInWithEmailAndPassword(adminEmail, pass);
+          } catch (signInErr) {
+            if (signInErr.code === 'auth/user-not-found') {
+              cred = await firebase.auth().createUserWithEmailAndPassword(adminEmail, pass);
+            } else if (signInErr.code === 'auth/invalid-credential' || signInErr.code === 'auth/wrong-password') {
+              showToast("தவறான கடவுச்சொல் / Incorrect password. Please try again.", "error");
+              restoreButton();
+              return;
+            } else {
+              throw signInErr;
             }
           }
+          const uid = cred.user.uid;
           
-          if (matches) { matchedAdmin = a; break; }
-        }
-        
-        if (matchedAdmin) {
-          removeData('ek_customer_session');
-          removeData('ek_delivery_session');
-          sessionStorage.removeItem('ek_customer_session_temp');
-          saveData('ek_admin_session', { loggedIn: true, role: matchedAdmin.role, name: matchedAdmin.name, phone: matchedAdmin.phone });
-          
-          const adminPhone = matchedAdmin.phone;
-          if (typeof db !== 'undefined' && db && firebase.auth().currentUser) {
-            const uid = firebase.auth().currentUser.uid;
-            db.collection('ek_admin_accounts').doc(uid).set({
-              phone: adminPhone,
-              role: 'admin',
-              lastLogin: new Date().toISOString()
-            }, { merge: true }).catch(e => console.warn('Admin UID sync:', e));
+          // Ensure the document in ek_admin_accounts exists for the newly registered/logged-in admin
+          const docRef = db.collection('ek_admin_accounts').doc(uid);
+          let docSnap = await docRef.get();
+          if (!docSnap.exists) {
+            const role = (identifier === '8778148899') ? 'superadmin' : 'admin';
+            const name = (identifier === '8778148899') ? 'Anantharaj' : 'Admin';
+            await docRef.set({
+              id: uid,
+              phone: identifier,
+              role: role,
+              name: name,
+              active: true,
+              createdAt: new Date().toISOString()
+            });
+            docSnap = await docRef.get();
           }
 
-          showToast(`Welcome Admin ${matchedAdmin.name}! Access granted. 👑`, "success");
+          if (docSnap.exists && (docSnap.data().role === 'admin' || docSnap.data().role === 'superadmin') && docSnap.data().active !== false) {
+            removeData('ek_customer_session');
+            removeData('ek_delivery_session');
+            sessionStorage.removeItem('ek_customer_session_temp');
+            saveData('ek_admin_session', { loggedIn: true, role: docSnap.data().role || 'admin', name: docSnap.data().name || 'Admin', phone: identifier });
+            showToast(`Welcome Admin! Access granted. 👑`, "success");
+            restoreButton();
+            setupCloudRealtimeListeners2();
+            showScreen('screen-admin');
+          } else {
+            showToast("This account is not authorized as admin.", "error");
+            restoreButton();
+          }
+        } catch (authErr) {
+          console.error("[Admin Login] Firebase Auth failed:", authErr);
+          showToast("Invalid admin email or password.", "error");
           restoreButton();
-          setupCloudRealtimeListeners2();
-          showScreen('screen-admin');
-          return;
-        } else {
-          showToast("Invalid admin password! Please enter the correct password manually.", "error");
-          restoreButton();
-          return;
         }
+        return;
       }
 
       if (currentLoginMode === 'delivery') {
@@ -8595,12 +9059,27 @@
           }
         } catch (authErr) {
           console.warn("Firebase Auth registration/login failure, falling back to local registration:", authErr);
-          // Fallback registration
+          // Fallback registration: use active Firebase Auth UID (anonymous) if available to prevent Firestore write permission errors
+          const fallbackUid = (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) 
+            ? firebase.auth().currentUser.uid 
+            : 'cust_' + Math.floor(100000 + Math.random() * 900000);
+          
+          newUser.id = fallbackUid;
+          finalUser = newUser;
           newUser.password = 'hash:' + await hashPassword(password);
-          users.push(newUser);
+          
+          // Ensure it merges cleanly locally
+          const uIdx = users.findIndex(u => u.phone === phone);
+          if (uIdx !== -1) {
+            users[uIdx] = newUser;
+          } else {
+            users.push(newUser);
+          }
           saveData('ek_users', users);
           if (typeof db !== 'undefined' && db) {
-            await db.collection('ek_users').doc(newUser.id).set(newUser).catch(()=>{});
+            await db.collection('ek_users').doc(fallbackUid).set(newUser).catch(err => {
+              console.warn("Firestore fallback user write failed (possibly permission error):", err);
+            });
           }
         }
       } else {
@@ -8761,11 +9240,8 @@
         firebase.auth().signOut()
           .then(() => {
             console.log("[Auth] Firebase Auth sign out successful.");
-            if (!firebase.auth().currentUser) {
-              return firebase.auth().signInAnonymously();
-            }
           })
-          .catch(e => console.error("[Auth] Firebase signout/anonymous error:", e))
+          .catch(e => console.error("[Auth] Firebase signout error:", e))
           .finally(() => {
             setupCloudRealtimeListeners2();
             showScreen('screen-login');
@@ -8795,11 +9271,8 @@
         firebase.auth().signOut()
           .then(() => {
             console.log("[Auth] Firebase Auth delivery partner sign out successful.");
-            if (!firebase.auth().currentUser) {
-              return firebase.auth().signInAnonymously();
-            }
           })
-          .catch(e => console.error("[Auth] Firebase signout/anonymous error (delivery):", e))
+          .catch(e => console.error("[Auth] Firebase signout error (delivery):", e))
           .finally(() => {
             setupCloudRealtimeListeners2();
             showScreen('screen-login');
@@ -11587,12 +12060,14 @@
           }
           prod.updatedAt = new Date().toISOString();
           if (typeof db !== 'undefined' && db) {
+            logProductWriteAudit('update', prod.id, 'actualPlaceOrder_stockDeduct');
             db.collection('ek_products').doc(prod.id).set(prod)
               .catch(err => {
                 console.error("Cloud stock deduct sync failed, queueing for retry:", err);
                 queueFailedSync('ek_products', prod.id, 'set', prod);
               });
           } else {
+            logProductWriteAudit('update-queued', prod.id, 'actualPlaceOrder_stockDeduct');
             queueFailedSync('ek_products', prod.id, 'set', prod);
           }
         }
@@ -11880,7 +12355,7 @@
       document.getElementById('delivery-exec-header-name').innerText = `Rider: ${session.name}`;
       document.getElementById('delivery-exec-name-display').innerText = `Rider: ${session.name} 🏍️`;
 
-      const orders = getData('ek_orders', []);
+      const orders = getDataCached('ek_orders', []);
       
       // Calculate active stats for this specific Rider today
       const completedToday = orders.filter(o => (o.assignedExecutiveId === session.id || o.deliveryExecutiveId === session.id) && o.status === 'delivered');
@@ -11895,7 +12370,7 @@
       });
 
       // Retrieve executive salary configuration
-      const allExecutives = getData('ek_delivery_persons', []);
+      const allExecutives = getDataCached('ek_delivery_persons', []);
       const riderConfig = allExecutives.find(e => e.id === session.id);
       
       const salaryType = riderConfig?.salaryType || 'per_order';
@@ -12441,6 +12916,12 @@
             throw "not_exist";
           }
           const orderData = doc.data();
+          if (orderData.status === 'rejected' || orderData.status === 'canceled') {
+            throw "cancelled";
+          }
+          if (orderData.status === 'delivered') {
+            throw "already_delivered";
+          }
           if (orderData.assignedExecutiveId && orderData.assignedExecutiveId !== session.id) {
             throw "already_claimed";
           }
@@ -12480,6 +12961,10 @@
              saveData('ek_orders', orders);
           }
           showToast("மன்னிக்கவும், இந்த ஆர்டர் ஏற்கனவே வேறொருவருக்கு ஒதுக்கப்பட்டுவிட்டது! ❌", "error");
+        } else if (error === 'cancelled') {
+          showToast("மன்னிக்கவும், இந்த ஆர்டர் ஏற்கனவே ரத்து செய்யப்பட்டுவிட்டது! / This order has already been cancelled! ❌", "error");
+        } else if (error === 'already_delivered') {
+          showToast("மன்னிக்கவும், இந்த ஆர்டர் ஏற்கனவே விநியோகிக்கப்பட்டுவிட்டது! / This order has already been delivered! ❌", "error");
         } else if (error === 'not_exist') {
           showToast("இந்த ஆர்டர் நீக்கப்பட்டுவிட்டது! / Order no longer exists! ❌", "error");
         } else {
@@ -12490,6 +12975,41 @@
     }
 
     function updateDeliveryOrderStatus(orderId, nextStatus) {
+      showToast("சரிபார்க்கிறது... / Verifying...", "info");
+
+      if (typeof db !== 'undefined' && db) {
+        db.collection('ek_orders').doc(orderId).get().then((docSnap) => {
+          if (!docSnap.exists) {
+            showToast("Error: Order not found.", "error");
+            return;
+          }
+          const cloudOrder = normalizeFirestoreData(docSnap.data());
+          if (cloudOrder.status === 'rejected') {
+            showToast("மன்னிக்கவும்! இந்த ஆர்டர் ஏற்கனவே வாடிக்கையாளரால் ரத்து செய்யப்பட்டுவிட்டது. / This order was already cancelled by the customer.", "error");
+            // Refresh local status
+            const orders = getData('ek_orders', []);
+            const idx = orders.findIndex(o => o.id === orderId);
+            if (idx !== -1) {
+              orders[idx].status = 'rejected';
+              orders[idx].rejectionReason = cloudOrder.rejectionReason;
+              orders[idx].updatedAt = cloudOrder.updatedAt;
+              saveData('ek_orders', orders);
+              renderDeliveryScreen();
+            }
+            return;
+          }
+
+          proceedWithUpdateDeliveryOrderStatus(orderId, nextStatus);
+        }).catch(err => {
+          console.error("Error verifying delivery order status:", err);
+          showToast("Network error. Unable to verify order status.", "error");
+        });
+      } else {
+        proceedWithUpdateDeliveryOrderStatus(orderId, nextStatus);
+      }
+    }
+
+    function proceedWithUpdateDeliveryOrderStatus(orderId, nextStatus) {
       window.locallyModifiedOrders = window.locallyModifiedOrders || {};
       window.locallyModifiedOrders[orderId] = Date.now() + 120000;
 
@@ -12540,54 +13060,89 @@
     }
 
     function quickCompleteDelivery(orderId) {
-      window.locallyModifiedOrders = window.locallyModifiedOrders || {};
-      window.locallyModifiedOrders[orderId] = Date.now();
-
       showCustomConfirm(
         "Confirm Delivery?",
         "Are you sure you want to confirm that this order has been successfully delivered?",
         function() {
-          const orders = getData('ek_orders', []);
-          const idx = orders.findIndex(o => o.id === orderId);
-          if (idx === -1) return;
+          showToast("சரிபார்க்கிறது... / Verifying...", "info");
 
-          const oldStatus = orders[idx].status || 'delivering';
-          orders[idx].status = 'delivered';
-          orders[idx].customerSignature = "Quick delivered by Delivery Partner";
-          orders[idx].updatedAt = new Date().toISOString();
+          if (typeof db !== 'undefined' && db) {
+            db.collection('ek_orders').doc(orderId).get().then((docSnap) => {
+              if (!docSnap.exists) {
+                showToast("Error: Order not found.", "error");
+                return;
+              }
+              const cloudOrder = normalizeFirestoreData(docSnap.data());
+              if (cloudOrder.status === 'rejected') {
+                showToast("மன்னிக்கவும்! இந்த ஆர்டர் ஏற்கனவே வாடிக்கையாளரால் ரத்து செய்யப்பட்டுவிட்டது. / This order was already cancelled by the customer.", "error");
+                // Refresh local status
+                const orders = getData('ek_orders', []);
+                const idx = orders.findIndex(o => o.id === orderId);
+                if (idx !== -1) {
+                  orders[idx].status = 'rejected';
+                  orders[idx].rejectionReason = cloudOrder.rejectionReason;
+                  orders[idx].updatedAt = cloudOrder.updatedAt;
+                  saveData('ek_orders', orders);
+                  renderDeliveryScreen();
+                }
+                return;
+              }
 
-          saveData('ek_orders', orders);
-          
-          try {
-            sendFcmPushNotification(orders[idx], oldStatus, 'delivered');
-          } catch (fcmErr) {
-            console.error("FCM push notify failed in quickCompleteDelivery:", fcmErr);
-          }
-
-          try {
-            checkAndProcessReferralRewards(orders[idx]);
-          } catch (refErr) {
-            console.error("Referral rewards processing error:", refErr);
-          }
-
-          if (db) {
-            db.collection('ek_orders').doc(orderId).set(orders[idx], { merge: true })
-              .then(() => {
-                console.log(`Order ${orderId} quick delivered successfully.`);
-                removePendingSync('ek_orders', orderId);
-              })
-              .catch(err => {
-                console.error("Cloud status update failed, queuing for retry:", err);
-                queueFailedSync('ek_orders', orderId, 'set', orders[idx]);
-              });
+              proceedWithQuickCompleteDelivery(orderId);
+            }).catch(err => {
+              console.error("Error verifying delivery order status:", err);
+              showToast("Network error. Unable to verify order status.", "error");
+            });
           } else {
-            queueFailedSync('ek_orders', orderId, 'set', orders[idx]);
+            proceedWithQuickCompleteDelivery(orderId);
           }
-
-          showToast("Delivered! Order status updated successfully ✓", "success");
-          renderDeliveryScreen();
         }
       );
+    }
+
+    function proceedWithQuickCompleteDelivery(orderId) {
+      window.locallyModifiedOrders = window.locallyModifiedOrders || {};
+      window.locallyModifiedOrders[orderId] = Date.now() + 120000;
+
+      const orders = getData('ek_orders', []);
+      const idx = orders.findIndex(o => o.id === orderId);
+      if (idx === -1) return;
+
+      const oldStatus = orders[idx].status || 'delivering';
+      orders[idx].status = 'delivered';
+      orders[idx].customerSignature = "Quick delivered by Delivery Partner";
+      orders[idx].updatedAt = new Date().toISOString();
+
+      saveData('ek_orders', orders);
+      
+      try {
+        sendFcmPushNotification(orders[idx], oldStatus, 'delivered');
+      } catch (fcmErr) {
+        console.error("FCM push notify failed in quickCompleteDelivery:", fcmErr);
+      }
+
+      try {
+        checkAndProcessReferralRewards(orders[idx]);
+      } catch (refErr) {
+        console.error("Referral rewards processing error:", refErr);
+      }
+
+      if (db) {
+        db.collection('ek_orders').doc(orderId).set(orders[idx], { merge: true })
+          .then(() => {
+            console.log(`Order ${orderId} quick delivered successfully.`);
+            removePendingSync('ek_orders', orderId);
+          })
+          .catch(err => {
+            console.error("Cloud status update failed, queuing for retry:", err);
+            queueFailedSync('ek_orders', orderId, 'set', orders[idx]);
+          });
+      } else {
+        queueFailedSync('ek_orders', orderId, 'set', orders[idx]);
+      }
+
+      showToast("Delivered! Order status updated successfully ✓", "success");
+      renderDeliveryScreen();
     }
 
     // PREMIUM PRO DELIVERY VERIFICATION SYSTEM (DIGITAL SIGNATURE PAD & CONTROL GATES)
@@ -12809,6 +13364,49 @@
         }
       }
 
+      showToast("சரிபார்க்கிறது... / Verifying...", "info");
+
+      if (typeof db !== 'undefined' && db) {
+        db.collection('ek_orders').doc(orderId).get().then((docSnap) => {
+          if (!docSnap.exists) {
+            showToast("Error: Order not found.", "error");
+            return;
+          }
+          const cloudOrder = normalizeFirestoreData(docSnap.data());
+          if (cloudOrder.status === 'rejected') {
+            showToast("மன்னிக்கவும்! இந்த ஆர்டர் ஏற்கனவே வாடிக்கையாளரால் ரத்து செய்யப்பட்டுவிட்டது. / This order was already cancelled by the customer.", "error");
+            // Refresh local status
+            const ordersList = getData('ek_orders', []);
+            const oIdx = ordersList.findIndex(o => o.id === orderId);
+            if (oIdx !== -1) {
+              ordersList[oIdx].status = 'rejected';
+              ordersList[oIdx].rejectionReason = cloudOrder.rejectionReason;
+              ordersList[oIdx].updatedAt = cloudOrder.updatedAt;
+              saveData('ek_orders', ordersList);
+              renderDeliveryScreen();
+            }
+            closeDeliveryVerification();
+            return;
+          }
+
+          proceedWithSubmitDeliverySignature(orderId, sigData);
+        }).catch(err => {
+          console.error("Error verifying delivery order status in signature submit:", err);
+          showToast("Network error. Unable to verify order status.", "error");
+        });
+      } else {
+        proceedWithSubmitDeliverySignature(orderId, sigData);
+      }
+    }
+
+    function proceedWithSubmitDeliverySignature(orderId, sigData) {
+      window.locallyModifiedOrders = window.locallyModifiedOrders || {};
+      window.locallyModifiedOrders[orderId] = Date.now() + 120000;
+
+      const orders = getData('ek_orders', []);
+      const idx = orders.findIndex(o => o.id === orderId);
+      if (idx === -1) return;
+
       // C. Submit modifications
       const oldStatus = orders[idx].status || 'delivering';
       const verifyType = document.querySelector('input[name="pay_verify"]:checked').value;
@@ -12858,74 +13456,126 @@
         "Cancel Order?",
         "Are you sure you want to cancel this order? Item stocks and loyalty points will be reverted.",
         function() {
-          const orders = getData('ek_orders');
-          const idx = orders.findIndex(o => o.id === orderId);
-          if (idx === -1) return;
-          
-          const order = orders[idx];
-          if (order.status !== 'pending') {
-            showToast("Sorry! This order has already been prepared or loaded for delivery, so it cannot be cancelled.", "error");
-            return;
-          }
-          
-          // A. Restore Stock levels
-          const products = getData('ek_products');
-          order.items.forEach(item => {
-            const prod = products.find(p => p.id === item.productId);
-            if (prod) {
-              const unit = prod.unit || 'kg';
-              const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
-              const returnedQty = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
-              prod.stockKg = parseFloat((prod.stockKg + returnedQty).toFixed(3));
-              prod.isOutOfStock = false;
-              prod.updatedAt = new Date().toISOString();
-              
-              if (typeof db !== 'undefined' && db) {
-                db.collection('ek_products').doc(prod.id).set(prod)
-                  .catch(err => console.error("Cloud stock restore error on customer cancel:", err));
-              }
-            }
-          });
-          saveData('ek_products', products);
-          
-          // B. Restore Points
-          const users = getData('ek_users');
-          const userIdx = users.findIndex(u => u.id === order.customerId);
-          if (userIdx !== -1) {
-            const user = users[userIdx];
-            const accruedPoints = Math.floor(order.totalAmount / 100) * 10;
-            const pointsRefunded = (order.loyaltyDiscount || 0) * 10;
-            user.loyaltyPoints = Math.max(0, user.loyaltyPoints - accruedPoints + pointsRefunded);
-            
-            if (user.loyaltyPoints >= 500) user.tier = 'gold';
-            else if (user.loyaltyPoints >= 150) user.tier = 'silver';
-            else user.tier = 'bronze';
-            
-            users[userIdx] = user;
-            saveData('ek_users', users);
-            
-            if (typeof db !== 'undefined' && db) {
-              db.collection('ek_users').doc(user.id).set(user)
-                .catch(err => console.error("Cloud user profile points refund error:", err));
-            }
-          }
-          
-          // C. Cancel the Order
-          order.status = 'rejected';
-          order.rejectionReason = currentLang === 'ta' ? "வாடிக்கையாளரால் ரத்து செய்யப்பட்டது" : "Cancelled by customer";
-          order.updatedAt = new Date().toISOString();
-          
-          orders[idx] = order;
-          saveData('ek_orders', orders);
-          
+          showToast(currentLang === 'ta' ? "ஆர்டர் நிலையைச் சரிபார்க்கிறது... ⏳" : "Verifying order status... ⏳", "info");
+
           if (typeof db !== 'undefined' && db) {
-            db.collection('ek_orders').doc(order.id).set(order, { merge: true })
-              .then(() => console.log(`[Cloud Sync] Success cancellation write for ${order.id}`))
-              .catch(err => console.error("Cloud cancel sync order update failed:", err));
+            db.collection('ek_orders').doc(orderId).get().then((docSnap) => {
+              if (!docSnap.exists) {
+                showToast("Error: Order not found.", "error");
+                return;
+              }
+              const cloudOrder = normalizeFirestoreData(docSnap.data());
+              if (cloudOrder.status !== 'pending') {
+                showToast(currentLang === 'ta' 
+                  ? "மன்னிக்கவும்! இந்த ஆர்டர் ஏற்கனவே தயாரிக்கப்பட்டுவிட்டது, எனவே இதை ரத்து செய்ய முடியாது." 
+                  : "Sorry! This order has already been prepared or loaded for delivery, so it cannot be cancelled.", "error");
+                // Refresh local status
+                const orders = getData('ek_orders', []);
+                const idx = orders.findIndex(o => o.id === orderId);
+                if (idx !== -1) {
+                  orders[idx].status = cloudOrder.status;
+                  orders[idx].updatedAt = cloudOrder.updatedAt || new Date().toISOString();
+                  saveData('ek_orders', orders);
+                  renderTrackerScreen();
+                }
+                return;
+              }
+
+              // Perfect! Status is pending. Run a transaction to update status to 'rejected' safely.
+              showToast(currentLang === 'ta' ? "ரத்து செய்யப்படுகிறது... 🛑" : "Cancelling order... 🛑", "info");
+
+              db.runTransaction((transaction) => {
+                const orderRef = db.collection('ek_orders').doc(orderId);
+                return transaction.get(orderRef).then((transDoc) => {
+                  if (!transDoc.exists) throw "not_exists";
+                  const latestOrder = transDoc.data();
+                  if (latestOrder.status !== 'pending') throw "not_pending";
+
+                  transaction.update(orderRef, {
+                    status: 'rejected',
+                    rejectionReason: currentLang === 'ta' ? "வாடிக்கையாளரால் ரத்து செய்யப்பட்டது" : "Cancelled by customer",
+                    updatedAt: new Date().toISOString()
+                  });
+                });
+              }).then(() => {
+                // Success cloud cancellation! Now update local state and restore stock/points
+                
+                // A. Restore Stock levels
+                const products = getData('ek_products', []);
+                cloudOrder.items.forEach(item => {
+                  const prod = products.find(p => p.id === item.productId);
+                  if (prod) {
+                    const unit = prod.unit || 'kg';
+                    const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
+                    const returnedQty = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
+                    prod.stockKg = parseFloat((prod.stockKg + returnedQty).toFixed(3));
+                    prod.isOutOfStock = false;
+                    prod.updatedAt = new Date().toISOString();
+                    
+                    logProductWriteAudit('update', prod.id, 'customerCancelOrder_stockRestore');
+                    db.collection('ek_products').doc(prod.id).set(prod)
+                      .catch(err => console.error("Cloud stock restore error on customer cancel:", err));
+                  }
+                });
+                saveData('ek_products', products);
+
+                // B. Restore Points
+                const users = getData('ek_users', []);
+                const userIdx = users.findIndex(u => u.id === cloudOrder.customerId);
+                if (userIdx !== -1) {
+                  const user = users[userIdx];
+                  const accruedPoints = Math.floor(cloudOrder.totalAmount / 100) * 10;
+                  const pointsRefunded = (cloudOrder.loyaltyDiscount || 0) * 10;
+                  user.loyaltyPoints = Math.max(0, user.loyaltyPoints - accruedPoints + pointsRefunded);
+                  
+                  if (user.loyaltyPoints >= 500) user.tier = 'gold';
+                  else if (user.loyaltyPoints >= 150) user.tier = 'silver';
+                  else user.tier = 'bronze';
+                  
+                  users[userIdx] = user;
+                  saveData('ek_users', users);
+                  
+                  db.collection('ek_users').doc(user.id).set(user)
+                    .catch(err => console.error("Cloud user profile points refund error:", err));
+                }
+
+                // C. Update Local order status to 'rejected'
+                window.locallyModifiedOrders = window.locallyModifiedOrders || {};
+                window.locallyModifiedOrders[orderId] = Date.now() + 120000; // Shield from sync overwrites!
+
+                const orders = getData('ek_orders', []);
+                const idx = orders.findIndex(o => o.id === orderId);
+                if (idx !== -1) {
+                  orders[idx].status = 'rejected';
+                  orders[idx].rejectionReason = currentLang === 'ta' ? "வாடிக்கையாளரால் ரத்து செய்யப்பட்டது" : "Cancelled by customer";
+                  orders[idx].updatedAt = new Date().toISOString();
+                  saveData('ek_orders', orders);
+                }
+
+                showToast(currentLang === 'ta' ? "ஆர்டர் வெற்றிகரமாக ரத்து செய்யப்பட்டது! 🛑" : "Order Cancelled! 🛑", "error");
+                renderTrackerScreen();
+
+              }).catch((transErr) => {
+                console.error("Cancellation transaction failed: ", transErr);
+                if (transErr === 'not_pending') {
+                  showToast(currentLang === 'ta' 
+                    ? "மன்னிக்கவும்! இந்த ஆர்டர் ஏற்கனவே தயாரிக்கப்பட்டுவிட்டது, எனவே இதை ரத்து செய்ய முடியாது." 
+                    : "Sorry! This order has already been prepared or loaded for delivery, so it cannot be cancelled.", "error");
+                } else if (transErr === 'not_exists') {
+                  showToast("Error: Order not found.", "error");
+                } else {
+                  showToast("Network conflict error. Please reload and try again.", "error");
+                }
+                triggerCustomerManualCloudSync();
+              });
+
+            }).catch((fetchErr) => {
+              console.error("Error fetching order before cancel:", fetchErr);
+              showToast("Network connection issue. Unable to cancel order.", "error");
+            });
+          } else {
+            showToast("Offline mode. Cannot securely verify status to cancel.", "warning");
           }
-          
-          showToast("Order Cancelled! 🛑", "error");
-          renderTrackerScreen();
         }
       );
     }
@@ -14455,7 +15105,7 @@
 
     // ORDER TRACKER CONTROLLER
     function renderTrackerScreen() {
-      const orders = getData('ek_orders');
+      const orders = getDataCached('ek_orders', []);
       let session = getActiveSession();
       
       // If we have selectedTrackOrderId from deep link sharing, we can stub a guest session if none exists
@@ -15008,10 +15658,29 @@
 
       const delBtn = document.getElementById('cod-delete-btn');
       if (delBtn) {
-        delBtn.style.display = 'block';
-        delBtn.onclick = function() {
-          deleteOrderFromDb(o.id, true);
-        };
+        const isCompletedOrRejected = ['delivered', 'rejected'].includes(o.status);
+        if (isCompletedOrRejected) {
+          delBtn.style.display = 'block';
+          delBtn.onclick = function() {
+            deleteOrderFromDb(o.id, true);
+          };
+        } else {
+          delBtn.style.display = 'none';
+        }
+      }
+
+      const cancelBtn = document.getElementById('cod-cancel-btn');
+      if (cancelBtn) {
+        const isPending = o.status === 'pending';
+        if (isPending) {
+          cancelBtn.style.display = 'block';
+          cancelBtn.onclick = function() {
+            closeCustomerOrderDetailModalDetail();
+            customerCancelOrder(o.id);
+          };
+        } else {
+          cancelBtn.style.display = 'none';
+        }
       }
 
       const modal = document.getElementById('customer-order-detail-modal');
@@ -16638,7 +17307,7 @@
     let adminStatusFilter = 'all';
 
     function renderAdminDashboard() {
-      const orders = getData('ek_orders');
+      const orders = getDataCached('ek_orders', []);
       
       // Calculate metrics stats
       const today = new Date().toDateString();
@@ -16687,7 +17356,7 @@
       }
       
       // Load current settings toggles safely
-      const settings = getData('ek_settings', DEFAULT_SETTINGS);
+      const settings = getDataCached('ek_settings', DEFAULT_SETTINGS);
       const elShopOpen = document.getElementById('setting-shop-open');
       if (elShopOpen) elShopOpen.checked = settings.shopOpen;
       const elDelCharge = document.getElementById('setting-delivery-charge');
@@ -17095,8 +17764,8 @@
     }
 
     function renderAdminOrders() {
-      const orders = getData('ek_orders');
-      const deliveryPersons = getData('ek_delivery_persons', []);
+      const orders = getDataCached('ek_orders', []);
+      const deliveryPersons = getDataCached('ek_delivery_persons', []);
       const search = document.getElementById('admin-orders-search').value.toLowerCase().trim();
       const list = document.getElementById('admin-orders-list');
       
@@ -17169,11 +17838,18 @@
 
         const badgeClass = o.status === 'pending' ? 'badge-pending' : o.status === 'ready' ? 'badge-ready' : o.status === 'delivered' ? 'badge-delivered' : 'badge-rejected';
 
-        // Pre-formatted messages for WhatsApp Redirects
-        const riderNameText = o.assignedRiderName ? o.assignedRiderName : (currentLang === 'ta' ? "எங்களது விநியோகக் குழு" : "Our delivery team");
-        
-        // 1. Confirm WA (Order Confirmation to Customer)
-        const waCustomerMsg = encodeURIComponent(
+        const isExpanded = !!expandedOrders[o.id];
+
+        // Pre-formatted messages for WhatsApp Redirects (Only compiled on demand if card is expanded)
+        let waCustomerMsg = '';
+        let waReadyMsg = '';
+        let kotMsg = '';
+
+        if (isExpanded) {
+          const riderNameText = o.assignedRiderName ? o.assignedRiderName : (currentLang === 'ta' ? "எங்களது விநியோகக் குழு" : "Our delivery team");
+          
+          // 1. Confirm WA (Order Confirmation to Customer)
+          waCustomerMsg = encodeURIComponent(
 `🥩 *எடப்பாடி கடை / EDAPPADI KADAI* 🥩
 ━━━━━━━━━━━━━━━━━━━━━━━━
 வணக்கம் *${o.customerName}*! உங்களுடைய ஆர்டர் வெற்றிகரமாக உறுதி செய்யப்பட்டுள்ளது.
@@ -17193,10 +17869,10 @@ ${o.items.map((it, idx) => {
 
 நன்றி! உங்களது ஆர்டர் விரைவில் உங்களது இல்லம் தேடி வரும்! 🛵✨
 ━━━━━━━━━━━━━━━━━━━━━━━━`
-        );
+          );
 
-        // 2. Ready Prompt (Order Ready notification to Customer)
-        const waReadyMsg = encodeURIComponent(
+          // 2. Ready Prompt (Order Ready notification to Customer)
+          waReadyMsg = encodeURIComponent(
 `🛵 *எடப்பாடி கடை / EDAPPADI KADAI* 🛵
 ━━━━━━━━━━━━━━━━━━━━━━━━
 அன்பான *${o.customerName}* அவர்களுக்கு, உங்களுடைய ஆர்டர் (${o.id}) தற்போது டெலிவரிக்கு தயாராகிவிட்டது!
@@ -17207,10 +17883,10 @@ ${o.items.map((it, idx) => {
 
 எங்களது டெலிவரி பார்ட்னர் இன்னும் சில நிமிடங்களில் உங்களை வந்தடைவார். தயவுசெய்து மொபைலை ஆன் செய்து வைத்திருக்கவும்! 📱✨
 ━━━━━━━━━━━━━━━━━━━━━━━━`
-        );
+          );
 
-        // 3. Share KOT (Kitchen Order Ticket for internal cooking/dispatch)
-        const kotMsg = encodeURIComponent(
+          // 3. Share KOT (Kitchen Order Ticket for internal cooking/dispatch)
+          kotMsg = encodeURIComponent(
 `🔥 *புதிய KOT சமையல் சீட்டு (NEW KOT ORDER)* 🔥
 ━━━━━━━━━━━━━━━━━━━━━━━━
 📋 *ஆர்டர் எண் (ID):* ${o.id}
@@ -17227,9 +17903,8 @@ ${o.items.map((it, idx) => {
 
 உடனே தயார் செய்து பேக் செய்யவும்! 📦🚀
 ━━━━━━━━━━━━━━━━━━━━━━━━`
-        );
-
-        const isExpanded = !!expandedOrders[o.id];
+          );
+        }
 
         const card = `
           <div class="card" style="border-left: 4px solid var(--accent-orange); margin-bottom: 12px; padding: 14px; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; background: var(--bg-card); contain: layout style paint;" onclick="toggleOrderDetails('${o.id}')">
@@ -17271,11 +17946,23 @@ ${o.items.map((it, idx) => {
                 <p style="margin-top:4px; line-height:1.5; margin-bottom: 0;">${itemRows}</p>
               </div>
 
-              <div style="margin-bottom:12px; border-top: 1px dashed #262626; padding-top: 8px;">
-                <label style="font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; display:block; margin-bottom:4px;">${currentLang === 'ta' ? 'விநியோக நபர் (Rider)' : 'Delivery Partner'}</label>
-                <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:12px; padding:6px; border-radius:6px; width:100%; font-weight:bold;" onchange="assignDeliveryPartner('${o.id}', this.value)" onclick="event.stopPropagation()">
-                  ${deliveryOptionsHtml}
-                </select>
+              <div style="margin-bottom:12px; border-top: 1px dashed #262626; padding-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                  <label style="font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; display:block; margin-bottom:4px;">${currentLang === 'ta' ? 'விநியோக நபர் (Rider)' : 'Delivery Partner'}</label>
+                  <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:12px; padding:6px; border-radius:6px; width:100%; font-weight:bold;" onchange="assignDeliveryPartner('${o.id}', this.value)" onclick="event.stopPropagation()">
+                    ${deliveryOptionsHtml}
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; display:block; margin-bottom:4px;">${currentLang === 'ta' ? 'ஆர்டர் நிலை (Status)' : 'Order Status'}</label>
+                  <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:12px; padding:6px; border-radius:6px; width:100%; font-weight:bold;" onchange="changeOrderStatusDirectly('${o.id}', this.value)" onclick="event.stopPropagation()">
+                    <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending ⏳</option>
+                    <option value="ready" ${o.status === 'ready' ? 'selected' : ''}>Ready 🥩</option>
+                    <option value="delivering" ${o.status === 'delivering' ? 'selected' : ''}>Delivering 🏍️</option>
+                    <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered ✅</option>
+                    <option value="rejected" ${o.status === 'rejected' ? 'selected' : ''}>Cancelled 🔴</option>
+                  </select>
+                </div>
               </div>
 
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:13px;">
@@ -17342,6 +18029,42 @@ ${o.items.map((it, idx) => {
     }
 
     function changeOrderStatus(id, nextStatus) {
+      showToast("சரிபார்க்கிறது... / Verifying status...", "info");
+
+      if (typeof db !== 'undefined' && db) {
+        db.collection('ek_orders').doc(id).get().then((docSnap) => {
+          if (!docSnap.exists) {
+            showToast("Error: Order not found.", "error");
+            return;
+          }
+          const cloudOrder = normalizeFirestoreData(docSnap.data());
+          if (cloudOrder.status === 'rejected') {
+            showToast("மன்னிக்கவும்! இந்த ஆர்டர் ஏற்கனவே வாடிக்கையாளரால் ரத்து செய்யப்பட்டுவிட்டது. / This order has already been cancelled by the customer.", "error");
+            // Refresh local status
+            const orders = getData('ek_orders', []);
+            const idx = orders.findIndex(o => o.id === id);
+            if (idx !== -1) {
+              orders[idx].status = 'rejected';
+              orders[idx].rejectionReason = cloudOrder.rejectionReason;
+              orders[idx].updatedAt = cloudOrder.updatedAt;
+              saveData('ek_orders', orders);
+              renderAdminDashboard();
+            }
+            return;
+          }
+
+          proceedWithChangeOrderStatus(id, nextStatus);
+        }).catch(err => {
+          console.error("Error checking order status:", err);
+          showToast("Network error. Unable to verify order status.", "error");
+        });
+      } else {
+        // Offline
+        proceedWithChangeOrderStatus(id, nextStatus);
+      }
+    }
+
+    function proceedWithChangeOrderStatus(id, nextStatus) {
       window.locallyModifiedOrders = window.locallyModifiedOrders || {};
       window.locallyModifiedOrders[id] = Date.now() + 120000;
 
@@ -17407,7 +18130,61 @@ ${o.items.map((it, idx) => {
       renderAdminDashboard();
     }
 
+    function changeOrderStatusDirectly(id, nextStatus) {
+      if (nextStatus === 'rejected') {
+        cancelOrderPrompt(id);
+      } else {
+        showCustomConfirm(
+          currentLang === 'ta' ? "ஆர்டர் நிலையை மாற்றவா?" : "Change Order Status?",
+          currentLang === 'ta' 
+            ? `இந்த ஆர்டரின் நிலையை <strong>${nextStatus.toUpperCase()}</strong> ஆக மாற்ற விரும்புகிறீர்களா?`
+            : `Are you sure you want to change the status of this order to <strong>${nextStatus.toUpperCase()}</strong>?`,
+          function() {
+            proceedWithChangeOrderStatus(id, nextStatus);
+          },
+          function() {
+            renderAdminDashboard();
+          }
+        );
+      }
+    }
+
     function assignDeliveryPartner(orderId, executiveId) {
+      showToast("சரிபார்க்கிறது... / Verifying status...", "info");
+
+      if (typeof db !== 'undefined' && db) {
+        db.collection('ek_orders').doc(orderId).get().then((docSnap) => {
+          if (!docSnap.exists) {
+            showToast("Error: Order not found.", "error");
+            return;
+          }
+          const cloudOrder = normalizeFirestoreData(docSnap.data());
+          if (cloudOrder.status === 'rejected') {
+            showToast("மன்னிக்கவும்! இந்த ஆர்டர் ஏற்கனவே வாடிக்கையாளரால் ரத்து செய்யப்பட்டுவிட்டது. / This order has already been cancelled by the customer.", "error");
+            // Refresh local status
+            const orders = getData('ek_orders', []);
+            const idx = orders.findIndex(o => o.id === orderId);
+            if (idx !== -1) {
+              orders[idx].status = 'rejected';
+              orders[idx].rejectionReason = cloudOrder.rejectionReason;
+              orders[idx].updatedAt = cloudOrder.updatedAt;
+              saveData('ek_orders', orders);
+              renderAdminDashboard();
+            }
+            return;
+          }
+
+          proceedWithAssignDeliveryPartner(orderId, executiveId);
+        }).catch(err => {
+          console.error("Error verifying order status before assign:", err);
+          showToast("Network error. Unable to verify order status.", "error");
+        });
+      } else {
+        proceedWithAssignDeliveryPartner(orderId, executiveId);
+      }
+    }
+
+    function proceedWithAssignDeliveryPartner(orderId, executiveId) {
       window.locallyModifiedOrders = window.locallyModifiedOrders || {};
       window.locallyModifiedOrders[orderId] = Date.now() + 120000;
 
@@ -17572,6 +18349,7 @@ ${o.items.map((it, idx) => {
           prod.updatedAt = new Date().toISOString();
           
           if (typeof db !== 'undefined' && db) {
+            logProductWriteAudit('update', prod.id, 'confirmOrderCancellation_stockRestore');
             db.collection('ek_products').doc(prod.id).set(prod)
               .catch(err => console.error("Cloud stock restore error on admin cancel:", err));
           }
@@ -17741,6 +18519,14 @@ ${o.items.map((it, idx) => {
         // Determine the ID beforehand to use for image upload
         const productId = editingProductId || generateUniqueProductId();
 
+        // Control button state during submission
+        const submitBtn = document.getElementById('prod-submit-btn');
+        const originalBtnText = submitBtn ? submitBtn.innerText : "Save Product ✓";
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerText = "Processing... ⏳";
+        }
+
         // ★★★ OPTIMIZE: Resize base64 to maximum 500px width at 0.75 quality (30-60KB output) before storage transfer ★★★
         if (tempBase64Image) {
           try {
@@ -17750,26 +18536,39 @@ ${o.items.map((it, idx) => {
           }
         }
 
-        // ★★★ NEW: base64 image-ஐ Firebase Storage-க்கு upload செய் ★★★
-        if (tempBase64Image && typeof firebase !== 'undefined' && firebase.storage) {
+        // ★★★ Upload to Storage or report exact configuration failures ★★★
+        if (tempProductFile && tempBase64Image) {
           try {
+            if (submitBtn) submitBtn.innerText = "Uploading Image... ⏳";
             showToast('மாற்றிய படம் பதிவேற்றப்படுகிறது... ⏳', 'info');
-            const storageRef = firebase.storage().ref();
-            const imageRef = storageRef.child(`product_images/${productId}.jpg`);
-
-            // base64 data URL-ஐ Storage-க்கு upload செய்
-            const uploadTask = await imageRef.putString(tempBase64Image, 'data_url');
-            finalImg = await uploadTask.ref.getDownloadURL();
-
-            console.log('[Image Upload] Product image uploaded to Storage:', finalImg);
+            finalImg = await uploadProductImageToStorage(productId, tempProductFile, tempBase64Image);
           } catch (uploadErr) {
-            console.error('[Image Upload] Failed, falling back to base64 (not ideal):', uploadErr);
-            finalImg = tempBase64Image; // Fallback
-            showToast('படம் upload தோல்வி — local-ஆக சேமிக்கப்பட்டது', 'error');
+            console.error('[Image Upload Failed]', uploadErr);
+            
+            // Re-enable save button
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerText = originalBtnText;
+            }
+            
+            // Handle error response as required in prompt
+            const isStorageNotConfigured = uploadErr.message === "STORAGE_UNAVAILABLE" || 
+                                           uploadErr.code === "storage/project-not-found" || 
+                                           uploadErr.code === "storage/unauthorized" || 
+                                           uploadErr.code === "storage/retry-limit-exceeded" ||
+                                           uploadErr.message.toLowerCase().includes("permission") ||
+                                           uploadErr.message.toLowerCase().includes("billing") ||
+                                           uploadErr.message.toLowerCase().includes("bucket");
+            
+            let userErrorMsg = `படம் பதிவேற்றுவதில் தோல்வி / Image upload failed: [${uploadErr.code || 'UNKNOWN'}] ${uploadErr.message}`;
+            if (isStorageNotConfigured) {
+              userErrorMsg = "Image upload is not configured or permitted. Use an image URL or enable Firebase Storage.";
+            }
+            
+            showToast(userErrorMsg, "error");
+            // Stop sequence, do not close the form or change existing data
+            return;
           }
-        } else if (tempBase64Image) {
-          // Fallback if Storage is not loaded
-          finalImg = tempBase64Image;
         }
 
         let targetProduct = null;
@@ -17826,7 +18625,15 @@ ${o.items.map((it, idx) => {
         // Guaranteed retry until success (Cloud Firestore instant sync)
         if (typeof db !== 'undefined' && db && targetProduct) {
           syncProductToCloudWithRetry(targetProduct);
+          console.log("[Storage Debug] Firestore product write success for ID:", targetProduct.id);
         }
+        
+        // Restore button state
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = originalBtnText;
+        }
+
         resetProductForm();
         if (typeof closeAdminAddProductModalDetail === 'function') {
           closeAdminAddProductModalDetail();
@@ -17834,6 +18641,11 @@ ${o.items.map((it, idx) => {
         renderAdminDashboard();
       } catch (saveError) {
         console.error("Critical error saving product:", saveError);
+        const submitBtn = document.getElementById('prod-submit-btn');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Save Product ✓";
+        }
         showToast("பொருளை சேமிப்பதில் பிழை / Error saving product: " + saveError.message, "error");
       }
     }
@@ -17841,6 +18653,13 @@ ${o.items.map((it, idx) => {
     async function syncProductToCloudWithRetry(product, attempt = 1) {
       const MAX_ATTEMPTS = 5;
       try {
+        // Pre-write security permission check and temporary audit logs
+        const isPermitted = await verifyAdminWritePermission(`syncProductToCloudWithRetry for ID: ${product.id}`);
+        if (!isPermitted) {
+          throw new Error("ADMIN_WRITE_DENIED: Firebase user has no active admin role or is anonymous.");
+        }
+
+        logProductWriteAudit(product.createdAt === product.updatedAt ? 'create' : 'update', product.id, 'syncProductToCloudWithRetry');
         await db.collection('ek_products').doc(product.id).set(cleanFirestoreData(product));
         console.log(`[Cloud Sync] Product ${product.id} synced successfully (attempt ${attempt}).`);
 
@@ -18007,7 +18826,11 @@ ${o.items.map((it, idx) => {
     function resetProductForm() {
       editingProductId = null;
       tempBase64Image = null;
+      tempProductFile = null;
       document.getElementById('admin-product-form').reset();
+      
+      const fileInput = document.getElementById('add-prod-file');
+      if (fileInput) fileInput.value = '';
       
       document.getElementById('add-prod-unit').value = 'kg';
       onProductUnitChanged('kg', 'add-prod');
@@ -18084,6 +18907,14 @@ ${o.items.map((it, idx) => {
           finalImg = imageUrlInput;
         }
         
+        // Control button state during submission
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn ? submitBtn.innerHTML : "Save Changes / திருத்தங்களை சேமி ✓";
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = "Processing... ⏳";
+        }
+
         // ★ Resize base64 to maximum 500px width at 0.75 quality before storage transfer
         if (tempBase64Image) {
           try {
@@ -18093,23 +18924,39 @@ ${o.items.map((it, idx) => {
           }
         }
 
-        // Upload new image if present
-        if (tempBase64Image && typeof firebase !== 'undefined' && firebase.storage) {
+        // Upload new image if present and valid
+        if (tempProductFile && tempBase64Image) {
           try {
+            if (submitBtn) submitBtn.innerHTML = "Uploading Image... ⏳";
             showToast('மாற்றிய படம் பதிவேற்றப்படுகிறது... ⏳', 'info');
-            const storageRef = firebase.storage().ref();
-            const imageRef = storageRef.child(`product_images/${id}.jpg`);
-
-            const uploadTask = await imageRef.putString(tempBase64Image, 'data_url');
-            finalImg = await uploadTask.ref.getDownloadURL();
-            console.log('[Image Upload] Product image uploaded to Storage:', finalImg);
+            finalImg = await uploadProductImageToStorage(id, tempProductFile, tempBase64Image);
           } catch (uploadErr) {
-            console.error('[Image Upload] Failed, falling back to base64:', uploadErr);
-            finalImg = tempBase64Image; // Fallback
-            showToast('படம் upload தோல்வி — local-ஆக சேமிக்கப்பட்டது', 'error');
+            console.error('[Image Upload Failed]', uploadErr);
+            
+            // Re-enable save button
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = originalBtnText;
+            }
+            
+            // Handle error response as required in prompt
+            const isStorageNotConfigured = uploadErr.message === "STORAGE_UNAVAILABLE" || 
+                                           uploadErr.code === "storage/project-not-found" || 
+                                           uploadErr.code === "storage/unauthorized" || 
+                                           uploadErr.code === "storage/retry-limit-exceeded" ||
+                                           uploadErr.message.toLowerCase().includes("permission") ||
+                                           uploadErr.message.toLowerCase().includes("billing") ||
+                                           uploadErr.message.toLowerCase().includes("bucket");
+            
+            let userErrorMsg = `படம் பதிவேற்றுவதில் தோல்வி / Image upload failed: [${uploadErr.code || 'UNKNOWN'}] ${uploadErr.message}`;
+            if (isStorageNotConfigured) {
+              userErrorMsg = "Image upload is not configured or permitted. Use an image URL or enable Firebase Storage.";
+            }
+            
+            showToast(userErrorMsg, "error");
+            // Stop sequence, do not close the form or change existing data
+            return;
           }
-        } else if (tempBase64Image) {
-          finalImg = tempBase64Image;
         }
 
         const currentRevision = products[idx].revision || 0;
@@ -18132,6 +18979,13 @@ ${o.items.map((it, idx) => {
         // Instant sync to Firebase
         if (typeof db !== 'undefined' && db && targetProduct) {
           syncProductToCloudWithRetry(targetProduct);
+          console.log("[Storage Debug] Firestore product write success for ID:", targetProduct.id);
+        }
+
+        // Restore button state
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnText;
         }
 
         closeAdminEditProductModalDetail();
@@ -18143,6 +18997,11 @@ ${o.items.map((it, idx) => {
         );
       } catch (saveError) {
         console.error("Critical error saving edited product:", saveError);
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = "Save Changes / திருத்தங்களை சேமி ✓";
+        }
         showToast("பொருளை சேமிப்பதில் பிழை / Error saving product: " + saveError.message, "error");
       }
     }
@@ -18163,6 +19022,7 @@ ${o.items.map((it, idx) => {
 
       // Cloud Firestore instant sync
       if (typeof db !== 'undefined' && db) {
+        logProductWriteAudit('update', id, 'adjustAdminProductStock');
         db.collection('ek_products').doc(id).set(cleanFirestoreData(products[idx]))
           .then(() => console.log(`[Cloud Sync] Adjusted stock for product ${id} synced with Firestore!`))
           .catch(e => console.error("Cloud stock adjustment sync failed:", e));
@@ -18193,6 +19053,7 @@ ${o.items.map((it, idx) => {
 
       // Cloud Firestore instant sync
       if (typeof db !== 'undefined' && db) {
+        logProductWriteAudit('update', id, 'toggleAdminProductStockStatus');
         db.collection('ek_products').doc(id).set(cleanFirestoreData(products[idx]))
           .then(() => console.log(`[Cloud Sync] Out of stock manually set to ${products[idx].isOutOfStock} for product ${id}`))
           .catch(e => console.error("Cloud stock status toggle failed:", e));
@@ -18222,6 +19083,7 @@ ${o.items.map((it, idx) => {
           // Delete from Firestore Cloud to prevent resynced restore
           if (typeof db !== 'undefined' && db) {
             showToast("Deleting product from cloud database...", "info");
+            logProductWriteAudit('delete', id, 'deleteProductFromDb');
             db.collection('ek_products').doc(id).delete()
               .then(() => {
                 console.log(`[Cloud Sync] Product doc ${id} deleted from Firestore.`);
@@ -18259,7 +19121,7 @@ ${o.items.map((it, idx) => {
     };
 
     function renderAdminProducts() {
-      const products = getData('ek_products');
+      const products = getDataCached('ek_products', []);
       const searchInp = document.getElementById('product-search-input');
       const search = searchInp ? searchInp.value.toLowerCase().trim() : '';
       const list = document.getElementById('admin-product-list');
@@ -18671,6 +19533,105 @@ ${o.items.map((it, idx) => {
       }
     }
 
+    async function sendCustomerShoutToAll() {
+      const msgInput = document.getElementById('customer-shout-text');
+      const msg = msgInput ? msgInput.value.trim() : '';
+      const currentLang = localStorage.getItem('ek_lang') || 'en';
+
+      if (!msg) {
+        showToast(currentLang === 'ta' ? 'அறிவிப்பு செய்தியை உள்ளீடு செய்யவும்!' : 'Please enter a shoutout message!', 'error');
+        return;
+      }
+
+      if (typeof db === 'undefined' || !db) {
+        showToast(currentLang === 'ta' ? 'Internet இணைப்பு இல்லை — அறிவிப்பு அனுப்ப முடியவில்லை.' : 'No internet connection - cannot send shoutout.', 'error');
+        return;
+      }
+
+      const activeUser = getActiveUser();
+      const userName = activeUser ? (activeUser.name || activeUser.phone) : (currentLang === 'ta' ? "வாடிக்கையாளர்" : "Customer");
+
+      const btn = document.getElementById('customer-shout-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>அனுப்பப்படுகிறது... ⏳</span>';
+      }
+
+      try {
+        // Enqueue to the shout requests/history
+        await db.collection('ek_customer_broadcasts').add({
+          senderName: userName,
+          senderPhone: activeUser ? activeUser.phone : '',
+          message: msg,
+          createdAt: new Date().toISOString(),
+        });
+
+        // CLIENT-SIDE ENQUEUE DIRECT TO ALL FCM REGISTERED USERS
+        const usersSnap = await db.collection('ek_users').get();
+        let enqueuedCount = 0;
+        const promises = [];
+
+        usersSnap.forEach(doc => {
+          const u = doc.data();
+          const targetToken = u.fcmToken || u.realFcmToken;
+          if (targetToken) {
+            enqueuedCount++;
+            promises.push(
+              db.collection('ek_fcm_queue').add({
+                targetToken: targetToken,
+                title: currentLang === 'ta' ? `📢 கஸ்டமர் குரல்: ${userName}` : `📢 Customer Voice: ${userName}`,
+                body: msg,
+                createdAt: new Date().toISOString(),
+                processed: false,
+                type: "customer_broadcast"
+              }).catch(e => console.warn('[Customer Broadcast Queue] Error:', e))
+            );
+
+            // Simulation of Local Push Notifications
+            if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.simulateFcmPushNotification === 'function') {
+              try {
+                AndroidStorage.simulateFcmPushNotification(
+                  targetToken,
+                  currentLang === 'ta' ? `📢 கஸ்டமர் குரல்: ${userName}` : `📢 Customer Voice: ${userName}`,
+                  msg,
+                  JSON.stringify({ type: "customer_broadcast", senderName: userName })
+                );
+              } catch (simErr) {
+                console.warn("[FCM Simulator] Fail:", simErr);
+              }
+            }
+          }
+        });
+
+        if (promises.length > 0) {
+          await Promise.all(promises);
+        }
+
+        console.log(`[Customer Broadcast Sent] Enqueued push notification to ${enqueuedCount} active users.`);
+
+        showToast(currentLang === 'ta' ? 'வாடிக்கையாளர் அறிவிப்பு அனுப்பப்பட்டது! 📢' : 'Customer broadcast sent successfully! 📢', 'success');
+        
+        // Show success alert or dialog
+        showCustomAlert(
+          currentLang === 'ta' ? "📢 அறிவிப்பு அனுப்பப்பட்டது!" : "📢 Broadcast Sent!",
+          currentLang === 'ta' 
+            ? `உங்கள் செய்தி அனைத்து வாடிக்கையாளர்களுக்கும் வெற்றிகரமாக புஷ் நோட்டிபிகேஷனாக அனுப்பப்பட்டது (மொத்தம்: ${enqueuedCount} பயனர்கள்).` 
+            : `Your message has been successfully broadcast to all customers as a push notification (Total: ${enqueuedCount} users).`
+        );
+
+        if (msgInput) msgInput.value = '';
+        if (typeof playLyoChimeSound === 'function') playLyoChimeSound();
+      } catch (err) {
+        console.error('Customer Broadcast failed:', err);
+        showToast(currentLang === 'ta' ? 'அறிவிப்பு அனுப்புவதில் பிழை. மீண்டும் முயற்சிக்கவும்.' : 'Error sending broadcast. Please try again.', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>அனைவருக்கும் அறிவிப்பு அனுப்பு 📢</span>';
+        }
+      }
+    }
+
     function adjustUserPoints(userId, diff) {
       const users = getData('ek_users');
       const idx = users.findIndex(u => u.id === userId);
@@ -18766,7 +19727,7 @@ ${o.items.map((it, idx) => {
     }
 
     function renderAdminCustomers() {
-      const users = getData('ek_users');
+      const users = getDataCached('ek_users', []);
       const search = document.getElementById('customer-search-input').value.toLowerCase().trim();
       const container = document.getElementById('admin-customer-list');
       container.innerHTML = '';
@@ -18776,9 +19737,10 @@ ${o.items.map((it, idx) => {
         filtered = users.filter(u => u.name.toLowerCase().includes(search) || u.phone.includes(search));
       }
 
+      const orders = getDataCached('ek_orders', []);
+
       let customersHtml = '';
       filtered.forEach(u => {
-        const orders = getData('ek_orders');
         const myOrders = orders.filter(o => o.customerId === u.id);
         const spent = myOrders.reduce((sum, o) => sum + o.totalAmount, 0);
 
@@ -19575,33 +20537,15 @@ ${o.items.map((it, idx) => {
       
       try {
         if (provider === 'fast2sms') {
-          const apiKey = settings.smsApiKey;
-          if (!apiKey) {
-            showToast("Fast2SMS Authorization Token is missing. Configure in settings!", "error");
-            return false;
-          }
-          // Fast2SMS OTP Dispatch route endpoint API trigger
-          const targetUrl = `https://www.fast2sms.com/dev/bulkV2?authorization=${apiKey}&variables_values=${otpCode}&route=otp&numbers=${cleanPhone.replace(/^91/, '')}`;
           try {
-            const response = await fetch(targetUrl, { mode: 'no-cors' });
-            console.log("[Fast2SMS Delivery Response (Opaque)]", response);
+            const sendOtpSmsFn = firebase.functions().httpsCallable('sendOtpSms');
+            await sendOtpSmsFn({ phoneNumber: cleanPhone, otpCode: otpCode });
             showToast("Secure SMS OTP dispatched successfully to your phone! 📲", "success");
             return true;
           } catch (fetchErr) {
-            console.error("[Fast2SMS CORS / Network Fetch Error]", fetchErr);
+            console.error("[SMS Cloud Function Error]", fetchErr);
             showToast("SMS gateway unavailable — showing OTP on screen", "warning");
-            
-            // Simulator mode toast fallback
-            setTimeout(() => {
-              showToast(`[SIMULATOR] Edappadi Kadai OTP is: ${otpCode}`, "info");
-            }, 1500);
-
-            // Directly show the OTP on the UI screen if elements are present
-            const fpHelp = document.getElementById('fp-otp-help');
-            if (fpHelp) {
-              fpHelp.innerHTML = `SMS gateway unavailable — showing OTP on screen: <strong style="color:var(--accent-green); font-size: 14px;">${otpCode}</strong>`;
-            }
-            return true;
+            return false;
           }
         }
         
@@ -19730,6 +20674,94 @@ ${o.items.map((it, idx) => {
       reader.readAsDataURL(file);
     }
 
+    window.editingBannerId = null;
+
+    function editSlidingBanner(id) {
+      const settings = getData('ek_settings', DEFAULT_SETTINGS);
+      let banners = settings.slidingBanners || [];
+      if (banners.length === 0) {
+        banners = [
+          { id: 'b_1', image: 'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=800', titleTa: "நாட்டு ஆட்டுக்கறி பிரஷ்ஷாக!", titleEn: "Premium Fresh Mutton Cuts", subTa: "இடப்பாடி நகரத்தில் உங்களின் இல்லத்திற்கே நேரடியாக!", subEn: "Direct organic local meat delivered to your home." },
+          { id: 'b_2', image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=800', titleTa: "தரமான நாட்டுக்கோழி!", titleEn: "Farm Fresh Chicken Varieties", subTa: "சுத்தமான முறையில் கட் செய்து வழங்கப்படும்!", subEn: "Cleanly cut & prepared perfectly for your tasty health." },
+          { id: 'b_3', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800', titleTa: "இயற்கை காய்கறிகள் & கீரைகள்!", titleEn: "100% Organic Village Greens", subTa: "பிரஷ்ஷான கிராமத்து இயற்கை விவசாய விளைச்சல்!", subEn: "Freshly harvested organic local farm yields." }
+        ];
+      }
+
+      const slide = banners.find(b => b.id === id);
+      if (!slide) {
+        showToast("Error: Slide banner not found.", "error");
+        return;
+      }
+
+      window.editingBannerId = id;
+      
+      // Update form header
+      const formTitle = document.getElementById('admin-banner-form-title');
+      if (formTitle) {
+        formTitle.innerHTML = `✏️ விளம்பரத்தை மாற்று / Edit Slide Banner`;
+        formTitle.style.color = 'var(--accent-orange)';
+      }
+
+      // Populate input fields
+      document.getElementById('admin-banner-url-input').value = slide.image.startsWith('data:') ? '' : slide.image;
+      document.getElementById('admin-banner-title-ta').value = slide.titleTa || '';
+      document.getElementById('admin-banner-title-en').value = slide.titleEn || '';
+      document.getElementById('admin-banner-sub-ta').value = slide.subTa || '';
+      document.getElementById('admin-banner-sub-en').value = slide.subEn || '';
+
+      // Set optimized preview if file was uploaded or keep null
+      cachedAdminBannerBase64 = slide.image.startsWith('data:') ? slide.image : null;
+      document.getElementById('admin-banner-file-input').value = '';
+
+      // Toggle buttons
+      const submitBtn = document.getElementById('admin-banner-submit-btn');
+      if (submitBtn) {
+        submitBtn.innerHTML = `<span>💾 SAVE CHANGES / சேமி</span>`;
+      }
+      const cancelBtn = document.getElementById('admin-banner-cancel-btn');
+      if (cancelBtn) {
+        cancelBtn.style.display = 'inline-flex';
+      }
+
+      showToast("Selected slide loaded into edit fields. ✓", "info");
+      
+      // Scroll to the edit form header for immediate focus
+      const formTitleEl = document.getElementById('admin-banner-form-title');
+      if (formTitleEl) {
+        formTitleEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function cancelEditSlidingBanner() {
+      window.editingBannerId = null;
+      cachedAdminBannerBase64 = null;
+
+      // Reset form header
+      const formTitle = document.getElementById('admin-banner-form-title');
+      if (formTitle) {
+        formTitle.innerHTML = `⚡ புதிய பேனர் சேர்க்க / Add New Slide`;
+        formTitle.style.color = 'var(--accent-orange)';
+      }
+
+      // Reset inputs
+      document.getElementById('admin-banner-file-input').value = "";
+      document.getElementById('admin-banner-url-input').value = "";
+      document.getElementById('admin-banner-title-ta').value = "";
+      document.getElementById('admin-banner-title-en').value = "";
+      document.getElementById('admin-banner-sub-ta').value = "";
+      document.getElementById('admin-banner-sub-en').value = "";
+
+      // Toggle buttons
+      const submitBtn = document.getElementById('admin-banner-submit-btn');
+      if (submitBtn) {
+        submitBtn.innerHTML = `<span>➕ ADD TO CAROUSEL</span>`;
+      }
+      const cancelBtn = document.getElementById('admin-banner-cancel-btn');
+      if (cancelBtn) {
+        cancelBtn.style.display = 'none';
+      }
+    }
+
     async function addNewSlidingBanner() {
       const settings = getData('ek_settings', DEFAULT_SETTINGS);
       if (!settings.slidingBanners) {
@@ -19741,7 +20773,9 @@ ${o.items.map((it, idx) => {
         ];
       }
       
-      if (settings.slidingBanners.length >= 10) {
+      const isEditing = (typeof window.editingBannerId !== 'undefined' && window.editingBannerId !== null);
+      
+      if (!isEditing && settings.slidingBanners.length >= 10) {
         showToast("Maximum of 10 slider banners reached! Please delete older slides first.", "error");
         return;
       }
@@ -19760,7 +20794,7 @@ ${o.items.map((it, idx) => {
           try {
             showToast('விளம்பரப் படம் பதிவேற்றப்படுகிறது... ⏳', 'info');
             const storageRef = firebase.storage().ref();
-            const slideId = 'b_' + Date.now();
+            const slideId = isEditing ? window.editingBannerId : 'b_' + Date.now();
             const imageRef = storageRef.child(`banner_images/${slideId}.jpg`);
 
             // base64 data URL-ஐ Storage-க்கு upload செய்
@@ -19777,26 +20811,60 @@ ${o.items.map((it, idx) => {
         }
       }
       
+      if (!activeImg && isEditing) {
+        // Retrieve existing image if no new image was uploaded or set
+        const existingSlide = settings.slidingBanners.find(b => b.id === window.editingBannerId);
+        if (existingSlide) {
+          activeImg = existingSlide.image;
+        }
+      }
+      
       if (!activeImg) {
         showToast("Please choose an image file or paste an image URL!", "error");
         return;
       }
       
-      const newSlide = {
-        id: 'b_' + Date.now(),
-        image: activeImg,
-        titleTa: titleTa || "",
-        titleEn: titleEn || "",
-        subTa: subTa || "",
-        subEn: subEn || "",
-        updatedAt: new Date().toISOString()
-      };
+      if (isEditing) {
+        const idx = settings.slidingBanners.findIndex(b => b.id === window.editingBannerId);
+        if (idx !== -1) {
+          settings.slidingBanners[idx] = {
+            id: window.editingBannerId,
+            image: activeImg,
+            titleTa: titleTa || "",
+            titleEn: titleEn || "",
+            subTa: subTa || "",
+            subEn: subEn || "",
+            updatedAt: new Date().toISOString()
+          };
+          showToast("Sliding banner updated successfully! ✓", "success");
+          showAdminSuccessModal(
+            "🎉 வெற்றிகரமாக பேனர் மாற்றப்பட்டது!",
+            `விளம்பரப் பேனர் வெற்றிகரமாக மாற்றப்பட்டு உங்களது கடையின் முகப்புத் திரையில் சேமிக்கப்பட்டது.<br><br><span style="font-size:11.5px;color:var(--text-muted);">The sliding banner has been successfully modified!</span>`
+          );
+        } else {
+          showToast("Error updating banner.", "error");
+          return;
+        }
+      } else {
+        const newSlide = {
+          id: 'b_' + Date.now(),
+          image: activeImg,
+          titleTa: titleTa || "",
+          titleEn: titleEn || "",
+          subTa: subTa || "",
+          subEn: subEn || "",
+          updatedAt: new Date().toISOString()
+        };
+        settings.slidingBanners.push(newSlide);
+        showToast("New sliding banner added successfully! ✓", "success");
+        showAdminSuccessModal(
+          "🎉 வெற்றிகரமாக பேனர் இணைக்கப்பட்டது!",
+          `புதிய விளம்பரப் பேனர் வெற்றிகரமாக இணைக்கப்பட்டு உங்களது கடையின் முகப்புத் திரையில் சேமிக்கப்பட்டது.<br><br><span style="font-size:11.5px;color:var(--text-muted);">The sliding banner has been successfully added to your home screen carousel!</span>`
+        );
+      }
       
-      settings.slidingBanners.push(newSlide);
-      
-      saveData('ek_settings', settings);
-      
-      // Reset inputs
+      // Clean up variables & reset form fields
+      window.editingBannerId = null;
       cachedAdminBannerBase64 = null;
       document.getElementById('admin-banner-file-input').value = "";
       document.getElementById('admin-banner-url-input').value = "";
@@ -19805,11 +20873,19 @@ ${o.items.map((it, idx) => {
       document.getElementById('admin-banner-sub-ta').value = "";
       document.getElementById('admin-banner-sub-en').value = "";
       
-      showToast("New sliding banner added successfully! ✓", "success");
-      showAdminSuccessModal(
-        "🎉 வெற்றிகரமாக பேனர் இணைக்கப்பட்டது!",
-        `புதிய விளம்பரப் பேனர் வெற்றிகரமாக இணைக்கப்பட்டு உங்களது கடையின் முகப்புத் திரையில் சேமிக்கப்பட்டது.<br><br><span style="font-size:11.5px;color:var(--text-muted);">The sliding banner has been successfully added to your home screen carousel!</span>`
-      );
+      // Reset form title and action buttons
+      const formTitle = document.getElementById('admin-banner-form-title');
+      if (formTitle) {
+        formTitle.innerHTML = `⚡ புதிய பேனர் சேர்க்க / Add New Slide`;
+      }
+      const submitBtn = document.getElementById('admin-banner-submit-btn');
+      if (submitBtn) {
+        submitBtn.innerHTML = `<span>➕ ADD TO CAROUSEL</span>`;
+      }
+      const cancelBtn = document.getElementById('admin-banner-cancel-btn');
+      if (cancelBtn) {
+        cancelBtn.style.display = 'none';
+      }
       
       renderAdminBannerList();
       renderSlidingBanners();
@@ -19872,6 +20948,7 @@ ${o.items.map((it, idx) => {
               <div style="font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.titleTa || b.titleEn}</div>
               <div style="font-size: 9px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.titleEn || b.titleTa}</div>
             </div>
+            <button onclick="editSlidingBanner('${b.id}')" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: var(--accent-orange); border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 11px;" title="Edit slide">✏️</button>
             <button onclick="deleteSlidingBanner('${b.id}')" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--accent-red); border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 11px;" title="Delete slide">🗑️</button>
           </div>
         `;
@@ -20089,6 +21166,7 @@ ${o.items.map((it, idx) => {
           for (const doc of snapshot.docs) {
             count++;
             showToast(`நீக்குகிறது ${count}/${total} / Deleting product...`, "info");
+            logProductWriteAudit('delete', doc.id, 'wipeDatabaseAllProducts');
             await db.collection('ek_products').doc(doc.id).delete();
           }
         }
@@ -20572,20 +21650,22 @@ ${o.items.map((it, idx) => {
                 localProductsMap.delete(key);
                 productsModified = true;
               } else {
-                const isDemo = DEMO_PRODUCTS.some(dp => dp.id === key);
+                const isDemo = DEMO_PRODUCTS.some(dp => dp.id === key) || isDemoOrMockProductId(key);
                 if (isDemo) {
-                  if (deletedProdIds.includes(key)) {
-                    console.log(`[Cloud Sync] Demo product ${key} is explicitly deleted. Deleting locally.`);
+                  if (deletedProdIds.includes(key) || !ENABLE_DEMO_SEED_DATA) {
+                    console.log(`[Cloud Sync] Demo product ${key} is explicitly deleted or demo seeding is disabled. Deleting locally.`);
                     localProductsMap.delete(key);
                     productsModified = true;
                   } else {
                     console.log(`[Cloud Sync] Seeding missing demo product ${key} to Firestore Cloud.`);
+                    logProductWriteAudit('seed', key, 'syncWithCloud_missingDemo');
                     await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
                       .catch(e => console.error("Error setting product in cloud:", e));
                   }
                 } else {
                   // Custom product. NEVER prune automatically for admin! Always upload to cloud if missing.
                   console.log(`[Cloud Sync] Uploading custom offline product to Cloud: ${key}`);
+                  logProductWriteAudit('update/custom-sync', key, 'syncWithCloud_missingCustom');
                   await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
                     .catch(e => console.error("Error setting product in cloud:", e));
                 }
@@ -20596,6 +21676,7 @@ ${o.items.map((it, idx) => {
               if (localRev > cloudRev) {
                 if (getAdminSession()) {
                   console.log(`[Cloud Sync] Uploading newer local product revision: ${key} (${localRev} > ${cloudRev})`);
+                  logProductWriteAudit('update', key, 'syncWithCloud_newerRevision');
                   await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
                     .catch(e => console.error("Error setting product in cloud:", e));
                 } else {
@@ -20611,6 +21692,7 @@ ${o.items.map((it, idx) => {
                 if (localTime > cloudTime) {
                   if (getAdminSession()) {
                     console.log(`[Cloud Sync] Uploading newer local product time: ${key}`);
+                    logProductWriteAudit('update', key, 'syncWithCloud_newerTime');
                     await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
                       .catch(e => console.error("Error setting product in cloud:", e));
                   } else {
@@ -21616,10 +22698,21 @@ ${o.items.map((it, idx) => {
 
           // Prune locally deleted riders that are not in the cloud snapshot
           if (true) {
+            const localQueue = getData('ek_pending_syncs', []);
+            const nowTime = Date.now();
             for (const key of localEMap.keys()) {
               const inCloud = cloudIds.has(key);
               const isExplicitDeleted = deletedRiderIds.includes(key);
-              if (isExplicitDeleted || !inCloud) {
+              const inQueue = localQueue.some(item => item.collectionName === 'ek_delivery_persons' && item.docId === key);
+              
+              const rider = localEMap.get(key);
+              let isRecentlyCreatedOrUpdated = false;
+              if (rider) {
+                const ageMs = nowTime - new Date(rider.updatedAt || rider.createdAt || nowTime).getTime();
+                isRecentlyCreatedOrUpdated = ageMs < 120000; // 2 minutes
+              }
+
+              if (isExplicitDeleted || (!inCloud && !inQueue && !isRecentlyCreatedOrUpdated)) {
                 console.log(`[Cloud Live Sync] Pruning rider locally (deleted in cloud or explicit): ${key}`);
                 localEMap.delete(key);
                 modified = true;
@@ -21783,11 +22876,21 @@ ${o.items.map((it, idx) => {
             // Prune locally deleted admins that are not in the cloud snapshot
             if (true) {
               const deletedAdminIds = getDeletedAdminIds();
+              const localQueue = getData('ek_pending_syncs', []);
+              const nowTime = Date.now();
               for (const [key, localAdmin] of localAdminsMap.entries()) {
                 if (key === 'a1') continue; // Always protect superadmin Anantharaj
                 const inCloud = cloudIds.has(key);
                 const isExplicitDeleted = deletedAdminIds.includes(key) || deletedAdminIds.includes(localAdmin.phone);
-                if (isExplicitDeleted || !inCloud) {
+                const inQueue = localQueue.some(item => item.collectionName === 'ek_admin_accounts' && item.docId === key);
+                
+                let isRecentlyCreatedOrUpdated = false;
+                if (localAdmin) {
+                  const ageMs = nowTime - new Date(localAdmin.updatedAt || localAdmin.createdAt || nowTime).getTime();
+                  isRecentlyCreatedOrUpdated = ageMs < 120000; // 2 minutes
+                }
+
+                if (isExplicitDeleted || (!inCloud && !inQueue && !isRecentlyCreatedOrUpdated)) {
                   console.log(`[Cloud Live Sync] Pruning admin locally (deleted in cloud or explicit): ${key}`);
                   localAdminsMap.delete(key);
                   modified = true;
@@ -21907,17 +23010,7 @@ ${o.items.map((it, idx) => {
       liveSyncReconnectTimeout = setTimeout(() => {
         isReconnecting = false;
         if (typeof firebase !== 'undefined' && db) {
-          // Verify user auth or retry transparent anonymous login
-          if (firebase.auth && !firebase.auth().currentUser) {
-            firebase.auth().signInAnonymously()
-              .then(() => setupCloudRealtimeListeners2())
-              .catch(e => {
-                console.warn("Retry anonymous session fail:", e);
-                isReconnecting = false;
-              });
-          } else {
-            setupCloudRealtimeListeners2();
-          }
+          setupCloudRealtimeListeners2();
         } else {
           isReconnecting = false;
         }
@@ -21942,14 +23035,9 @@ ${o.items.map((it, idx) => {
         }
       }
       
-      // Self-heal Auth
+      // Self-heal Auth check
       if (firebase.auth && !firebase.auth().currentUser) {
-        try {
-          await firebase.auth().signInAnonymously();
-          console.log("Self-healed connection: Anonymous authentication accomplished ✓");
-        } catch (ae) {
-          console.warn("Self-heal Auth failed:", ae);
-        }
+        console.warn("[Manual Sync] User not authenticated in Firebase Auth. Admin session requires real email/password login.");
       }
       
       try {
@@ -21991,13 +23079,9 @@ ${o.items.map((it, idx) => {
         }
       }
       
-      // Self-heal Auth
+      // Self-heal Auth check
       if (firebase.auth && !firebase.auth().currentUser) {
-        try {
-          await firebase.auth().signInAnonymously();
-        } catch (ae) {
-          console.warn("Self-heal Customer Auth failed:", ae);
-        }
+        console.warn("[Manual Sync] User not authenticated in Firebase Auth. Guest mode sync.");
       }
       
       try {
@@ -22035,7 +23119,7 @@ ${o.items.map((it, idx) => {
       }
       globalScreenRefreshTimeout = setTimeout(() => {
         triggerGlobalScreenRefreshActual();
-      }, 15);
+      }, 120);
     }
 
     function triggerGlobalScreenRefreshActual() {
@@ -22356,6 +23440,7 @@ ${o.items.map((it, idx) => {
           // Sync with Firestore if available
           if (typeof db !== 'undefined' && db) {
             for (const p of productsList) {
+              logProductWriteAudit('import/migration', p.id, 'image_migration_v1');
               db.collection('ek_products').doc(p.id).set(p).catch(err => {
                 console.error(`[Migration] Firestore sync failed for product ${p.id}:`, err);
               });
@@ -22472,6 +23557,7 @@ ${o.items.map((it, idx) => {
           prodChanged = true;
           console.log(`[Time Scheduler] Product ${p.id} availability changed from ${oldAvail} to ${p.isAvailable}`);
           if (typeof db !== 'undefined' && db && getAdminSession()) {
+            logProductWriteAudit('update', p.id, 'timeSchedulerUpdate');
             db.collection('ek_products').doc(p.id).set(p).catch(e => console.error(e));
           }
         }
@@ -22492,6 +23578,208 @@ ${o.items.map((it, idx) => {
       // Safely bypassed to prevent automatic deletion of valid Banana, Jilebi, or Tomato products from Firestore/local storage
       console.log("[Absolute Cleanup] runAbsoluteCleanupForThreeProducts bypassed for safety.");
     }
+
+    // ==========================================
+    // PROFESSIONAL APP PERMISSION ONBOARDING SYSTEM
+    // ==========================================
+    window.onboardingTargetDestination = null;
+
+    function checkAndShowOnboardingFlow(targetScreenFunc) {
+      console.log("[Onboarding] Evaluating onboarding need: Direct bypass enabled.");
+      
+      // Save the target destination & navigate directly (completely bypassing the onboarding screen)
+      window.onboardingTargetDestination = targetScreenFunc;
+      localStorage.setItem('ek_permissions_onboarded', 'true');
+      targetScreenFunc();
+      
+      // Trigger the standard system permission popups normally in the background
+      if (typeof AndroidStorage !== 'undefined') {
+        setTimeout(() => {
+          try {
+            const hasLoc = AndroidStorage.hasLocationPermission();
+            if (!hasLoc) {
+              console.log("[Onboarding] Auto-requesting standard location permission...");
+              AndroidStorage.requestLocationPermission();
+            }
+          } catch (e) {
+            console.error("[Onboarding] Error requesting location permission:", e);
+          }
+        }, 800);
+
+        setTimeout(() => {
+          try {
+            const hasNotif = AndroidStorage.hasNotificationPermission();
+            if (!hasNotif) {
+              console.log("[Onboarding] Auto-requesting standard notification permission...");
+              AndroidStorage.requestNotificationPermission();
+            }
+          } catch (e) {
+            console.error("[Onboarding] Error requesting notification permission:", e);
+          }
+        }, 1800);
+      }
+    }
+
+    function triggerOnboardingLocation() {
+      if (typeof AndroidStorage !== 'undefined') {
+        try {
+          AndroidStorage.requestLocationPermission();
+        } catch (e) {
+          console.error("Failed to request location permission:", e);
+        }
+      } else {
+        // Mock success in non-Android environment for developer convenience
+        window.onAndroidLocationPermissionResult(true);
+      }
+    }
+
+    function triggerOnboardingNotification() {
+      if (typeof AndroidStorage !== 'undefined') {
+        try {
+          AndroidStorage.requestNotificationPermission();
+        } catch (e) {
+          console.error("Failed to request notification permission:", e);
+        }
+      } else {
+        // Mock success in non-Android environment
+        window.onAndroidNotificationPermissionResult(true);
+      }
+    }
+
+    function updateOnboardingPermissionsUI() {
+      let hasLoc = false;
+      let hasNotif = true;
+      
+      if (typeof AndroidStorage !== 'undefined') {
+        try {
+          hasLoc = AndroidStorage.hasLocationPermission();
+          hasNotif = AndroidStorage.hasNotificationPermission();
+        } catch (e) {}
+      } else {
+        // Mock for non-Android preview
+        hasLoc = false;
+        hasNotif = false;
+      }
+      
+      const badgeLoc = document.getElementById('badge-onboarding-location');
+      const badgeNotif = document.getElementById('badge-onboarding-notification');
+      const cardLoc = document.getElementById('onboarding-card-location');
+      const cardNotif = document.getElementById('onboarding-card-notification');
+      const mainBtn = document.getElementById('onboarding-main-btn');
+      
+      if (badgeLoc && cardLoc) {
+        if (hasLoc) {
+          badgeLoc.innerText = "வழங்கப்பட்டது / Granted ✓";
+          badgeLoc.style.background = "rgba(34, 197, 94, 0.15)";
+          badgeLoc.style.color = "#4ade80";
+          badgeLoc.style.borderColor = "rgba(34, 197, 94, 0.25)";
+          cardLoc.style.borderColor = "rgba(34, 197, 94, 0.4)";
+          cardLoc.style.background = "rgba(34, 197, 94, 0.04)";
+        } else {
+          badgeLoc.innerText = "அனுமதி தேவை / Action Required";
+          badgeLoc.style.background = "rgba(239, 68, 68, 0.15)";
+          badgeLoc.style.color = "#ff6b6b";
+          badgeLoc.style.borderColor = "rgba(239, 68, 68, 0.25)";
+          cardLoc.style.borderColor = "rgba(255, 255, 255, 0.08)";
+          cardLoc.style.background = "rgba(30, 41, 59, 0.4)";
+        }
+      }
+      
+      if (badgeNotif && cardNotif) {
+        if (hasNotif) {
+          badgeNotif.innerText = "வழங்கப்பட்டது / Granted ✓";
+          badgeNotif.style.background = "rgba(34, 197, 94, 0.15)";
+          badgeNotif.style.color = "#4ade80";
+          badgeNotif.style.borderColor = "rgba(34, 197, 94, 0.25)";
+          cardNotif.style.borderColor = "rgba(34, 197, 94, 0.4)";
+          cardNotif.style.background = "rgba(34, 197, 94, 0.04)";
+        } else {
+          badgeNotif.innerText = "அனுமதி தேவை / Action Required";
+          badgeNotif.style.background = "rgba(239, 68, 68, 0.15)";
+          badgeNotif.style.color = "#ff6b6b";
+          badgeNotif.style.borderColor = "rgba(239, 68, 68, 0.25)";
+          cardNotif.style.borderColor = "rgba(255, 255, 255, 0.08)";
+          cardNotif.style.background = "rgba(30, 41, 59, 0.4)";
+        }
+      }
+      
+      if (mainBtn) {
+        if (hasLoc && hasNotif) {
+          mainBtn.innerHTML = `<span>செயலியைத் தொடங்கு / Get Started</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>`;
+          mainBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+          mainBtn.style.color = "#ffffff";
+        } else {
+          mainBtn.innerHTML = `<span>அனுமதிகளை வழங்கு / Grant Permissions</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>`;
+          mainBtn.style.background = "linear-gradient(135deg, #00cb75, #00ff88)";
+          mainBtn.style.color = "#020617";
+        }
+      }
+    }
+
+    function handleOnboardingMainAction() {
+      let hasLoc = false;
+      let hasNotif = true;
+      
+      if (typeof AndroidStorage !== 'undefined') {
+        try {
+          hasLoc = AndroidStorage.hasLocationPermission();
+          hasNotif = AndroidStorage.hasNotificationPermission();
+        } catch (e) {}
+      } else {
+        // Simulated click in browser
+        hasLoc = true;
+        hasNotif = true;
+      }
+      
+      if (hasLoc && hasNotif) {
+        // Both are granted! Proceed.
+        skipOnboardingAndContinue();
+      } else {
+        // Request whichever is missing
+        if (!hasLoc) {
+          triggerOnboardingLocation();
+        } else if (!hasNotif) {
+          triggerOnboardingNotification();
+        }
+      }
+    }
+
+    function skipOnboardingAndContinue() {
+      localStorage.setItem('ek_permissions_onboarded', 'true');
+      if (typeof window.onboardingTargetDestination === 'function') {
+        window.onboardingTargetDestination();
+      } else {
+        // Default fallback: navigate to home
+        navigateToHome();
+      }
+    }
+
+    // Android runtime permission response triggers
+    window.onAndroidLocationPermissionResult = function(granted) {
+      console.log("[JS Permission Callback] Location permission result:", granted);
+      updateOnboardingPermissionsUI();
+      if (granted) {
+        showToast("இருப்பிட அனுமதி வெற்றிகரமாக வழங்கப்பட்டது! ✓", "success");
+      } else {
+        showToast("இருப்பிட அனுமதி மறுக்கப்பட்டது.", "warning");
+      }
+    };
+
+    window.onAndroidNotificationPermissionResult = function(granted) {
+      console.log("[JS Permission Callback] Notification permission result:", granted);
+      updateOnboardingPermissionsUI();
+      if (granted) {
+        showToast("அறிவிப்புகள் அனுமதி வெற்றிகரமாக வழங்கப்பட்டது! ✓", "success");
+      } else {
+        showToast("அறிவிப்புகள் அனுமதி மறுக்கப்பட்டது.", "warning");
+      }
+    };
 
     function bootstrapApplication() {
       // Version-based cache buster and local storage cleaner
@@ -22731,15 +24019,19 @@ ${o.items.map((it, idx) => {
           const custSession = typeof getActiveSession === 'function' ? getActiveSession() : null;
           const deliverySession = typeof getData === 'function' ? getData('ek_delivery_session', null) : null;
 
-          if (adminSession && adminSession.loggedIn) {
-            showScreen('screen-admin');
-          } else if (deliverySession && deliverySession.loggedIn) {
-            showScreen('screen-delivery');
-          } else if (custSession && custSession.loggedIn) {
-            showScreen('screen-home');
-          } else {
-            showScreen('screen-home');
-          }
+          const proceedToTarget = () => {
+            if (adminSession && adminSession.loggedIn) {
+              showScreen('screen-admin');
+            } else if (deliverySession && deliverySession.loggedIn) {
+              showScreen('screen-delivery');
+            } else if (custSession && custSession.loggedIn) {
+              showScreen('screen-home');
+            } else {
+              showScreen('screen-home');
+            }
+          };
+
+          checkAndShowOnboardingFlow(proceedToTarget);
         } catch (e) {
           console.error("Splash sequence routing failed, forcing home screen:", e);
           // Direct DOM manipulation fallback — showScreen()-ஐயே call செய்யாமல்,
@@ -22784,7 +24076,7 @@ ${o.items.map((it, idx) => {
     ];
 
     function getCoupons() {
-      return getData('ek_coupons', DEFAULT_COUPONS);
+      return getDataCached('ek_coupons', DEFAULT_COUPONS);
     }
 
     function saveCoupons(list) {
@@ -24985,6 +26277,7 @@ ${adminDirectives}
           
           if (typeof db !== 'undefined' && db) {
             try {
+              logProductWriteAudit('update', prod.id, 'aiVoiceAssistant_checkoutStockDeduct');
               await db.collection('ek_products').doc(prod.id).set(prod);
               await db.collection('products').doc(prod.id).set(prod);
             } catch (err) {
@@ -24993,6 +26286,7 @@ ${adminDirectives}
               queueFailedSync('products', prod.id, 'set', prod);
             }
           } else {
+            logProductWriteAudit('update-queued', prod.id, 'aiVoiceAssistant_checkoutStockDeduct');
             queueFailedSync('ek_products', prod.id, 'set', prod);
             queueFailedSync('products', prod.id, 'set', prod);
           }

@@ -155,15 +155,33 @@ class MainActivity : ComponentActivity() {
         }
         pendingGeolocationCallback = null
         pendingGeolocationOrigin = null
+        runOnUiThread {
+            webView?.evaluateJavascript(
+                "javascript:(function() { " +
+                "  if (typeof onAndroidLocationPermissionResult === 'function') { " +
+                "    onAndroidLocationPermissionResult(${fineGranted || coarseGranted}); " +
+                "  } " +
+                "})()", null
+            )
+        }
     }
 
-    private val notificationPermissionLauncher = registerForActivityResult(
+    val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             android.util.Log.d("NOTIF_PERM", "Notification permission granted.")
         } else {
             android.util.Log.d("NOTIF_PERM", "Notification permission denied.")
+        }
+        runOnUiThread {
+            webView?.evaluateJavascript(
+                "javascript:(function() { " +
+                "  if (typeof onAndroidNotificationPermissionResult === 'function') { " +
+                "    onAndroidNotificationPermissionResult($isGranted); " +
+                "  } " +
+                "})()", null
+            )
         }
     }
 
@@ -452,7 +470,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         webView?.requestFocus()
-        startActiveLocationUpdates()
+        // No automatic background GPS updates on resume. We will request location on-demand instead!
     }
 
     override fun onPause() {
@@ -514,8 +532,21 @@ class MainActivity : ComponentActivity() {
                     if (codeCacheDir.exists()) {
                         val jsDir = java.io.File(codeCacheDir, "js")
                         if (!jsDir.exists()) jsDir.mkdirs()
+                        try {
+                            val keepFile = java.io.File(jsDir, ".keep")
+                            if (!keepFile.exists()) {
+                                keepFile.createNewFile()
+                            }
+                        } catch (e: Exception) {}
+
                         val wasmDir = java.io.File(codeCacheDir, "wasm")
                         if (!wasmDir.exists()) wasmDir.mkdirs()
+                        try {
+                            val keepFile = java.io.File(wasmDir, ".keep")
+                            if (!keepFile.exists()) {
+                                keepFile.createNewFile()
+                            }
+                        } catch (e: Exception) {}
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("MainActivity", "Failed to pre-create directory $rel: ${e.message}")
@@ -526,6 +557,53 @@ class MainActivity : ComponentActivity() {
 
     class WebAppInterface(private val context: Context) {
         private val sharedPreferences = context.getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
+
+        @JavascriptInterface
+        fun hasLocationPermission(): Boolean {
+            val fine = androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            val coarse = androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            return fine || coarse
+        }
+
+        @JavascriptInterface
+        fun hasNotificationPermission(): Boolean {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                return androidx.core.content.ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            }
+            return true
+        }
+
+        @JavascriptInterface
+        fun requestLocationPermission() {
+            (context as? MainActivity)?.runOnUiThread {
+                (context as? MainActivity)?.locationPermissionLauncher?.launch(
+                    arrayOf(
+                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+        }
+
+        @JavascriptInterface
+        fun requestNotificationPermission() {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                (context as? MainActivity)?.runOnUiThread {
+                    (context as? MainActivity)?.notificationPermissionLauncher?.launch(
+                        android.Manifest.permission.POST_NOTIFICATIONS
+                    )
+                }
+            }
+        }
 
         @JavascriptInterface
         fun getAppVersionCode(): Int = BuildConfig.VERSION_CODE
