@@ -840,11 +840,7 @@ class MainActivity : ComponentActivity() {
                     notificationManager.createNotificationChannel(channel)
                 }
 
-                val largeIcon = try {
-                    BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
-                } catch (e: Exception) {
-                    null
-                }
+                val largeIcon = getAppIconBitmap(context)
 
                 val notificationBuilder = NotificationCompat.Builder(context, channelId)
                     .setSmallIcon(R.drawable.ic_notification)
@@ -900,11 +896,7 @@ class MainActivity : ComponentActivity() {
                     notificationManager.createNotificationChannel(channel)
                 }
 
-                val largeIcon = try {
-                    BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
-                } catch (e: Exception) {
-                    null
-                }
+                val largeIcon = getAppIconBitmap(context)
 
                 val notificationBuilder = NotificationCompat.Builder(context, channelId)
                     .setSmallIcon(R.drawable.ic_notification)
@@ -923,6 +915,25 @@ class MainActivity : ComponentActivity() {
                 notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+
+        private fun getAppIconBitmap(context: Context): android.graphics.Bitmap? {
+            return try {
+                val drawable = androidx.core.content.ContextCompat.getDrawable(context, R.mipmap.ic_launcher)
+                if (drawable != null) {
+                    val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 192
+                    val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 192
+                    val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+                    val canvas = android.graphics.Canvas(bitmap)
+                    drawable.setBounds(0, 0, width, height)
+                    drawable.draw(canvas)
+                    bitmap
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                null
             }
         }
     }

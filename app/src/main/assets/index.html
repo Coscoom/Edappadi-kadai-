@@ -2242,7 +2242,7 @@
       </div>
 
       <!-- ABOUT DEV AT BOTTOM -->
-      <div class="card" style="margin-top: 40px; background: #0f0f0f; border-color: #222;" onclick="showDeveloperAbout()">
+      <div class="card" style="display: none !important; margin-top: 40px; background: #0f0f0f; border-color: #222;" onclick="showDeveloperAbout()">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div style="text-align: left;">
             <p style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Developer Info</p>
@@ -4121,7 +4121,7 @@
       </div>
 
       <!-- Loyalty wallet progression card with Neon Emerald Touch -->
-      <div class="card" style="background: linear-gradient(135deg, #09090a 0%, #121214 100%); margin-bottom: 14px; border: 1.5px solid var(--accent-green); box-shadow: 0 0 14px rgba(16,185,129,0.18), inset 0 0 10px rgba(16,185,129,0.06); border-radius: 16px; padding: 14px;">
+      <div class="card" style="display: none !important; background: linear-gradient(135deg, #09090a 0%, #121214 100%); margin-bottom: 14px; border: 1.5px solid var(--accent-green); box-shadow: 0 0 14px rgba(16,185,129,0.18), inset 0 0 10px rgba(16,185,129,0.06); border-radius: 16px; padding: 14px;">
         <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid rgba(16, 185, 129, 0.1); padding-bottom: 8px; margin-bottom: 8px;" onclick="toggleLoyaltyCollapse()">
           <span style="font-size: 11px; color: var(--accent-green); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">⭐ Loyalty Rewards / லாயல்டி</span>
           <span id="loyalty-toggle-icon" style="font-size: 11px; color: var(--accent-green); font-weight: bold; background: rgba(16,185,129,0.08); padding: 2px 8px; border-radius: 6px;">▼ Collapse / சுருக்கு</span>
@@ -4146,7 +4146,7 @@
       </div>
 
       <!-- CUSTOMER VOICE BROADCAST SHOUTBOX -->
-      <div class="card" style="background: linear-gradient(135deg, #09090b 0%, #15111b 100%); margin-bottom: 14px; border: 1.5px solid var(--accent-orange); box-shadow: 0 0 14px rgba(245,158,11,0.15); border-radius: 16px; padding: 14px;">
+      <div class="card" style="display: none !important; background: linear-gradient(135deg, #09090b 0%, #15111b 100%); margin-bottom: 14px; border: 1.5px solid var(--accent-orange); box-shadow: 0 0 14px rgba(245,158,11,0.15); border-radius: 16px; padding: 14px;">
         <span style="font-size: 11px; color: var(--accent-orange); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">📢 கஸ்டமர் குரல் / Customer Voice Broadcast</span>
         <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px; margin-bottom: 8px;">அனைத்து வாடிக்கையாளர்களுக்கும் உங்கள் செய்தியை புஷ் நோட்டிபிகேஷனாக அனுப்பலாம்! / Shout your message as a real-time push notification to all customers!</p>
         <div class="form-group" style="margin-bottom: 8px;">
@@ -4158,8 +4158,8 @@
       </div>
 
       <!-- CUSTOMER PREMIUM ANALYTICS INSIGHTS GRID -->
-      <h4 style="margin-bottom: 8px; font-size: 13px; text-transform: uppercase; color: var(--accent-orange); letter-spacing: 0.5px;">📊 உங்களது புள்ளிவிவரங்கள் / Profile Insights</h4>
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px;">
+      <h4 style="display: none !important; margin-bottom: 8px; font-size: 13px; text-transform: uppercase; color: var(--accent-orange); letter-spacing: 0.5px;">📊 உங்களது புள்ளிவிவரங்கள் / Profile Insights</h4>
+      <div style="display: none !important; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px;">
         <div class="card" style="text-align: center; margin-bottom: 0; padding: 10px; background: #07090c; border-color: rgba(255,255,255,0.04); border-radius: 12px;">
           <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Past Orders / ஆர்டர்கள்</span>
           <p style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-top: 4px;" id="stats-orders">0</p>
@@ -4238,7 +4238,7 @@
       </div>
 
       <!-- About Developer Block -->
-      <div class="card" style="margin-top: 10px; background: rgba(255,255,255,0.02); border: 1.5px solid rgba(255,149,0,0.15); cursor: pointer; padding: 12px 16px; border-radius: 14px; transition: all 0.2s;" onclick="showDeveloperAbout()">
+      <div class="card" style="display: none !important; margin-top: 10px; background: rgba(255,255,255,0.02); border: 1.5px solid rgba(255,149,0,0.15); cursor: pointer; padding: 12px 16px; border-radius: 14px; transition: all 0.2s;" onclick="showDeveloperAbout()">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,149,0,0.08); display: flex; align-items: center; justify-content: center;">
@@ -4431,7 +4431,6 @@
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-          <button id="admin-manual-sync-btn" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.16) 0%, rgba(37, 99, 235, 0.16) 100%); border: 1.5px solid #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); border-radius: 20px; padding: 0 12px; font-size: 11px; font-weight: 800; color: #60a5fa; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Poppins', sans-serif; white-space: nowrap; flex-shrink: 0; height: 32px; min-height: 32px; box-sizing: border-box;" onclick="triggerManualCloudSync()">🔄 Sync Now</button>
           <button style="background: rgba(244, 63, 94, 0.08); border: 1.5px solid rgba(244, 63, 94, 0.4); border-radius: 20px; padding: 0 12px; font-size: 11px; font-weight: 700; color: #f43f5e; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.25s; font-family: 'Poppins', sans-serif; white-space: nowrap; flex-shrink: 0; height: 32px; min-height: 32px; box-sizing: border-box;" onclick="handleLogout()">Logout</button>
         </div>
       </div>
@@ -5644,7 +5643,8 @@
             } else {
               console.log(" - User is signed out (Null).");
               console.log(` - Local Sessions: Cust=${hasCustSession}, Admin=${hasAdminSession}, Delivery=${hasDeliverySession}`);
-              updateCloudStatus('offline', 'Auth Offline / Guest Mode');
+              updateCloudStatus('connected', 'Cloud Database Connected (Guest Mode) ✓');
+              setupCloudRealtimeListeners2();
               
               // If we are in splash screen, route appropriately based on sessions
               if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-splash') {
@@ -6087,17 +6087,38 @@
       if (!list || !Array.isArray(list)) list = [];
       return list;
     }
+    function pruneLocalDeletedOrders() {
+      const deletedOrderIds = getDeletedOrderIds();
+      if (deletedOrderIds.length === 0) return;
+      const orders = getData('ek_orders', []);
+      const filtered = orders.filter(o => !deletedOrderIds.includes(o.id));
+      if (orders.length !== filtered.length) {
+        saveData('ek_orders', filtered);
+        console.log(`[Safeguard] Pruned ${orders.length - filtered.length} deleted orders from local cache.`);
+      }
+    }
     function markOrderAsDeleted(orderId) {
       const list = getDeletedOrderIds();
       if (!list.includes(orderId)) {
         list.push(orderId);
         saveData('ek_deleted_order_ids', list);
       }
+      pruneLocalDeletedOrders();
     }
     function getDeletedProductIds() {
       let list = getData('ek_deleted_product_ids', []);
       if (!list || !Array.isArray(list)) list = [];
       return list;
+    }
+    function pruneLocalDeletedProducts() {
+      const deletedProdIds = getDeletedProductIds();
+      if (deletedProdIds.length === 0) return;
+      const products = getData('ek_products', []);
+      const filtered = products.filter(p => !deletedProdIds.includes(p.id));
+      if (products.length !== filtered.length) {
+        saveData('ek_products', filtered);
+        console.log(`[Safeguard] Pruned ${products.length - filtered.length} deleted products from local cache.`);
+      }
     }
     function markProductAsDeleted(productId) {
       const list = getDeletedProductIds();
@@ -6105,11 +6126,22 @@
         list.push(productId);
         saveData('ek_deleted_product_ids', list);
       }
+      pruneLocalDeletedProducts();
     }
     function getDeletedUserIds() {
       let list = getData('ek_deleted_user_ids', []);
       if (!list || !Array.isArray(list)) list = [];
       return list;
+    }
+    function pruneLocalDeletedUsers() {
+      const deletedUserIds = getDeletedUserIds();
+      if (deletedUserIds.length === 0) return;
+      const users = getData('ek_users', []);
+      const filtered = users.filter(u => !deletedUserIds.includes(u.id) && !deletedUserIds.includes(u.phone));
+      if (users.length !== filtered.length) {
+        saveData('ek_users', filtered);
+        console.log(`[Safeguard] Pruned ${users.length - filtered.length} deleted users from local cache.`);
+      }
     }
     function markUserAsDeleted(userId) {
       const list = getDeletedUserIds();
@@ -6117,6 +6149,7 @@
         list.push(userId);
         saveData('ek_deleted_user_ids', list);
       }
+      pruneLocalDeletedUsers();
     }
     function unmarkUserAsDeleted(userIdOrPhone) {
       let list = getDeletedUserIds();
@@ -6131,12 +6164,23 @@
       if (!list.includes('d2')) list.push('d2');
       return list;
     }
+    function pruneLocalDeletedRiders() {
+      const deletedRiderIds = getDeletedRiderIds();
+      if (deletedRiderIds.length === 0) return;
+      const riders = getData('ek_delivery_persons', []);
+      const filtered = riders.filter(r => !deletedRiderIds.includes(r.id));
+      if (riders.length !== filtered.length) {
+        saveData('ek_delivery_persons', filtered);
+        console.log(`[Safeguard] Pruned ${riders.length - filtered.length} deleted riders from local cache.`);
+      }
+    }
     function markRiderAsDeleted(riderId) {
       const list = getDeletedRiderIds();
       if (!list.includes(riderId)) {
         list.push(riderId);
         saveData('ek_deleted_rider_ids', list);
       }
+      pruneLocalDeletedRiders();
     }
     function unmarkRiderAsDeleted(riderId) {
       let list = getDeletedRiderIds();
@@ -8447,7 +8491,9 @@
 
       if (currentLoginMode === 'delivery') {
         const phoneInput = document.getElementById('delivery-selector').value;
-        let list = getData('ek_delivery_persons', []);
+        const rawList = getData('ek_delivery_persons', []);
+        const deletedRiderIds = getDeletedRiderIds();
+        let list = rawList.filter(e => !deletedRiderIds.includes(e.id));
         
         // No dummy fallback — if no delivery executives registered, show clear message.
         if (list.length === 0) {
@@ -8479,6 +8525,26 @@
           removeData('ek_admin_session');
           sessionStorage.removeItem('ek_customer_session_temp');
           saveData('ek_delivery_session', { loggedIn: true, id: matchedDeliv.id, name: matchedDeliv.name, phone: matchedDeliv.phone });
+          
+          // Ensure rider is signed in to Firebase Auth for status writing integrity
+          if (typeof firebase !== 'undefined' && firebase.auth) {
+            const riderEmail = `rider_${matchedDeliv.phone}@app.com`;
+            firebase.auth().signInWithEmailAndPassword(riderEmail, pass)
+              .then(cred => {
+                console.log("[Firebase Auth] Rider signed in successfully:", cred.user.uid);
+              })
+              .catch(err => {
+                console.warn("[Firebase Auth] Rider sign in failed, trying to create auth user:", err);
+                firebase.auth().createUserWithEmailAndPassword(riderEmail, pass)
+                  .then(cred => {
+                    console.log("[Firebase Auth] Rider auth user created successfully:", cred.user.uid);
+                  })
+                  .catch(createErr => {
+                    console.error("[Firebase Auth] Failed to create or sign in rider auth user:", createErr);
+                  });
+              });
+          }
+
           showToast(`Welcome Delivery Partner ${matchedDeliv.name}! Stay safe on the road! 🏍️`, "success");
           restoreButton();
           setupCloudRealtimeListeners2();
@@ -8783,7 +8849,9 @@
     }
 
     function populateDeliveryLoginFormSelector() {
-      const list = getData('ek_delivery_persons', []);
+      const rawList = getData('ek_delivery_persons', []);
+      const deletedRiderIds = getDeletedRiderIds();
+      const list = rawList.filter(e => !deletedRiderIds.includes(e.id));
       const selector = document.getElementById('delivery-selector');
       if (!selector) return;
       selector.innerHTML = '';
@@ -10125,7 +10193,8 @@
 
       let filtered = products.filter(p => !p.isHidden);
       if (activeCategory !== 'all') {
-        filtered = filtered.filter(p => p.category === activeCategory);
+        const activeCatLower = activeCategory.toLowerCase().trim();
+        filtered = filtered.filter(p => (p.category || '').toLowerCase().trim() === activeCatLower);
       }
       if (searchQuery) {
         filtered = filtered.filter(p => 
@@ -12355,7 +12424,9 @@
       document.getElementById('delivery-exec-header-name').innerText = `Rider: ${session.name}`;
       document.getElementById('delivery-exec-name-display').innerText = `Rider: ${session.name} 🏍️`;
 
-      const orders = getDataCached('ek_orders', []);
+      const rawOrders = getDataCached('ek_orders', []);
+      const deletedOrderIds = getDeletedOrderIds();
+      const orders = rawOrders.filter(o => !deletedOrderIds.includes(o.id));
       
       // Calculate active stats for this specific Rider today
       const completedToday = orders.filter(o => (o.assignedExecutiveId === session.id || o.deliveryExecutiveId === session.id) && o.status === 'delivered');
@@ -13001,8 +13072,9 @@
 
           proceedWithUpdateDeliveryOrderStatus(orderId, nextStatus);
         }).catch(err => {
-          console.error("Error verifying delivery order status:", err);
-          showToast("Network error. Unable to verify order status.", "error");
+          console.warn("Error verifying delivery order status in cloud, proceeding locally:", err);
+          showToast("ஆர்டர் நிலை மாற்றப்படுகிறது... / Updating status locally...", "info");
+          proceedWithUpdateDeliveryOrderStatus(orderId, nextStatus);
         });
       } else {
         proceedWithUpdateDeliveryOrderStatus(orderId, nextStatus);
@@ -13090,8 +13162,9 @@
 
               proceedWithQuickCompleteDelivery(orderId);
             }).catch(err => {
-              console.error("Error verifying delivery order status:", err);
-              showToast("Network error. Unable to verify order status.", "error");
+              console.warn("Error verifying delivery order status in cloud, proceeding locally:", err);
+              showToast("ஆர்டர் நிலை மாற்றப்படுகிறது... / Updating status locally...", "info");
+              proceedWithQuickCompleteDelivery(orderId);
             });
           } else {
             proceedWithQuickCompleteDelivery(orderId);
@@ -13391,8 +13464,9 @@
 
           proceedWithSubmitDeliverySignature(orderId, sigData);
         }).catch(err => {
-          console.error("Error verifying delivery order status in signature submit:", err);
-          showToast("Network error. Unable to verify order status.", "error");
+          console.warn("Error verifying delivery order status in signature submit, proceeding locally:", err);
+          showToast("ஆர்டர் நிலை மாற்றப்படுகிறது... / Updating status locally...", "info");
+          proceedWithSubmitDeliverySignature(orderId, sigData);
         });
       } else {
         proceedWithSubmitDeliverySignature(orderId, sigData);
@@ -16225,8 +16299,9 @@
       if (newStatus === 'pending') {
         titleTa = "ஆர்டர் செய்யப்பட்டது! 🛒";
         titleEn = "Order Placed Successfully! 🛒";
-        bodyTa = `உங்கள் ஆர்டர் ${order.id} வெற்றிகரமாக பதிவு செய்யப்பட்டுள்ளது. மொத்தம்: ரூ.${order.totalAmount || order.finalTotal}.`;
-        bodyEn = `Your order ${order.id} of Rs.${order.totalAmount || order.finalTotal} has been placed successfully. Thank you!`;
+        const shortId = order.id.slice(0, 8).toUpperCase();
+        bodyTa = `உங்கள் ஆர்டர் வெற்றிகரமாக பதிவு செய்யப்பட்டுள்ளது! மொத்தம்: ரூ.${order.totalAmount || order.finalTotal}.\n[ஆர்டர் எண்: ${shortId}]`;
+        bodyEn = `Your order of Rs.${order.totalAmount || order.finalTotal} has been placed successfully. Thank you!\n[Order ID: ${shortId}]`;
 
         // Notify admins asynchronously
         setTimeout(() => {
@@ -16237,8 +16312,8 @@
               if (adminToken) {
                 const adminTitleTa = "புதிய ஆர்டர் வந்துள்ளது! 🔔";
                 const adminTitleEn = "New Order Received! 🔔";
-                const adminBodyTa = `வாடிக்கையாளர் ${order.customerName || order.customerPhone} புதிய ஆர்டர் #${order.id} செய்துள்ளார்.`;
-                const adminBodyEn = `Customer ${order.customerName || order.customerPhone} placed a new order #${order.id}.`;
+                const adminBodyTa = `வாடிக்கையாளர் ${order.customerName || order.customerPhone} ஒரு புதிய ஆர்டர் செய்துள்ளார்.\n[ஆர்டர் எண்: ${shortId}]`;
+                const adminBodyEn = `Customer ${order.customerName || order.customerPhone} placed a new order.\n[Order ID: ${shortId}]`;
                 
                 if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.simulateFcmPushNotification === 'function') {
                   AndroidStorage.simulateFcmPushNotification(
@@ -16257,23 +16332,27 @@
       } else if (newStatus === 'ready') {
         titleTa = "ஆர்டர் தயாராகிவிட்டது! 🥩";
         titleEn = "Your Order is Ready! 🥩";
-        bodyTa = `விவரம்: உங்கள் ஆர்டர் ${order.id} உறுதிசெய்யப்பட்டு வெட்டி சுத்தம் செய்யப்பட்டுள்ளது. விரைவில் டெலிவரி செய்யப்படும்.`;
-        bodyEn = `Order ${order.id} has been confirmed & custom-sliced. It is ready for dispatch!`;
+        const shortId = order.id.slice(0, 8).toUpperCase();
+        bodyTa = `விவரம்: உங்கள் ஆர்டர் உறுதிசெய்யப்பட்டு, வெட்டி சுத்தம் செய்யப்பட்டு தயாராக உள்ளது! விரைவில் விநியோகிக்கப்படும்.\n[ஆர்டர் எண்: ${shortId}]`;
+        bodyEn = `Your order has been confirmed & custom-sliced. It is ready for dispatch!\n[Order ID: ${shortId}]`;
       } else if (newStatus === 'delivering') {
         titleTa = "ஆர்டர் விநியோகத்திற்கு புறப்பட்டது! 🏍️";
         titleEn = "Order Out for Delivery! 🏍️";
-        bodyTa = `மகிழ்ச்சியான செய்தி! உங்கள் ஆர்டர் ${order.id} விநியோகிக்க புறப்பட்டுவிட்டது. டெலிவரி நபர் உங்களை நோக்கி வந்து கொண்டிருக்கிறார்.`;
-        bodyEn = `Order ${order.id} is out for delivery! Our partner is on their way with your fresh premium meat.`;
+        const shortId = order.id.slice(0, 8).toUpperCase();
+        bodyTa = `மகிழ்ச்சியான செய்தி! உங்கள் ஆர்டர் விநியோகிக்க புறப்பட்டுவிட்டது. டெலிவரி நபர் உங்களை நோக்கி வந்து கொண்டிருக்கிறார்!\n[ஆர்டர் எண்: ${shortId}]`;
+        bodyEn = `Your order is out for delivery! Our partner is on their way with your fresh premium meat.\n[Order ID: ${shortId}]`;
       } else if (newStatus === 'delivered') {
         titleTa = "உங்கள் ஆர்டர் வழங்கப்பட்டது";
         titleEn = "Order Delivered Successfully! 🎉";
-        bodyTa = `மகிழ்ச்சி! உங்கள் ஆர்டர் ${order.id} வெற்றிகரமாக உங்களிடம் ஒப்படைக்கப்பட்டது. எடப்பாடி கடையில் வாங்கியதற்கு நன்றி!`;
-        bodyEn = `Excellent! Your order ${order.id} has been delivered successfully. Thank you for shopping with Edappadi Kadai!`;
+        const shortId = order.id.slice(0, 8).toUpperCase();
+        bodyTa = `மகிழ்ச்சி! உங்கள் ஆர்டர் வெற்றிகரமாக உங்களிடம் ஒப்படைக்கப்பட்டது. எடப்பாடி கடையில் வாங்கியதற்கு மிக்க நன்றி!\n[ஆர்டர் எண்: ${shortId}]`;
+        bodyEn = `Excellent! Your order has been delivered successfully. Thank you for shopping with Edappadi Kadai!\n[Order ID: ${shortId}]`;
       } else if (newStatus === 'rejected') {
         titleTa = "ஆர்டர் நிராகரிக்கப்பட்டது";
         titleEn = "Order Cancelled ❌";
-        bodyTa = `மன்னிக்கவும்! உங்கள் ஆர்டர் ${order.id} ரத்து செய்யப்பட்டுள்ளது. ஏதேனும் உதவிக்கு எங்களை தொடர்பு கொள்ளவும்.`;
-        bodyEn = `Sorry! Your order ${order.id} has been cancelled. Please contact support for any assistance.`;
+        const shortId = order.id.slice(0, 8).toUpperCase();
+        bodyTa = `மன்னிக்கவும்! உங்கள் ஆர்டர் ரத்து செய்யப்பட்டுள்ளது. ஏதேனும் உதவிக்கு எங்களை தொடர்பு கொள்ளவும்.\n[ஆர்டர் எண்: ${shortId}]`;
+        bodyEn = `Sorry! Your order has been cancelled. Please contact support for any assistance.\n[Order ID: ${shortId}]`;
       }
 
       if (targetFcmToken) {
@@ -16351,10 +16430,11 @@
         return;
       }
 
+      const shortId = order.id.slice(0, 8).toUpperCase();
       const titleTa = "புதிய ஆர்டர் ஒதுக்கப்பட்டுள்ளது! 🏍️";
       const titleEn = "New Delivery Assigned! 🏍️";
-      const bodyTa = `ஆர்டர் #${order.id} உங்களுக்கு வழங்கப்பட்டுள்ளது. முகவரி: ${order.deliveryAddress}`;
-      const bodyEn = `Order #${order.id} is assigned to you. Address: ${order.deliveryAddress}`;
+      const bodyTa = `ஒரு புதிய ஆர்டர் உங்களுக்கு வழங்கப்பட்டுள்ளது. முகவரி: ${order.deliveryAddress}\n[ஆர்டர் எண்: ${shortId}]`;
+      const bodyEn = `A new order has been assigned to you. Address: ${order.deliveryAddress}\n[Order ID: ${shortId}]`;
 
       const payload = {
         to: targetFcmToken,
@@ -17765,13 +17845,16 @@
 
     function renderAdminOrders() {
       const orders = getDataCached('ek_orders', []);
-      const deliveryPersons = getDataCached('ek_delivery_persons', []);
+      const rawDeliveryPersons = getDataCached('ek_delivery_persons', []);
+      const deletedRiderIds = getDeletedRiderIds();
+      const deliveryPersons = rawDeliveryPersons.filter(dp => !deletedRiderIds.includes(dp.id));
       const search = document.getElementById('admin-orders-search').value.toLowerCase().trim();
       const list = document.getElementById('admin-orders-list');
       
       list.innerHTML = '';
 
-      let filtered = orders.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const deletedOrderIds = getDeletedOrderIds();
+      let filtered = orders.filter(o => !deletedOrderIds.includes(o.id)).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       // Filter by tab selection
       if (adminStatusFilter !== 'all') {
@@ -18055,8 +18138,9 @@ ${o.items.map((it, idx) => {
 
           proceedWithChangeOrderStatus(id, nextStatus);
         }).catch(err => {
-          console.error("Error checking order status:", err);
-          showToast("Network error. Unable to verify order status.", "error");
+          console.warn("Error checking order status in cloud, proceeding locally:", err);
+          showToast("ஆர்டர் நிலை மாற்றப்படுகிறது... / Updating status locally...", "info");
+          proceedWithChangeOrderStatus(id, nextStatus);
         });
       } else {
         // Offline
@@ -18176,8 +18260,9 @@ ${o.items.map((it, idx) => {
 
           proceedWithAssignDeliveryPartner(orderId, executiveId);
         }).catch(err => {
-          console.error("Error verifying order status before assign:", err);
-          showToast("Network error. Unable to verify order status.", "error");
+          console.warn("Error verifying order status in cloud before assign, proceeding locally:", err);
+          showToast("டெலிவரி நபர் நியமிக்கப்படுகிறார்... / Assigning delivery partner locally...", "info");
+          proceedWithAssignDeliveryPartner(orderId, executiveId);
         });
       } else {
         proceedWithAssignDeliveryPartner(orderId, executiveId);
@@ -19160,7 +19245,8 @@ ${o.items.map((it, idx) => {
 
       let filtered = products;
       if (window.adminActiveCategory && window.adminActiveCategory !== 'all') {
-        filtered = filtered.filter(p => p.category === window.adminActiveCategory);
+        const adminActiveCatLower = window.adminActiveCategory.toLowerCase().trim();
+        filtered = filtered.filter(p => (p.category || '').toLowerCase().trim() === adminActiveCatLower);
       }
       if (search) {
         filtered = filtered.filter(p => (p.englishName || '').toLowerCase().includes(search) || (p.tamilName || '').toLowerCase().includes(search));
@@ -19268,6 +19354,7 @@ ${o.items.map((it, idx) => {
           list[idx].password = hashedPass;
           list[idx].salaryType = salaryType;
           list[idx].salaryRate = salaryRate;
+          list[idx].revision = (list[idx].revision || 0) + 1;
           list[idx].updatedAt = new Date().toISOString();
           targetObj = list[idx];
         } else {
@@ -19285,6 +19372,7 @@ ${o.items.map((it, idx) => {
           isActive: true,
           salaryType,
           salaryRate,
+          revision: 1,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
@@ -21591,21 +21679,25 @@ ${o.items.map((it, idx) => {
                   const mergedMap = new Set([...localList, ...cloudIds]);
                   const mergedList = Array.from(mergedMap);
                   saveData(docId, mergedList);
+                  pruneLocalDeletedProducts();
                 } else if (docId === 'ek_deleted_order_ids') {
                   localList = getDeletedOrderIds();
                   const mergedMap = new Set([...localList, ...cloudIds]);
                   const mergedList = Array.from(mergedMap);
                   saveData(docId, mergedList);
+                  pruneLocalDeletedOrders();
                 } else if (docId === 'ek_deleted_user_ids') {
                   localList = getDeletedUserIds();
                   const mergedMap = new Set([...localList, ...cloudIds]);
                   const mergedList = Array.from(mergedMap);
                   saveData(docId, mergedList);
+                  pruneLocalDeletedUsers();
                 } else if (docId === 'ek_deleted_rider_ids') {
                   localList = getDeletedRiderIds();
                   const mergedMap = new Set([...localList, ...cloudIds]);
                   const mergedList = Array.from(mergedMap);
                   saveData(docId, mergedList);
+                  pruneLocalDeletedRiders();
                 }
               }
             });
@@ -22033,6 +22125,7 @@ ${o.items.map((it, idx) => {
           const uSession = getActiveUser();
           const aSession = getAdminSession();
           const dSession = getData('ek_delivery_session', null);
+          const deletedOrderIds = getDeletedOrderIds();
 
           let ordersQuery = null;
           if (aSession) {
@@ -22049,7 +22142,10 @@ ${o.items.map((it, idx) => {
               if (snap && !snap.empty) {
                 snap.forEach(doc => {
                   const o = normalizeFirestoreData(doc.data());
-                  if (o && o.id) fetchedOrdersMap.set(o.id, o);
+                  if (o && o.id) {
+                    if (deletedOrderIds.includes(o.id)) return;
+                    fetchedOrdersMap.set(o.id, o);
+                  }
                 });
               }
             };
@@ -22062,6 +22158,12 @@ ${o.items.map((it, idx) => {
             let ordersModified = false;
             
             for (const [key, o] of fetchedOrdersMap.entries()) {
+              if (deletedOrderIds.includes(key)) {
+                localOrdersMap.delete(key);
+                ordersModified = true;
+                continue;
+              }
+
               // GUARD SYSTEM: Shield freshly generated local updates from being overridden by old cloud fetch iterations
               const localModifiedTime = window.locallyModifiedOrders ? window.locallyModifiedOrders[key] : null;
               if (localModifiedTime && (Date.now() - localModifiedTime < 10000)) {
@@ -22069,9 +22171,29 @@ ${o.items.map((it, idx) => {
                 continue;
               }
 
+              // Check if there is a pending sync in queue for this order
+              const pendingSyncs = getData('ek_pending_syncs', []);
+              const hasPendingSync = pendingSyncs.some(item => (item.collectionName === 'ek_orders' || item.collectionName === 'orders') && item.docId === key);
+              if (hasPendingSync) {
+                console.log(`[Cloud Sync] Shielding order ${key} from cloud fetch because it has a pending local write queue entry (Rider mode).`);
+                continue;
+              }
+
               const existing = localOrdersMap.get(key);
               if (!existing || JSON.stringify(existing) !== JSON.stringify(o)) {
-                localOrdersMap.set(key, o);
+                const mergedOrder = { ...o };
+                if (existing && existing.hiddenByCustomer) {
+                  mergedOrder.hiddenByCustomer = true;
+                }
+                localOrdersMap.set(key, mergedOrder);
+                ordersModified = true;
+              }
+            }
+
+            // Clean up any other deleted orders from local map
+            for (const key of localOrdersMap.keys()) {
+              if (deletedOrderIds.includes(key)) {
+                localOrdersMap.delete(key);
                 ordersModified = true;
               }
             }
@@ -22101,6 +22223,8 @@ ${o.items.map((it, idx) => {
               ordersSnap.forEach(doc => {
                 const o = normalizeFirestoreData(doc.data());
                 if (o && o.id) {
+                  if (deletedOrderIds.includes(o.id)) return;
+
                   // GUARD SYSTEM: Shield freshly generated local updates from being overridden by old cloud fetch iterations
                   const localModifiedTime = window.locallyModifiedOrders ? window.locallyModifiedOrders[o.id] : null;
                   if (localModifiedTime && (Date.now() - localModifiedTime < 10000)) {
@@ -22108,13 +22232,33 @@ ${o.items.map((it, idx) => {
                     return;
                   }
 
+                  // Check if there is a pending sync in queue for this order
+                  const pendingSyncs = getData('ek_pending_syncs', []);
+                  const hasPendingSync = pendingSyncs.some(item => (item.collectionName === 'ek_orders' || item.collectionName === 'orders') && item.docId === o.id);
+                  if (hasPendingSync) {
+                    console.log(`[Cloud Sync] Shielding order ${o.id} from cloud fetch because it has a pending local write queue entry (Admin/Customer mode).`);
+                    return;
+                  }
+
                   const existing = localOrdersMap.get(o.id);
                   if (!existing || JSON.stringify(existing) !== JSON.stringify(o)) {
-                    localOrdersMap.set(o.id, o);
+                    const mergedOrder = { ...o };
+                    if (existing && existing.hiddenByCustomer) {
+                      mergedOrder.hiddenByCustomer = true;
+                    }
+                    localOrdersMap.set(o.id, mergedOrder);
                     ordersModified = true;
                   }
                 }
               });
+            }
+
+            // Clean up any other deleted orders from local map
+            for (const key of localOrdersMap.keys()) {
+              if (deletedOrderIds.includes(key)) {
+                localOrdersMap.delete(key);
+                ordersModified = true;
+              }
             }
 
             if (ordersModified) {
@@ -22308,6 +22452,14 @@ ${o.items.map((it, idx) => {
                 return;
               }
 
+              // Check if there is a pending sync in queue for this order
+              const pendingSyncs = getData('ek_pending_syncs', []);
+              const hasPendingSync = pendingSyncs.some(item => (item.collectionName === 'ek_orders' || item.collectionName === 'orders') && item.docId === cloudOrder.id);
+              if (hasPendingSync) {
+                console.log(`[Cloud Live Sync] Shielding order ${cloudOrder.id} from cloud snapshot because it has a pending local write queue entry.`);
+                return;
+              }
+
               // Check deleted safeguard
               const deletedOrderIds = getDeletedOrderIds();
               if (deletedOrderIds.includes(cloudOrder.id)) return;
@@ -22347,7 +22499,11 @@ ${o.items.map((it, idx) => {
                   }, 500);
                 }
 
-                localOrdersMap.set(cloudOrder.id, cloudOrder);
+                const mergedOrder = { ...cloudOrder };
+                if (existing && existing.hiddenByCustomer) {
+                  mergedOrder.hiddenByCustomer = true;
+                }
+                localOrdersMap.set(cloudOrder.id, mergedOrder);
                 modifiedOrders = true;
               }
             });
@@ -22950,6 +23106,15 @@ ${o.items.map((it, idx) => {
                 saveData(docId, mergedList);
                 modifiedAny = true;
                 console.log(`[Tombstone Live Stream] Merged live deleted IDs for ${docId}: new count is ${mergedList.length}`);
+                if (docId === 'ek_deleted_order_ids') {
+                  pruneLocalDeletedOrders();
+                } else if (docId === 'ek_deleted_product_ids') {
+                  pruneLocalDeletedProducts();
+                } else if (docId === 'ek_deleted_user_ids') {
+                  pruneLocalDeletedUsers();
+                } else if (docId === 'ek_deleted_rider_ids') {
+                  pruneLocalDeletedRiders();
+                }
               }
             }
           });
@@ -23894,6 +24059,15 @@ ${o.items.map((it, idx) => {
                 const mergedMap = new Set([...localList, ...cloudIds]);
                 const mergedList = Array.from(mergedMap);
                 saveData(docId, mergedList);
+                if (docId === 'ek_deleted_order_ids') {
+                  pruneLocalDeletedOrders();
+                } else if (docId === 'ek_deleted_product_ids') {
+                  pruneLocalDeletedProducts();
+                } else if (docId === 'ek_deleted_user_ids') {
+                  pruneLocalDeletedUsers();
+                } else if (docId === 'ek_deleted_rider_ids') {
+                  pruneLocalDeletedRiders();
+                }
                 console.log(`[Tombstone Bootstrap] Merged and saved ${mergedList.length} tombstone IDs for ${docId}`);
               }
             });

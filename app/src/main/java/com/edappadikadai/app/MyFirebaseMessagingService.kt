@@ -84,11 +84,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
 
         // Load application launcher icon to show as a large icon in notification card
-        val largeIcon = try {
-            BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-        } catch (e: Exception) {
-            null
-        }
+        val largeIcon = getAppIconBitmap(this)
 
         // Build native system notification card
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
@@ -106,5 +102,25 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
 
         notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
+    }
+
+    private fun getAppIconBitmap(context: Context): android.graphics.Bitmap? {
+        return try {
+            val drawable = androidx.core.content.ContextCompat.getDrawable(context, R.mipmap.ic_launcher)
+            if (drawable != null) {
+                val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 192
+                val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 192
+                val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(bitmap)
+                drawable.setBounds(0, 0, width, height)
+                drawable.draw(canvas)
+                bitmap
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("FCM_SERVICE", "Failed to render app icon as bitmap: ${e.message}")
+            null
+        }
     }
 }
