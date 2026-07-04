@@ -9296,6 +9296,9 @@
       cart = [];
       updateCartBadge();
       
+      // Clear navigation stack / history so user cannot back-navigate to authenticated screens after logout
+      screenHistory = [];
+      
       // Reset forms
       const loginForm = document.getElementById('login-form');
       if (loginForm) loginForm.reset();
@@ -9304,19 +9307,20 @@
       
       showToast("Logged out successfully.", "info");
 
+      // Navigate to login screen immediately to prevent any visual flashes or lag
+      showScreen('screen-login');
+
       if (typeof firebase !== 'undefined' && firebase.auth) {
         firebase.auth().signOut()
           .then(() => {
-            console.log("[Auth] Firebase Auth sign out successful.");
+            console.log("[Auth] Firebase Auth sign out successful in background.");
           })
-          .catch(e => console.error("[Auth] Firebase signout error:", e))
+          .catch(e => console.error("[Auth] Firebase signout error in background:", e))
           .finally(() => {
             setupCloudRealtimeListeners2();
-            showScreen('screen-login');
           });
       } else {
         setupCloudRealtimeListeners2();
-        showScreen('screen-login');
       }
     }
 
@@ -9333,21 +9337,26 @@
         } catch (e) {}
         deliveryLeafletMap = null;
       }
+      
+      // Clear navigation stack / history so user cannot back-navigate to authenticated screens after logout
+      screenHistory = [];
+      
       showToast("Delivery Partner logged out successfully.", "info");
+
+      // Navigate to login screen immediately to prevent any visual flashes or lag
+      showScreen('screen-login');
 
       if (typeof firebase !== 'undefined' && firebase.auth) {
         firebase.auth().signOut()
           .then(() => {
-            console.log("[Auth] Firebase Auth delivery partner sign out successful.");
+            console.log("[Auth] Firebase Auth delivery partner sign out successful in background.");
           })
-          .catch(e => console.error("[Auth] Firebase signout error (delivery):", e))
+          .catch(e => console.error("[Auth] Firebase signout error (delivery) in background:", e))
           .finally(() => {
             setupCloudRealtimeListeners2();
-            showScreen('screen-login');
           });
       } else {
         setupCloudRealtimeListeners2();
-        showScreen('screen-login');
       }
     }
 
@@ -22325,12 +22334,17 @@ ${o.items.map((it, idx) => {
         const activeCust = getActiveUser();
         const activeAdmin = getAdminSession();
         let usersQuery = null;
-        if (activeAdmin) {
-          console.log("[Cloud Live Sync] Initializing Admin Scoped real-time user profiles listener...");
-          usersQuery = db.collection('ek_users');
-        } else if (activeCust) {
-          console.log("[Cloud Live Sync] Initializing Customer Scoped real-time own profile listener...");
-          usersQuery = db.collection('ek_users').where('id', '==', activeCust.id);
+        const isAuthed = (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
+        if (isAuthed) {
+          if (activeAdmin) {
+            console.log("[Cloud Live Sync] Initializing Admin Scoped real-time user profiles listener...");
+            usersQuery = db.collection('ek_users');
+          } else if (activeCust) {
+            console.log("[Cloud Live Sync] Initializing Customer Scoped real-time own profile listener...");
+            usersQuery = db.collection('ek_users').where('id', '==', activeCust.id);
+          }
+        } else {
+          console.log("[Cloud Live Sync] Firebase auth is unauthenticated. Skipping users stream setup.");
         }
 
         if (usersQuery) {
@@ -22542,66 +22556,71 @@ ${o.items.map((it, idx) => {
           }
         };
 
-        if (aSession) {
-          console.log("[Cloud Live Sync] Initializing Admin Scoped real-time order listeners...");
-          
-          // Unified Admin Recent Orders Stream - gathers the last 300 orders globally across all statuses without requiring composite indexes
-          const unsubAdminRecent = db.collection('ek_orders')
-            .orderBy('createdAt', 'desc')
-            .limit(300)
-            .onSnapshot({ includeMetadataChanges: true }, handleOrdersSnapshot, err => {
-              console.warn("[Cloud Live Sync] Admin recent completed orders stream interrupted:", err);
-              handleLiveStreamError('orders_admin_recent', err);
-            });
-          unsubs.push(unsubAdminRecent);
+        const isAuthed = (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
+        if (isAuthed) {
+          if (aSession) {
+            console.log("[Cloud Live Sync] Initializing Admin Scoped real-time order listeners...");
+            
+            // Unified Admin Recent Orders Stream - gathers the last 300 orders globally across all statuses without requiring composite indexes
+            const unsubAdminRecent = db.collection('ek_orders')
+              .orderBy('createdAt', 'desc')
+              .limit(300)
+              .onSnapshot({ includeMetadataChanges: true }, handleOrdersSnapshot, err => {
+                console.warn("[Cloud Live Sync] Admin recent completed orders stream interrupted:", err);
+                handleLiveStreamError('orders_admin_recent', err);
+              });
+            unsubs.push(unsubAdminRecent);
 
-        } else if (dSession) {
-          console.log("[Cloud Live Sync] Initializing Delivery Boy Scoped real-time order listeners...");
+          } else if (dSession) {
+            console.log("[Cloud Live Sync] Initializing Delivery Boy Scoped real-time order listeners...");
 
-          // 1. Delivery Boy Assigned Orders (both active ready, delivering and past historical completed/delivered) - 100% index-free!
-          const unsubRiderAssigned = db.collection('ek_orders')
-            .where('assignedExecutiveId', '==', dSession.id)
-            .limit(150)
-            .onSnapshot({ includeMetadataChanges: true }, handleOrdersSnapshot, err => {
-              console.warn("[Cloud Live Sync] Rider assigned orders stream interrupted:", err);
-              handleLiveStreamError('orders_rider_assigned', err);
-            });
-          unsubs.push(unsubRiderAssigned);
+            // 1. Delivery Boy Assigned Orders (both active ready, delivering and past historical completed/delivered) - 100% index-free!
+            const unsubRiderAssigned = db.collection('ek_orders')
+              .where('assignedExecutiveId', '==', dSession.id)
+              .limit(150)
+              .onSnapshot({ includeMetadataChanges: true }, handleOrdersSnapshot, err => {
+                console.warn("[Cloud Live Sync] Rider assigned orders stream interrupted:", err);
+                handleLiveStreamError('orders_rider_assigned', err);
+              });
+            unsubs.push(unsubRiderAssigned);
 
-          // 1.5 Sync Delivery Boy Assigned Orders by alternative/legacy backup ID field for maximum robustness
-          const unsubRiderAssignedBackup = db.collection('ek_orders')
-            .where('deliveryExecutiveId', '==', dSession.id)
-            .limit(150)
-            .onSnapshot({ includeMetadataChanges: true }, handleOrdersSnapshot, err => {
-              console.warn("[Cloud Live Sync] Rider backup assigned orders query interrupted:", err);
-            });
-          unsubs.push(unsubRiderAssignedBackup);
+            // 1.5 Sync Delivery Boy Assigned Orders by alternative/legacy backup ID field for maximum robustness
+            const unsubRiderAssignedBackup = db.collection('ek_orders')
+              .where('deliveryExecutiveId', '==', dSession.id)
+              .limit(150)
+              .onSnapshot({ includeMetadataChanges: true }, handleOrdersSnapshot, err => {
+                console.warn("[Cloud Live Sync] Rider backup assigned orders query interrupted:", err);
+              });
+            unsubs.push(unsubRiderAssignedBackup);
 
-          // 2. Unassigned Ready Orders waiting to be claimed - 100% index-free!
-          const unsubRiderUnassigned = db.collection('ek_orders')
-            .where('status', '==', 'ready')
-            .limit(100)
-            .onSnapshot({ includeMetadataChanges: true }, handleOrdersSnapshot, err => {
-              console.warn("[Cloud Live Sync] Rider unassigned ready orders stream interrupted:", err);
-              handleLiveStreamError('orders_rider_unassigned', err);
-            });
-          unsubs.push(unsubRiderUnassigned);
+            // 2. Unassigned Ready Orders waiting to be claimed - 100% index-free!
+            const unsubRiderUnassigned = db.collection('ek_orders')
+              .where('status', '==', 'ready')
+              .limit(100)
+              .onSnapshot({ includeMetadataChanges: true }, handleOrdersSnapshot, err => {
+                console.warn("[Cloud Live Sync] Rider unassigned ready orders stream interrupted:", err);
+                handleLiveStreamError('orders_rider_unassigned', err);
+              });
+            unsubs.push(unsubRiderUnassigned);
 
-        } else if (uSession) {
-          console.log("[Cloud Live Sync] Initializing Customer Scoped real-time order listeners...");
+          } else if (uSession) {
+            console.log("[Cloud Live Sync] Initializing Customer Scoped real-time order listeners...");
 
-          // Customer Own Orders (last 100 recent orders) - 100% index-free!
-          const unsubCustomerOrders = db.collection('ek_orders')
-            .where('customerId', '==', uSession.id)
-            .limit(100)
-            .onSnapshot({ includeMetadataChanges: true }, handleOrdersSnapshot, err => {
-              console.warn("[Cloud Live Sync] Customer orders stream interrupted:", err);
-              handleLiveStreamError('orders_customer', err);
-            });
-          unsubs.push(unsubCustomerOrders);
+            // Customer Own Orders (last 100 recent orders) - 100% index-free!
+            const unsubCustomerOrders = db.collection('ek_orders')
+              .where('customerId', '==', uSession.id)
+              .limit(100)
+              .onSnapshot({ includeMetadataChanges: true }, handleOrdersSnapshot, err => {
+                console.warn("[Cloud Live Sync] Customer orders stream interrupted:", err);
+                handleLiveStreamError('orders_customer', err);
+              });
+            unsubs.push(unsubCustomerOrders);
 
+          } else {
+            console.log("[Cloud Live Sync] Guest session — no orders stream setup.");
+          }
         } else {
-          console.log("[Cloud Live Sync] Guest session — no orders stream setup.");
+          console.log("[Cloud Live Sync] Firebase auth is unauthenticated. Skipping orders stream setup.");
         }
 
         liveSyncUnsubscribers.orders = () => {
@@ -22752,7 +22771,7 @@ ${o.items.map((it, idx) => {
           }
 
           // Prune locally deleted products that are not in the cloud snapshot
-          if (true) {
+          if (!snapshot.empty) {
             const deletedProdIds = getDeletedProductIds();
             const localQueue = getData('ek_pending_sync_queue', []);
             for (const key of localProductsMap.keys()) {
@@ -22815,107 +22834,112 @@ ${o.items.map((it, idx) => {
 
       // E. Real-time stream for Delivery staff/Rider positions
       try {
-        liveSyncUnsubscribers.deliveryPersons = db.collection('ek_delivery_persons').onSnapshot(snapshot => {
-          if (!snapshot) return;
-          if (snapshot.metadata && snapshot.metadata.hasPendingWrites) return;
-          if (typeof snapshot.docChanges === 'function') {
-            let hasPending = false;
-            snapshot.docChanges().forEach(change => {
-              if (change.doc && change.doc.metadata && change.doc.metadata.hasPendingWrites) hasPending = true;
-            });
-            if (hasPending) return;
-          }
-          const localE = getData('ek_delivery_persons', []);
-          const localEMap = new Map(localE.map(e => [e.id, e]));
-          let modified = false;
+        const isAuthed = (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
+        if (isAuthed) {
+          liveSyncUnsubscribers.deliveryPersons = db.collection('ek_delivery_persons').onSnapshot(snapshot => {
+            if (!snapshot) return;
+            if (snapshot.metadata && snapshot.metadata.hasPendingWrites) return;
+            if (typeof snapshot.docChanges === 'function') {
+              let hasPending = false;
+              snapshot.docChanges().forEach(change => {
+                if (change.doc && change.doc.metadata && change.doc.metadata.hasPendingWrites) hasPending = true;
+              });
+              if (hasPending) return;
+            }
+            const localE = getData('ek_delivery_persons', []);
+            const localEMap = new Map(localE.map(e => [e.id, e]));
+            let modified = false;
 
-          const deletedRiderIds = getDeletedRiderIds();
-          let cloudIds = new Set();
-          if (!snapshot.empty) {
-            snapshot.forEach(doc => {
-              const cloudD = normalizeFirestoreData(doc.data());
-              if (!cloudD || !cloudD.id) return;
-              if (deletedRiderIds.includes(cloudD.id)) return; // Skip if marked as deleted
-              cloudIds.add(cloudD.id);
-              const existing = localEMap.get(cloudD.id);
-              if (!existing) {
-                localEMap.set(cloudD.id, cloudD);
-                modified = true;
-              } else {
-                const cloudTime = new Date(cloudD.updatedAt || cloudD.createdAt || 0).getTime();
-                const localTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
-                if (cloudTime > localTime) {
+            const deletedRiderIds = getDeletedRiderIds();
+            let cloudIds = new Set();
+            if (!snapshot.empty) {
+              snapshot.forEach(doc => {
+                const cloudD = normalizeFirestoreData(doc.data());
+                if (!cloudD || !cloudD.id) return;
+                if (deletedRiderIds.includes(cloudD.id)) return; // Skip if marked as deleted
+                cloudIds.add(cloudD.id);
+                const existing = localEMap.get(cloudD.id);
+                if (!existing) {
                   localEMap.set(cloudD.id, cloudD);
+                  modified = true;
+                } else {
+                  const cloudTime = new Date(cloudD.updatedAt || cloudD.createdAt || 0).getTime();
+                  const localTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
+                  if (cloudTime > localTime) {
+                    localEMap.set(cloudD.id, cloudD);
+                    modified = true;
+                  }
+                }
+              });
+            }
+
+            // Prune locally deleted riders that are not in the cloud snapshot
+            if (!snapshot.empty) {
+              const localQueue = getData('ek_pending_syncs', []);
+              const nowTime = Date.now();
+              for (const key of localEMap.keys()) {
+                const inCloud = cloudIds.has(key);
+                const isExplicitDeleted = deletedRiderIds.includes(key);
+                const inQueue = localQueue.some(item => item.collectionName === 'ek_delivery_persons' && item.docId === key);
+                
+                const rider = localEMap.get(key);
+                let isRecentlyCreatedOrUpdated = false;
+                if (rider) {
+                  const ageMs = nowTime - new Date(rider.updatedAt || rider.createdAt || nowTime).getTime();
+                  isRecentlyCreatedOrUpdated = ageMs < 120000; // 2 minutes
+                }
+
+                if (isExplicitDeleted || (!inCloud && !inQueue && !isRecentlyCreatedOrUpdated)) {
+                  console.log(`[Cloud Live Sync] Pruning rider locally (deleted in cloud or explicit): ${key}`);
+                  localEMap.delete(key);
                   modified = true;
                 }
               }
-            });
-          }
-
-          // Prune locally deleted riders that are not in the cloud snapshot
-          if (true) {
-            const localQueue = getData('ek_pending_syncs', []);
-            const nowTime = Date.now();
-            for (const key of localEMap.keys()) {
-              const inCloud = cloudIds.has(key);
-              const isExplicitDeleted = deletedRiderIds.includes(key);
-              const inQueue = localQueue.some(item => item.collectionName === 'ek_delivery_persons' && item.docId === key);
-              
-              const rider = localEMap.get(key);
-              let isRecentlyCreatedOrUpdated = false;
-              if (rider) {
-                const ageMs = nowTime - new Date(rider.updatedAt || rider.createdAt || nowTime).getTime();
-                isRecentlyCreatedOrUpdated = ageMs < 120000; // 2 minutes
-              }
-
-              if (isExplicitDeleted || (!inCloud && !inQueue && !isRecentlyCreatedOrUpdated)) {
-                console.log(`[Cloud Live Sync] Pruning rider locally (deleted in cloud or explicit): ${key}`);
-                localEMap.delete(key);
-                modified = true;
-              }
             }
-          }
 
-          if (modified) {
-            const merged = Array.from(localEMap.values());
-            const jsonStr = JSON.stringify(merged);
-            if (typeof AndroidStorage !== 'undefined') {
-              AndroidStorage.saveData('ek_delivery_persons', jsonStr);
-            }
-            localStorage.setItem('ek_delivery_persons', jsonStr);
-            console.log("[Cloud Live Sync] Instantly merged new delivery riders from Firestore stream.");
+            if (modified) {
+              const merged = Array.from(localEMap.values());
+              const jsonStr = JSON.stringify(merged);
+              if (typeof AndroidStorage !== 'undefined') {
+                AndroidStorage.saveData('ek_delivery_persons', jsonStr);
+              }
+              localStorage.setItem('ek_delivery_persons', jsonStr);
+              console.log("[Cloud Live Sync] Instantly merged new delivery riders from Firestore stream.");
 
-            // Inform active maps to update their markers right away!
-            if (currentScreen === 'screen-track' && trackerLeafletMap) {
-              console.log("[Cloud Live Sync] Active tracking screen live coordinate refresh.");
-              const activeOrderId = document.getElementById('tracking-order-id')?.innerText;
-              if (activeOrderId) {
-                const orders = getData('ek_orders', []);
-                const matchedOrder = orders.find(o => o.id === activeOrderId);
-                if (matchedOrder) {
-                  const storeLocation = [11.5815, 77.8488];
-                  let custLocation = [11.5815, 77.8488];
-                  const detailsContainer = document.getElementById('tracking-details-card');
-                  if (detailsContainer) {
-                    const latAttr = detailsContainer.getAttribute('data-cust-lat');
-                    const lngAttr = detailsContainer.getAttribute('data-cust-lng');
-                    if (latAttr && lngAttr) {
-                      custLocation = [parseFloat(latAttr), parseFloat(lngAttr)];
+              // Inform active maps to update their markers right away!
+              if (currentScreen === 'screen-track' && trackerLeafletMap) {
+                console.log("[Cloud Live Sync] Active tracking screen live coordinate refresh.");
+                const activeOrderId = document.getElementById('tracking-order-id')?.innerText;
+                if (activeOrderId) {
+                  const orders = getData('ek_orders', []);
+                  const matchedOrder = orders.find(o => o.id === activeOrderId);
+                  if (matchedOrder) {
+                    const storeLocation = [11.5815, 77.8488];
+                    let custLocation = [11.5815, 77.8488];
+                    const detailsContainer = document.getElementById('tracking-details-card');
+                    if (detailsContainer) {
+                      const latAttr = detailsContainer.getAttribute('data-cust-lat');
+                      const lngAttr = detailsContainer.getAttribute('data-cust-lng');
+                      if (latAttr && lngAttr) {
+                        custLocation = [parseFloat(latAttr), parseFloat(lngAttr)];
+                      }
                     }
+                    debouncedLiveTrackingMapUpdate(matchedOrder, storeLocation, custLocation);
                   }
-                  debouncedLiveTrackingMapUpdate(matchedOrder, storeLocation, custLocation);
                 }
+              } else if (currentScreen === 'screen-delivery' && typeof renderDeliveryScreen === 'function') {
+                renderDeliveryScreen();
+              } else if (currentScreen === 'screen-admin') {
+                renderAdminDashboard();
               }
-            } else if (currentScreen === 'screen-delivery' && typeof renderDeliveryScreen === 'function') {
-              renderDeliveryScreen();
-            } else if (currentScreen === 'screen-admin') {
-              renderAdminDashboard();
             }
-          }
-        }, err => {
-          console.warn("[Cloud Live Sync] Delivery persons stream interrupted: ", err);
-          handleLiveStreamError('deliveryPersons', err);
-        });
+          }, err => {
+            console.warn("[Cloud Live Sync] Delivery persons stream interrupted: ", err);
+            handleLiveStreamError('deliveryPersons', err);
+          });
+        } else {
+          console.log("[Cloud Live Sync] Firebase auth is unauthenticated. Skipping deliveryPersons stream setup.");
+        }
       } catch (e) {
         console.error("[Cloud Live Sync] Failed to attach delivery staff listener:", e);
       }
@@ -22950,7 +22974,7 @@ ${o.items.map((it, idx) => {
           }
 
           // Prune locally deleted categories that are not in the cloud snapshot
-          if (true) {
+          if (!snapshot.empty) {
             for (const key of localCatsMap.keys()) {
               if (!cloudIds.has(key)) {
                 const isDefault = DEFAULT_CATEGORIES.some(def => def.id === key);
@@ -23030,7 +23054,7 @@ ${o.items.map((it, idx) => {
             }
 
             // Prune locally deleted admins that are not in the cloud snapshot
-            if (true) {
+            if (!snapshot.empty) {
               const deletedAdminIds = getDeletedAdminIds();
               const localQueue = getData('ek_pending_syncs', []);
               const nowTime = Date.now();
@@ -23158,6 +23182,10 @@ ${o.items.map((it, idx) => {
     }
 
     function handleLiveStreamError(streamKey, err) {
+      if (err && (err.code === 'permission-denied' || (err.message && (err.message.toLowerCase().includes('permission-denied') || err.message.toLowerCase().includes('insufficient permissions'))))) {
+        console.warn(`[Cloud Live Sync] Stream ${streamKey} failed due to insufficient permissions. This is normal for unauthenticated/guest users. Continuing other streams.`);
+        return;
+      }
       updateCloudStatus('error', `${streamKey} stream error: ${err.message}`);
       
       if (isReconnecting) {

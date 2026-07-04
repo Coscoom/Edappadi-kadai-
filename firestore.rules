@@ -18,35 +18,40 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
-    // Products: anyone authenticated can read, only admin writes
+    // Products: anyone can read, only admin writes (authenticated)
     match /ek_products/{productId} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow write: if request.auth != null;
     }
 
-    // Categories: authenticated read, write
+    // Categories: anyone can read, authenticated write
     match /ek_categories/{categoryId} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
-    // Coupons: authenticated read, write
+    // Coupons: anyone can read, authenticated write
     match /ek_coupons/{couponId} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
-    // Delivery Zones: authenticated read, write
+    // Delivery Zones: anyone can read, authenticated write
     match /ek_delivery_zones/{zoneId} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
-    // Banners: authenticated read, write
+    // Banners: anyone can read, authenticated write
     match /ek_banners/{bannerId} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
-    // Reviews: authenticated read, write
+    // Reviews: anyone can read, authenticated write
     match /ek_reviews/{reviewId} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
     // FCM queue: authenticated write only
@@ -65,19 +70,22 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
-    // Settings: authenticated read, write
+    // Settings: anyone can read, authenticated write
     match /ek_settings/{docId} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
-    // Tombstones: allow authenticated read, write
+    // Tombstones: allow anyone to read, authenticated write
     match /ek_tombstones/{docId} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
-    // Meta: allow authenticated read, write
+    // Meta: allow anyone to read, authenticated write
     match /ek_meta/{docId} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
     // Deny everything else
