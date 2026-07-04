@@ -306,7 +306,6 @@ class MainActivity : ComponentActivity() {
                                 overScrollMode = android.view.View.OVER_SCROLL_NEVER
                                 
                                 // Enable WebView caching for high performance PWA loading
-                                clearCache(false)
                                 preCreateWebViewCacheDirs()
                                 settings.apply {
                                     javaScriptEnabled = true
@@ -614,6 +613,45 @@ class MainActivity : ComponentActivity() {
                 com.edappadikadai.app.BuildConfig.GEMINI_API_KEY
             } catch (e: Exception) {
                 ""
+            }
+        }
+
+        @JavascriptInterface
+        fun copyToClipboard(text: String): Boolean {
+            val activity = context as? Activity
+            if (activity != null && !activity.hasWindowFocus()) {
+                android.util.Log.w("WebAppInterface", "Activity does not have window focus. Bypassing native copy to let Web API fallback handle it.")
+                return false
+            }
+            return try {
+                var success = false
+                val latch = java.util.concurrent.CountDownLatch(1)
+                activity?.runOnUiThread {
+                    try {
+                        if (activity == null || activity.isFinishing || activity.isDestroyed) {
+                            return@runOnUiThread
+                        }
+                        if (!activity.hasWindowFocus()) {
+                            android.util.Log.w("WebAppInterface", "Activity does not have window focus on UI thread. Bypassing native copy.")
+                            return@runOnUiThread
+                        }
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+                        if (clipboard != null) {
+                            val clip = android.content.ClipData.newPlainText("Edappadi Kadai", text)
+                            clipboard.setPrimaryClip(clip)
+                            success = true
+                        }
+                    } catch (ex: Exception) {
+                        android.util.Log.e("WebAppInterface", "Failed to set clip: ${ex.message}")
+                    } finally {
+                        latch.countDown()
+                    }
+                } ?: latch.countDown()
+                latch.await(1, java.util.concurrent.TimeUnit.SECONDS)
+                success
+            } catch (e: Exception) {
+                android.util.Log.e("WebAppInterface", "Failed to copy to clipboard natively: ${e.message}")
+                false
             }
         }
 

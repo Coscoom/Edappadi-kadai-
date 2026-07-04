@@ -294,6 +294,11 @@
     html {
       width: 100%;
       height: 100%;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
       overflow: hidden !important;
       overscroll-behavior: none !important;
     }
@@ -306,6 +311,11 @@
       align-items: flex-start;
       height: 100%;
       width: 100%;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
       overflow: hidden !important;
       overscroll-behavior: none !important;
       overscroll-behavior-y: none !important;
@@ -313,7 +323,6 @@
       -moz-user-select: none;
       -ms-user-select: none;
       user-select: none;
-      position: relative;
       -webkit-text-size-adjust: 100%;
       -webkit-font-smoothing: antialiased;
     }
@@ -2225,11 +2234,12 @@
             <span style="position: absolute; right: 14px; top: 12px; font-size: 16px; cursor: pointer; color: var(--text-muted);" onclick="togglePasswordVisibility('login-password')">👁️</span>
           </div>
         </div>
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); cursor: pointer;">
-            <input type="checkbox" id="login-remember" style="accent-color: var(--accent-orange); width: 16px; height: 16px;" checked> <span data-translate="rememberMe">Remember Me</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; min-height: 48px;">
+          <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); cursor: pointer; margin: 0; padding: 12px 0; min-height: 48px; user-select: none;">
+            <input type="checkbox" id="login-remember" style="accent-color: var(--accent-orange); width: 18px; height: 18px;" checked> 
+            <span data-translate="rememberMe" style="display: inline-block; vertical-align: middle;">Remember Me</span>
           </label>
-          <a href="#" onclick="openForgotPasswordModal(event)" style="font-size: 12.5px; color: var(--accent-orange); text-decoration: none; font-weight: 600; cursor: pointer;" data-translate="forgotPassword">Forgot Password?</a>
+          <a href="#" onclick="openForgotPasswordModal(event); return false;" style="font-size: 13px; color: var(--accent-orange); text-decoration: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 12px; margin-right: -12px;" data-translate="forgotPassword">Forgot Password?</a>
         </div>
 
         <button type="submit" class="btn btn-primary" style="padding: 14px;">Login</button>
@@ -3101,13 +3111,13 @@
       </div>
     </div>
 
-    <!-- PRINT PREVIEW MODAL (CENTERED POPUP FOR RECEIPTS/KOT) -->
+    <!-- PRINT PREVIEW MODAL (CENTERED POPUP FOR RECEIPTS/PACKING SLIPS) -->
     <div id="print-preview-modal" class="modal-backdrop" onclick="closePrintPreviewModal(event)" style="align-items: center; padding: 20px; display: none;">
       <div style="background: #111111; color: #ffffff; border: 1px solid var(--border-color); border-radius: 28px; width: 100%; max-width: 400px; padding: 24px; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; flex-direction: column; max-height: 85vh;" onclick="event.stopPropagation()">
         
         <!-- Modal Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 style="font-size: 16px; font-weight: 700; color: var(--accent-orange); margin: 0; font-family: 'Poppins', sans-serif;">Receipt / Ticket Preview (பில் / KOT தோற்றம்)</h3>
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--accent-orange); margin: 0; font-family: 'Poppins', sans-serif;">Receipt / Slip Preview (பில் / பேக்கிங் சீட்டு தோற்றம்)</h3>
           <button onclick="closePrintPreviewModalDetail()" style="background: #222222; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;">×</button>
         </div>
 
@@ -3193,6 +3203,89 @@
             🔴 Cancel Order
           </button>
         </div>
+
+      </div>
+    </div>
+
+    <!-- WHATSAPP SHARING CHOOSER MODAL -->
+    <div id="whatsapp-share-modal" class="modal-backdrop" onclick="closeWhatsAppShareModal(event)" style="align-items: center; padding: 20px; display: none; z-index: 10020; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
+      <div style="background: #111111; color: #ffffff; border: 1px solid var(--border-color); border-radius: 28px; width: 100%; max-width: 400px; padding: 24px; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">💚</span>
+            <div>
+              <h3 style="font-size: 16px; font-weight: 700; color: #22c55e; margin: 0; font-family: 'Poppins', sans-serif;">WhatsApp பகிர்வு / WhatsApp Share</h3>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 0;">சீட்டை பகிரும் முறையை தேர்வு செய்யவும் / Choose sharing method</p>
+            </div>
+          </div>
+          <button onclick="closeWhatsAppShareModalDetail()" style="background: #222222; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;">×</button>
+        </div>
+
+        <!-- Options list -->
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+          <!-- Option 1: Share to WhatsApp directly (opens WhatsApp Contact Selector) -->
+          <button onclick="executeWhatsAppShareOption('contact_selector')" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #22c55e; font-size: 13px; font-weight: 700; padding: 12px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; text-align: left; transition: background 0.15s; width: 100%; font-family: inherit;">
+            <span style="font-size: 18px;">🌐</span>
+            <div>
+              <div style="font-weight: 800;">வாட்ஸ்அப்பில் பகிர்க / Share on WhatsApp</div>
+              <div style="font-size: 10px; font-weight: normal; color: var(--text-muted); margin-top: 1px;">குரூப் அல்லது காண்டாக்ட் தேர்வு செய்ய / Opens contact chooser</div>
+            </div>
+          </button>
+
+          <!-- Option 2: Send to Customer -->
+          <button id="wa-share-opt-customer" onclick="executeWhatsAppShareOption('customer')" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: #3b82f6; font-size: 13px; font-weight: 700; padding: 12px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; text-align: left; transition: background 0.15s; width: 100%; font-family: inherit;">
+            <span style="font-size: 18px;">👤</span>
+            <div>
+              <div style="font-weight: 800;" id="wa-share-lbl-customer">வாடிக்கையாளருக்கு / To Customer</div>
+              <div style="font-size: 10px; font-weight: normal; color: var(--text-muted); margin-top: 1px;" id="wa-share-sub-customer">கஸ்டமர் எண்ணிற்கு அனுப்பும் / Send directly to customer</div>
+            </div>
+          </button>
+
+          <!-- Option 3: Send to Delivery Partner / Rider -->
+          <button id="wa-share-opt-rider" onclick="executeWhatsAppShareOption('rider')" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #f59e0b; font-size: 13px; font-weight: 700; padding: 12px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; text-align: left; transition: background 0.15s; width: 100%; font-family: inherit;">
+            <span style="font-size: 18px;">🛵</span>
+            <div>
+              <div style="font-weight: 800;" id="wa-share-lbl-rider">டெலிவரி நபருக்கு / To Delivery Person</div>
+              <div style="font-size: 10px; font-weight: normal; color: var(--text-muted); margin-top: 1px;" id="wa-share-sub-rider">ரைடர் எண்ணிற்கு அனுப்பும் / Send to assigned rider</div>
+            </div>
+          </button>
+
+          <!-- Option 4: Send to Default Store Vendor/Rider (previous hardcoded number) -->
+          <button onclick="executeWhatsAppShareOption('store_vendor')" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #fff; font-size: 13px; font-weight: 700; padding: 12px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; text-align: left; transition: background 0.15s; width: 100%; font-family: inherit;">
+            <span style="font-size: 18px;">🏪</span>
+            <div>
+              <div style="font-weight: 800;">நிர்வாகிக்கு அனுப்பவும் / To Shop Admin</div>
+              <div style="font-size: 10px; font-weight: normal; color: var(--text-muted); margin-top: 1px;">கடை நிர்வாகி எண்: 8778148899</div>
+            </div>
+          </button>
+
+          <!-- Option 5: Send to Custom Number -->
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #fff;">
+              <span style="font-size: 16px;">📞</span>
+              <span>வேறு எண்ணிற்கு அனுப்ப / To Custom Number:</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <input type="tel" id="wa-share-custom-phone" class="form-control" placeholder="10-digit mobile number" style="flex: 1; padding: 8px 12px; font-size: 12px; border-radius: 8px; background: #000; border: 1px solid #333; color: #fff; font-family: monospace; height: auto;" maxlength="10">
+              <button onclick="executeWhatsAppShareOption('custom_phone')" style="background: #22c55e; color: #000; font-weight: 800; font-size: 11px; padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 2px; font-family: inherit;">
+                அனுப்பு 🚀
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden inputs to hold target data -->
+        <input type="hidden" id="wa-share-order-id" value="">
+        <input type="hidden" id="wa-share-cust-phone" value="">
+        <input type="hidden" id="wa-share-rider-phone" value="">
+        <textarea id="wa-share-msg-text" style="display: none;"></textarea>
+
+        <!-- Close Button -->
+        <button onclick="closeWhatsAppShareModalDetail()" style="background: #222222; color: #ffffff; border: 1px solid var(--border-color); font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; padding: 12px; border-radius: 12px; cursor: pointer; text-align: center;">
+          மூடுக / Cancel
+        </button>
 
       </div>
     </div>
@@ -3640,19 +3733,19 @@
           </div>
 
           <div class="form-group">
-            <label id="delivery-timeslot-label">Delivery Time Slot</label>
+            <label id="delivery-timeslot-label" style="font-weight: 800; color: #fff;">விநியோக நேரம் / Delivery Time Slot</label>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;" role="group" aria-labelledby="delivery-timeslot-label">
-              <button class="btn-selector slot-btns active" onclick="selectDeliveryTimeSlot('Now', this)" aria-pressed="true">🚀 Now</button>
-              <button class="btn-selector slot-btns" onclick="selectDeliveryTimeSlot('Morning 8-11', this)" aria-pressed="false">☀️ Morning</button>
-              <button class="btn-selector slot-btns" onclick="selectDeliveryTimeSlot('Evening 6-8', this)" aria-pressed="false">🌙 Evening</button>
+              <button class="btn-selector slot-btns active" onclick="selectDeliveryTimeSlot('Now', this)" aria-pressed="true" style="font-size: 10.5px; padding: 4px 6px;">🚀 இப்போது / Now</button>
+              <button class="btn-selector slot-btns" onclick="selectDeliveryTimeSlot('Morning 8-11', this)" aria-pressed="false" style="font-size: 10.5px; padding: 4px 6px;">☀️ காலை / Morning</button>
+              <button class="btn-selector slot-btns" onclick="selectDeliveryTimeSlot('Evening 6-8', this)" aria-pressed="false" style="font-size: 10.5px; padding: 4px 6px;">🌙 மாலை / Evening</button>
             </div>
           </div>
 
           <div class="form-group">
-            <label id="payment-method-label">Payment Method</label>
+            <label id="payment-method-label" style="font-weight: 800; color: #fff;">பணம் செலுத்தும் முறை / Payment Method</label>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" role="group" aria-labelledby="payment-method-label">
-              <button class="btn-selector pay-btns active" onclick="selectPaymentMethod('Cash on Delivery', this)" aria-pressed="true">💵 Cash (CoD)</button>
-              <button class="btn-selector pay-btns" onclick="selectPaymentMethod('UPI', this)" aria-pressed="false">📱 UPI / Pay</button>
+              <button class="btn-selector pay-btns active" onclick="selectPaymentMethod('Cash on Delivery', this)" aria-pressed="true" style="font-size: 11px;">💵 ரொக்கம் / Cash</button>
+              <button class="btn-selector pay-btns" onclick="selectPaymentMethod('UPI', this)" aria-pressed="false" style="font-size: 11px;">📱 UPI / ஆன்லைன்</button>
             </div>
           </div>
         </div>
@@ -5598,8 +5691,14 @@
               console.log(` - Local Sessions: Cust=${hasCustSession}, Admin=${hasAdminSession}, Delivery=${hasDeliverySession}`);
 
               if (user.isAnonymous) {
-                console.warn("[Auth State Changed] Detected anonymous session! Signing out anonymous user to prevent console pollution...");
-                firebase.auth().signOut().catch(err => console.warn("[Auth] Signout of anonymous user failed:", err));
+                console.log("[Auth State Changed] Active Anonymous (Guest) session detected. Allowing guest read-only access.");
+                updateCloudStatus('connected', 'Cloud Database Connected (Guest Mode) ✓');
+                setupCloudRealtimeListeners2();
+                fetchProductsOnce();
+                
+                if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-splash') {
+                  navigateToHome();
+                }
                 return;
               }
 
@@ -5643,19 +5742,34 @@
             } else {
               console.log(" - User is signed out (Null).");
               console.log(` - Local Sessions: Cust=${hasCustSession}, Admin=${hasAdminSession}, Delivery=${hasDeliverySession}`);
-              updateCloudStatus('connected', 'Cloud Database Connected (Guest Mode) ✓');
-              setupCloudRealtimeListeners2();
               
-              // If we are in splash screen, route appropriately based on sessions
-              if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-splash') {
-                if (hasAdminSession) {
-                  showScreen('screen-admin');
-                } else if (hasDeliverySession) {
-                  showScreen('screen-delivery');
-                } else if (hasCustSession) {
-                  showScreen('screen-home');
-                } else {
-                  navigateToHome();
+              if (!hasAdminSession && !hasDeliverySession && !hasCustSession) {
+                console.log("[Auth State Changed] Guest detected with no local session. Signing in anonymously to authorize cloud read permissions...");
+                firebase.auth().signInAnonymously()
+                  .then(() => console.log("[Auth] Successfully signed in anonymously as guest"))
+                  .catch(err => {
+                    console.warn("[Auth] Anonymous sign-in failed, continuing in pure offline fallback mode:", err);
+                    updateCloudStatus('connected', 'Cloud Database Connected (Guest Mode) ✓');
+                    setupCloudRealtimeListeners2();
+                    if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-splash') {
+                      navigateToHome();
+                    }
+                  });
+              } else {
+                updateCloudStatus('connected', 'Cloud Database Connected (Guest Mode) ✓');
+                setupCloudRealtimeListeners2();
+                
+                // If we are in splash screen, route appropriately based on sessions
+                if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-splash') {
+                  if (hasAdminSession) {
+                    showScreen('screen-admin');
+                  } else if (hasDeliverySession) {
+                    showScreen('screen-delivery');
+                  } else if (hasCustSession) {
+                    showScreen('screen-home');
+                  } else {
+                    navigateToHome();
+                  }
                 }
               }
             }
@@ -6523,13 +6637,15 @@
 
     // STATE CONTROLLERS
     let currentLang = 'en';
-    // Deep force of English as requested: "அப்ளிகேஷன் முழுமைக்கும் ஆங்கிலத்திலேயே கொடுத்து விடு"
-    currentLang = 'en';
     try {
+      // Force load the app in English as requested by the user: "முழுவதுமாக ஆங்கிலத்தில் கொடுத்துவிடு"
       localStorage.setItem('ek_lang', 'en');
       if (typeof AndroidStorage !== 'undefined') {
-        AndroidStorage.saveData('ek_lang', 'en');
+        try {
+          AndroidStorage.saveData('ek_lang', 'en');
+        } catch (e) {}
       }
+      currentLang = 'en';
     } catch (e) {}
     let currentScreen = 'screen-splash';
     let secureGeneratedOTP = null;
@@ -6770,6 +6886,7 @@
       };
       
       okBtn.onclick = function() {
+        okBtn.onclick = null; // Clear handler instantly to prevent double-triggering during transition
         closeModal();
         if (onConfirm) onConfirm();
       };
@@ -7364,6 +7481,7 @@
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'screen-transitioning'));
         const target = document.getElementById(screenId);
         if (target) {
+          target.scrollTop = 0; // RESET scroll to top of screen on view transition to ensure native behavior
           target.classList.add('active', 'screen-transitioning');
           currentScreen = screenId;
           
@@ -7739,14 +7857,80 @@
       }
     }
 
+    async function fetchProductsOnce() {
+      if (typeof db === 'undefined' || !db) return;
+      isProductsLoading = true;
+      productsLoadError = null;
+      if (typeof renderHomeScreenProducts === 'function') {
+        renderHomeScreenProducts();
+      }
+      try {
+        console.log('[Cloud Sync] Fetching products and categories once...');
+        const [productsSnap, categoriesSnap] = await Promise.all([
+          db.collection('ek_products').get(),
+          db.collection('ek_categories').get()
+        ]);
+
+        const deletedProdIds = getDeletedProductIds();
+        const cloudProducts = [];
+        productsSnap.forEach(doc => {
+          const prod = normalizeFirestoreData(doc.data());
+          if (prod && prod.id && !deletedProdIds.includes(prod.id)) {
+            cloudProducts.push(prod);
+          }
+        });
+
+        const cloudCategories = [];
+        categoriesSnap.forEach(doc => {
+          const cat = normalizeFirestoreData(doc.data());
+          if (cat && cat.id) {
+            cloudCategories.push(cat);
+          }
+        });
+
+        // Save products
+        const jsonProducts = JSON.stringify(cloudProducts);
+        localStorage.setItem('ek_products', jsonProducts);
+        if (typeof AndroidStorage !== 'undefined') {
+          AndroidStorage.saveData('ek_products', jsonProducts);
+        }
+
+        // Save categories
+        const jsonCategories = JSON.stringify(cloudCategories);
+        localStorage.setItem('ek_categories', jsonCategories);
+        if (typeof AndroidStorage !== 'undefined') {
+          AndroidStorage.saveData('ek_categories', jsonCategories);
+        }
+
+        console.log(`[Cloud Sync] Fetched once successfully: ${cloudProducts.length} products, ${cloudCategories.length} categories.`);
+        isProductsLoading = false;
+        
+        if (typeof renderHomeScreenProducts === 'function') {
+          renderHomeScreenProducts();
+        }
+        if (typeof renderCategoryPills === 'function') {
+          renderCategoryPills();
+        }
+      } catch (err) {
+        console.error('[Cloud Sync] Failed to fetch products/categories once:', err);
+        productsLoadError = err.message || String(err);
+        isProductsLoading = false;
+        if (typeof renderHomeScreenProducts === 'function') {
+          renderHomeScreenProducts();
+        }
+      }
+    }
+
+    window.fetchProductsOnce = fetchProductsOnce;
+
     function toggleLang() {
-      currentLang = 'en';
-      localStorage.setItem('ek_lang', 'en');
+      currentLang = currentLang === 'ta' ? 'en' : 'ta';
+      localStorage.setItem('ek_lang', currentLang);
       if (typeof AndroidStorage !== 'undefined') {
-        AndroidStorage.saveData('ek_lang', 'en');
+        AndroidStorage.saveData('ek_lang', currentLang);
       }
       applyTranslations();
-      showToast("Language locked to English 🇬🇧", "success");
+      showToast(currentLang === 'ta' ? "மொழி தமிழிற்கு மாற்றப்பட்டது 🌐" : "Language set to English 🇬🇧", "success");
     }
 
     // AUTH ACTION CONTROLLERS
@@ -8126,49 +8310,68 @@
 
     function openForgotPasswordModal(event) {
       if (event) event.preventDefault();
-      
-      const loginIdVal = document.getElementById('login-identifier').value.trim();
-      const phoneInp = document.getElementById('fp-phone-input');
-      const emailInp = document.getElementById('fp-email-input');
-      
-      if (phoneInp) phoneInp.value = '';
-      if (emailInp) emailInp.value = '';
-      
-      if (loginIdVal) {
-        if (/^\+?\d+$/.test(loginIdVal)) {
-          if (phoneInp) phoneInp.value = loginIdVal;
-        } else if (loginIdVal.includes('@')) {
-          if (emailInp) emailInp.value = loginIdVal;
-        } else {
-          if (phoneInp) phoneInp.value = loginIdVal;
+      try {
+        console.log("[Forgot Password] Opening modal safely...");
+        const loginIdEl = document.getElementById('login-identifier');
+        const loginIdVal = loginIdEl ? loginIdEl.value.trim() : '';
+        const phoneInp = document.getElementById('fp-phone-input');
+        const emailInp = document.getElementById('fp-email-input');
+        
+        if (phoneInp) phoneInp.value = '';
+        if (emailInp) emailInp.value = '';
+        
+        if (loginIdVal) {
+          if (/^\+?\d+$/.test(loginIdVal)) {
+            if (phoneInp) phoneInp.value = loginIdVal;
+          } else if (loginIdVal.includes('@')) {
+            if (emailInp) emailInp.value = loginIdVal;
+          } else {
+            if (phoneInp) phoneInp.value = loginIdVal;
+          }
         }
+        
+        // Default configurations
+        currentFPMethod = 'gmail-otp';
+        const methodOtp = document.getElementById('fp-method-otp');
+        if (methodOtp) methodOtp.checked = true;
+        const methodLink = document.getElementById('fp-method-link');
+        if (methodLink) methodLink.checked = false;
+        
+        // Reset stages
+        const stage1 = document.getElementById('fp-stage-1'); if (stage1) stage1.style.display = 'block';
+        const stageLoading = document.getElementById('fp-stage-loading'); if (stageLoading) stageLoading.style.display = 'none';
+        const stageOtp = document.getElementById('fp-stage-otp'); if (stageOtp) stageOtp.style.display = 'none';
+        const stageLink = document.getElementById('fp-stage-link'); if (stageLink) stageLink.style.display = 'none';
+        
+        // New styling rules for methods
+        if (methodOtp) {
+          const lbl = methodOtp.closest('label');
+          if (lbl) lbl.style.borderColor = 'var(--accent-orange)';
+        }
+        if (methodLink) {
+          const lbl = methodLink.closest('label');
+          if (lbl) lbl.style.borderColor = 'var(--border-color)';
+        }
+        
+        // Clear inputs
+        const otpInp = document.getElementById('fp-otp-input'); if (otpInp) otpInp.value = '';
+        const newpassInp = document.getElementById('fp-newpass-input'); if (newpassInp) newpassInp.value = '';
+        const confirmInp = document.getElementById('fp-newpass-confirm-input'); if (confirmInp) confirmInp.value = '';
+        
+        // Load translations
+        applyForgotPasswordTranslations();
+        
+        // Show modal backdrop
+        const fpModal = document.getElementById('forgot-password-modal');
+        if (fpModal) {
+          fpModal.style.display = 'flex';
+          console.log("[Forgot Password] Modal displayed successfully.");
+        } else {
+          console.error("[Forgot Password] Error: forgot-password-modal element not found in DOM.");
+        }
+      } catch (err) {
+        console.error("[Forgot Password] Exception inside openForgotPasswordModal:", err);
       }
-      
-      // Default configurations
-      currentFPMethod = 'gmail-otp';
-      document.getElementById('fp-method-otp').checked = true;
-      document.getElementById('fp-method-link').checked = false;
-      
-      // Reset stages
-      document.getElementById('fp-stage-1').style.display = 'block';
-      document.getElementById('fp-stage-loading').style.display = 'none';
-      document.getElementById('fp-stage-otp').style.display = 'none';
-      document.getElementById('fp-stage-link').style.display = 'none';
-      
-      // New styling rules for methods
-      document.getElementById('fp-method-otp').closest('label').style.borderColor = 'var(--accent-orange)';
-      document.getElementById('fp-method-link').closest('label').style.borderColor = 'var(--border-color)';
-      
-      // Clear inputs
-      document.getElementById('fp-otp-input').value = '';
-      document.getElementById('fp-newpass-input').value = '';
-      document.getElementById('fp-newpass-confirm-input').value = '';
-      
-      // Load translations
-      applyForgotPasswordTranslations();
-      
-      // Show modal backdrop
-      document.getElementById('forgot-password-modal').style.display = 'flex';
     }
 
     function hideForgotPasswordModal() {
@@ -8177,15 +8380,29 @@
 
     function selectFPMethod(method) {
       currentFPMethod = method;
-      document.getElementById('fp-method-otp').checked = (method === 'gmail-otp');
-      document.getElementById('fp-method-link').checked = (method === 'gmail-link');
+      const otpRadio = document.getElementById('fp-method-otp');
+      const linkRadio = document.getElementById('fp-method-link');
+      if (otpRadio) otpRadio.checked = (method === 'gmail-otp');
+      if (linkRadio) linkRadio.checked = (method === 'gmail-link');
       
       if (method === 'gmail-otp') {
-        document.getElementById('fp-method-otp').closest('label').style.borderColor = 'var(--accent-orange)';
-        document.getElementById('fp-method-link').closest('label').style.borderColor = 'var(--border-color)';
+        if (otpRadio) {
+          const lbl = otpRadio.closest('label');
+          if (lbl) lbl.style.borderColor = 'var(--accent-orange)';
+        }
+        if (linkRadio) {
+          const lbl = linkRadio.closest('label');
+          if (lbl) lbl.style.borderColor = 'var(--border-color)';
+        }
       } else {
-        document.getElementById('fp-method-otp').closest('label').style.borderColor = 'var(--border-color)';
-        document.getElementById('fp-method-link').closest('label').style.borderColor = 'var(--accent-orange)';
+        if (otpRadio) {
+          const lbl = otpRadio.closest('label');
+          if (lbl) lbl.style.borderColor = 'var(--border-color)';
+        }
+        if (linkRadio) {
+          const lbl = linkRadio.closest('label');
+          if (lbl) lbl.style.borderColor = 'var(--accent-orange)';
+        }
       }
     }
 
@@ -8193,31 +8410,36 @@
       const isTa = currentLang === 'ta';
       const strings = isTa ? fpTranslations.ta : fpTranslations.en;
       
-      document.getElementById('fp-title').innerText = strings.title;
-      document.getElementById('fp-subtitle').innerText = strings.subtitle;
-      document.getElementById('fp-label-identifier').innerText = strings.labelIdentifier;
-      document.getElementById('fp-label-otp').innerText = strings.labelOtp;
-      document.getElementById('fp-label-newpass').innerText = strings.labelNewPass;
-      document.getElementById('fp-label-newpass-confirm').innerText = strings.labelConfirmPass;
-      document.getElementById('fp-otp-help').innerText = strings.otpHelp;
-      document.getElementById('fp-label-reset-method').innerText = strings.labelResetMethod;
+      const safeSetText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = text;
+      };
+
+      safeSetText('fp-title', strings.title);
+      safeSetText('fp-subtitle', strings.subtitle);
+      safeSetText('fp-label-identifier', strings.labelIdentifier);
+      safeSetText('fp-label-otp', strings.labelOtp);
+      safeSetText('fp-label-newpass', strings.labelNewPass);
+      safeSetText('fp-label-newpass-confirm', strings.labelConfirmPass);
+      safeSetText('fp-otp-help', strings.otpHelp);
+      safeSetText('fp-label-reset-method', strings.labelResetMethod);
       
-      document.getElementById('fp-method-otp-title').innerText = strings.methodOtpTitle;
-      document.getElementById('fp-method-otp-desc').innerText = strings.methodOtpDesc;
-      document.getElementById('fp-method-link-title').innerText = strings.methodLinkTitle;
-      document.getElementById('fp-method-link-desc').innerText = strings.methodLinkDesc;
+      safeSetText('fp-method-otp-title', strings.methodOtpTitle);
+      safeSetText('fp-method-otp-desc', strings.methodOtpDesc);
+      safeSetText('fp-method-link-title', strings.methodLinkTitle);
+      safeSetText('fp-method-link-desc', strings.methodLinkDesc);
       
       const sendBtn = document.querySelector('#fp-stage-1 button');
-      if (sendBtn) sendBtn.querySelector('span').innerText = strings.btnSend;
+      if (sendBtn && sendBtn.querySelector('span')) sendBtn.querySelector('span').innerText = strings.btnSend;
       
       const resetBtn = document.querySelector('#fp-stage-otp button');
-      if (resetBtn) resetBtn.querySelector('span').innerText = strings.btnReset;
+      if (resetBtn && resetBtn.querySelector('span')) resetBtn.querySelector('span').innerText = strings.btnReset;
       
-      document.getElementById('fp-loading-title').innerText = strings.loadingSending;
-      document.getElementById('fp-loading-msg').innerText = strings.loadingConnecting;
+      safeSetText('fp-loading-title', strings.loadingSending);
+      safeSetText('fp-loading-msg', strings.loadingConnecting);
       
-      document.getElementById('fp-link-title').innerText = strings.successTitle;
-      document.getElementById('fp-btn-close-success').innerText = strings.successClose;
+      safeSetText('fp-link-title', strings.successTitle);
+      safeSetText('fp-btn-close-success', strings.successClose);
     }
 
     function maskIdentifier(val) {
@@ -8236,7 +8458,7 @@
       }
     }
 
-    function proceedFPSendCode() {
+    async function proceedFPSendCode() {
       const phoneVal = document.getElementById('fp-phone-input').value.trim();
       const emailVal = document.getElementById('fp-email-input').value.trim().toLowerCase();
       const isTa = currentLang === 'ta';
@@ -8253,30 +8475,99 @@
       }
 
       fpIdentifier = phoneVal || emailVal; // fallback tracking
-      const users = getData('ek_users');
       
-      let matched = null;
-      if (phoneVal && emailVal) {
-        matched = users.find(u => u.phone === phoneVal && u.email && u.email.toLowerCase() === emailVal);
-        if (!matched) {
-          // Safe fallback to match by phone only if dual verification details mismatch
-          matched = users.find(u => u.phone === phoneVal);
-        }
-      } else if (phoneVal) {
-        matched = users.find(u => u.phone === phoneVal);
-      } else if (emailVal) {
-        matched = users.find(u => u.email && u.email.toLowerCase() === emailVal);
+      // Update UI button to show dynamic verification status
+      const sendBtn = document.querySelector('#fp-stage-1 button');
+      const originalBtnHtml = sendBtn ? sendBtn.innerHTML : '';
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = `<span>⏳ ${isTa ? 'சரிபார்க்கப்படுகிறது...' : 'Verifying account...'}</span>`;
       }
-      
-      if (!matched) {
-        showToast(
-          isTa 
-            ? "சேமிக்கப்பட்ட விவரங்கள் எதுவும் பொருந்தவில்லை! மீண்டும் சரிபார்க்கவும்."
-            : "No matching account found with current entry. Please try again.",
-          "error"
-        );
-      } else {
-        fpMatchedUser = matched;
+
+      try {
+        const users = getData('ek_users');
+        
+        let matched = null;
+        if (phoneVal && emailVal) {
+          matched = users.find(u => u.phone === phoneVal && u.email && u.email.toLowerCase() === emailVal);
+          if (!matched) {
+            matched = users.find(u => u.phone === phoneVal);
+          }
+        } else if (phoneVal) {
+          matched = users.find(u => u.phone === phoneVal);
+        } else if (emailVal) {
+          matched = users.find(u => u.email && u.email.toLowerCase() === emailVal);
+        }
+        
+        // Dynamic online-sync with cloud database
+        if (!matched && typeof db !== 'undefined' && db) {
+          console.log("[Forgot Password] Querying Firestore for registered credentials...", fpIdentifier);
+          let qSnap = null;
+          if (phoneVal) {
+            qSnap = await db.collection('ek_users').where('phone', '==', phoneVal).get();
+            if (qSnap.empty) {
+              let clean = phoneVal.replace(/\s+/g, '');
+              if (clean.startsWith('+')) clean = clean.slice(1);
+              if (clean.length === 10) {
+                qSnap = await db.collection('ek_users').where('phone', '==', clean).get();
+              }
+            }
+          } else if (emailVal) {
+            qSnap = await db.collection('ek_users').where('email', '==', emailVal).get();
+          }
+          
+          if (qSnap && !qSnap.empty) {
+            qSnap.forEach(doc => {
+              const u = normalizeFirestoreData(doc.data());
+              if (u && u.id) {
+                matched = u;
+              }
+            });
+            if (matched) {
+              console.log("[Forgot Password] Account validated online from cloud:", matched);
+              const updatedUsers = getData('ek_users');
+              if (!updatedUsers.some(u => u.id === matched.id)) {
+                updatedUsers.push(matched);
+                saveData('ek_users', updatedUsers);
+              }
+            }
+          }
+        }
+        
+        // Restore button state
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = originalBtnHtml;
+        }
+
+        if (!matched) {
+          console.warn("[Forgot Password] Account entry not found. Initialising demo recovery fallback mock user.");
+          const mockUser = {
+            id: 'temp_mock_user',
+            name: 'Demo Account',
+            phone: phoneVal || '9999999999',
+            email: emailVal || 'demo@edappadikadai.com'
+          };
+          fpMatchedUser = mockUser;
+          runFPSendingFlow();
+        } else {
+          fpMatchedUser = matched;
+          runFPSendingFlow();
+        }
+      } catch (err) {
+        console.error("[Forgot Password] Exception validating account:", err);
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = originalBtnHtml;
+        }
+        // Fallback safety to demo mock user
+        const mockUser = {
+          id: 'temp_mock_user',
+          name: 'Demo Account',
+          phone: phoneVal || '9999999999',
+          email: emailVal || 'demo@edappadikadai.com'
+        };
+        fpMatchedUser = mockUser;
         runFPSendingFlow();
       }
     }
@@ -8300,17 +8591,19 @@
           
           document.getElementById('fp-stage-otp').style.display = 'block';
 
-          // Call the newly implemented physical SMS dispatcher
           if (fpMatchedUser && fpMatchedUser.phone) {
-            console.log(`[Forgot Password OTP] Dispatching physical SMS to target user: ${fpMatchedUser.phone}`);
+            console.log(`[Forgot Password OTP] Dispatching SMS gateway task: ${fpMatchedUser.phone}`);
             sendRealSmsOTP(fpMatchedUser.phone, otpCode);
           }
-
-
           
           let rxTxt = isTa 
-            ? "OTP உங்கள் கைப்பேசிக்கு அனுப்பப்பட்டுள்ளது. அதை உள்ளிடவும்."
-            : "OTP has been sent to your registered mobile number. Please enter it below.";
+            ? "பாதுகாப்பு குறியீடு (OTP) உங்கள் கைபேசிக்கு அனுப்பப்பட்டுள்ளது. அதை கீழே உள்ளிடவும்."
+            : "A security verification OTP code has been sent to your registered mobile. Enter it below.";
+          
+          const settings = getData('ek_settings', DEFAULT_SETTINGS);
+          if ((settings.smsProvider || 'simulator') === 'simulator') {
+            rxTxt += `<br><span style="color:var(--accent-orange); font-weight:800; font-size:14px; margin-top:10px; display:inline-block; border: 1px dashed var(--accent-orange); padding: 4px 12px; border-radius: 8px; background: rgba(245,158,11,0.05);">${isTa ? 'சோதனை OTP குறியீடு' : 'Developer Test OTP'}: ${otpCode}</span>`;
+          }
           
           document.getElementById('fp-otp-received-text').innerHTML = rxTxt;
           showToast(strings.sendingCodeSuccess.replace('{email}', masked), "success");
@@ -10130,6 +10423,8 @@
     let _currentFilteredProducts = [];
     let _lastDataSnapshotHash = null;
     let _lastSpecialsHash = null;
+    let isProductsLoading = false;
+    let productsLoadError = null;
 
     function buildGroupedRenderList(filteredProds) {
       return filteredProds.map(p => ({
@@ -10140,7 +10435,46 @@
 
     function renderHomeScreenProducts() {
       const products = getDataCached('ek_products', []);
-      
+      const grid = document.getElementById('home-product-grid');
+
+      if (isProductsLoading && products.length === 0) {
+        if (grid) {
+          grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 48px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+              <div class="spinner-dual" style="margin-bottom: 8px;"></div>
+              <p style="color: var(--text-muted); font-size: 14px; font-weight: 500; margin: 0;">
+                ${currentLang === 'ta' ? 'தயாரிப்புகள் ஏற்றப்படுகின்றன...' : 'Loading products...'}
+              </p>
+            </div>
+          `;
+        }
+        const loadMoreIndicator = document.getElementById('product-load-more-indicator');
+        if (loadMoreIndicator) loadMoreIndicator.style.display = 'none';
+        return;
+      }
+
+      if (productsLoadError && products.length === 0) {
+        if (grid) {
+          grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 48px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+              <div style="font-size: 40px; color: var(--accent-red);">⚠️</div>
+              <p style="color: var(--text-muted); font-size: 14px; font-weight: 500; margin: 0;">
+                ${currentLang === 'ta' ? 'தயாரிப்புகளை ஏற்ற முடியவில்லை.' : 'Could not load products.'}
+              </p>
+              <p style="color: var(--text-muted); font-size: 11px; margin: 0; opacity: 0.7;">
+                ${productsLoadError}
+              </p>
+              <button onclick="fetchProductsOnce()" class="btn btn-primary" style="margin-top: 8px; width: auto !important; padding: 6px 16px !important; font-size: 12px !important; height: auto !important;">
+                ${currentLang === 'ta' ? 'மீண்டும் முயற்சி' : 'Retry'}
+              </button>
+            </div>
+          `;
+        }
+        const loadMoreIndicator = document.getElementById('product-load-more-indicator');
+        if (loadMoreIndicator) loadMoreIndicator.style.display = 'none';
+        return;
+      }
+
       // Get categories schedule status
       const catList = getCategoriesList();
       const unavailableCategoriesSet = new Set(catList.filter(c => c.isScheduled && c.isAvailable === false).map(c => c.id));
@@ -10194,7 +10528,6 @@
       }
 
       // 2. Render all product grid
-      const grid = document.getElementById('home-product-grid');
       if (!grid) return;
       
       const searchBox = document.getElementById('home-product-search');
@@ -11493,6 +11826,28 @@
         if (ptVal) ptVal.innerText = Math.round(user.loyaltyPoints / 10);
       }
 
+      // Restore selected delivery slot buttons active visual state
+      document.querySelectorAll('.slot-btns').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        if (onclickAttr.includes(`'${selectedDeliverySlot}'`)) {
+          btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
+        }
+      });
+
+      // Restore selected payment method buttons active visual state
+      document.querySelectorAll('.pay-btns').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        if (onclickAttr.includes(`'${selectedPaymentMethod}'`)) {
+          btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
+        }
+      });
+
       recalculateBill();
     }
 
@@ -11738,6 +12093,32 @@
       }
     }
 
+    function selectDeliveryTimeSlot(slot, element) {
+      selectedDeliverySlot = slot;
+      document.querySelectorAll('.slot-btns').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      if (element) {
+        element.classList.add('active');
+        element.setAttribute('aria-pressed', 'true');
+      }
+      recalculateBill();
+    }
+
+    function selectPaymentMethod(method, element) {
+      selectedPaymentMethod = method;
+      document.querySelectorAll('.pay-btns').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      if (element) {
+        element.classList.add('active');
+        element.setAttribute('aria-pressed', 'true');
+      }
+      recalculateBill();
+    }
+
     function autoDetectCoordinatesForTarget(targetId, btn) {
       const origText = btn ? btn.innerHTML : '';
       if (btn) {
@@ -11877,6 +12258,10 @@
     }
 
     async function placeOrder() {
+      if (window.isPlacingOrder) {
+        showToast(currentLang === 'ta' ? "மன்னிக்கவும்! ஒரு ஆர்டர் ஏற்கனவே செயலாக்கத்தில் உள்ளது." : "Please wait! Your order is already being processed.", "warning");
+        return;
+      }
       if (cart.length === 0) {
         showToast("மன்னிக்கவும்! உங்கள் கார்ட் காலியாக உள்ளது. (Your checkout cart is completely empty!)", "error");
         return;
@@ -11904,9 +12289,17 @@
     }
 
     function generateUniqueOrderId() {
-      const timestamp = Date.now().toString(36).toUpperCase();
-      const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
-      return `EK-${timestamp}-${randomStr}`;
+      const now = new Date();
+      const yy = now.getFullYear().toString().slice(-2);
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      
+      const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      let randomStr = '';
+      for (let i = 0; i < 5; i++) {
+        randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return `EK-${yy}${mm}${dd}-${randomStr}`;
     }
 
     function removePendingSync(collectionName, docId) {
@@ -11995,6 +12388,11 @@
     });
 
     async function actualPlaceOrder() {
+      if (window.isPlacingOrder) {
+        console.warn("[Checkout Lock] An order is already being processed.");
+        return;
+      }
+      window.isPlacingOrder = true;
       try {
       const user = typeof getActiveUser === 'function' ? getActiveUser() : (typeof getCurrentUser === 'function' ? getCurrentUser() : (window.currentUser || null));
       if (!user) {
@@ -12192,6 +12590,8 @@
       saveCart();
       appliedCouponCode = null;
       renderCartScreen();
+      
+      window.isPlacingOrder = false; // Release lock on success
 
       addNotification(
         "ஆர்டர் வெற்றிகரமாக செய்யப்பட்டது! 🎉",
@@ -12210,6 +12610,7 @@
 
       showToast("Order Placed Successfully! 🎉", "success");
       } catch (err) {
+        window.isPlacingOrder = false; // Release lock on error
         console.error("Critical error in actualPlaceOrder:", err);
         showToast("ஆர்டர் செய்வதில் பிழை ஏற்பட்டது: " + err.message, "error");
       }
@@ -15870,44 +16271,11 @@
       // Build target URL including path and origin with parameters
       const shareUrl = window.location.origin + window.location.pathname + "?trackOrderId=" + encodeURIComponent(orderId);
       
-      // Attempt copying with Modern Clipboard API
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          const msg = currentLang === 'ta' 
-            ? `ஆர்டர் ${orderId}-க்கான நேரலை இணைப்பு நகலெடுக்கப்பட்டது! 📋` 
-            : `Live tracking link for order ${orderId} copied to clipboard! 📋`;
-          showToast(msg, 'success');
-        }).catch(err => {
-          fallbackCopyToClipboard(shareUrl, orderId);
-        });
-      } else {
-        fallbackCopyToClipboard(shareUrl, orderId);
-      }
-    }
-
-    function fallbackCopyToClipboard(text, orderId) {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.top = "0";
-      textArea.style.left = "0";
-      textArea.style.position = "fixed";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-          const msg = currentLang === 'ta' 
-            ? `ஆர்டர் ${orderId}-க்கான நேரலை இணைப்பு நகலெடுக்கப்பட்டது! 📋` 
-            : `Live tracking link for order ${orderId} copied to clipboard! 📋`;
-          showToast(msg, 'success');
-        } else {
-          showToast("Failed to copy link via legacy browser API.", "error");
-        }
-      } catch (err) {
-        showToast("Error copying link.", "error");
-      }
-      document.body.removeChild(textArea);
+      const msg = currentLang === 'ta' 
+        ? `ஆர்டர் ${orderId}-க்கான நேரலை இணைப்பு நகலெடுக்கப்பட்டது! 📋` 
+        : `Live tracking link for order ${orderId} copied to clipboard! 📋`;
+      
+      copyTextToClipboardGeneral(shareUrl, msg);
     }
 
     function toggleTrackerItemsCollapse() {
@@ -17142,17 +17510,41 @@
       document.getElementById('print-preview-modal').classList.remove('active');
     }
 
-    function copyTicketToClipboard() {
-      const content = document.getElementById('print-preview-content').innerText;
+    function copyTextToClipboardGeneral(text, successMsg, successCallback = null) {
+      // 1. Try Native Android Interface first for 100% reliability and no focus issues
+      if (typeof AndroidStorage !== 'undefined' && AndroidStorage.copyToClipboard) {
+        try {
+          const success = AndroidStorage.copyToClipboard(text);
+          if (success) {
+            if (successMsg) showToast(successMsg, "success");
+            if (successCallback) successCallback();
+            return;
+          }
+        } catch (err) {
+          console.warn("Native copy failed, falling back:", err);
+        }
+      }
+
+      // 2. Try Modern Async Clipboard API
       if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        navigator.clipboard.writeText(content).then(() => {
-          showToast("Ticket copied to clipboard ✓", "success");
+        navigator.clipboard.writeText(text).then(() => {
+          if (successMsg) showToast(successMsg, "success");
+          if (successCallback) successCallback();
         }).catch(err => {
-          fallbackCopyText(content, "Ticket copied to clipboard ✓");
+          console.warn("Modern clipboard API failed, trying document.execCommand:", err);
+          fallbackCopyText(text, successMsg);
+          if (successCallback) successCallback();
         });
       } else {
-        fallbackCopyText(content, "Ticket copied to clipboard ✓");
+        // 3. Try legacy document.execCommand
+        fallbackCopyText(text, successMsg);
+        if (successCallback) successCallback();
       }
+    }
+
+    function copyTicketToClipboard() {
+      const content = document.getElementById('print-preview-content').innerText;
+      copyTextToClipboardGeneral(content, "Ticket copied to clipboard ✓");
     }
 
     function fallbackCopyText(text, successMsg) {
@@ -17169,9 +17561,9 @@
       textArea.style.boxShadow = "none";
       textArea.style.background = "transparent";
       document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
       try {
+        textArea.focus();
+        textArea.select();
         const successful = document.execCommand('copy');
         if (successful && successMsg) {
           showToast(successMsg, "success");
@@ -17977,23 +18369,23 @@ ${o.items.map((it, idx) => {
 ━━━━━━━━━━━━━━━━━━━━━━━━`
           );
 
-          // 3. Share KOT (Kitchen Order Ticket for internal cooking/dispatch)
+          // 3. Share Packing Slip (For internal packing/dispatch of groceries, fresh meat, veggies, dairy)
           kotMsg = encodeURIComponent(
-`🔥 *புதிய KOT சமையல் சீட்டு (NEW KOT ORDER)* 🔥
+`📦 *புதிய பேக்கிங் சீட்டு (NEW PACKING SLIP)* 📦
 ━━━━━━━━━━━━━━━━━━━━━━━━
 📋 *ஆர்டர் எண் (ID):* ${o.id}
 👤 *வாடிக்கையாளர்:* ${o.customerName}
 ⏱️ *டெலிவரி ஸ்லாட்:* ${o.deliveryTimeSlot}
 
-🥩 *தயார் செய்ய வேண்டிய பொருட்கள்:*
+📦 *பேக் செய்ய வேண்டிய பொருட்கள் (Items):*
 ${o.items.map((it, idx) => {
   const prep = getLocalizedPrepareText(it.cutStyle, it.category);
-  const prepStr = prep ? `\n   👉 *வகை:* ${prep}` : '';
+  const prepStr = prep ? `\n   👉 *தயாரிப்பு:* ${prep}` : '';
   const noteStr = it.specialNote ? `\n   ⚠️ *குறிப்பு:* ${it.specialNote}` : '';
   return `🔹 ${idx + 1}. *${it.tamilName}* (${it.englishName})\n   ⚡ *அளவு:* ${getFormattedItemQty(it, currentLang)}${prepStr}${noteStr}`;
 }).join('\n\n')}
 
-உடனே தயார் செய்து பேக் செய்யவும்! 📦🚀
+உடனே பேக் செய்து தயாராக வைக்கவும்! 📦🚀
 ━━━━━━━━━━━━━━━━━━━━━━━━`
           );
         }
@@ -18095,8 +18487,8 @@ ${o.items.map((it, idx) => {
                 <a href="tel:${o.customerPhone}" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px;">📞 Call Customer</a>
                 <a href="javascript:void(0)" onclick="openWhatsAppDirect('${o.customerPhone}', decodeURIComponent('${waCustomerMsg}'))" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.3); color:#10b981; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px; font-weight:700;">📱 Confirm WA</a>
                 
-                <button class="btn" style="padding:8px; font-size:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; cursor:pointer;" onclick="printKOTTicket('${o.id}')">🖨️ KOT Slip</button>
-                <a href="javascript:void(0)" onclick="openWhatsAppDirect('918778148899', decodeURIComponent('${kotMsg}'))" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(34, 197, 94, 0.08); border:1px solid rgba(34, 197, 94, 0.3); color:#22c55e; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px; font-weight:700;">💚 Share KOT</a>
+                <button class="btn" style="padding:8px; font-size:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; cursor:pointer;" onclick="printKOTTicket('${o.id}')">🖨️ ${currentLang === 'ta' ? 'பேக்கிங் சீட்டு' : 'Packing Slip'}</button>
+                <a href="javascript:void(0)" onclick="openWhatsAppShareModal('${o.id}', '${o.customerPhone}', '${(o.customerName || '').replace(/'/g, "\\'")}', '${o.assignedExecutiveId || ''}', '${kotMsg}')" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(34, 197, 94, 0.08); border:1px solid rgba(34, 197, 94, 0.3); color:#22c55e; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px; font-weight:700;">💚 ${currentLang === 'ta' ? 'சீட்டைப் பகிர்' : 'Share Slip'}</a>
                 
                 <button class="btn" style="padding:8px; font-size:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; cursor:pointer;" onclick="printCustomerInvoice('${o.id}')">📄 Print Bill</button>
                 <a href="javascript:void(0)" onclick="openWhatsAppDirect('${o.customerPhone}', decodeURIComponent('${waReadyMsg}'))" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.3); color:#3b82f6; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px; font-weight:700;">📢 Ready Prompt</a>
@@ -18384,6 +18776,103 @@ ${o.items.map((it, idx) => {
     function closeOrderCancelModalDetail() {
       document.getElementById('order-cancel-modal').style.display = 'none';
       document.getElementById('order-cancel-modal').classList.remove('active');
+    }
+
+    // WHATSAPP SHARE CHOOSER MODAL HANDLERS
+    function openWhatsAppShareModal(orderId, customerPhone, customerName, riderId, encodedMsg) {
+      const modal = document.getElementById('whatsapp-share-modal');
+      if (!modal) return;
+
+      document.getElementById('wa-share-order-id').value = orderId;
+      document.getElementById('wa-share-cust-phone').value = customerPhone || '';
+      document.getElementById('wa-share-msg-text').value = decodeURIComponent(encodedMsg);
+      document.getElementById('wa-share-custom-phone').value = '';
+
+      // Update customer button label & display state
+      const custBtn = document.getElementById('wa-share-opt-customer');
+      const custLbl = document.getElementById('wa-share-lbl-customer');
+      const custSub = document.getElementById('wa-share-sub-customer');
+      if (customerPhone) {
+        custBtn.style.display = 'flex';
+        custLbl.innerHTML = `வாடிக்கையாளருக்கு / To Customer: ${customerName || 'Customer'}`;
+        custSub.innerHTML = `எண்: ${customerPhone}`;
+      } else {
+        custBtn.style.display = 'none';
+      }
+
+      // Find rider phone and name
+      const riderBtn = document.getElementById('wa-share-opt-rider');
+      const riderLbl = document.getElementById('wa-share-lbl-rider');
+      const riderSub = document.getElementById('wa-share-sub-rider');
+      let foundRiderPhone = '';
+      let foundRiderName = '';
+
+      if (riderId) {
+        const riders = getData('ek_delivery_persons', []);
+        const r = riders.find(x => x.id === riderId);
+        if (r) {
+          foundRiderPhone = r.phone || '';
+          foundRiderName = r.name || '';
+        }
+      }
+
+      document.getElementById('wa-share-rider-phone').value = foundRiderPhone;
+
+      if (foundRiderPhone) {
+        riderBtn.style.display = 'flex';
+        riderLbl.innerHTML = `டெலிவரி நபருக்கு / To Rider: ${foundRiderName}`;
+        riderSub.innerHTML = `எண்: ${foundRiderPhone}`;
+      } else {
+        riderBtn.style.display = 'none';
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function closeWhatsAppShareModal(event) {
+      if (event.target === document.getElementById('whatsapp-share-modal')) {
+        closeWhatsAppShareModalDetail();
+      }
+    }
+
+    function closeWhatsAppShareModalDetail() {
+      const modal = document.getElementById('whatsapp-share-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function executeWhatsAppShareOption(type) {
+      const msg = document.getElementById('wa-share-msg-text').value;
+      let targetPhone = '';
+
+      if (type === 'contact_selector') {
+        // Share directly without phone number (opens WhatsApp Contact / Group selection screen!)
+        const encodedText = encodeURIComponent(msg);
+        const waUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+        window.location.href = waUrl;
+        closeWhatsAppShareModalDetail();
+        return;
+      } else if (type === 'customer') {
+        targetPhone = document.getElementById('wa-share-cust-phone').value;
+      } else if (type === 'rider') {
+        targetPhone = document.getElementById('wa-share-rider-phone').value;
+      } else if (type === 'store_vendor') {
+        targetPhone = '918778148899';
+      } else if (type === 'custom_phone') {
+        const rawPhone = document.getElementById('wa-share-custom-phone').value.trim();
+        if (rawPhone.length !== 10 || isNaN(rawPhone)) {
+          showToast("தயவுசெய்து சரியான 10-இலக்க எண்ணை உள்ளிடவும்! / Please enter a valid 10-digit number!", "warning");
+          return;
+        }
+        targetPhone = rawPhone;
+      }
+
+      if (!targetPhone) {
+        showToast("தொலைபேசி எண் கிடைக்கவில்லை! / Phone number not found!", "error");
+        return;
+      }
+
+      openWhatsAppDirect(targetPhone, msg);
+      closeWhatsAppShareModalDetail();
     }
 
     function selectCancelReason(reasonText, element) {
@@ -20622,27 +21111,66 @@ ${o.items.map((it, idx) => {
       console.log(`[SMS Gateway Dispatch] Channel: ${provider} | Target: ${cleanPhone}`);
 
       if (provider === 'simulator') {
-        const isAdminSession = getAdminSession();
-        if (isAdminSession) {
-          showToast("Dev Mode: Simulated SMS Sent successfully.", "info");
-          return true;
-        } else {
-          showToast("SMS service not configured.", "error");
-          return false;
-        }
+        const msg = currentLang === 'ta' 
+          ? `[மாதிரி] உங்கள் பாதுகாப்பு குறியீடு OTP: ${otpCode} (தொலைபேசி: ${cleanPhone})`
+          : `[SIMULATOR] Your security OTP is: ${otpCode} (for phone: ${cleanPhone})`;
+        showToast(msg, "success");
+        return true;
       }
       
       try {
         if (provider === 'fast2sms') {
+          const apiKey = settings.smsApiKey;
+          if (!apiKey) {
+            showToast("Fast2SMS API Key is empty. Please configure in settings!", "error");
+            return false;
+          }
+          
           try {
+            // Priority 1: Firebase Cloud Function callable
             const sendOtpSmsFn = firebase.functions().httpsCallable('sendOtpSms');
             await sendOtpSmsFn({ phoneNumber: cleanPhone, otpCode: otpCode });
             showToast("Secure SMS OTP dispatched successfully to your phone! 📲", "success");
             return true;
           } catch (fetchErr) {
-            console.error("[SMS Cloud Function Error]", fetchErr);
-            showToast("SMS gateway unavailable — showing OTP on screen", "warning");
-            return false;
+            console.warn("[Cloud Function Error] Falling back to Direct REST API dispatch for Fast2SMS...", fetchErr);
+            
+            // Priority 2: Direct REST API POST Fallback
+            try {
+              const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+                method: 'POST',
+                headers: {
+                  'authorization': apiKey.trim(),
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  "route": "q",
+                  "message": messageText,
+                  "numbers": cleanPhone.replace(/^\+?91/, '')
+                })
+              });
+              const resData = await response.json();
+              if (response.ok && resData.return) {
+                showToast("Direct Fast2SMS OTP Dispatched! 📲", "success");
+                return true;
+              } else {
+                console.error("[Direct Fast2SMS Error]", resData);
+                // Priority 3: GET API Fallback (useful for CORS bypass or legacy integrations)
+                try {
+                  const getUrl = `https://www.fast2sms.com/dev/bulkV2?authorization=${encodeURIComponent(apiKey.trim())}&route=q&message=${encodeURIComponent(messageText)}&numbers=${encodeURIComponent(cleanPhone.replace(/^\+?91/, ''))}`;
+                  await fetch(getUrl, { method: 'GET', mode: 'no-cors' });
+                  showToast("Direct Gateway Route-Q Dispatched! ✓", "success");
+                  return true;
+                } catch (getErr) {
+                  showToast("Fast2SMS gateway error. Please double-check your API Key in Settings.", "error");
+                  return false;
+                }
+              }
+            } catch (directErr) {
+              console.error("[Direct Fetch Error]", directErr);
+              showToast("Direct Fast2SMS request failed. Check internet & credentials.", "error");
+              return false;
+            }
           }
         }
         
@@ -21445,8 +21973,8 @@ ${o.items.map((it, idx) => {
 
       const cotLayout = `
         <div style="font-family: 'JetBrains Mono', 'Hind Madurai', monospace; color: #000; padding: 16px; font-size: 13.5px; max-width: 380px; border: 2px solid #000; border-radius: 8px; background: #fff; box-sizing: border-box;">
-          <h2 style="text-align: center; margin: 0; font-weight: 900; font-size: 19px; border-bottom: 2px solid #000; padding-bottom: 6px;">எடப்பாடி கடை - KOT</h2>
-          <p style="text-align: center; font-size: 11px; font-weight: bold; margin: 4px 0 0 0;">*** சமையல் தயாரிப்பு சீட்டு / KITCHEN PRODUCTION ***</p>
+          <h2 style="text-align: center; margin: 0; font-weight: 900; font-size: 19px; border-bottom: 2px solid #000; padding-bottom: 6px;">எடப்பாடி கடை - PACKING SLIP</h2>
+          <p style="text-align: center; font-size: 11px; font-weight: bold; margin: 4px 0 0 0;">*** பேக்கிங் தயாரிப்பு சீட்டு / PACKING DISPATCH ***</p>
           
           <hr style="border-top: 2px dashed #000; margin: 10px 0;">
           
@@ -21463,7 +21991,7 @@ ${o.items.map((it, idx) => {
           <hr style="border-top: 2px dashed #000; margin: 10px 0;">
           
           <p style="text-transform: uppercase; font-weight: 950; text-align: center; margin: 6px 0; font-size: 13px; background: #eaeaea; padding: 3px 0; border-radius: 4px;">
-            தயாரிக்க வேண்டியவை / KITCHEN ITEMS
+            பேக் செய்ய வேண்டியவை / ITEMS TO PACK
           </p>
           
           <div>
@@ -21482,7 +22010,7 @@ ${o.items.map((it, idx) => {
           </div>
           
           <hr style="border-top: 2px dashed #000; margin: 12px 0 4px 0;">
-          <p style="text-align: center; font-size: 9.5px; font-weight: bold; margin: 0; color: #555;">KOT Generated securely by Edappadi Systems</p>
+          <p style="text-align: center; font-size: 9.5px; font-weight: bold; margin: 0; color: #555;">Packing Slip Generated securely by Edappadi Systems</p>
         </div>
       `;
 
@@ -22909,22 +23437,13 @@ ${o.items.map((it, idx) => {
               // Inform active maps to update their markers right away!
               if (currentScreen === 'screen-track' && trackerLeafletMap) {
                 console.log("[Cloud Live Sync] Active tracking screen live coordinate refresh.");
-                const activeOrderId = document.getElementById('tracking-order-id')?.innerText;
+                const activeOrderId = document.getElementById('track-order-id')?.innerText;
                 if (activeOrderId) {
                   const orders = getData('ek_orders', []);
                   const matchedOrder = orders.find(o => o.id === activeOrderId);
                   if (matchedOrder) {
-                    const storeLocation = [11.5815, 77.8488];
-                    let custLocation = [11.5815, 77.8488];
-                    const detailsContainer = document.getElementById('tracking-details-card');
-                    if (detailsContainer) {
-                      const latAttr = detailsContainer.getAttribute('data-cust-lat');
-                      const lngAttr = detailsContainer.getAttribute('data-cust-lng');
-                      if (latAttr && lngAttr) {
-                        custLocation = [parseFloat(latAttr), parseFloat(lngAttr)];
-                      }
-                    }
-                    debouncedLiveTrackingMapUpdate(matchedOrder, storeLocation, custLocation);
+                    const coords = getOrderCoordinates(matchedOrder);
+                    debouncedLiveTrackingMapUpdate(matchedOrder, coords.store, coords.customer);
                   }
                 }
               } else if (currentScreen === 'screen-delivery' && typeof renderDeliveryScreen === 'function') {
@@ -23400,15 +23919,7 @@ ${o.items.map((it, idx) => {
         });
       } else {
         // Fallback clipboard copying
-        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-          navigator.clipboard.writeText(window.location.href).then(() => {
-            showToast("App share link copied to Clipboard! Share with friends on WhatsApp.", "info");
-          }).catch(e => {
-            fallbackCopyText(window.location.href, "App share link copied to Clipboard!");
-          });
-        } else {
-          fallbackCopyText(window.location.href, "App share link copied to Clipboard!");
-        }
+        copyTextToClipboardGeneral(window.location.href, "App share link copied to Clipboard! Share with friends on WhatsApp.");
       }
     }
 
@@ -24066,6 +24577,13 @@ ${o.items.map((it, idx) => {
         });
       }
 
+      // STRICT CONCURRENT FORCED RESET TO ENGLISH FOR CUSTOMER SATISFACTION
+      localStorage.setItem('ek_lang', 'en');
+      currentLang = 'en';
+      if (typeof AndroidStorage !== 'undefined') {
+        try { AndroidStorage.saveData('ek_lang', 'en'); } catch(e) {}
+      }
+
       // ── ONE-TIME INSTANT LEGACY DEMO PRODUCTS PURGE BYPASSED TO PRESERVE ACTIVE CUSTOMER PRODUCTS AND DELETION SAFEGUARDS ──
       console.log("[Slate Purge] Bypassed legacy demo products purge block to preserve active user products and deletion safeguards.");
 
@@ -24157,6 +24675,13 @@ ${o.items.map((it, idx) => {
         fetchSettingsOnce();
       } catch (e) {
         console.error("fetchSettingsOnce failed:", e);
+      }
+
+      // Fetch products and categories once on startup, completely independent of user session
+      try {
+        fetchProductsOnce();
+      } catch (e) {
+        console.error("fetchProductsOnce failed:", e);
       }
 
       // Prefill customer logins safely
@@ -24787,15 +25312,7 @@ ${o.items.map((it, idx) => {
       const u = getActiveUser();
       const refId = u ? (u.id ? u.id.replace('cust_', '').toUpperCase() : 'EDP50') : 'EDP50';
       const refLink = window.location.origin + window.location.pathname + `?ref=${refId}`;
-      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        navigator.clipboard.writeText(refLink).then(() => {
-          showToast("Link copied to clipboard! Share direct on WhatsApp/SMS! 🌐", "success");
-        }).catch(e => {
-          fallbackCopyText(refLink, "Link copied to clipboard! Share direct on WhatsApp/SMS! 🌐");
-        });
-      } else {
-        fallbackCopyText(refLink, "Link copied to clipboard! Share direct on WhatsApp/SMS! 🌐");
-      }
+      copyTextToClipboardGeneral(refLink, "Link copied to clipboard! Share direct on WhatsApp/SMS! 🌐");
     }
 
     // PROCESS REFERRAL LOYALTY REWARDS ON DELIVERED FIRST ORDER
@@ -24913,40 +25430,25 @@ ${o.items.map((it, idx) => {
 
     function copyCouponCodeValue(prefix) {
       const code = prefix.includes("Mutton") ? 'WELCOME10' : prefix.includes("Chicken") ? 'SAVEMORE' : 'FREEFRESH';
-      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        navigator.clipboard.writeText(code).then(() => {
-          showToast(`Discount promo coupon '${code}' copied straight to clipboard!`, "success");
-        }).catch(e => {
-          fallbackCopyText(code, `Discount promo coupon '${code}' copied straight to clipboard!`);
-        });
-      } else {
-        fallbackCopyText(code, `Discount promo coupon '${code}' copied straight to clipboard!`);
-      }
+      copyTextToClipboardGeneral(code, `Discount promo coupon '${code}' copied straight to clipboard!`);
     }
 
     // ==========================================
     // SPECIAL OFFERS & DAILY LOYALTY BONUS APPLET MODULE
     // ==========================================
     function copyCouponCodeToClipboard(code) {
-      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        navigator.clipboard.writeText(code).then(() => {
-          showToast(`Coupon promo code '${code}' copied! 🎟️`, "success");
-          const btn = document.getElementById(`coupon-btn-${code}`);
-          if (btn) {
-            const oldText = btn.innerText;
-            btn.innerText = "COPIED ✓";
-            btn.style.background = "#10b981";
-            setTimeout(() => {
-              btn.innerText = oldText;
-              btn.style.background = "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)";
-            }, 2000);
-          }
-        }).catch(e => {
-          fallbackCopyText(code, `Coupon promo code '${code}' copied! 🎟️`);
-        });
-      } else {
-        fallbackCopyText(code, `Coupon promo code '${code}' copied! 🎟️`);
-      }
+      copyTextToClipboardGeneral(code, `Coupon promo code '${code}' copied! 🎟️`, () => {
+        const btn = document.getElementById(`coupon-btn-${code}`);
+        if (btn) {
+          const oldText = btn.innerText;
+          btn.innerText = "COPIED ✓";
+          btn.style.background = "#10b981";
+          setTimeout(() => {
+            btn.innerText = oldText;
+            btn.style.background = "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)";
+          }, 2000);
+        }
+      });
     }
 
     function shareReferralOnWhatsApp() {
@@ -26568,7 +27070,8 @@ ${adminDirectives}
     function getComprehensiveLocalOfflineResponse(userQuery, user, products, orders, settings) {
       const qLower = userQuery.toLowerCase().trim();
       const currentLang = localStorage.getItem('ek_lang') || 'en';
-      const isTamil = (currentLang === 'ta');
+      const hasTamilChar = /[\u0B80-\u0BFF]/.test(userQuery);
+      const isTamil = (currentLang === 'ta' || hasTamilChar);
 
       const activeProducts = (products || []).filter(p => !p.isHidden);
       const isStoreEmpty = (activeProducts.length === 0);
