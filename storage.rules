@@ -1,0 +1,24 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        firestore.exists(/databases/(default)/documents/ek_admin_accounts/$(request.auth.uid)) &&
+        (
+          firestore.get(/databases/(default)/documents/ek_admin_accounts/$(request.auth.uid)).data.role == 'admin' ||
+          firestore.get(/databases/(default)/documents/ek_admin_accounts/$(request.auth.uid)).data.role == 'superadmin'
+        ) &&
+        firestore.get(/databases/(default)/documents/ek_admin_accounts/$(request.auth.uid)).data.active != false;
+    }
+
+    match /products/{productId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

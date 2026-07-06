@@ -186,8 +186,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Pre-create Chromium WebView Code Cache directories to prevent "No such file or directory" enumerator error on startup
-        preCreateWebViewCacheDirs()
+
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -209,18 +208,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Asynchronously keep recreating them for the first 30 seconds of startup 
-        // to win any race conditions with Chromium's async initialization or cleanup.
-        try {
-            Thread {
-                for (i in 1..60) {
-                    try {
-                        preCreateWebViewCacheDirs()
-                        Thread.sleep(500)
-                    } catch (e: Exception) {}
-                }
-            }.start()
-        } catch (e: Exception) {}
+
 
         // Fetch and register Firebase Cloud Messaging (FCM) Token gracefully
         try {
@@ -305,8 +293,7 @@ class MainActivity : ComponentActivity() {
                                 isHorizontalScrollBarEnabled = false
                                 overScrollMode = android.view.View.OVER_SCROLL_NEVER
                                 
-                                // Enable WebView caching for high performance PWA loading
-                                preCreateWebViewCacheDirs()
+
                                 settings.apply {
                                     javaScriptEnabled = true
                                     domStorageEnabled = true
@@ -344,10 +331,7 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
 
-                                    override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
-                                        super.onPageStarted(view, url, favicon)
-                                        preCreateWebViewCacheDirs()
-                                    }
+
 
                                     override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                                         if (url == null) return false
@@ -512,47 +496,7 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private fun preCreateWebViewCacheDirs() {
-        val roots = arrayOf(cacheDir, filesDir?.parentFile)
-        val relativePaths = arrayOf(
-            "WebView/Default/HTTP Cache/Code Cache",
-            "WebView/Default/Code Cache",
-            "app_webview/Default/HTTP Cache/Code Cache",
-            "app_webview/Default/Code Cache"
-        )
-        for (root in roots) {
-            if (root == null) continue
-            for (rel in relativePaths) {
-                try {
-                    val codeCacheDir = java.io.File(root, rel)
-                    if (!codeCacheDir.exists()) {
-                        codeCacheDir.mkdirs()
-                    }
-                    if (codeCacheDir.exists()) {
-                        val jsDir = java.io.File(codeCacheDir, "js")
-                        if (!jsDir.exists()) jsDir.mkdirs()
-                        try {
-                            val keepFile = java.io.File(jsDir, ".keep")
-                            if (!keepFile.exists()) {
-                                keepFile.createNewFile()
-                            }
-                        } catch (e: Exception) {}
 
-                        val wasmDir = java.io.File(codeCacheDir, "wasm")
-                        if (!wasmDir.exists()) wasmDir.mkdirs()
-                        try {
-                            val keepFile = java.io.File(wasmDir, ".keep")
-                            if (!keepFile.exists()) {
-                                keepFile.createNewFile()
-                            }
-                        } catch (e: Exception) {}
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("MainActivity", "Failed to pre-create directory $rel: ${e.message}")
-                }
-            }
-        }
-    }
 
     class WebAppInterface(private val context: Context) {
         private val sharedPreferences = context.getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
