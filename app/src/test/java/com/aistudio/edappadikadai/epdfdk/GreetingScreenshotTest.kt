@@ -3,7 +3,7 @@ package com.aistudio.edappadikadai.epdfdk
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
-import com.aistudio.edappadikadai.epdfdk.ui.theme.MyApplicationTheme
+import com.edappadikadai.app.ui.theme.MyApplicationTheme
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
 import org.junit.Rule

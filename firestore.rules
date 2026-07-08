@@ -11,10 +11,10 @@ service cloud.firestore {
       return isAuthenticated() && 
         exists(/databases/$(database)/documents/ek_admin_accounts/$(request.auth.uid)) &&
         (
-          get(/databases/$(database)/documents/ek_admin_accounts/$(request.auth.uid)).data.role == 'admin' || 
-          get(/databases/$(database)/documents/ek_admin_accounts/$(request.auth.uid)).data.role == 'superadmin'
+          get(/databases/$(database)/documents/ek_admin_accounts/$(request.auth.uid)).data.get('role', 'admin') == 'admin' || 
+          get(/databases/$(database)/documents/ek_admin_accounts/$(request.auth.uid)).data.get('role', 'admin') == 'superadmin'
         ) && 
-        get(/databases/$(database)/documents/ek_admin_accounts/$(request.auth.uid)).data.active != false;
+        get(/databases/$(database)/documents/ek_admin_accounts/$(request.auth.uid)).data.get('active', true) != false;
     }
 
     function isRider() {
@@ -24,7 +24,7 @@ service cloud.firestore {
 
     function isRiderUpdate(currentData, nextData) {
       return currentData.id == nextData.id &&
-             currentData.customerId == nextData.customerId &&
+             (currentData.customerId == nextData.customerId || currentData.userId == nextData.userId) &&
              currentData.customerPhone == nextData.customerPhone &&
              currentData.customerName == nextData.customerName &&
              currentData.deliveryAddress == nextData.deliveryAddress &&
@@ -32,18 +32,28 @@ service cloud.firestore {
              currentData.totalAmount == nextData.totalAmount &&
              currentData.items == nextData.items &&
              currentData.createdAt == nextData.createdAt &&
-             currentData.deliveryFee == nextData.deliveryFee &&
-             currentData.couponDiscount == nextData.couponDiscount &&
-             currentData.appliedCouponCode == nextData.appliedCouponCode &&
-             currentData.loyaltyDiscount == nextData.loyaltyDiscount &&
-             (nextData.assignedExecutiveId == request.auth.uid || nextData.deliveryExecutiveId == request.auth.uid) &&
              (
-               // Transition A: Claiming (status ready remains, executive fields set)
-               (currentData.status == 'ready' && nextData.status == 'ready' && currentData.assignedExecutiveId == null && nextData.assignedExecutiveId == request.auth.uid) ||
-               // Transition B: Ready -> Delivering (rider moves order to active delivery)
-               (currentData.status == 'ready' && nextData.status == 'delivering' && currentData.assignedExecutiveId == request.auth.uid) ||
-               // Transition C: Delivering -> Delivered (rider completes delivery)
-               (currentData.status == 'delivering' && nextData.status == 'delivered' && currentData.assignedExecutiveId == request.auth.uid)
+               nextData.get('riderUid', '') == request.auth.uid || 
+               nextData.get('assignedExecutiveId', '') == request.auth.uid || 
+               nextData.get('deliveryExecutiveId', '') == request.auth.uid ||
+               nextData.get('assignedDeliveryPartnerUid', '') == request.auth.uid ||
+               nextData.get('riderId', '') == request.auth.uid ||
+               nextData.get('deliveryPartnerUid', '') == request.auth.uid
+             ) &&
+             (
+               currentData.get('riderUid', '') == request.auth.uid || 
+               currentData.get('assignedExecutiveId', '') == request.auth.uid || 
+               currentData.get('deliveryExecutiveId', '') == request.auth.uid ||
+               currentData.get('assignedDeliveryPartnerUid', '') == request.auth.uid ||
+               currentData.get('riderId', '') == request.auth.uid ||
+               currentData.get('deliveryPartnerUid', '') == request.auth.uid
+             ) && (
+               // Transition A: Ready -> Delivering / OUT_FOR_DELIVERY
+               ((currentData.status == 'ready' || currentData.status == 'ACCEPTED' || currentData.status == 'pending') && (nextData.status == 'delivering' || nextData.status == 'OUT_FOR_DELIVERY' || nextData.status == 'ready')) ||
+               // Transition B: Delivering -> Delivered
+               ((currentData.status == 'delivering' || currentData.status == 'OUT_FOR_DELIVERY') && (nextData.status == 'delivered' || nextData.status == 'DELIVERED')) ||
+               // Transition C: Location/Progress update (status remains unchanged)
+               (currentData.status == nextData.status)
              );
     }
 
@@ -53,16 +63,19 @@ service cloud.firestore {
         isAuthenticated() && (
           resource.data.userId == request.auth.uid || 
           resource.data.customerId == request.auth.uid || 
-          resource.data.assignedExecutiveId == request.auth.uid ||
-          resource.data.deliveryExecutiveId == request.auth.uid
+          resource.data.get('riderUid', '') == request.auth.uid ||
+          resource.data.get('assignedExecutiveId', '') == request.auth.uid ||
+          resource.data.get('deliveryExecutiveId', '') == request.auth.uid ||
+          resource.data.get('assignedDeliveryPartnerUid', '') == request.auth.uid ||
+          resource.data.get('riderId', '') == request.auth.uid ||
+          resource.data.get('deliveryPartnerUid', '') == request.auth.uid
         )
       );
       
       allow create: if isAdmin() || (
-        isAuthenticated() && (
-          request.resource.data.userId == request.auth.uid || 
-          request.resource.data.customerId == request.auth.uid
-        )
+        isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid && 
+        request.resource.data.customerId == request.auth.uid
       );
       
       allow update: if isAdmin() || (
@@ -97,6 +110,21 @@ service cloud.firestore {
       allow create: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
       allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
       allow delete: if isAdmin();
+    }
+
+    // Legacy/Simplification users collection
+    match /users/{userId} {
+      allow get: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow list: if isAdmin();
+      allow create: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow delete: if isAdmin();
+    }
+
+    // Legacy/Simplification settings collection
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Products: anyone can read, only admin writes
@@ -150,17 +178,17 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
-    // Admin accounts: only self or admin read, only admin write
+    // Admin accounts: only self or admin read, only admin write, but allow authenticated users to read active approved admins
     match /ek_admin_accounts/{docId} {
-      allow get: if isAuthenticated() && (request.auth.uid == docId || isAdmin());
-      allow list: if isAdmin();
+      allow get: if isAuthenticated() && (request.auth.uid == docId || isAdmin() || resource.data.active != false);
+      allow list: if isAuthenticated() && (isAdmin() || (resource.data.active != false && request.query.limit <= 20));
       allow create, update, delete: if isAdmin();
     }
 
-    // Delivery persons: admin has full writes, rider can update operational status/location fields
+    // Delivery persons: admin has full writes, rider can update operational status/location fields, but allow authenticated users to read active approved riders
     match /ek_delivery_persons/{docId} {
-      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == docId);
-      allow create: if isAdmin();
+      allow read: if isAdmin() || (isAuthenticated() && (request.auth.uid == docId || (resource.data.isActive != false && request.query.limit <= 20)));
+      allow create: if isAdmin() || (isAuthenticated() && request.auth.uid == docId);
       allow update: if isAdmin() || (
         isAuthenticated() && 
         request.auth.uid == docId && 
@@ -175,6 +203,11 @@ service cloud.firestore {
     match /ek_settings/{docId} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+
+    // Secrets: deny all client read/write
+    match /ek_secrets/{docId} {
+      allow read, write: if false;
     }
 
     // Tombstones: write allowed only for administrators
