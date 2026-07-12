@@ -38,6 +38,10 @@ import com.edappadikadai.app.ui.theme.MyApplicationTheme
 @SuppressLint("InvalidFragmentVersionForActivityResult")
 class MainActivity : ComponentActivity() {
 
+    companion object {
+        var isActivityInForeground = false
+    }
+
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var webView: WebView? = null
     private var pendingGeolocationCallback: GeolocationPermissions.Callback? = null
@@ -185,11 +189,76 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    val upiPaymentLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val resultCode = result.resultCode
+        val data = result.data
+        var responseText = ""
+        if (data != null) {
+            val bundle = data.extras
+            if (bundle != null) {
+                val keys = bundle.keySet()
+                val sb = java.lang.StringBuilder()
+                for (key in keys) {
+                    val value = bundle.get(key)
+                    if (value != null) {
+                        sb.append(key).append("=").append(value).append("&")
+                    }
+                }
+                responseText = sb.toString()
+            } else {
+                responseText = data.getStringExtra("response") ?: ""
+            }
+        }
+        
+        val status = if (resultCode == Activity.RESULT_OK) {
+            if (responseText.isNotEmpty()) {
+                responseText
+            } else {
+                "SUCCESS_NO_RESPONSE_DATA"
+            }
+        } else {
+            if (responseText.isNotEmpty()) {
+                "CANCELLED_OR_FAILED&$responseText"
+            } else {
+                "CANCELLED"
+            }
+        }
+        
+        runOnUiThread {
+            val escapedStatus = status.replace("'", "\\'").replace("\n", "\\n").replace("\r", "")
+            webView?.evaluateJavascript(
+                "javascript:(function() { " +
+                "  if (typeof onAndroidUpiPaymentResult === 'function') { " +
+                "    onAndroidUpiPaymentResult('$escapedStatus'); " +
+                "  } " +
+                "})()", null
+            )
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-
-
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Pre-create WebView cache directories to prevent Chromium from logging directory-missing errors
+        try {
+            val webViewCacheDir = java.io.File(cacheDir, "WebView/Default/HTTP Cache/Code Cache")
+            if (!webViewCacheDir.exists()) {
+                webViewCacheDir.mkdirs()
+            }
+            val jsCacheDir = java.io.File(webViewCacheDir, "js")
+            if (!jsCacheDir.exists()) {
+                jsCacheDir.mkdir()
+            }
+            val wasmCacheDir = java.io.File(webViewCacheDir, "wasm")
+            if (!wasmCacheDir.exists()) {
+                wasmCacheDir.mkdir()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
         // Request Notification permission for Android 13+ (Tiramisu API 33)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -452,12 +521,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        isActivityInForeground = true
         webView?.requestFocus()
         // No automatic background GPS updates on resume. We will request location on-demand instead!
     }
 
     override fun onPause() {
         super.onPause()
+        isActivityInForeground = false
         activeLocationListener?.let { listener ->
             try {
                 if (isActiveLocationListenerRegistered) {
@@ -561,6 +632,24 @@ class MainActivity : ComponentActivity() {
         }
 
         @JavascriptInterface
+        fun startUpiPayment(upiUri: String): Boolean {
+            val activity = context as? MainActivity ?: return false
+            return try {
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = Uri.parse(upiUri)
+                }
+                val chooser = Intent.createChooser(intent, "Pay with / பணம் செலுத்தவும்")
+                activity.runOnUiThread {
+                    activity.upiPaymentLauncher.launch(chooser)
+                }
+                true
+            } catch (e: Exception) {
+                android.util.Log.e("UPI_PAYMENT", "Error launching UPI intent", e)
+                false
+            }
+        }
+
+        @JavascriptInterface
         fun copyToClipboard(text: String): Boolean {
             val activity = context as? Activity
             if (activity != null && !activity.hasWindowFocus()) {
@@ -601,12 +690,18 @@ class MainActivity : ComponentActivity() {
 
         @JavascriptInterface
         fun saveData(key: String, value: String) {
-            sharedPreferences.edit().putString(key, value).apply()
+            val encryptedValue = CryptoHelper.encrypt(value)
+            sharedPreferences.edit().putString(key, encryptedValue).apply()
         }
 
         @JavascriptInterface
         fun getData(key: String, defaultValue: String): String {
-            return sharedPreferences.getString(key, defaultValue) ?: defaultValue
+            val storedValue = sharedPreferences.getString(key, "") ?: ""
+            if (storedValue.isEmpty()) {
+                return defaultValue
+            }
+            val decrypted = CryptoHelper.decrypt(context, key, storedValue)
+            return if (decrypted.isEmpty()) defaultValue else decrypted
         }
 
         @JavascriptInterface
@@ -786,6 +881,10 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun simulateFcmPushNotification(token: String, title: String, body: String, dataPayloadJson: String) {
             android.util.Log.d("FCM_SIMULATOR", "Received FCM simulate request. Token: $token, Title: $title, Body: $body, Data: $dataPayloadJson")
+            if (isActivityInForeground) {
+                android.util.Log.d("FCM_SIMULATOR", "Suppressing native notification since app is in the foreground.")
+                return
+            }
             
             // Replicate exactly what MyFirebaseMessagingService does when receiving an FCM message
             try {

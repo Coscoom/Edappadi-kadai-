@@ -4,10 +4,10 @@ if (workbox) {
   console.log('Workbox service worker loaded successfully! 🎉');
 
   // Cache page assets (HTML, JS, CSS, localized images)
-  // Stale-While-Revalidate for the main index.html to ensure users get fast updates but can open offline
+  // Network-First for the main index.html to ensure users get the absolute latest updates immediately when online, falling back to cache when offline
   workbox.routing.registerRoute(
     ({ request }) => request.mode === 'navigate' || request.destination === 'document',
-    new workbox.strategies.StaleWhileRevalidate({
+    new workbox.strategies.NetworkFirst({
       cacheName: 'html-cache',
       plugins: [
         new workbox.expiration.ExpirationPlugin({
@@ -18,10 +18,10 @@ if (workbox) {
     })
   );
 
-  // Cache JS, CSS, and manifest files with Stale-While-Revalidate
+  // Cache JS, CSS, and manifest files with Network-First to guarantee immediate updates while online
   workbox.routing.registerRoute(
     ({ request }) => request.destination === 'script' || request.destination === 'style' || request.destination === 'manifest',
-    new workbox.strategies.StaleWhileRevalidate({
+    new workbox.strategies.NetworkFirst({
       cacheName: 'static-assets',
       plugins: [
         new workbox.expiration.ExpirationPlugin({
@@ -96,8 +96,26 @@ if (workbox) {
   );
 
   // Auto skipWaiting and claim clients immediately so the service worker takes effect on first load
-  self.addEventListener('install', () => self.skipWaiting());
-  self.addEventListener('activate', () => self.clients.claim());
+  self.addEventListener('install', (event) => {
+    console.log('[ServiceWorker] Installed. Skipping waiting...');
+    self.skipWaiting();
+  });
+
+  self.addEventListener('activate', (event) => {
+    console.log('[ServiceWorker] Activated. Purging all caches to load latest app build...');
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            console.log('[ServiceWorker] Deleting cache:', cacheName);
+            return caches.delete(cacheName);
+          })
+        );
+      }).then(() => {
+        return self.clients.claim();
+      })
+    );
+  });
 } else {
   console.log('Failed to load Workbox service worker.');
 }

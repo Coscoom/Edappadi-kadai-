@@ -471,4 +471,147 @@ exports.deleteDeliveryPartner = functions
     }
   });
 
+exports.repairDeliveryPartner = functions
+  .region('asia-south1')
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'Login required.');
+    }
+    const callerUid = context.auth.uid;
+    try {
+      const adminDoc = await admin.firestore().collection('ek_admin_accounts').doc(callerUid).get();
+      if (!adminDoc.exists) {
+        throw new functions.https.HttpsError('permission-denied', 'Access denied.');
+      }
+      const adminData = adminDoc.data() || {};
+      if ((adminData.role !== 'admin' && adminData.role !== 'superadmin') || adminData.active === false) {
+        throw new functions.https.HttpsError('permission-denied', 'Access denied.');
+      }
+
+      const targetId = data.targetId;
+      if (!targetId) {
+        throw new functions.https.HttpsError('invalid-argument', 'Missing targetId.');
+      }
+
+      const firestore = admin.firestore();
+      const riderDocRef = firestore.collection('ek_delivery_persons').doc(targetId);
+      const riderDoc = await riderDocRef.get();
+      if (!riderDoc.exists) {
+        throw new functions.https.HttpsError('not-found', 'Rider profile not found in Firestore.');
+      }
+
+      const riderData = riderDoc.data();
+      const rawPhone = riderData.phone || "";
+      const cleanPhone = rawPhone.replace(/\D/g, '').slice(-10);
+      if (cleanPhone.length !== 10) {
+        throw new functions.https.HttpsError('invalid-argument', 'Rider phone number is invalid.');
+      }
+
+      const expectedEmail = `rider_${cleanPhone}@lyo.delivery`;
+
+      let authUser = null;
+      let authExists = false;
+
+      try {
+        authUser = await admin.auth().getUserByEmail(expectedEmail);
+        authExists = true;
+      } catch (authErr) {
+        if (authErr.code !== 'auth/user-not-found') {
+          throw new functions.https.HttpsError('internal', 'Error checking Auth account: ' + authErr.message);
+        }
+      }
+
+      let actionTaken = "";
+      let finalUid = "";
+
+      if (!authExists) {
+        const securePass = Math.random().toString(36).slice(-10) + "A1!";
+        authUser = await admin.auth().createUser({
+          email: expectedEmail,
+          password: securePass,
+          displayName: riderData.name || "Delivery Partner"
+        });
+        actionTaken = "created_auth_account";
+        finalUid = authUser.uid;
+      } else {
+        finalUid = authUser.uid;
+        actionTaken = "auth_already_existed";
+      }
+
+      const payoutType = riderData.payoutType || riderData.salaryType || "per_order";
+      const payoutAmount = parseFloat(riderData.payoutAmount || riderData.salaryRate || 35);
+      const vehicleNo = riderData.vehicleNo || riderData.vehicle || "";
+
+      if (targetId !== finalUid) {
+        const newDocRef = firestore.collection('ek_delivery_persons').doc(finalUid);
+        
+        const updatedProfile = {
+          ...riderData,
+          id: finalUid,
+          uid: finalUid,
+          authEmail: expectedEmail,
+          phone: cleanPhone,
+          role: "RIDER",
+          isActiveRider: true,
+          active: true,
+          isActive: true,
+          payoutType: payoutType,
+          payoutAmount: payoutAmount,
+          vehicleNo: vehicleNo,
+          updatedAt: new Date().toISOString()
+        };
+
+        await newDocRef.set(updatedProfile);
+
+        const ordersQuery = await firestore.collection('ek_orders')
+          .where('assignedTo', '==', targetId)
+          .get();
+
+        const batch = firestore.batch();
+        ordersQuery.forEach(doc => {
+          batch.update(doc.ref, {
+            assignedTo: finalUid,
+            updatedAt: new Date().toISOString()
+          });
+        });
+
+        batch.delete(riderDocRef);
+        await batch.commit();
+
+        actionTaken += "_and_migrated_firestore_doc";
+      } else {
+        await riderDocRef.update({
+          id: finalUid,
+          uid: finalUid,
+          authEmail: expectedEmail,
+          phone: cleanPhone,
+          role: "RIDER",
+          isActiveRider: true,
+          active: true,
+          isActive: true,
+          payoutType: payoutType,
+          payoutAmount: payoutAmount,
+          vehicleNo: vehicleNo,
+          updatedAt: new Date().toISOString()
+        });
+        actionTaken += "_and_updated_firestore_doc";
+      }
+
+      return {
+        success: true,
+        action: actionTaken,
+        uid: finalUid,
+        email: expectedEmail,
+        message: `Successfully repaired delivery partner ${riderData.name}. Final UID is ${finalUid}.`
+      };
+
+    } catch (err) {
+      console.error("[repairDeliveryPartner Error]", err);
+      if (err instanceof functions.https.HttpsError) {
+        throw err;
+      }
+      throw new functions.https.HttpsError('internal', err.message);
+    }
+  });
+
 

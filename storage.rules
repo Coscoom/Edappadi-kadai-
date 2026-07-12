@@ -16,7 +16,7 @@ service firebase.storage {
         firestore.get(/databases/(default)/documents/ek_admin_accounts/$(request.auth.uid)).data.active != false;
     }
 
-    match /products/{productId}/{allPaths=**} {
+    match /products/{vendorId}/{productId}/{allPaths=**} {
       allow read: if true;
       allow write: if isAdmin();
     }

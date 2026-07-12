@@ -88,7 +88,7 @@ android {
     applicationId = "com.edappadikadai.app"
     minSdk = 23
     targetSdk = 35
-    versionCode = 4
+    versionCode = 1000
     versionName = "1.3"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

@@ -19,7 +19,13 @@ service cloud.firestore {
 
     function isRider() {
       return isAuthenticated() && 
-        exists(/databases/$(database)/documents/ek_delivery_persons/$(request.auth.uid));
+        (
+          exists(/databases/$(database)/documents/ek_delivery_persons/$(request.auth.uid)) ||
+          (
+            exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'RIDER'
+          )
+        );
     }
 
     function isRiderUpdate(currentData, nextData) {
@@ -83,8 +89,8 @@ service cloud.firestore {
           // Customer Cancellation
           (
             (resource.data.userId == request.auth.uid || resource.data.customerId == request.auth.uid) &&
-            resource.data.status in ['PENDING', 'pending', 'PLACED', 'placed', 'NEW', 'new', 'READY_FOR_ACCEPTANCE', 'ready_for_acceptance'] &&
-            request.resource.data.status in ['CANCELLED', 'cancelled'] &&
+            resource.data.status.upper() in ['PENDING', 'PLACED', 'NEW', 'READY_FOR_ACCEPTANCE', 'ACCEPTED'] &&
+            request.resource.data.status.upper() == 'CANCELLED' &&
             request.resource.data.cancelledBy == 'customer' &&
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledBy', 'cancelledAt', 'updatedAt'])
           ) ||
@@ -95,7 +101,11 @@ service cloud.firestore {
         )
       );
       
-      allow delete: if false;
+      allow delete: if isAdmin() || (
+        isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || resource.data.customerId == request.auth.uid) &&
+        resource.data.status.upper() in ['DELIVERED', 'CANCELLED', 'REJECTED', 'COMPLETED', 'CANCELED']
+      );
     }
 
     match /orders/{orderId} {

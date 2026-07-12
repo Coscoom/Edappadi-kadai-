@@ -51,6 +51,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun sendNotification(title: String, messageBody: String) {
+        if (MainActivity.isActivityInForeground) {
+            Log.d("FCM_SERVICE", "Suppressing native notification since app is in the foreground.")
+            return
+        }
+
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
