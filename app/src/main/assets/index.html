@@ -686,6 +686,7 @@
       gap: 4px;
     }
     .badge-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .badge-unverified { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
     .badge-ready { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
     .badge-delivered { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
     .badge-rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
@@ -4105,14 +4106,32 @@
           <p style="font-family: 'Poppins', 'Hind Madurai', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--accent-orange); margin: 0;">Order Placed Successfully! 🏍️</p>
         </div>
 
-        <div style="background: #161618; border: 1px solid #222; border-radius: 16px; padding: 14px; margin: 4px 0; text-align: left;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+        <div style="background: #161618; border: 1px solid #222; border-radius: 16px; padding: 14px; margin: 4px 0; text-align: left; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px dashed #333; padding-bottom: 6px;">
             <span style="color: var(--text-muted);">Order ID / ஐடி:</span>
-            <strong id="success-modal-id" style="color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 14px;">EP82947</strong>
+            <strong id="success-modal-id" style="color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px;">EP82947</strong>
           </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+          
+          <div style="font-size: 13px; border-bottom: 1px dashed #333; padding-bottom: 6px;">
+            <div style="color: var(--text-muted); font-weight: 700; margin-bottom: 4px; font-size: 12px;">Items Ordered / பொருட்கள்:</div>
+            <div id="success-modal-items-list" style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px;">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <div style="font-size: 13px; border-bottom: 1px dashed #333; padding-bottom: 6px;">
+            <div style="color: var(--text-muted); font-weight: 700; margin-bottom: 2px; font-size: 12px;">Delivery Address / முகவரி:</div>
+            <div id="success-modal-address" style="color: #eee; font-size: 11.5px; line-height: 1.3; max-height: 50px; overflow-y: auto; word-break: break-word;"></div>
+          </div>
+
+          <div style="font-size: 13px; border-bottom: 1px dashed #333; padding-bottom: 6px; display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Payment / கட்டணம்:</span>
+            <strong id="success-modal-payment" style="color: #fff; font-size: 12px;">UPI (Success)</strong>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--text-muted);">Grand Total / தொகை:</span>
-            <strong id="success-modal-total" style="color: var(--accent-green);">₹450</strong>
+            <strong id="success-modal-total" style="color: var(--accent-green); font-size: 14px;">₹450</strong>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--text-muted);">Points Accrued / பாயிண்ட்ஸ்:</span>
@@ -4121,16 +4140,13 @@
         </div>
 
         <p style="font-size: 11.5px; color: var(--text-secondary); line-height: 1.45; margin: 0 10px;">
-          உங்கள் ஆடர் ஏற்கப்பட்டு விட்டது! தற்போது ஆர்டர் ட்ராக் பக்கத்தில் உங்கள் ஆர்டர் நிலையைத் துல்லியமாக அறியலாம். (Your order is submitted! You can now track its active dispatch updates on the tracker dashboard live.)
+          உங்கள் ஆர்டர் விபரங்கள் மேலே காட்டப்பட்டுள்ளது. கீழே உள்ள பொத்தானை அழுத்தி லைவ் டிராக்கிங் பக்கத்திற்குச் செல்லவும். (Your order details are shown above. Please tap the button below to view active dispatch updates.)
         </p>
 
         <!-- Dynamic Action Buttons -->
         <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
-          <button id="success-modal-btn-track" class="btn btn-primary" style="background: var(--accent-orange); border: none; font-size: 13.5px; font-weight: 700; padding: 13px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="closeSuccessAndTrack()">
-            🚚 Track Live / ஆர்டரை ட்ராக் செய்க
-          </button>
-          <button class="btn btn-secondary" style="background: #1c1c1e; border-color: #2c2c2e; color: #fff; font-size: 13px; font-weight: 600; padding: 11px; border-radius: 14px;" onclick="closeSuccessAndShop()">
-            🛍️ Continue Shopping / தொடர்ந்து வாங்க
+          <button id="success-modal-btn-track" class="btn btn-primary" style="background: var(--accent-orange); border: none; font-size: 13.5px; font-weight: 700; padding: 13px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);" onclick="closeSuccessAndTrack()">
+            ✓ OK / View Order Status (சரி)
           </button>
         </div>
 
@@ -5169,8 +5185,9 @@
       <div id="admin-tab-orders" class="admin-subtab-container" style="display: block;">
         <input type="text" id="admin-orders-search" class="form-control" style="margin-bottom: 12px;" placeholder="🔍 Search orders by name, phone, ID..." oninput="debouncedSearchAdminOrders()">
         
-        <div class="filter-pills" style="margin-bottom: 12px;">
+        <div class="filter-pills" style="margin-bottom: 12px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
           <button class="pill active" onclick="filterAdminOrdersByStatus('all', this)">🍽️ All</button>
+          <button class="pill" style="border-color: rgba(168, 85, 247, 0.45); color: #c084fc;" onclick="filterAdminOrdersByStatus('PaymentUnverified', this)">⚠️ Unverified</button>
           <button class="pill" style="border-color: rgba(245, 158, 11, 0.3);" onclick="filterAdminOrdersByStatus('pending', this)">⏳ Pending</button>
           <button class="pill" style="border-color: rgba(59, 130, 246, 0.3);" onclick="filterAdminOrdersByStatus('ready', this)">✅ Ready</button>
           <button class="pill" style="border-color: rgba(34, 197, 94, 0.3);" onclick="filterAdminOrdersByStatus('delivered', this)">✔ Delivered</button>
@@ -6990,6 +7007,28 @@
         if (parsed === null || parsed === undefined) {
           parsed = defaultVal;
         }
+
+        // CENTRAL SANITIZER FOR SYSTEM-WIDE CONFIG CONTROL FIELDS
+        if (key === 'ek_settings' && typeof parsed === 'object' && parsed !== null) {
+          // 1. minOrderAmount safety bound: positive up to ₹50,000, defaults to 0
+          let amt = parseFloat(parsed.minOrderAmount);
+          if (isNaN(amt) || amt < 0 || amt > 50000) {
+            parsed.minOrderAmount = 0;
+          } else {
+            parsed.minOrderAmount = amt;
+          }
+          // 2. minOrderWeight safety bound: positive up to 10kg, defaults to 50g
+          let wt = parseFloat(parsed.minOrderWeight);
+          if (isNaN(wt) || wt < 0 || wt > 10000) {
+            parsed.minOrderWeight = 50;
+          } else {
+            parsed.minOrderWeight = wt;
+          }
+          // 3. shopOpen safety: must default to true if missing/corrupted so users are not blocked
+          if (parsed.shopOpen === undefined || parsed.shopOpen === null) {
+            parsed.shopOpen = true;
+          }
+        }
         // Settings decryption is handled natively by AndroidStorage
 
         if (key === 'ek_orders' && Array.isArray(parsed)) {
@@ -8806,6 +8845,58 @@
       modal.style.display = 'flex';
     }
 
+    function showUpiAmbiguousDialog(order) {
+      let modal = document.getElementById('upi-ambiguous-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'upi-ambiguous-modal';
+        modal.className = 'modal-backdrop';
+        modal.style.zIndex = '100000';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.padding = '20px';
+        modal.style.display = 'none';
+        modal.innerHTML = `
+          <div class="bottom-sheet" style="width: 100%; max-width:360px; border-radius:24px; border:1px solid rgba(168,85,247,0.2); background:#111; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.5); text-align:center; display:flex; flex-direction:column; align-items:center; z-index:100001;">
+            <div style="font-size:42px; margin-bottom:14px;">⚠️</div>
+            <h3 style="color:#a855f7; font-size:16px; margin-bottom:8px; font-weight:800; font-family:\'Poppins\', sans-serif;" id="upi-ambiguous-title">Payment Unclear / கட்டண நிலை தெரியவில்லை</h3>
+            <p style="color:var(--text-secondary); font-size:12.5px; margin-bottom:24px; line-height:1.6; font-family:\'Poppins\', sans-serif;" id="upi-ambiguous-msg">
+              Payment status unclear — please check your UPI app or bank SMS to confirm, then tap 'I Have Paid' to submit for manual verification.
+            </p>
+            <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+              <button class="btn btn-primary" style="padding:10px 14px; font-size:12.5px; font-weight:800; border-radius:14px; height:44px; background:#a855f7; color:#fff; border:none;" id="upi-ambiguous-paid-btn">🙋 I Have Paid / நான் செலுத்திவிட்டேன்</button>
+              <button class="btn btn-secondary" style="padding:10px 14px; font-size:12px; font-weight:bold; border-radius:14px; height:42px; background:#222; color:#fff; border:1px solid #333;" id="upi-ambiguous-cancel-btn">Close / ரத்து</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+      
+      const paidBtn = document.getElementById('upi-ambiguous-paid-btn');
+      paidBtn.onclick = function() {
+        modal.style.display = 'none';
+        order.status = 'PaymentUnverified';
+        order.paymentStatus = 'PaymentUnverified';
+        order.paymentTimestamp = new Date().toISOString();
+        
+        showToast("Submitting order for manual payment verification... ⏳", "info");
+        if (typeof window.pendingUpiOnSuccess === 'function') {
+          window.pendingUpiOnSuccess(order);
+        }
+        PaymentSessionManager.clearSession();
+      };
+      
+      const cancelBtn = document.getElementById('upi-ambiguous-cancel-btn');
+      cancelBtn.onclick = function() {
+        modal.style.display = 'none';
+        window.isPlacingOrder = false;
+        showToast("Payment status unclear. You can try paying again or switch to COD.", "warning");
+        showPaymentFailedDialog("Payment status unclear. You can try paying again or switch to Cash on Delivery (COD).", order);
+      };
+      
+      modal.style.display = 'flex';
+    }
+
     window.onAndroidUpiPaymentResult = function(status) {
       console.log("[UPI Callback] Received payment status from Android:", status);
       
@@ -8829,14 +8920,18 @@
       hideUpiLoadingOverlay();
       
       const params = parseQueryString(status);
-      const isSuccess = status === "SUCCESS_NO_RESPONSE_DATA" || 
-                        (params.Status && params.Status.toUpperCase() === "SUCCESS") ||
-                        (params.status && params.status.toLowerCase() === "success") ||
-                        status.includes("SUCCESS") ||
-                        status.includes("success");
-                        
+      
+      // Strict extraction of transaction ID (txnId or txnRef or variants)
+      const txnId = params.txnId || params.txnRef || params.txnref || params.txnid;
+      const hasTxnId = !!(txnId && txnId.trim() !== "");
+      
+      // Strict extraction of explicit Status=SUCCESS
+      const hasSuccessStatus = (params.Status && params.Status.toUpperCase() === "SUCCESS") ||
+                               (params.status && params.status.toLowerCase() === "success");
+      
+      const isSuccess = hasTxnId && hasSuccessStatus;
+                         
       if (isSuccess) {
-        const txnId = params.txnId || params.txnRef || params.txnref || "TXN-UPI-" + Date.now();
         const refNo = params.ApprovalRefNo || params.approvalRefNo || params.responseCode || "REF-" + Math.floor(Math.random() * 1000000000000);
         
         // Check for duplicate callbacks (Idempotency)
@@ -8881,6 +8976,13 @@
         }
         
         PaymentSessionManager.clearSession();
+      } else if (status === "SUCCESS_NO_RESPONSE_DATA") {
+        // Handle ambiguous payment case (RESULT_OK but no response data)
+        PaymentAuditLog.logEvent('PAYMENT_AMBIGUOUS', `Ambiguous payment response received for Order ${order.id}`, {
+          orderId: order.id,
+          status: status
+        });
+        showUpiAmbiguousDialog(order);
       } else {
         // Log payment failure event
         PaymentAuditLog.logEvent('PAYMENT_FAILED', `Payment unsuccessful for Order ${order.id}`, {
@@ -9698,6 +9800,11 @@
 
     // Customer Portal sub tabs routing helper
     function showTab(tabName) {
+      if (tabName !== 'tab-lyo-ai') {
+        if (typeof window.teardownChatListener === 'function') {
+          window.teardownChatListener();
+        }
+      }
       document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
       if (tabName === 'tab-home') {
         const homeBtn = document.getElementById('nav-btn-home') || document.querySelector('.nav-tab:nth-child(1)');
@@ -15735,10 +15842,12 @@
         );
         return;
       }
+
       if (window.isPlacingOrder) {
         showToast(currentLang === 'ta' ? "மன்னிக்கவும்! ஒரு ஆர்டர் ஏற்கனவே செயலாக்கத்தில் உள்ளது." : "Please wait! Your order is already being processed.", "warning");
         return;
       }
+
       if (cart.length === 0) {
         showToast("மன்னிக்கவும்! உங்கள் கார்ட் காலியாக உள்ளது. (Your checkout cart is completely empty!)", "error");
         return;
@@ -16261,10 +16370,54 @@
       document.getElementById('success-modal-id').innerText = order.id;
       document.getElementById('success-modal-total').innerText = `₹${order.totalAmount}`;
       document.getElementById('success-modal-points').innerText = `+${pointsEarned} pts`;
+
+      // Populate items list
+      const isTa = (localStorage.getItem('ek_lang') || 'en') === 'ta';
+      let itemsHtml = '';
+      if (order.items && order.items.length > 0) {
+        order.items.forEach(item => {
+          const name = isTa ? (item.tamilName || item.name || item.englishName) : (item.englishName || item.name || item.tamilName);
+          const weightDesc = item.unit === 'kg' ? `${item.weightGrams}g` : `${item.weightGrams} ${item.unit || 'pcs'}`;
+          const cutStyleText = item.cutStyle ? ` (${item.cutStyle})` : '';
+          itemsHtml += `
+            <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #fff; line-height: 1.3;">
+              <span>• ${name} [${weightDesc}${cutStyleText}]</span>
+              <strong style="color: #ffb703;">₹${item.totalPrice}</strong>
+            </div>
+          `;
+        });
+      } else {
+        itemsHtml = `<div style="font-size: 11.5px; color: var(--text-muted);">${isTa ? 'பொருட்கள் இல்லை' : 'No items'}</div>`;
+      }
+      document.getElementById('success-modal-items-list').innerHTML = itemsHtml;
+
+      // Populate Address
+      document.getElementById('success-modal-address').innerText = order.deliveryAddress || (isTa ? 'விவரங்கள் இல்லை' : 'Not specified');
+
+      // Populate Payment Method and Status
+      let payMethodText = "";
+      if (order.paymentMethod === 'cod') {
+        payMethodText = isTa ? "கையடக்கப் பணம் (COD) - நிலுவையில் உள்ளது" : "Cash on Delivery (Pending)";
+      } else if (order.paymentMethod === 'upi') {
+        payMethodText = isTa ? "UPI - செலுத்தப்பட்டது" : "UPI (Paid)";
+      } else if (order.paymentMethod === 'loyalty') {
+        payMethodText = isTa ? "லாயல்டி பாயிண்ட்ஸ் மூலம் - செலுத்தப்பட்டது" : "Loyalty Wallet (Paid)";
+      } else {
+        payMethodText = order.paymentMethod ? order.paymentMethod.toUpperCase() : (isTa ? "தெரியவில்லை" : "Unknown");
+      }
+      document.getElementById('success-modal-payment').innerText = payMethodText;
+
       document.getElementById('order-success-modal').style.display = 'flex';
       triggerSuccessCheckmarkReplay();
 
-        showToast("Order Placed Successfully! 🎉", "success");
+      // Trigger the local simulated and real queued cloud FCM notifications for pending status
+      try {
+        sendFcmPushNotification(order, 'none', 'pending');
+      } catch (fcmErr) {
+        console.warn("FCM push notify skipped or exception:", fcmErr);
+      }
+
+      showToast("Order Placed Successfully! 🎉", "success");
       }, function(failMsg) {
         window.isPlacingOrder = false;
         showToast("Payment Failed: " + failMsg, "error");
@@ -19637,8 +19790,8 @@
         document.getElementById('track-order-id').innerText = latestTrackable.id;
         
         const badgeElement = document.getElementById('track-order-status');
-        badgeElement.innerText = latestTrackable.status.toUpperCase();
-        badgeElement.className = `badge badge-${latestTrackable.status}`;
+        badgeElement.innerText = latestTrackable.status === 'PaymentUnverified' ? (currentLang === 'ta' ? "கட்டணம் சரிபார்க்கப்படுகிறது" : "VERIFYING PAYMENT") : latestTrackable.status.toUpperCase();
+        badgeElement.className = `badge badge-${latestTrackable.status === 'PaymentUnverified' ? 'unverified' : latestTrackable.status}`;
 
         const formattedTime = new Date(latestTrackable.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         document.getElementById('track-order-time').innerText = formattedTime;
@@ -20025,7 +20178,7 @@
           deliveryBadgeStyle = 'style="animation: red-pulse 1.5s infinite; background: #ef4444 !important; color: #fff !important; font-weight: 800; border: none; box-shadow: 0 0 8px #ef4444;"';
         }
         
-        const badgeClass = o.status === 'pending' ? 'badge-pending' : o.status === 'ready' ? 'badge-ready' : o.status === 'delivering' ? 'badge-delivering' : o.status === 'delivered' ? 'badge-delivered' : 'badge-rejected';
+        const badgeClass = o.status === 'pending' ? 'badge-pending' : o.status === 'PaymentUnverified' ? 'badge-unverified' : o.status === 'ready' ? 'badge-ready' : o.status === 'delivering' ? 'badge-delivering' : o.status === 'delivered' ? 'badge-delivered' : 'badge-rejected';
         
         const isTrackingThis = latestTrackable && o.id === latestTrackable.id;
         const trackingHighlightStyle = isTrackingThis 
@@ -20091,7 +20244,7 @@
               </div>
               <div style="display:flex; align-items:center; gap:6px;">
                 ${trackingIndicator}
-                <span class="badge ${badgeClass}" ${deliveryBadgeStyle}>${o.status.toUpperCase()}</span>
+                <span class="badge ${badgeClass}" ${deliveryBadgeStyle}>${o.status === 'PaymentUnverified' ? (currentLang === 'ta' ? "கட்டணம் சரிபார்க்கப்படுகிறது" : "VERIFYING PAYMENT") : o.status.toUpperCase()}</span>
               </div>
             </div>
             <p style="font-size:12px; color:var(--text-secondary); margin-bottom:8px; line-height:1.4;">${itemsDescHtml}</p>
@@ -20129,8 +20282,8 @@
       document.getElementById('cod-order-date').innerText = `Ordered / தேதி: ${dateStr}`;
       
       const statusBadge = document.getElementById('cod-order-status');
-      statusBadge.innerText = o.status.toUpperCase();
-      const badgeClass = o.status === 'pending' ? 'badge-pending' : o.status === 'ready' ? 'badge-ready' : o.status === 'delivered' ? 'badge-delivered' : 'badge-rejected';
+      statusBadge.innerText = o.status === 'PaymentUnverified' ? (currentLang === 'ta' ? "கட்டணம் சரிபார்க்கப்படுகிறது" : "VERIFYING PAYMENT") : o.status.toUpperCase();
+      const badgeClass = o.status === 'pending' ? 'badge-pending' : o.status === 'PaymentUnverified' ? 'badge-unverified' : o.status === 'ready' ? 'badge-ready' : o.status === 'delivered' ? 'badge-delivered' : 'badge-rejected';
       statusBadge.className = `badge ${badgeClass}`;
 
       // List Items
@@ -20780,6 +20933,20 @@
                 const adminBodyTa = `வாடிக்கையாளர் ${order.customerName || order.customerPhone} ஒரு புதிய ஆர்டர் செய்துள்ளார்.\n[ஆர்டர் எண்: ${shortId}]`;
                 const adminBodyEn = `Customer ${order.customerName || order.customerPhone} placed a new order.\n[Order ID: ${shortId}]`;
                 
+                if (typeof db !== 'undefined' && db) {
+                  db.collection('ek_fcm_queue').add({
+                    targetToken: adminToken,
+                    title: currentLang === 'ta' ? adminTitleTa : adminTitleEn,
+                    body: currentLang === 'ta' ? adminBodyTa : adminBodyEn,
+                    orderId: order.id,
+                    oldStatus: oldStatus,
+                    newStatus: newStatus,
+                    type: "new_order",
+                    createdAt: new Date().toISOString(),
+                    processed: false
+                  }).catch(e => console.warn('[FCM Queue Admin] Write failed:', e));
+                }
+
                 if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.simulateFcmPushNotification === 'function') {
                   AndroidStorage.simulateFcmPushNotification(
                     adminToken,
@@ -22605,7 +22772,12 @@
         let actions = '';
         const noRiderAssigned = !(o.assignedExecutiveId || o.deliveryExecutiveId);
         
-        if (o.status === 'pending') {
+        if (o.status === 'PaymentUnverified') {
+          actions += `
+            <button class="btn" style="background:linear-gradient(135deg, #a855f7, #7e22ce); border:none; color:#fff; font-size:11.5px; font-weight:800; padding:10px; border-radius:10px; cursor:pointer; box-shadow:0 4px 10px rgba(168,85,247,0.2);" onclick="adminApproveUnverifiedPayment('${o.id}')">Approve & Process ✓</button>
+            <button class="btn" style="background:linear-gradient(135deg, #ef4444, #dc2626); border:none; color:#fff; font-size:11.5px; font-weight:800; padding:10px; border-radius:10px; cursor:pointer; box-shadow:0 4px 10px rgba(239,68,68,0.2);" onclick="adminRejectUnverifiedPayment('${o.id}')">Reject & Cancel 🔴</button>
+          `;
+        } else if (o.status === 'pending') {
           actions += `
             <button class="btn" style="background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; font-size:11.5px; font-weight:800; padding:10px; border-radius:10px; cursor:pointer; box-shadow:0 4px 10px rgba(16,185,129,0.2);" onclick="changeOrderStatus('${o.id}', 'ready')">Mark Ready ✓</button>
             <button class="btn" style="background:linear-gradient(135deg, #ef4444, #dc2626); border:none; color:#fff; font-size:11.5px; font-weight:800; padding:10px; border-radius:10px; cursor:pointer; box-shadow:0 4px 10px rgba(239,68,68,0.2);" onclick="cancelOrderPrompt('${o.id}')">Cancel Order 🔴</button>
@@ -22637,7 +22809,7 @@
           }
         }
 
-        const badgeClass = o.status === 'pending' ? 'badge-pending' : o.status === 'ready' ? 'badge-ready' : o.status === 'delivered' ? 'badge-delivered' : 'badge-rejected';
+        const badgeClass = o.status === 'pending' ? 'badge-pending' : o.status === 'PaymentUnverified' ? 'badge-unverified' : o.status === 'ready' ? 'badge-ready' : o.status === 'delivered' ? 'badge-delivered' : 'badge-rejected';
 
         const isExpanded = !!expandedOrders[o.id];
 
@@ -22716,7 +22888,7 @@ ${o.items.map((it, idx) => {
                 <strong style="color:var(--accent-orange); display:block; font-size:14px; font-family:'JetBrains Mono', monospace;">${o.id}</strong>
               </div>
               <div style="display:flex; align-items:center; gap:8px;" onclick="event.stopPropagation()">
-                <span class="badge ${badgeClass}">${o.status.toUpperCase()}</span>
+                <span class="badge ${badgeClass}">${o.status === 'PaymentUnverified' ? "UNVERIFIED PAYMENT" : o.status.toUpperCase()}</span>
                 <span style="font-size:16px; color:var(--text-muted); cursor:pointer; font-weight:700; width:24px; text-align:center;" onclick="toggleOrderDetails('${o.id}')">${isExpanded ? '▲' : '▼'}</span>
               </div>
             </div>
@@ -22740,7 +22912,16 @@ ${o.items.map((it, idx) => {
               <div style="font-size:12px; margin-bottom:8px; line-height:1.45;">
                 <p style="color:var(--text-secondary);">📍 <strong>Delivery Address:</strong> ${escapeHtml(o.deliveryAddress)}</p>
                 <p style="color:var(--text-secondary); margin-top:4px;">⏱️ Slot: <strong>${o.deliveryTimeSlot}</strong> | 💳 Payment: <strong>${o.paymentMethod}</strong></p>
-                ${o.paymentMethod === 'UPI' ? `
+                ${o.status === 'PaymentUnverified' ? `
+                  <div style="background:#1a102f; padding:12px; border-radius:12px; border:1px solid rgba(168,85,247,0.4); margin-top:6px; font-size:11.5px; color:#ffffff;">
+                    <span style="color:#a855f7; font-weight:800; display:block; font-size:10px; margin-bottom:4px; text-transform:uppercase;">⚠️ Ambiguous / Unverified UPI Payment</span>
+                    <p style="margin: 0 0 8px 0; font-size: 11px; color: var(--text-secondary); line-height: 1.4;">
+                      This order was submitted with an ambiguous payment status (no response data from UPI app). Please verify the customer's payment on your bank statement/merchant app before taking action.
+                    </p>
+                    • Status: <strong style="color:#a855f7;">${o.paymentStatus || 'PaymentUnverified'}</strong><br>
+                    • Timestamp: <strong style="color:var(--text-secondary);">${o.paymentTimestamp ? new Date(o.paymentTimestamp).toLocaleString() : 'N/A'}</strong>
+                  </div>
+                ` : o.paymentMethod === 'UPI' ? `
                   <div style="background:#161616; padding:8px 12px; border-radius:8px; border:1px solid rgba(16,185,129,0.15); margin-top:6px; font-size:11.5px; color:#ffffff;">
                     <span style="color:#10b981; font-weight:800; display:block; font-size:10px; margin-bottom:4px; text-transform:uppercase;">💳 Verified UPI Payment Details</span>
                     • Status: <strong style="color:#10b981;">${o.paymentStatus || 'Paid'}</strong><br>
@@ -22932,6 +23113,92 @@ ${o.items.map((it, idx) => {
       } else {
         showToast("Internet connection required to modify order status.", "warning");
       }
+    }
+
+    function adminApproveUnverifiedPayment(id) {
+      showCustomConfirm(
+        "✓ Approve Unverified Payment?",
+        "Are you sure you have verified this payment in your bank statement/merchant app? This will mark the payment as PAID and transition the order to PENDING.",
+        function() {
+          if (typeof db !== 'undefined' && db) {
+            showToast("Approving payment...", "info");
+            const orderRef = db.collection('ek_orders').doc(id);
+            db.runTransaction((transaction) => {
+              return transaction.get(orderRef).then((docSnap) => {
+                if (!docSnap.exists) {
+                  throw "ORDER_NOT_FOUND";
+                }
+                const cloudOrder = normalizeFirestoreData(docSnap.data());
+                cloudOrder.status = 'pending';
+                cloudOrder.paymentStatus = 'Paid';
+                cloudOrder.upiTransactionId = "MANUAL-ADMIN-" + Date.now();
+                cloudOrder.upiReferenceNumber = "MANUAL-ADMIN-REF-" + Math.floor(Math.random() * 1000000);
+                cloudOrder.paymentTimestamp = new Date().toISOString();
+                cloudOrder.updatedAt = new Date().toISOString();
+                
+                transaction.set(orderRef, cleanFirestoreData(cloudOrder), { merge: true });
+                return { cloudOrder };
+              });
+            }).then(({ cloudOrder }) => {
+              const orders = getData('ek_orders');
+              const idx = orders.findIndex(o => o.id === id);
+              if (idx !== -1) {
+                orders[idx] = cloudOrder;
+                saveData('ek_orders', orders);
+              }
+              showToast("Payment Approved! Order is now Pending.", "success");
+              renderAdminDashboard();
+            }).catch((err) => {
+              console.error("Payment approval failed:", err);
+              showToast("Approval failed: " + err, "error");
+            });
+          } else {
+            showToast("Internet connection required.", "warning");
+          }
+        }
+      );
+    }
+
+    function adminRejectUnverifiedPayment(id) {
+      showCustomConfirm(
+        "✗ Reject & Cancel Order?",
+        "Are you sure you want to reject this unverified payment and cancel the order? This will mark the order as REJECTED and cannot be undone.",
+        function() {
+          if (typeof db !== 'undefined' && db) {
+            showToast("Rejecting payment...", "info");
+            const orderRef = db.collection('ek_orders').doc(id);
+            db.runTransaction((transaction) => {
+              return transaction.get(orderRef).then((docSnap) => {
+                if (!docSnap.exists) {
+                  throw "ORDER_NOT_FOUND";
+                }
+                const cloudOrder = normalizeFirestoreData(docSnap.data());
+                cloudOrder.status = 'rejected';
+                cloudOrder.paymentStatus = 'Failed';
+                cloudOrder.rejectionReason = "Unverified UPI Payment Rejected by Admin";
+                cloudOrder.updatedAt = new Date().toISOString();
+                
+                transaction.set(orderRef, cleanFirestoreData(cloudOrder), { merge: true });
+                return { cloudOrder };
+              });
+            }).then(({ cloudOrder }) => {
+              const orders = getData('ek_orders');
+              const idx = orders.findIndex(o => o.id === id);
+              if (idx !== -1) {
+                orders[idx] = cloudOrder;
+                saveData('ek_orders', orders);
+              }
+              showToast("Payment Rejected and Order Cancelled.", "success");
+              renderAdminDashboard();
+            }).catch((err) => {
+              console.error("Payment rejection failed:", err);
+              showToast("Rejection failed: " + err, "error");
+            });
+          } else {
+            showToast("Internet connection required.", "warning");
+          }
+        }
+      );
     }
 
     function changeOrderStatusDirectly(id, nextStatus) {
@@ -23793,7 +24060,10 @@ ${o.items.map((it, idx) => {
       } catch (err) {
         console.error(`[Cloud Sync] Product ${product.id} sync failed (attempt ${attempt}):`, err);
 
-        if (attempt < MAX_ATTEMPTS) {
+        const errMsg = err && err.message ? err.message.toLowerCase() : "";
+        const isPermissionDenied = errMsg.includes("denied") || errMsg.includes("permission") || errMsg.includes("unauthorized") || errMsg.includes("forbidden") || errMsg.includes("not authorized");
+
+        if (attempt < MAX_ATTEMPTS && !isPermissionDenied) {
           // Exponential backoff: 2s, 4s, 8s, 16s
           const delay = Math.min(2000 * Math.pow(2, attempt - 1), 16000);
           setTimeout(() => syncProductToCloudWithRetry(product, attempt + 1), delay);
@@ -23864,8 +24134,14 @@ ${o.items.map((it, idx) => {
           await db.collection(collectionName).doc(item.data.id).set(cleanFirestoreData(item.data));
           console.log(`[Sync Queue] Retried ${item.type} ${item.data.id} successfully.`);
         } catch (err) {
-          item.retryCount++;
-          stillFailed.push(item);
+          const errMsg = err && err.message ? err.message.toLowerCase() : "";
+          const isPermissionDenied = errMsg.includes("denied") || errMsg.includes("permission") || errMsg.includes("unauthorized") || errMsg.includes("forbidden") || errMsg.includes("not authorized");
+          if (isPermissionDenied) {
+            console.error(`[Sync Queue] Dropped item ${item.type}/${item.data.id} from offline retry queue due to permission denial.`);
+          } else {
+            item.retryCount++;
+            stillFailed.push(item);
+          }
         }
       }
       saveData('ek_pending_sync_queue', stillFailed);
@@ -25649,6 +25925,27 @@ ${o.items.map((it, idx) => {
       }
     };
 
+    window.teardownChatListener = function() {
+      if (chatUnsubscribe) {
+        chatUnsubscribe();
+        chatUnsubscribe = null;
+        console.log("[Chat Sync] Explicitly stopped real-time support chat listener.");
+      }
+    };
+
+    window.teardownAllSupportChatListeners = function() {
+      if (chatUnsubscribe) {
+        chatUnsubscribe();
+        chatUnsubscribe = null;
+        console.log("[Chat Sync] Stopped real-time support chat listener.");
+      }
+      if (adminChatUnsubscribe) {
+        adminChatUnsubscribe();
+        adminChatUnsubscribe = null;
+        console.log("[Admin Chat] Stopped admin support chat listener.");
+      }
+    };
+
     window.listenForSupportChat = function() {
       if (chatUnsubscribe) {
         chatUnsubscribe();
@@ -25722,7 +26019,13 @@ ${o.items.map((it, idx) => {
         </div>
       `;
 
-      showCustomAlert("வாடிக்கையாளர் ஆதரவு / Live Customer Support Chat", modalHtml);
+      showCustomAlert("வாடிக்கையாளர் ஆதரவு / Live Customer Support Chat", modalHtml, () => {
+        if (adminChatUnsubscribe) {
+          adminChatUnsubscribe();
+          adminChatUnsubscribe = null;
+          console.log("[Admin Chat] Explicitly stopped admin support chat listener on modal close.");
+        }
+      });
 
       setTimeout(() => {
         const inputEl = document.getElementById('admin-chat-message-input');
@@ -26168,11 +26471,37 @@ ${o.items.map((it, idx) => {
       delete settings.smsTwilioFrom;
       delete settings.smsCustomUrl;
 
-      // Capture UPI Config
+      // Capture UPI Config and Validate
       const upiPrimaryEl = document.getElementById('setting-upi-primary');
-      if (upiPrimaryEl) settings.upiPrimary = upiPrimaryEl.value.trim();
+      const tempUpiPrimary = upiPrimaryEl ? upiPrimaryEl.value.trim() : "";
+      if (tempUpiPrimary !== "") {
+        if (!validateUpiId(tempUpiPrimary)) {
+          showToast(
+            currentLang === 'ta'
+              ? "முதன்மை UPI முகவரி தவறானது! அது 'yourname@bankhandle' வடிவத்தில் இருக்க வேண்டும்."
+              : "Primary UPI ID is invalid! Expected format: yourname@bankhandle",
+            "error"
+          );
+          return; // Stop saving, keep form open
+        }
+      }
+
       const upiSecondaryEl = document.getElementById('setting-upi-secondary');
-      if (upiSecondaryEl) settings.upiSecondary = upiSecondaryEl.value.trim();
+      const tempUpiSecondary = upiSecondaryEl ? upiSecondaryEl.value.trim() : "";
+      if (tempUpiSecondary !== "") {
+        if (!validateUpiId(tempUpiSecondary)) {
+          showToast(
+            currentLang === 'ta'
+              ? "இரண்டாம் நிலை UPI முகவரி தவறானது! அது 'yourname@bankhandle' வடிவத்தில் இருக்க வேண்டும்."
+              : "Secondary UPI ID is invalid! Expected format: yourname@bankhandle",
+            "error"
+          );
+          return; // Stop saving, keep form open
+        }
+      }
+
+      if (upiPrimaryEl) settings.upiPrimary = tempUpiPrimary;
+      if (upiSecondaryEl) settings.upiSecondary = tempUpiSecondary;
       const upiPrimaryActiveEl = document.getElementById('setting-upi-primary-active');
       if (upiPrimaryActiveEl) settings.upiPrimaryActive = upiPrimaryActiveEl.checked;
       const upiMerchantNameEl = document.getElementById('setting-upi-merchant-name');
@@ -26242,10 +26571,20 @@ ${o.items.map((it, idx) => {
         renderAdminDeliveryZones();
       }
       
+      const resolved = resolveUpiConfig();
+      const resolvedUpiId = resolved.upiId || (currentLang === 'ta' ? "ஏதுமில்லை" : "None");
+      const resolvedMerchant = resolved.merchantName || (currentLang === 'ta' ? "ஏதுமில்லை" : "None");
+
+      const successTitleEn = "⚙️ Settings Saved!";
+      const successTitleTa = "⚙️ அமைப்புகள் சேமிக்கப்பட்டது!";
+
+      const successMsgEn = `Store settings have been successfully updated and synchronized. UPI ID updated to ${resolvedUpiId} (Merchant Name: "${resolvedMerchant}") — this is now live for all customers.`;
+      const successMsgTa = `கடை அமைப்புகள் வெற்றிகரமாக சேமிக்கப்பட்டு புதுப்பிக்கப்பட்டது. UPI ID ${resolvedUpiId}-க்கு மாற்றப்பட்டது (வணிகர் பெயர்: "${resolvedMerchant}") — இது இப்போது அனைத்து வாடிக்கையாளர்களுக்கும் நேரலையில் உள்ளது.`;
+
       showToast("Store operations settings synchronized!", "success");
       showAdminSuccessModal(
-        currentLang === 'ta' ? "⚙️ அமைப்புகள் சேமிக்கப்பட்டது!" : "⚙️ Settings Saved!",
-        currentLang === 'ta' ? "கடை அமைப்புகள் வெற்றிகரமாக சேமிக்கப்பட்டு புதுப்பிக்கப்பட்டது." : "Store settings have been successfully updated and synchronized."
+        currentLang === 'ta' ? successTitleTa : successTitleEn,
+        currentLang === 'ta' ? successMsgTa : successMsgEn
       );
     }
 
@@ -29099,98 +29438,104 @@ ${o.items.map((it, idx) => {
         }
 
         // 4. Reconcile Delivery Riders / Persons
-        try {
-          const ridersSnap = await db.collection('ek_delivery_persons').get();
-          const localRiders = getData('ek_delivery_persons', []);
-          const localRidersMap = new Map(localRiders.map(r => [r.id, r]));
-          const cloudRidersMap = new Map();
-          let ridersModified = false;
+        const activeAdminRoleCheck = getAdminSession();
+        const activeRiderRoleCheck = getData('ek_delivery_session', null);
+        if (activeAdminRoleCheck || activeRiderRoleCheck) {
+          try {
+            const ridersSnap = await db.collection('ek_delivery_persons').get();
+            const localRiders = getData('ek_delivery_persons', []);
+            const localRidersMap = new Map(localRiders.map(r => [r.id, r]));
+            const cloudRidersMap = new Map();
+            let ridersModified = false;
 
-          if (!ridersSnap.empty) {
-            const deletedRiderIds = getDeletedRiderIds();
-            ridersSnap.forEach(doc => {
-              const cloudR = normalizeFirestoreData(doc.data());
-              if (cloudR && cloudR.id) {
-                if (deletedRiderIds.includes(cloudR.id)) return;
-                cloudRidersMap.set(cloudR.id, cloudR);
-              }
-            });
-          }
-
-          // A. Upload local riders that are newer, or don't exist in the cloud
-          const deletedRiderIds = getDeletedRiderIds();
-          for (const [key, localR] of localRidersMap.entries()) {
-            if (deletedRiderIds.includes(key)) {
-              localRidersMap.delete(key);
-              ridersModified = true;
-              continue;
+            if (!ridersSnap.empty) {
+              const deletedRiderIds = getDeletedRiderIds();
+              ridersSnap.forEach(doc => {
+                const cloudR = normalizeFirestoreData(doc.data());
+                if (cloudR && cloudR.id) {
+                  if (deletedRiderIds.includes(cloudR.id)) return;
+                  cloudRidersMap.set(cloudR.id, cloudR);
+                }
+              });
             }
-            const cloudR = cloudRidersMap.get(key);
-            if (!cloudR) {
-              console.log(`[Cloud Sync] Uploading newly registered rider ${key} to Cloud...`);
-              await db.collection('ek_delivery_persons').doc(key).set(cleanFirestoreData(localR))
-                .catch(e => console.error("Error setting rider in cloud:", e));
-            } else {
-              const localRev = localR.revision || 0;
-              const cloudRev = cloudR.revision || 0;
-              if (localRev > cloudRev) {
-                console.log(`[Cloud Sync] Uploading newer local rider details revision: ${key} (${localRev} > ${cloudRev})`);
+
+            // A. Upload local riders that are newer, or don't exist in the cloud
+            const deletedRiderIds = getDeletedRiderIds();
+            for (const [key, localR] of localRidersMap.entries()) {
+              if (deletedRiderIds.includes(key)) {
+                localRidersMap.delete(key);
+                ridersModified = true;
+                continue;
+              }
+              const cloudR = cloudRidersMap.get(key);
+              if (!cloudR) {
+                console.log(`[Cloud Sync] Uploading newly registered rider ${key} to Cloud...`);
                 await db.collection('ek_delivery_persons').doc(key).set(cleanFirestoreData(localR))
-                  .catch(e => console.error("Error updating rider in cloud:", e));
-              } else if (cloudRev > localRev) {
-                // cloud has a superior revision, hand over to download block
+                  .catch(e => console.error("Error setting rider in cloud:", e));
               } else {
-                const localTime = localR.updatedAt ? new Date(localR.updatedAt).getTime() : 0;
-                const cloudTime = cloudR.updatedAt ? new Date(cloudR.updatedAt).getTime() : 0;
-                if (localTime > cloudTime) {
-                  console.log(`[Cloud Sync] Uploading newer local rider details time: ${key}`);
+                const localRev = localR.revision || 0;
+                const cloudRev = cloudR.revision || 0;
+                if (localRev > cloudRev) {
+                  console.log(`[Cloud Sync] Uploading newer local rider details revision: ${key} (${localRev} > ${cloudRev})`);
                   await db.collection('ek_delivery_persons').doc(key).set(cleanFirestoreData(localR))
                     .catch(e => console.error("Error updating rider in cloud:", e));
+                } else if (cloudRev > localRev) {
+                  // cloud has a superior revision, hand over to download block
+                } else {
+                  const localTime = localR.updatedAt ? new Date(localR.updatedAt).getTime() : 0;
+                  const cloudTime = cloudR.updatedAt ? new Date(cloudR.updatedAt).getTime() : 0;
+                  if (localTime > cloudTime) {
+                    console.log(`[Cloud Sync] Uploading newer local rider details time: ${key}`);
+                    await db.collection('ek_delivery_persons').doc(key).set(cleanFirestoreData(localR))
+                      .catch(e => console.error("Error updating rider in cloud:", e));
+                  }
                 }
               }
             }
-          }
 
-          // B. Download cloud riders that are newer, or don't exist locally
-          for (const [key, cloudR] of cloudRidersMap.entries()) {
-            const localR = localRidersMap.get(key);
-            if (!localR) {
-              localRidersMap.set(key, cloudR);
-              ridersModified = true;
-            } else {
-              const localRev = localR.revision || 0;
-              const cloudRev = cloudR.revision || 0;
-              if (cloudRev > localRev) {
+            // B. Download cloud riders that are newer, or don't exist locally
+            for (const [key, cloudR] of cloudRidersMap.entries()) {
+              const localR = localRidersMap.get(key);
+              if (!localR) {
                 localRidersMap.set(key, cloudR);
                 ridersModified = true;
-              } else if (localRev > cloudRev) {
-                // local is newer, handled in upload block
               } else {
-                const localTime = localR.updatedAt ? new Date(localR.updatedAt).getTime() : 0;
-                const cloudTime = cloudR.updatedAt ? new Date(cloudR.updatedAt).getTime() : 0;
-                if (cloudTime > localTime) {
+                const localRev = localR.revision || 0;
+                const cloudRev = cloudR.revision || 0;
+                if (cloudRev > localRev) {
                   localRidersMap.set(key, cloudR);
                   ridersModified = true;
+                } else if (localRev > cloudRev) {
+                  // local is newer, handled in upload block
+                } else {
+                  const localTime = localR.updatedAt ? new Date(localR.updatedAt).getTime() : 0;
+                  const cloudTime = cloudR.updatedAt ? new Date(cloudR.updatedAt).getTime() : 0;
+                  if (cloudTime > localTime) {
+                    localRidersMap.set(key, cloudR);
+                    ridersModified = true;
+                  }
                 }
               }
             }
-          }
 
-          if (ridersModified) {
-            const merged = Array.from(localRidersMap.values());
-            const jsonStr = JSON.stringify(merged);
-            if (typeof AndroidStorage !== 'undefined') {
-              AndroidStorage.saveData('ek_delivery_persons', jsonStr);
+            if (ridersModified) {
+              const merged = Array.from(localRidersMap.values());
+              const jsonStr = JSON.stringify(merged);
+              if (typeof AndroidStorage !== 'undefined') {
+                AndroidStorage.saveData('ek_delivery_persons', jsonStr);
+              }
+              localStorage.setItem('ek_delivery_persons', jsonStr);
+              console.log("[Cloud Sync] Merged delivery riders from cloud: ", merged.length);
+              if (currentScreen === 'screen-admin') {
+                renderDeliveryExecutives();
+                renderAdminDashboard();
+              }
             }
-            localStorage.setItem('ek_delivery_persons', jsonStr);
-            console.log("[Cloud Sync] Merged delivery riders from cloud: ", merged.length);
-            if (currentScreen === 'screen-admin') {
-              renderDeliveryExecutives();
-              renderAdminDashboard();
-            }
+          } catch (ridersErr) {
+            console.error("Error micro-syncing riders: ", ridersErr);
           }
-        } catch (ridersErr) {
-          console.error("Error micro-syncing riders: ", ridersErr);
+        } else {
+          console.log("[Cloud Sync] Skipping delivery riders reconciliation (role is Guest or Customer).");
         }
 
         // 4.5 Reconcile Customer Users (Robust Offline Recovery on Fresh Re-installations)
@@ -29476,11 +29821,37 @@ ${o.items.map((it, idx) => {
     let isLiveSyncActive = false;
     let liveSyncReconnectTimeout = null;
     let isReconnecting = false;
+    let liveSyncReconnectAttempts = 0;
+
+    function isDevelopmentOrPreviewMode() {
+      try {
+        return (
+          window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1' ||
+          window.location.hostname.includes('asia-southeast1.run.app') ||
+          window.location.protocol === 'file:'
+        );
+      } catch (e) {
+        return false;
+      }
+    }
 
     function setupCloudRealtimeListeners2() {
       try {
         if (!db) {
           console.warn("[Cloud Live Sync] DB not initialized yet, skipping live streams.");
+          return;
+        }
+
+        if (isDevelopmentOrPreviewMode()) {
+          console.log("[Cloud Live Sync] Running in Development/Preview/Testing mode. Skipping automatic registration of continuous real-time onSnapshot background streams to save Firestore free quota.");
+          
+          // Still run the repair script once if not already done, but run it asynchronously
+          if (!localStorage.getItem('ek_rider_migration_completed')) {
+            setTimeout(() => {
+              migrateAndRepairRiders().catch(e => console.error(e));
+            }, 5000);
+          }
           return;
         }
 
@@ -29515,7 +29886,7 @@ ${o.items.map((it, idx) => {
         if (isAuthed) {
           if (activeAdmin) {
             console.log("[Cloud Live Sync] Initializing Admin Scoped real-time user profiles listener...");
-            usersQuery = db.collection('ek_users');
+            usersQuery = db.collection('ek_users').limit(150);
           } else if (activeCust) {
             console.log("[Cloud Live Sync] Initializing Customer Scoped real-time own profile listener...");
             usersQuery = db.collection('ek_users').where('id', '==', activeCust.id);
@@ -29850,6 +30221,10 @@ ${o.items.map((it, idx) => {
         liveSyncUnsubscribers.settings = db.collection('ek_settings').doc('global_config').onSnapshot(doc => {
           if (!doc || !doc.exists) return;
           if (doc.metadata && doc.metadata.hasPendingWrites) return;
+          
+          // Connection is proven healthy and active, reset reconnect attempts
+          liveSyncReconnectAttempts = 0;
+          
           const cloudSettings = normalizeFirestoreData(doc.data());
           if (!cloudSettings) return;
           
@@ -29912,7 +30287,7 @@ ${o.items.map((it, idx) => {
 
       // D. Real-time stream for Products
       try {
-        liveSyncUnsubscribers.products = db.collection('ek_products').onSnapshot({ includeMetadataChanges: true }, snapshot => {
+        liveSyncUnsubscribers.products = db.collection('ek_products').limit(150).onSnapshot({ includeMetadataChanges: true }, snapshot => {
           if (!snapshot) return;
 
           // ★★★ CRITICAL FIX: Skip own pending write echo — waiting for server confirmation ★★★
@@ -30045,8 +30420,10 @@ ${o.items.map((it, idx) => {
       // E. Real-time stream for Delivery staff/Rider positions
       try {
         const isAuthed = (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
-        if (isAuthed) {
-          liveSyncUnsubscribers.deliveryPersons = db.collection('ek_delivery_persons').onSnapshot(snapshot => {
+        const activeAdmin = getAdminSession();
+        const activeRider = getData('ek_delivery_session', null);
+        if (isAuthed && (activeAdmin || activeRider)) {
+          liveSyncUnsubscribers.deliveryPersons = db.collection('ek_delivery_persons').limit(100).onSnapshot(snapshot => {
             if (!snapshot) return;
             if (snapshot.metadata && snapshot.metadata.hasPendingWrites) return;
             if (typeof snapshot.docChanges === 'function') {
@@ -30139,7 +30516,7 @@ ${o.items.map((it, idx) => {
             handleLiveStreamError('deliveryPersons', err);
           });
         } else {
-          console.log("[Cloud Live Sync] Firebase auth is unauthenticated. Skipping deliveryPersons stream setup.");
+          console.log("[Cloud Live Sync] Skipping deliveryPersons stream setup (unauthenticated guest, or role is Customer).");
         }
       } catch (e) {
         console.error("[Cloud Live Sync] Failed to attach delivery staff listener:", e);
@@ -30147,7 +30524,7 @@ ${o.items.map((it, idx) => {
 
       // F. Real-time stream for Custom Categories mapping
       try {
-        liveSyncUnsubscribers.categories = db.collection('ek_categories').onSnapshot({ includeMetadataChanges: true }, snapshot => {
+        liveSyncUnsubscribers.categories = db.collection('ek_categories').limit(50).onSnapshot({ includeMetadataChanges: true }, snapshot => {
           if (!snapshot) return;
           
           // Skip own pending writes echo
@@ -30231,7 +30608,7 @@ ${o.items.map((it, idx) => {
       try {
         const activeAdmin = getAdminSession();
         if (activeAdmin) {
-          liveSyncUnsubscribers.adminAccounts = db.collection('ek_admin_accounts').onSnapshot(snapshot => {
+          liveSyncUnsubscribers.adminAccounts = db.collection('ek_admin_accounts').limit(50).onSnapshot(snapshot => {
             if (!snapshot) return;
             const localAdmins = getData('ek_admin_accounts', []);
             const localAdminsMap = new Map(localAdmins.map(a => [a.id || a.phone, a]));
@@ -30306,7 +30683,7 @@ ${o.items.map((it, idx) => {
 
       // H. Real-time stream for Deletion Tombstones
       try {
-        liveSyncUnsubscribers.tombstones = db.collection('ek_tombstones').onSnapshot(snapshot => {
+        liveSyncUnsubscribers.tombstones = db.collection('ek_tombstones').limit(10).onSnapshot(snapshot => {
           if (!snapshot) return;
           let modifiedAny = false;
           
@@ -30384,6 +30761,9 @@ ${o.items.map((it, idx) => {
         window.activeTrackedOrderUnsubscribe = null;
         window.activeTrackedOrderIdListener = null;
       }
+      if (typeof window.teardownAllSupportChatListeners === 'function') {
+        try { window.teardownAllSupportChatListeners(); } catch(e) {}
+      }
       isLiveSyncActive = false;
     }
 
@@ -30394,18 +30774,30 @@ ${o.items.map((it, idx) => {
       }
       updateCloudStatus('error', `${streamKey} stream error: ${err.message}`);
       
+      const MAX_RECONNECT_ATTEMPTS = 8;
+      if (liveSyncReconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.error(`[Cloud Live Sync] Maximum auto-reconnect attempts (${MAX_RECONNECT_ATTEMPTS}) reached. Stopping background retries to protect battery and Firestore quota.`);
+        updateCloudStatus('error', 'Sync suspended (max retries reached)');
+        isReconnecting = false;
+        return;
+      }
+
       if (isReconnecting) {
         console.warn(`[Cloud Live Sync] Reconnection already throttled. Skipping duplicate stream triggers.`);
         return;
       }
       isReconnecting = true;
+      liveSyncReconnectAttempts++;
       
       // Auto-reconnect retry logic to maintain real-time bidirectional updates without manual sync necessity
       teardownLiveListeners();
       
       if (liveSyncReconnectTimeout) clearTimeout(liveSyncReconnectTimeout);
       
-      console.log(`[Cloud Live Sync] Will attempt auto-reconnect fallback in 10 seconds to restore cloud stream...`);
+      // Exponential backoff: 10s, 20s, 40s, 80s, max 120s
+      const delayMs = Math.min(10000 * Math.pow(2, liveSyncReconnectAttempts - 1), 120000);
+      console.log(`[Cloud Live Sync] Will attempt auto-reconnect fallback in ${Math.round(delayMs / 1000)} seconds to restore cloud stream (attempt ${liveSyncReconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+      
       liveSyncReconnectTimeout = setTimeout(() => {
         isReconnecting = false;
         if (typeof firebase !== 'undefined' && db) {
@@ -30413,7 +30805,7 @@ ${o.items.map((it, idx) => {
         } else {
           isReconnecting = false;
         }
-      }, 10000);
+      }, delayMs);
     }
 
     // MANUAL CLOUD SYNCHRONIZATION TRIGGERS (SELF-HEALING CONTROLLERS)
@@ -30576,6 +30968,14 @@ ${o.items.map((it, idx) => {
       setupCloudRealtimeListeners2();
 
       // 3. Hot high-frequency periodic fallback sync to ensure absolute data consistency (every 90 seconds instead of heavy 15s)
+      if (isDevelopmentOrPreviewMode()) {
+        console.log("[PWA Realtime Sync] Running in Development/Preview mode. Setting up relaxed 90-second background sync interval to protect Firestore free quota.");
+        setInterval(() => {
+          if (document.hidden) return;
+          console.log("[PWA Realtime Sync] Relaxed background sync running...");
+          syncWithCloud();
+        }, 90000); // 90 seconds
+      }
 
       // Background check for admin data updates (optimized 5-second interval, paused in background to prevent battery drain)
       setInterval(() => {
@@ -30922,17 +31322,34 @@ ${o.items.map((it, idx) => {
     function initApp() {
       if (typeof db !== 'undefined' && db) {
         db.collection('ek_settings').doc('global_config').get().then(doc => {
-          const minVer = doc.data()?.minAppVersion || 0;
+          let minVer = doc.exists ? doc.data()?.minAppVersion : undefined;
+          let checkUpdate = true;
+
+          // Safety Bound check: fail-open if minAppVersion is missing, zero, negative, or absurdly large (> 1000)
+          if (minVer === undefined || minVer === null) {
+            console.log("[Version Check] minAppVersion is missing from Firestore global_config. Bypassing check.");
+            checkUpdate = false;
+          } else {
+            minVer = parseInt(minVer, 10);
+            if (isNaN(minVer) || minVer <= 0 || minVer > 1000) {
+              console.warn("[Version Check] minAppVersion (" + minVer + ") is zero, negative, non-numeric, or absurdly large (> 1000). Bypassing check.");
+              checkUpdate = false;
+            }
+          }
+
           const nativeVer = typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.getAppVersionCode === 'function' ? AndroidStorage.getAppVersionCode() : 0;
-          const JS_APP_VERSION = 1000;
+          const JS_APP_VERSION = 9999;
           const currentVer = nativeVer > 0 ? nativeVer : JS_APP_VERSION;
 
-          console.log("[Version Check] Firestore minAppVersion:", minVer, "Local currentVer:", currentVer, "Native version:", nativeVer, "JS_APP_VERSION:", JS_APP_VERSION);
+          console.log("[Version Check] Firestore minAppVersion:", minVer, "Local currentVer:", currentVer, "Native version:", nativeVer, "JS_APP_VERSION:", JS_APP_VERSION, "checkUpdate:", checkUpdate);
 
-          if (currentVer > 0 && currentVer < minVer) {
+          if (checkUpdate && currentVer > 0 && currentVer < minVer) {
             document.body.innerHTML = '<div style="position:fixed;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;padding:32px;text-align:center"><div style="font-size:48px">🔄</div><h2 style="color:#FF6B35;margin:16px 0">புதிய Version கிடைக்கிறது</h2><p style="color:#fff;margin-bottom:24px">சிறப்பான அனுபவத்திற்கு Play Store-ல் update பண்ணுங்க</p><a href="https://play.google.com/store/apps/details?id=com.edappadikadai.app" style="background:#FF6B35;color:#000;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:bold">Update பண்ணு →</a></div>';
           }
-        }).catch(err => console.warn('[initApp] Failed to fetch settings:', err));
+        }).catch(err => {
+          // Fail open on error (network, permission, or quota-exceeded) to keep app functional
+          console.error('[Version Check] Failed to fetch Firestore settings (failing open):', err);
+        });
       }
     }
 
@@ -33468,6 +33885,8 @@ ${formattedProducts}கார்ட்டில் உள்ளன!" : "All item
     }
 
     async function processParsedLyoAiOrderRequest(customCart = null) {
+      const user = await getAuthenticatedCustomerUser();
+
       if (window.isPlacingOrder) {
         console.warn("[Checkout Lock] An order is already being processed.");
         return null;
@@ -33485,7 +33904,6 @@ ${formattedProducts}கார்ட்டில் உள்ளன!" : "All item
       }
       const activeCart = customCart || cart;
       
-      const user = await getAuthenticatedCustomerUser();
       if (!user) {
         window.isPlacingOrder = false;
         if (typeof firebase !== 'undefined' && firebase.auth) {
@@ -36065,11 +36483,16 @@ Store details: Standard Shipping is ₹${settings.deliveryCharge || 40}. Actual 
 
     async function migrateAndRepairRiders() {
       if (typeof db === 'undefined' || !db) return;
+      if (localStorage.getItem('ek_rider_migration_completed')) {
+        console.log("[Migration] Rider repair/migration already completed. Skipping check.");
+        return;
+      }
       try {
         console.log("[Migration] Starting automatic Rider Database repair and migration...");
         const snapshot = await db.collection('ek_delivery_persons').get();
         if (snapshot.empty) {
           console.log("[Migration] No legacy riders found to migrate.");
+          localStorage.setItem('ek_rider_migration_completed', 'true');
           return;
         }
 
@@ -36125,6 +36548,7 @@ Store details: Standard Shipping is ₹${settings.deliveryCharge || 40}. Actual 
         }
         
         console.log(`[Migration] Completed! Migrated ${migratedCount} riders to the unified users collection.`);
+        localStorage.setItem('ek_rider_migration_completed', 'true');
         try { publishPublicStaffDirectory(); } catch(e) {}
       } catch (err) {
         console.error("[Migration] Error running Rider migration:", err);

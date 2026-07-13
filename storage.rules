@@ -20,5 +20,25 @@ service firebase.storage {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    match /avatars/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() || (
+        isAuthenticated() && (
+          fileName.startsWith("customer_" + request.auth.uid + "_") ||
+          fileName.startsWith("rider_" + request.auth.uid + "_")
+        )
+      );
+    }
+
+    match /branding/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && fileName.startsWith("store_");
+    }
+
+    match /rider_profiles/{uid}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() || (isAuthenticated() && request.auth.uid == uid);
+    }
   }
 }

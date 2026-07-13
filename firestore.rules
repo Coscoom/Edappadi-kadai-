@@ -232,6 +232,41 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Support Chat: users can read/write own chats, admin can do everything
+    match /ek_chats/{chatId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isAdmin() || (isAuthenticated() && request.resource.data.userId == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // Broadcast Requests (historical admin logs): only admin can read/write
+    match /ek_broadcast_requests/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Customer Broadcasts (local shouts): authenticated create, admin read/write
+    match /ek_customer_broadcasts/{docId} {
+      allow create: if isAuthenticated();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Customers profiles: only owner or admin can read/write
+    match /ek_customers/{customerId} {
+      allow read, write: if isAdmin() || (isAuthenticated() && request.auth.uid == customerId);
+    }
+
+    // FCM Logs (push notifications dispatch audit): authenticated create, admin read/write
+    match /ek_fcm_logs/{docId} {
+      allow create: if isAuthenticated();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Payment Audit Logs: write-only telemetry for users/guests, read/delete for admins
+    match /ek_payment_audit_logs/{docId} {
+      allow create, update: if true;
+      allow read, delete: if isAdmin();
+    }
+
     // Deny everything else
     match /{document=**} {
       allow read, write: if false;

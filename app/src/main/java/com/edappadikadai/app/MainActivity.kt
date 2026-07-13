@@ -294,6 +294,30 @@ class MainActivity : ComponentActivity() {
                     com.google.firebase.FirebaseApp.initializeApp(this, options)
                 }
             }
+
+            // Initialize Firebase App Check with Play Integrity provider
+            try {
+                val firebaseAppCheck = com.google.firebase.appcheck.FirebaseAppCheck.getInstance()
+                firebaseAppCheck.installAppCheckProviderFactory(
+                    com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory.getInstance()
+                )
+                android.util.Log.d("APP_CHECK", "Firebase App Check initialized with Play Integrity provider.")
+            } catch (appCheckEx: Exception) {
+                android.util.Log.e("APP_CHECK", "Failed to initialize Firebase App Check: ${appCheckEx.message}", appCheckEx)
+            }
+
+            // Initialize and configure Firebase Crashlytics
+            try {
+                val crashlytics = com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
+                // Ensure crash reporting is enabled by default in production builds
+                crashlytics.setCrashlyticsCollectionEnabled(true)
+                crashlytics.setCustomKey("app_check_initialized", "true")
+                crashlytics.log("Firebase Crashlytics and App Check successfully initialized in MainActivity onCreate.")
+                android.util.Log.d("CRASHLYTICS", "Firebase Crashlytics initialized and enabled.")
+            } catch (crashEx: Exception) {
+                android.util.Log.e("CRASHLYTICS", "Failed to configure Firebase Crashlytics: ${crashEx.message}", crashEx)
+            }
+
             com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val token = task.result
