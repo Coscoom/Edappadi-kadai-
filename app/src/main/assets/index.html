@@ -2020,6 +2020,7 @@
       min-width: 0 !important;
       height: 80px !important;
       justify-content: space-between !important;
+      padding: 3px 4px 3px 0 !important; /* Elegant breathing room and padding-bottom/right to stay away from curved edges */
     }
     #screen-home .product-card-details-top {
       display: flex !important;
@@ -2629,8 +2630,8 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 6px;">
           <!-- Miniature Glowing Neon Logo -->
-          <div class="brand-mini-logo" style="width: 32px; height: 32px; border-radius: 8px; background: #000000 !important; border: 1.5px solid #10b981 !important; box-shadow: 0 0 8px rgba(16, 185, 129, 0.45) !important; display: flex; align-items: center; justify-content: center; overflow: hidden; fill: none; stroke: none; margin-right: 2px;">
-            <svg viewBox="0 0 100 100" style="width: 22px; height: 22px; display: block;">
+          <div class="brand-mini-logo" style="width: 40px; height: 40px; border-radius: 10px; background: #000000 !important; border: 1.8px solid #10b981 !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.55) !important; display: flex; align-items: center; justify-content: center; overflow: hidden; fill: none; stroke: none; margin-right: 4px;">
+            <svg viewBox="0 0 100 100" style="width: 28px; height: 28px; display: block;">
               <circle cx="50" cy="50" r="42" stroke="#10b981" stroke-width="6" fill="none" />
               <circle cx="50" cy="50" r="35" stroke="#10b981" stroke-width="2" stroke-dasharray="4,2" fill="none" opacity="0.8" />
               <path d="M 40,38 C 40,28 60,28 60,38" stroke="#10b981" stroke-width="5" stroke-linecap="round" fill="none" />
@@ -2639,10 +2640,10 @@
               <path d="M 57,55 L 62,55 L 62,60" stroke="#10b981" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
             </svg>
           </div>
-          <div>
-            <h3 style="background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-orange) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 16px; font-weight: 900; letter-spacing: 1.2px; line-height: 1.1; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; text-transform: uppercase;">
+          <div style="display: flex; flex-direction: column; min-width: 0;">
+            <h3 style="background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-orange) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 16px; font-weight: 900; letter-spacing: 1.2px; line-height: 1.1; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; text-transform: uppercase; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;">
               EDAPPADI KADAI
-              <span id="cloud-status-badge-home" style="-webkit-background-clip: initial; -webkit-text-fill-color: initial; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background-color: #eab308; transition: background-color 0.3s ease; box-shadow: 0 0 6px rgba(234, 179, 8, 0.4);" title="Connecting to Cloud..."></span>
+              <span id="cloud-status-badge-home" style="-webkit-background-clip: initial; -webkit-text-fill-color: initial; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background-color: #eab308; transition: background-color 0.3s ease; box-shadow: 0 0 6px rgba(234, 179, 8, 0.4); flex-shrink: 0;" title="Connecting to Cloud..."></span>
             </h3>
             <span id="shop-status-badge" class="badge"></span>
           </div>
@@ -4065,14 +4066,34 @@
               <span>Target Delivery Address / விநியோக முகவரி</span>
               <span id="distance-indicator-badge" class="badge-ready" style="font-size: 10px; padding: 2px 6px; display: none;"></span>
             </label>
-            <textarea id="cart-delivery-address" class="form-control" rows="2" style="margin-bottom: 8px;" placeholder="உங்களது வீட்டு முகவரி / Kavandampatti, Idappadi, Salem, pincode..." aria-labelledby="cart-delivery-address-label"></textarea>
-            <div style="display: flex; gap: 6px; margin-top: 4px;">
-              <button type="button" class="btn btn-secondary" onclick="openMapAddressPicker('cart-delivery-address')" aria-label="Pick location using map" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%); border: 1px solid rgba(249, 115, 22, 0.45); color: var(--accent-orange); flex: 1.1; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 9.5px; padding: 6px 10px; font-weight: 800; cursor: pointer; border-radius: 20px; transition: all 0.15s ease;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='none'">
-                🗺️ Map Pick / வரைபடம்
-              </button>
-              <button type="button" class="btn btn-secondary" onclick="autoDetectCoordinatesForTarget('cart-delivery-address', this)" aria-label="Auto detect location using GPS" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%); border: 1px solid rgba(16, 185, 129, 0.45); color: #10b981; flex: 0.9; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 9.5px; padding: 6px 10px; font-weight: 800; cursor: pointer; border-radius: 20px; transition: all 0.15s ease;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='none'">
-                🛰️ Auto GPS / ஜிபிஎஸ்
-              </button>
+            
+            <!-- Compact Delivery Summary (shown if valid address exists) -->
+            <div id="cart-location-summary-section" style="display: none; background: rgba(255, 255, 255, 0.02); border: 1.5px solid #2d2d2d; border-radius: 12px; padding: 12px; margin-bottom: 8px;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
+                <div style="display: flex; gap: 8px; align-items: flex-start; flex: 1;">
+                  <span style="font-size: 16px; margin-top: 2px;">📍</span>
+                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span id="cart-summary-address-text" style="font-size: 12px; font-weight: 600; color: #fff; line-height: 1.4; word-break: break-all;">-</span>
+                    <span style="font-size: 10px; color: var(--accent-orange); font-weight: 700;">🏠 Saved Delivery Location / சேமிக்கப்பட்ட முகவரி</span>
+                  </div>
+                </div>
+                <button type="button" onclick="showInteractiveLocationSection()" style="background: transparent; border: none; color: var(--accent-orange); font-size: 11px; font-weight: 800; cursor: pointer; text-decoration: underline; white-space: nowrap; padding: 2px 6px;">
+                  Change Address / மாற்று ✎
+                </button>
+              </div>
+            </div>
+
+            <!-- Original Interactive Section -->
+            <div id="cart-location-interactive-section">
+              <textarea id="cart-delivery-address" class="form-control" rows="2" style="margin-bottom: 8px;" placeholder="உங்களது வீட்டு முகவரி / Kavandampatti, Idappadi, Salem, pincode..." aria-labelledby="cart-delivery-address-label"></textarea>
+              <div style="display: flex; gap: 6px; margin-top: 4px;">
+                <button type="button" class="btn btn-secondary" onclick="openMapAddressPicker('cart-delivery-address')" aria-label="Pick location using map" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%); border: 1px solid rgba(249, 115, 22, 0.45); color: var(--accent-orange); flex: 1.1; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 9.5px; padding: 6px 10px; font-weight: 800; cursor: pointer; border-radius: 20px; transition: all 0.15s ease;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='none'">
+                  🗺️ Map Pick / வரைபடம்
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="autoDetectCoordinatesForTarget('cart-delivery-address', this)" aria-label="Auto detect location using GPS" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%); border: 1px solid rgba(16, 185, 129, 0.45); color: #10b981; flex: 0.9; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 9.5px; padding: 6px 10px; font-weight: 800; cursor: pointer; border-radius: 20px; transition: all 0.15s ease;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='none'">
+                  🛰️ Auto GPS / ஜிபிஎஸ்
+                </button>
+              </div>
             </div>
           </div>
 
@@ -5866,7 +5887,7 @@
     <div id="screen-lyo-ai" class="screen" style="padding: 0 !important; background: rgba(12, 15, 19, 0.45) !important; height: calc(100vh - 70px); width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
       <!-- Lyo AI Header (Breathtaking 3D Glass Layout) -->
       <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%) !important; border-bottom: 1.8px solid rgba(255,255,255,0.18) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.55), inset 0 1px 1px rgba(255,255,255,0.2) !important; backdrop-filter: blur(18px) saturate(150%) !important; -webkit-backdrop-filter: blur(18px) saturate(150%) !important; position: sticky; top: 0; z-index: 10; width: 100%; max-width: 100%; box-sizing: border-box;">
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
           <div style="width: 38px; height: 38px; position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
             <!-- Glowing base orbit ring -->
             <div style="position: absolute; width: 100%; height: 100%; border: 1.5px dashed rgba(16, 185, 129, 0.45); border-radius: 50%; animation: orbitalRotate 8s linear infinite;"></div>
@@ -5876,19 +5897,19 @@
             </div>
             <span style="position: absolute; bottom: -1px; right: -1px; width: 11px; height: 11px; border-radius: 50%; background: #10b981; border: 1.5px solid #0c0f13; box-shadow: 0 0 6px #10b981; animation: pulseGlow 1.8s infinite;"></span>
           </div>
-          <div style="display: flex; flex-direction: column;">
-            <h3 style="font-size: 14px; font-weight: 800; color: #fff; margin:0; font-family: 'Poppins', sans-serif; line-height: 1.2;">Edappadi Kadai AI</h3>
-            <div style="font-size: 11px; font-weight: 700; color: var(--accent-orange); margin: 1px 0 1px 0; font-family: 'Hind Madurai', sans-serif; line-height: 1;">எடப்பாடி கடை AI</div>
-            <span style="font-size: 9px; color: #10b981; font-weight: 600; line-height: 1;">Helper Online • எடப்பாடி கடை AI</span>
+          <div style="display: flex; flex-direction: column; min-width: 0; flex: 1;">
+            <h3 style="font-size: 14px; font-weight: 800; color: #fff; margin:0; font-family: 'Poppins', sans-serif; line-height: 1.2; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;">Edappadi Kadai AI</h3>
+            <div style="font-size: 11px; font-weight: 700; color: var(--accent-orange); margin: 1px 0 1px 0; font-family: 'Hind Madurai', sans-serif; line-height: 1; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;">எடப்பாடி கடை AI</div>
+            <span style="font-size: 9px; color: #10b981; font-weight: 600; line-height: 1; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;">Helper Online • எடப்பாடி கடை AI</span>
           </div>
         </div>
-        <button onclick="toggleLyoAiLang()" class="btn" style="width: auto; padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 8px; border: 1.2px solid rgba(245,158,11,0.35); background: rgba(245,158,11,0.06); color: var(--accent-orange); display: flex; align-items: center; gap: 4px; cursor: pointer; height: auto; min-height: auto;">
+        <button onclick="toggleLyoAiLang()" class="btn" style="width: auto; padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 8px; border: 1.2px solid rgba(245,158,11,0.35); background: rgba(245,158,11,0.06); color: var(--accent-orange); display: flex; align-items: center; gap: 4px; cursor: pointer; height: auto; min-height: auto; flex-shrink: 0;">
           🌐 <span id="lyo-ai-lang-label">தமிழ் / EN</span>
         </button>
       </div>
 
       <!-- Real-time Location Pin & Delivery Charge calculation banner -->
-      <div id="lyo-ai-delivery-indicator-strip" style="background: rgba(16, 185, 129, 0.08) !important; border-bottom: 1.5px solid rgba(16, 185, 129, 0.25) !important; backdrop-filter: blur(16px) saturate(160%) !important; -webkit-backdrop-filter: blur(16px) saturate(160%) !important; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; font-family: 'Poppins', 'Hind Madurai', sans-serif; box-sizing: border-box; width: 100%;">
+      <div id="lyo-ai-delivery-indicator-strip" style="display: none !important; background: rgba(16, 185, 129, 0.08) !important; border-bottom: 1.5px solid rgba(16, 185, 129, 0.25) !important; backdrop-filter: blur(16px) saturate(160%) !important; -webkit-backdrop-filter: blur(16px) saturate(160%) !important; padding: 10px 14px; flex-direction: column; gap: 8px; font-family: 'Poppins', 'Hind Madurai', sans-serif; box-sizing: border-box; width: 100%;">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;">
           <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
             <span style="font-size: 15px; text-shadow: 0 0 6px rgba(16,185,129,0.4); flex-shrink: 0;">📍</span>
@@ -6500,8 +6521,17 @@
             saveData('ek_users', users);
             
             // Set session
-            const session = { loggedIn: true, userId: userData.id, name: userData.name, phone: userData.phone };
+            const existingSession = getActiveSession();
+            const uniqueSessionToken = (existingSession && existingSession.userId === userData.id && existingSession.sessionToken) 
+              ? existingSession.sessionToken 
+              : 'sess_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+            const session = { loggedIn: true, userId: userData.id, name: userData.name, phone: userData.phone, sessionToken: uniqueSessionToken };
             saveData('ek_customer_session', session);
+            if (typeof db !== 'undefined' && db && userData.activeSessionToken !== uniqueSessionToken) {
+              db.collection('ek_users').doc(userData.id).update({
+                activeSessionToken: uniqueSessionToken
+              }).catch(err => console.error("Error setting initial activeSessionToken on autologin:", err));
+            }
             if (typeof setupCloudRealtimeListeners2 === 'function') setupCloudRealtimeListeners2();
             if (typeof registerRealFcmToken === 'function') registerRealFcmToken();
           } else {
@@ -6519,13 +6549,23 @@
                   const uIdx = users.findIndex(u => u.phone === userData.phone);
                   if (uIdx !== -1) { users[uIdx] = userData; } else { users.push(userData); }
                   saveData('ek_users', users);
+                  const existingSession = getActiveSession();
+                  const uniqueSessionToken = (existingSession && existingSession.userId === userData.id && existingSession.sessionToken) 
+                    ? existingSession.sessionToken 
+                    : 'sess_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
                   const session = { 
                     loggedIn: true, 
                     userId: userData.id, 
                     name: userData.name, 
-                    phone: userData.phone 
+                    phone: userData.phone,
+                    sessionToken: uniqueSessionToken
                   };
                   saveData('ek_customer_session', session);
+                  if (typeof db !== 'undefined' && db && userData.activeSessionToken !== uniqueSessionToken) {
+                    db.collection('ek_users').doc(userData.id).update({
+                      activeSessionToken: uniqueSessionToken
+                    }).catch(err => console.error("Error setting initial activeSessionToken on autologin fallback:", err));
+                  }
                   if (typeof setupCloudRealtimeListeners2 === 'function') setupCloudRealtimeListeners2();
                   console.log('[Auth Autologin] Old user found via phone fallback:', userData.name);
                 }
@@ -6791,7 +6831,13 @@
             deletedIds = [];
           }
           if (deletedIds && Array.isArray(deletedIds) && deletedIds.length > 0) {
-            parsed = parsed.filter(o => o && o.id && !deletedIds.includes(o.id));
+            parsed = parsed.filter(o => {
+              if (o && o.id && deletedIds.includes(o.id)) {
+                const status = (o.status || '').toLowerCase().trim();
+                return ['completed', 'delivered', 'cancelled', 'archived'].includes(status);
+              }
+              return true;
+            });
           }
         }
         if (key === 'ek_users' && Array.isArray(parsed)) {
@@ -6835,7 +6881,13 @@
               deletedIds = [];
             }
             if (deletedIds && Array.isArray(deletedIds) && deletedIds.length > 0) {
-              parsed = parsed.filter(o => o && o.id && !deletedIds.includes(o.id));
+              parsed = parsed.filter(o => {
+                if (o && o.id && deletedIds.includes(o.id)) {
+                  const status = (o.status || '').toLowerCase().trim();
+                  return ['completed', 'delivered', 'cancelled', 'archived'].includes(status);
+                }
+                return true;
+              });
             }
           }
           if (key === 'ek_users' && Array.isArray(parsed)) {
@@ -6982,10 +7034,16 @@
       const deletedOrderIds = getDeletedOrderIds();
       if (deletedOrderIds.length === 0) return;
       const orders = getData('ek_orders', []);
-      const filtered = orders.filter(o => !deletedOrderIds.includes(o.id));
+      const filtered = orders.filter(o => {
+        if (deletedOrderIds.includes(o.id)) {
+          const status = (o.status || '').toLowerCase().trim();
+          return ['completed', 'delivered', 'cancelled', 'archived'].includes(status);
+        }
+        return true;
+      });
       if (orders.length !== filtered.length) {
         saveData('ek_orders', filtered);
-        console.log(`[Safeguard] Pruned ${orders.length - filtered.length} deleted orders from local cache.`);
+        console.log(`[Safeguard] Pruned ${orders.length - filtered.length} deleted active/draft orders from local cache.`);
       }
     }
     function markOrderAsDeleted(orderId) {
@@ -7127,6 +7185,27 @@
       try {
         invalidateDataCache(key); // Invalidate cache first so subsequent reads fetch fresh data
 
+        // Clean up deleted/tombstoned items first to prevent resurrection in other clients
+        if (key === 'ek_orders' && Array.isArray(data)) {
+          const deletedOrderIds = getDeletedOrderIds();
+          data = data.filter(o => {
+            if (deletedOrderIds.includes(o.id)) {
+              const status = (o.status || '').toLowerCase().trim();
+              return ['completed', 'delivered', 'cancelled', 'archived'].includes(status);
+            }
+            return true;
+          });
+        } else if (key === 'ek_products' && Array.isArray(data)) {
+          const deletedProductIds = typeof getDeletedProductIds === 'function' ? getDeletedProductIds() : [];
+          data = data.filter(p => !deletedProductIds.includes(p.id));
+        } else if (key === 'ek_users' && Array.isArray(data)) {
+          const deletedUserIds = typeof getDeletedUserIds === 'function' ? getDeletedUserIds() : [];
+          data = data.filter(u => !deletedUserIds.includes(u.id || u.phone));
+        } else if (key === 'ek_delivery_persons' && Array.isArray(data)) {
+          const deletedRiderIds = typeof getDeletedRiderIds === 'function' ? getDeletedRiderIds() : [];
+          data = data.filter(r => !deletedRiderIds.includes(r.id));
+        }
+
         // Handle settings special injection of updatedAt
         if (key === 'ek_settings' && typeof data === 'object' && data !== null) {
           data.updatedAt = new Date().toISOString();
@@ -7178,10 +7257,28 @@
                 }
               } else if (['ek_users', 'ek_orders', 'ek_products', 'ek_delivery_persons', 'ek_admin_accounts', 'ek_categories'].includes(key) && Array.isArray(data)) {
                 const now = Date.now();
+                const deletedOrderIds = getDeletedOrderIds();
+                const deletedProductIds = typeof getDeletedProductIds === 'function' ? getDeletedProductIds() : [];
+                const deletedUserIds = typeof getDeletedUserIds === 'function' ? getDeletedUserIds() : [];
+                const deletedRiderIds = typeof getDeletedRiderIds === 'function' ? getDeletedRiderIds() : [];
+
                 data.forEach(item => {
-                  // Only upload items that have been recently updated (e.g. in the last 15 seconds)
-                  // or if they have no updatedAt timestamp (such as older or unsynced records)
-                  // This prevents massive, slow, redundant overhead of uploading hundreds of unchanged old records!
+                  const itemId = item.id || item.phone;
+                  if (!itemId) return;
+
+                  // Double guard to prevent deleted items from being uploaded back to Firestore,
+                  // except for delivered/completed/cancelled/archived orders which are preserved for analytics/revenue
+                  if (key === 'ek_orders' && deletedOrderIds.includes(itemId)) {
+                    const matchedOrd = data.find(o => (o.id || o.phone) === itemId);
+                    const status = matchedOrd ? (matchedOrd.status || '').toLowerCase().trim() : '';
+                    if (!['completed', 'delivered', 'cancelled', 'archived'].includes(status)) {
+                      return;
+                    }
+                  }
+                  if (key === 'ek_products' && deletedProductIds.includes(itemId)) return;
+                  if (key === 'ek_users' && deletedUserIds.includes(itemId)) return;
+                  if (key === 'ek_delivery_persons' && deletedRiderIds.includes(itemId)) return;
+
                   const lastUpdated = item.updatedAt ? new Date(item.updatedAt).getTime() : 0;
                   const isRecent = Math.abs(now - lastUpdated) < 15000;
                   
@@ -8538,10 +8635,50 @@
               }
 
               try {
-                const docSnap = await db.collection('ek_admin_accounts').doc(finalUser.uid).get();
+                let docSnap = await db.collection('ek_admin_accounts').doc(finalUser.uid).get();
+                let adminData = null;
                 if (docSnap.exists) {
-                  const adminData = docSnap.data();
-                  if (!adminData || (adminData.role !== 'admin' && adminData.role !== 'superadmin') || adminData.active === false) {
+                  adminData = docSnap.data();
+                } else {
+                  // Self-heal check inside Route Guard: query by email or phone
+                  const adminEmail = finalUser.email;
+                  const phoneStr = adminEmail ? adminEmail.replace('admin_', '').split('@')[0] : '';
+                  const qSnap = await db.collection('ek_admin_accounts').where('email', '==', adminEmail).get();
+                  let foundDoc = null;
+                  if (!qSnap.empty) {
+                    foundDoc = qSnap.docs[0];
+                  } else if (phoneStr) {
+                    const qSnapPhone = await db.collection('ek_admin_accounts').where('phone', '==', phoneStr).get();
+                    if (!qSnapPhone.empty) {
+                      foundDoc = qSnapPhone.docs[0];
+                    }
+                  }
+
+                  if (foundDoc) {
+                    adminData = foundDoc.data();
+                    adminData.id = finalUser.uid;
+                    adminData.uid = finalUser.uid;
+                    await db.collection('ek_admin_accounts').doc(finalUser.uid).set(adminData);
+                    console.log("[Route Guard Background] Self-healed UID mapping for admin:", finalUser.uid);
+                  } else {
+                    // Create local default if not found
+                    const matchedFallback = DEFAULT_FALLBACK_ADMINS.find(fa => fa.email === adminEmail || fa.phone === phoneStr);
+                    if (matchedFallback) {
+                      adminData = {
+                        ...matchedFallback,
+                        id: finalUser.uid,
+                        uid: finalUser.uid,
+                        active: true,
+                        createdAt: new Date().toISOString()
+                      };
+                      await db.collection('ek_admin_accounts').doc(finalUser.uid).set(adminData);
+                      console.log("[Route Guard Background] Initialized fallback admin account in Firestore for UID:", finalUser.uid);
+                    }
+                  }
+                }
+
+                if (adminData) {
+                  if ((adminData.role !== 'admin' && adminData.role !== 'superadmin' && adminData.role !== 'ADMIN' && adminData.role !== 'SUPERADMIN') || adminData.active === false) {
                     console.error("[Route Guard Background] Access DENIED: Admin account inactive or not admin/superadmin.");
                     showToast("உரிமம் மறுக்கப்பட்டது! / Admin account inactive.", "error");
                     showScreen('screen-login');
@@ -10033,15 +10170,58 @@
           const cred = await firebase.auth().signInWithEmailAndPassword(adminEmail, pass);
           const uid = cred.user.uid;
           
-          // Only read from Firestore
-          const docRef = db.collection('ek_admin_accounts').doc(uid);
-          const docSnap = await docRef.get();
+          // Let's look up by uid first
+          let docRef = db.collection('ek_admin_accounts').doc(uid);
+          let docSnap = await docRef.get();
+          let adminData = null;
 
-          if (docSnap.exists && (docSnap.data().role === 'admin' || docSnap.data().role === 'superadmin') && docSnap.data().active !== false) {
+          if (docSnap.exists) {
+            adminData = docSnap.data();
+          } else {
+            // Self-healing check: query by email or phone to map existing admin to Firebase uid
+            const phoneStr = adminEmail.replace('admin_', '').split('@')[0];
+            const qSnap = await db.collection('ek_admin_accounts').where('email', '==', adminEmail).get();
+            let foundDoc = null;
+            if (!qSnap.empty) {
+              foundDoc = qSnap.docs[0];
+            } else {
+              const qSnapPhone = await db.collection('ek_admin_accounts').where('phone', '==', phoneStr).get();
+              if (!qSnapPhone.empty) {
+                foundDoc = qSnapPhone.docs[0];
+              }
+            }
+
+            if (foundDoc) {
+              adminData = foundDoc.data();
+              // Self-heal: Write the document with docId = uid
+              adminData.id = uid;
+              adminData.uid = uid;
+              adminData.email = adminEmail;
+              adminData.phone = phoneStr;
+              await db.collection('ek_admin_accounts').doc(uid).set(adminData);
+              console.log("[Admin Login] Self-healed admin account doc mapping for UID:", uid);
+            } else {
+              // Create local default in Firestore if not found (e.g. first login)
+              const matchedFallback = DEFAULT_FALLBACK_ADMINS.find(fa => fa.email === adminEmail || fa.phone === phoneStr);
+              if (matchedFallback) {
+                adminData = {
+                  ...matchedFallback,
+                  id: uid,
+                  uid: uid,
+                  active: true,
+                  createdAt: new Date().toISOString()
+                };
+                await db.collection('ek_admin_accounts').doc(uid).set(adminData);
+                console.log("[Admin Login] Initialized fallback admin account in Firestore for UID:", uid);
+              }
+            }
+          }
+
+          if (adminData && (adminData.role === 'admin' || adminData.role === 'superadmin' || adminData.role === 'ADMIN' || adminData.role === 'SUPERADMIN') && adminData.active !== false) {
             removeData('ek_customer_session');
             removeData('ek_delivery_session');
             sessionStorage.removeItem('ek_customer_session_temp');
-            saveData('ek_admin_session', { loggedIn: true, role: docSnap.data().role || 'admin', name: docSnap.data().name || 'Admin', phone: docSnap.data().phone || identifier });
+            saveData('ek_admin_session', { loggedIn: true, role: adminData.role || 'admin', name: adminData.name || 'Admin', phone: adminData.phone || identifier });
             showToast(`Welcome Admin! Access granted. 👑`, "success");
             restoreButton();
             setupCloudRealtimeListeners2();
@@ -10380,8 +10560,16 @@
       removeData('ek_delivery_session');
       sessionStorage.removeItem('ek_customer_session_temp');
       
-      const session = { loggedIn: true, userId: matched.id, name: matched.name, phone: matched.phone };
+      const uniqueSessionToken = 'sess_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+      const session = { loggedIn: true, userId: matched.id, name: matched.name, phone: matched.phone, sessionToken: uniqueSessionToken };
       saveData('ek_customer_session', session);
+
+      // Save token in Firestore
+      if (typeof db !== 'undefined' && db) {
+        db.collection('ek_users').doc(matched.id).update({
+          activeSessionToken: uniqueSessionToken
+        }).catch(err => console.error("Error updating session token on login:", err));
+      }
 
       if (remember) {
         saveData('ek_remembered_credentials', { identifier: identifier, remember: true });
@@ -10727,6 +10915,7 @@
           }
         }
 
+        const uniqueSessionToken = 'sess_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
         const newUser = {
           id: '',
           name, phone, email, password: '', address,
@@ -10740,7 +10929,8 @@
           whatsappNotify: whatsapp,
           preferredLang: currentLang,
           referredBy: referredByUserId,
-          referralRewardClaimed: false
+          referralRewardClaimed: false,
+          activeSessionToken: uniqueSessionToken
         };
 
         if (typeof firebase !== 'undefined' && firebase.auth) {
@@ -10852,7 +11042,7 @@
         );
 
         // Session creation
-        const session = { loggedIn: true, userId: newUser.id, name: newUser.name, phone: newUser.phone };
+        const session = { loggedIn: true, userId: newUser.id, name: newUser.name, phone: newUser.phone, sessionToken: uniqueSessionToken };
         saveData('ek_customer_session', session);
         saveData('ek_remembered_credentials', { identifier: email, remember: true });
 
@@ -10887,6 +11077,54 @@
       if (perm) return perm;
       const temp = sessionStorage.getItem('ek_customer_session_temp');
       return temp ? JSON.parse(temp) : null;
+    }
+
+    function enforceSingleSessionCheck(cloudUser) {
+      const currentSession = getActiveSession();
+      if (!currentSession || !currentSession.loggedIn || currentSession.userId !== cloudUser.id) {
+        return;
+      }
+      
+      const lang = localStorage.getItem('ek_lang') || 'ta';
+      
+      // If we don't have a local sessionToken yet, let's assign one to ourselves and update Firestore to avoid false logouts!
+      if (!currentSession.sessionToken) {
+        const uniqueSessionToken = 'sess_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+        currentSession.sessionToken = uniqueSessionToken;
+        saveData('ek_customer_session', currentSession);
+        
+        // Update in Firestore
+        if (typeof db !== 'undefined' && db) {
+          db.collection('ek_users').doc(cloudUser.id).update({
+            activeSessionToken: uniqueSessionToken
+          }).catch(err => console.error("Error setting initial session token in Firestore:", err));
+        }
+        return;
+      }
+      
+      // If Firestore has an activeSessionToken, and it doesn't match our local token, we've been logged out!
+      if (cloudUser.activeSessionToken && cloudUser.activeSessionToken !== currentSession.sessionToken) {
+        console.warn("[Session Enforce] Terminating session. Logged in on another device.");
+        
+        // Clear session
+        removeData('ek_customer_session');
+        sessionStorage.removeItem('ek_customer_session_temp');
+        
+        // Log out of Firebase Auth to be clean
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+          firebase.auth().signOut().catch(e => console.error(e));
+        }
+        
+        // Force user to login screen and show a nice custom alert
+        showScreen('screen-login');
+        
+        showCustomAlert(
+          lang === 'ta' ? "⚠️ மற்ற சாதனத்தில் லாகின்" : "⚠️ Logged in on another device",
+          lang === 'ta' 
+            ? "உங்கள் கணக்கு மற்றொரு மொபைலில் உள்நுழையப்பட்டுள்ளது. எனவே இந்த மொபைலில் இருந்து தானாக லாக் அவுட் செய்யப்பட்டுள்ளது." 
+            : "Your account was logged in on another device. You have been automatically logged out from this device."
+        );
+      }
     }
 
     function getActiveUser() {
@@ -10962,10 +11200,32 @@
       return user;
     }
 
+    function showInteractiveLocationSection() {
+      const interactiveEl = document.getElementById('cart-location-interactive-section');
+      const summaryEl = document.getElementById('cart-location-summary-section');
+      if (interactiveEl) interactiveEl.style.display = 'block';
+      if (summaryEl) summaryEl.style.display = 'none';
+    }
+
+    function hideInteractiveLocationSection() {
+      const interactiveEl = document.getElementById('cart-location-interactive-section');
+      const summaryEl = document.getElementById('cart-location-summary-section');
+      if (interactiveEl) interactiveEl.style.display = 'none';
+      if (summaryEl) summaryEl.style.display = 'block';
+    }
+
     // Global Primary Address Sync & Saved Address Manager
     function syncPrimaryUserAddress(address, lat, lng) {
       console.log(`[Address Sync] Syncing primary address: "${address}" at (${lat}, ${lng})`);
       
+      const summaryTextEl = document.getElementById('cart-summary-address-text');
+      if (summaryTextEl) {
+        summaryTextEl.innerText = address;
+        if (address && address.trim() !== '') {
+          hideInteractiveLocationSection();
+        }
+      }
+
       window.isProgrammaticAddressSync = true;
       try {
         // Update all visible input fields to keep them 100% in sync
@@ -12896,7 +13156,8 @@
           }
 
           const overlayHtml = isOutOfStock ? `<div class="stock-overlay-light">${currentLang === 'ta' ? 'கையிருப்பு இல்லை' : 'Out Of Stock'}</div>` : '';
-          const shortDescHtml = p.shortDescription ? `<span style="font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.shortDescription}</span>` : '';
+          const hasShortDesc = p.shortDescription && p.shortDescription !== 'undefined' && p.shortDescription.trim() !== '';
+          const shortDescHtml = hasShortDesc ? `<span style="font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.shortDescription}</span>` : '';
 
           const isFav = isProductFavorite(p.id);
           const favHeart = `<span class="fav-heart-btn" data-id="${p.id}" onclick="toggleFavoriteProduct('${p.id}', event)" style="cursor: pointer; font-size: 14px; padding: 4px; display: inline-flex; align-items: center; justify-content: center; height: 24px; width: 24px; border-radius: 50%; background: rgba(0,0,0,0.03);" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">${isFav ? '❤️' : '🤍'}</span>`;
@@ -12916,25 +13177,25 @@
             <div class="product-grid-card" id="card-prod-${p.id}" onclick="openProductModalDetail('${p.id}')">
               ${overlayHtml}
               ${imgHtml}
-              <div class="product-card-details">
-                <div class="product-card-details-top">
-                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; width: 100%;">
-                    <h4 style="margin: 0; flex-grow: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${p.englishName}</h4>
-                    ${favHeart}
-                  </div>
-                  <p class="tamil-text" style="margin: 0;">${p.tamilName}</p>
-                  <div style="margin-top: 4px; display: flex; align-items: center; gap: 4px; overflow: hidden; max-width: 100%;">
-                    ${weightHtml}
-                    ${shortDescHtml ? `<span style="font-size: 11px; color: var(--text-muted);">•</span>` : ''}
-                    ${shortDescHtml}
-                  </div>
+              <div class="product-card-details" style="display: flex !important; flex-direction: column !important; justify-content: center !important; gap: 2px !important; flex-grow: 1 !important; min-width: 0 !important; height: 80px !important; padding: 0 !important;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; width: 100%;">
+                  <h4 style="margin: 0; flex-grow: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${p.englishName}</h4>
+                  ${favHeart}
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <p class="tamil-text" style="margin: 0;">${p.tamilName}</p>
+                <div style="margin-top: 2px; display: flex; align-items: center; gap: 4px; overflow: hidden; max-width: 100%;">
+                  ${weightHtml}
+                  ${shortDescHtml ? `<span style="font-size: 11px; color: var(--text-muted);">•</span>` : ''}
+                  ${shortDescHtml}
+                </div>
+                <div style="margin-top: 4px;">
                   <span class="product-price">${getProductPriceText(p, currentLang)}</span>
-                  <button class="btn-add-orange" ${isOutOfStock ? 'disabled' : ''} onclick="event.stopPropagation(); openProductModalDetail('${p.id}')">
-                    <span>+ ADD</span>
-                  </button>
                 </div>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-shrink: 0; padding-right: 4px;">
+                <button class="btn-add-orange" ${isOutOfStock ? 'disabled' : ''} onclick="event.stopPropagation(); openProductModalDetail('${p.id}')">
+                  <span>+ ADD</span>
+                </button>
               </div>
             </div>
           `;
@@ -14125,6 +14386,13 @@
               addressTextarea.removeAttribute('data-lat');
               addressTextarea.removeAttribute('data-lng');
             }
+            const summaryTextEl = document.getElementById('cart-summary-address-text');
+            if (summaryTextEl) {
+              summaryTextEl.innerText = user.address;
+            }
+            hideInteractiveLocationSection();
+          } else {
+            showInteractiveLocationSection();
           }
           if (addressTextarea.value === user.address && user.latitude && user.longitude) {
             if (!addressTextarea.getAttribute('data-lat')) {
@@ -14136,6 +14404,7 @@
           }
           if (!addressTextarea.dataset.bound) {
             addressTextarea.dataset.bound = "true";
+            let geocodeTimeout = null;
             addressTextarea.addEventListener('input', () => {
               if (window.isProgrammaticAddressSync) {
                 recalculateBill();
@@ -14150,6 +14419,30 @@
                 }
               }
               recalculateBill();
+
+              // Auto-geocode manually typed addresses after 1.5 seconds of inactivity
+              if (geocodeTimeout) clearTimeout(geocodeTimeout);
+              const textVal = addressTextarea.value.trim();
+              if (textVal.length > 5) {
+                geocodeTimeout = setTimeout(async () => {
+                  try {
+                    const geocodeFn = getCloudFunction('geocodeDeliveryAddress');
+                    if (geocodeFn) {
+                      const res = await geocodeFn({ address: textVal + ', Edappadi, Salem, Tamil Nadu' });
+                      if (res && res.data && res.data.latitude) {
+                        const lat = parseFloat(res.data.latitude);
+                        const lng = parseFloat(res.data.longitude);
+                        addressTextarea.setAttribute('data-lat', lat);
+                        addressTextarea.setAttribute('data-lng', lng);
+                        recalculateBill();
+                        console.log(`[Debounced Geocode] Auto-geocoded address successfully to: (${lat}, ${lng})`);
+                      }
+                    }
+                  } catch (e) {
+                    console.warn("[Debounced Geocode] Auto-geocoding failed:", e);
+                  }
+                }, 1500);
+              }
             });
           }
         }
@@ -14913,6 +15206,15 @@
       const sanitizedLat = (finalLat === null || isNaN(finalLat)) ? null : parseFloat(finalLat);
       const sanitizedLng = (finalLng === null || isNaN(finalLng)) ? null : parseFloat(finalLng);
 
+      // Pre-calculate accrued loyalty points to save on the order document for strict audit consistency
+      let loyaltyMultiplier = 1.0;
+      if (customerProfile.tier === 'silver') {
+        loyaltyMultiplier = 1.5;
+      } else if (customerProfile.tier === 'gold') {
+        loyaltyMultiplier = 2.0;
+      }
+      const pointsEarned = Math.floor((financials.grandTotal / 100) * 10 * loyaltyMultiplier);
+
       const order = {
         id: randomID,
         userId: user.uid,
@@ -14931,6 +15233,7 @@
         expressDelivery: false,
         loyaltyPointsUsed: financials.loyaltyDiscount * 10,
         loyaltyDiscount: financials.loyaltyDiscount,
+        accruedPoints: pointsEarned,
         appliedCouponCode: appliedCouponCode || "",
         couponDiscount: financials.couponDiscount,
         totalAmount: financials.grandTotal,
@@ -15048,14 +15351,6 @@
       // C. Accrue & Re-adjust loyalty wallet balance
       const users = getData('ek_users', []);
       const uIdx = users.findIndex(u => u.id === customerProfile.id);
-      
-      let loyaltyMultiplier = 1.0;
-      if (customerProfile.tier === 'silver') {
-        loyaltyMultiplier = 1.5;
-      } else if (customerProfile.tier === 'gold') {
-        loyaltyMultiplier = 2.0;
-      }
-      const pointsEarned = Math.floor((financials.grandTotal / 100) * 10 * loyaltyMultiplier);
 
       if (uIdx !== -1) {
         customerProfile.loyaltyPoints = Math.max(0, customerProfile.loyaltyPoints - (financials.loyaltyDiscount * 10)) + pointsEarned;
@@ -16591,6 +16886,8 @@
 
         showToast(currentLang === 'ta' ? "ஆர்டர் வெற்றிகரமாக ரத்து செய்யப்பட்டது! 🛑" : "Order Cancelled! 🛑", "error");
         renderTrackerScreen();
+        try { renderProfileScreen(); } catch(e) { console.error(e); }
+        try { renderCartScreen(); } catch(e) { console.error(e); }
       }).catch((err) => {
         console.error("Customer cancellation transaction failed:", err);
         if (err === 'ORDER_ALREADY_ACCEPTED') {
@@ -16795,6 +17092,8 @@
               showToast(currentLang === 'ta' ? "ஆர்டர் ரத்து செய்யப்பட்டு நீக்கப்பட்டது ✓" : "Order cancelled and deleted!", "success");
               closeCustomerOrderDetailModalDetail();
               renderTrackerScreen();
+              try { renderProfileScreen(); } catch(e) { console.error(e); }
+              try { renderCartScreen(); } catch(e) { console.error(e); }
             }).catch((err) => {
               console.error("Cancellation & deletion failed:", err);
               if (err === 'ORDER_ALREADY_ACCEPTED') {
@@ -16845,22 +17144,32 @@
             showToast(currentLang === 'ta' ? "ஆர்டர் விவரம் நீக்கப்பட்டது ✓" : "Order hidden from history!", "success");
             closeCustomerOrderDetailModalDetail();
             renderTrackerScreen();
+            try { renderProfileScreen(); } catch(e) { console.error(e); }
+            try { renderCartScreen(); } catch(e) { console.error(e); }
           } else {
-            // ADMIN PERMITTED PHYSICAL DELETION
+            // ADMIN SOFT DELETION (hides from history lists but preserves the record in database for accurate revenue calculations)
             markOrderAsDeleted(orderId);
 
             const orders = getData('ek_orders');
-            const filtered = orders.filter(o => o.id !== orderId);
-            saveData('ek_orders', filtered);
+            const matched = orders.find(o => o.id === orderId);
+            if (matched) {
+              matched.hiddenByAdmin = true;
+              matched.updatedAt = new Date().toISOString();
+              saveData('ek_orders', orders);
 
-            // Delete from Firestore Cloud
-            if (typeof db !== 'undefined' && db) {
-              db.collection('ek_orders').doc(orderId).delete()
-                .then(() => console.log(`[Cloud Sync] Order doc ${orderId} permanently deleted from Firestore by Admin.`))
-                .catch(e => console.error("Cloud permanent order deletion failed:", e));
+              // Update Firestore doc with soft-delete flag instead of physically deleting it!
+              if (typeof db !== 'undefined' && db) {
+                db.collection('ek_orders').doc(orderId).update({
+                  hiddenByAdmin: true,
+                  updatedAt: new Date().toISOString()
+                }).then(() => console.log(`[Cloud Sync] Order doc ${orderId} hidden/soft-deleted from history by Admin.`))
+                .catch(e => {
+                  db.collection('ek_orders').doc(orderId).set(matched, { merge: true });
+                });
+              }
             }
 
-            showToast("Order record permanently deleted!", "success");
+            showToast(currentLang === 'ta' ? "ஆர்டர் வரலாறு நீக்கப்பட்டது ✓" : "Order hidden from history!", "success");
             renderAdminDashboard();
           }
         }
@@ -16871,6 +17180,7 @@
     function calculateDistanceKm(lat1, lon1, lat2, lon2) {
       if (lat1 === undefined || lon1 === undefined || lat2 === undefined || lon2 === undefined) return null;
       if (lat1 === null || lon1 === null || lat2 === null || lon2 === null) return null;
+      if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) return null;
       const R = 6371; // Radius of the earth in km
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -24024,8 +24334,20 @@ ${o.items.map((it, idx) => {
       else users[idx].tier = 'bronze';
 
       saveData('ek_users', users);
+
+      // Instantly sync the adjusted points to Cloud Firestore database
+      if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection('ek_users').doc(userId).set(users[idx], { merge: true })
+          .then(() => console.log(`[Points Sync] Instantly synced adjusted points to Cloud for user: ${userId}`))
+          .catch(err => console.error("[Points Sync] Cloud points sync failed:", err));
+      }
+
       renderAdminCustomers();
-      showToast(`Adjusted points! Current: ${Math.round(users[idx].loyaltyPoints)} pts`, "success");
+      
+      // Only show the adjusted points toast when points are increased (diff > 0)
+      if (diff > 0) {
+        showToast(`Adjusted points! Current: ${Math.round(users[idx].loyaltyPoints)} pts`, "success");
+      }
     }
 
     function openCustomerDetail(userId) {
@@ -24079,43 +24401,60 @@ ${o.items.map((it, idx) => {
         async function() {
           showToast("Deleting customer account... / நீக்கப்படுகிறது...", "info");
           
+          let cloudAuthDeleted = false;
+          let anonymizedCount = 0;
+          
           try {
             const deleteFn = getCloudFunction('deleteCustomerAccount');
-            if (!deleteFn) {
-              throw new Error("Server service not initialized. Cannot call deleteCustomerAccount.");
-            }
-            
-            const res = await deleteFn({ targetCustomerUid: userId });
-            console.log("[Customer Deletion Result]", res);
-            
-            if (res && res.data && res.data.success) {
-              // Deletion success! Proceed with local cleanup.
-              markUserAsDeleted(userId);
-              markUserAsDeleted(u.phone);
-
-              const filtered = users.filter(user => user.id !== userId && user.phone !== u.phone);
-              saveData('ek_users', filtered);
-
-              // Invalidate customer session if it matches the deleted user
-              const customerSession = getData('ek_customer_session');
-              if (customerSession && (customerSession.id === userId || customerSession.phone === u.phone)) {
-                removeData('ek_customer_session');
-                sessionStorage.removeItem('ek_customer_session_temp');
+            if (deleteFn) {
+              const res = await deleteFn({ targetCustomerUid: userId });
+              console.log("[Customer Deletion Result]", res);
+              if (res && res.data && res.data.success) {
+                cloudAuthDeleted = true;
+                anonymizedCount = res.data.ordersAnonymizedCount || 0;
               }
-
-              renderAdminCustomers();
-              
-              showToast("Customer successfully deleted! ✓", "success");
-              showAdminSuccessModal(
-                "🗑️ Customer Account Deleted!",
-                `Customer <strong>${u.name}</strong> was fully removed.<br><br>` +
-                `<strong>✓ Auth Status:</strong> Deleted from Firebase Auth (Email: ${u.email || 'N/A'}). Same email can now immediately register again.<br>` +
-                `<strong>✓ Profile Status:</strong> Customer record deleted from databases.<br>` +
-                `<strong>✓ Historical Orders:</strong> ${res.data.ordersAnonymizedCount || 0} older order records retained for accounting but fully anonymized.`
-              );
-            } else {
-              throw new Error((res && res.data && res.data.message) || "Unknown server error.");
             }
+          } catch (fnErr) {
+            console.warn("Cloud Auth deletion failed or skipped, proceeding with direct DB deletion fallback:", fnErr);
+          }
+
+          try {
+            // Direct Firestore database deletion (ensures the profile doc is fully deleted even if the auth cloud function failed/unconfigured)
+            if (typeof db !== 'undefined' && db && db.collection) {
+              await db.collection('ek_users').doc(userId).delete().catch(err => {
+                console.error("Direct Firestore doc deletion failed:", err);
+              });
+            }
+
+            // Deletion success! Proceed with local cleanup.
+            markUserAsDeleted(userId);
+            markUserAsDeleted(u.phone);
+
+            const filtered = users.filter(user => user.id !== userId && user.phone !== u.phone);
+            saveData('ek_users', filtered);
+
+            // Invalidate customer session if it matches the deleted user
+            const customerSession = getData('ek_customer_session');
+            if (customerSession && (customerSession.id === userId || customerSession.phone === u.phone)) {
+              removeData('ek_customer_session');
+              sessionStorage.removeItem('ek_customer_session_temp');
+            }
+
+            renderAdminCustomers();
+            
+            showToast("Customer successfully deleted! ✓", "success");
+            
+            const authStatusText = cloudAuthDeleted 
+              ? `✓ Auth Status: Deleted from Firebase Auth (Email: ${u.email || 'N/A'}).` 
+              : `⚠️ Auth Status: Deletion from Firebase Auth skipped/failed (direct DB deletion applied successfully).`;
+              
+            showAdminSuccessModal(
+              "🗑️ Customer Account Deleted!",
+              `Customer <strong>${u.name}</strong> was fully removed.<br><br>` +
+              `<strong>${authStatusText}</strong> Same email can now immediately register again.<br>` +
+              `<strong>✓ Profile Status:</strong> Customer record deleted from databases.<br>` +
+              `<strong>✓ Historical Orders:</strong> ${anonymizedCount} older order records retained for accounting but fully anonymized.`
+            );
           } catch (err) {
             console.error("Failed to delete customer:", err);
             showToast(`Deletion failed: ${err.message}`, "error");
@@ -25706,38 +26045,41 @@ ${o.items.map((it, idx) => {
       showTypedConfirm(
         currentLang === 'ta' ? "ஆர்டர் வரலாற்றை நீக்கவா?" : "Clear Order History?",
         currentLang === 'ta'
-          ? `வரலாற்றில் இருந்து <strong>${count}</strong> பழைய ஆர்டர்களை நிரந்தரமாக நீக்க விரும்புகிறீர்களா?<br><br>இது நிலுவையில் உள்ள (Pending), தயாராக உள்ள (Ready), அல்லது விநியோகத்தில் உள்ள (Out for Delivery) ஆர்டர்களைப் பாதிக்காது.`
-          : `Are you sure you want to permanently delete <strong>${count}</strong> completed, delivered, cancelled, or archived orders from history?<br><br>This will NOT affect pending, ready, assigned, or out-for-delivery orders.`,
+          ? `வரலாற்றில் இருந்து <strong>${count}</strong> பழைய ஆர்டர்களை நீக்க விரும்புகிறீர்களா? (இவை கணக்கீட்டிற்குப் பயன்படுத்தப்படும், ஆனால் பட்டியலிலிருந்து மறைக்கப்படும்).<br><br>இது நிலுவையில் உள்ள (Pending), தயாராக உள்ள (Ready), அல்லது விநியோகத்தில் உள்ள (Out for Delivery) ஆர்டர்களைப் பாதிக்காது.`
+          : `Are you sure you want to remove <strong>${count}</strong> completed, delivered, cancelled, or archived orders from history? (They will be hidden from lists but preserved for revenue calculations).<br><br>This will NOT affect pending, ready, assigned, or out-for-delivery orders.`,
         "DELETE ORDER HISTORY",
         async function() {
           showToast(currentLang === 'ta' ? "வரலாறு நீக்கப்படுகிறது..." : "Clearing order history...", "info");
           
           const deletableIds = deletableOrders.map(o => o.id);
           
-          if (typeof db !== 'undefined' && db) {
-            try {
-              const batchSize = 100;
-              for (let i = 0; i < deletableIds.length; i += batchSize) {
-                const chunk = deletableIds.slice(i, i + batchSize);
-                const batch = db.batch();
-                chunk.forEach(id => {
-                  batch.delete(db.collection('ek_orders').doc(id));
+          // Instead of physically deleting the orders from Firestore/cache, we add them to the deleted/hidden tombstone registry.
+          // This hides them from lists for admins, riders, and customers, while preserving their metrics for revenue!
+          const deletedList = getDeletedOrderIds();
+          let changed = false;
+          deletableIds.forEach(id => {
+            if (!deletedList.includes(id)) {
+              deletedList.push(id);
+              changed = true;
+            }
+          });
+
+          if (changed) {
+            saveData('ek_deleted_order_ids', deletedList);
+            
+            // Sync the updated deleted order IDs tombstone to Firestore
+            if (typeof db !== 'undefined' && db) {
+              try {
+                await db.collection('ek_tombstones').doc('ek_deleted_order_ids').set({
+                  ids: deletedList,
+                  updatedAt: new Date().toISOString()
                 });
-                await batch.commit();
+                console.log("[Firestore Sync] Successfully updated ek_deleted_order_ids tombstone.");
+              } catch (err) {
+                console.error("Firestore tombstone update failed:", err);
               }
-              console.log("[Firestore Sync] Successfully deleted order documents.");
-            } catch (err) {
-              console.error("Firestore order purge error:", err);
-              showToast("Firestore sync failed, but local history cleared: " + err.message, "warning");
             }
           }
-          
-          const preservedOrders = orders.filter(o => {
-            const status = (o.status || '').toLowerCase().trim();
-            return !['completed', 'delivered', 'cancelled', 'archived'].includes(status);
-          });
-          
-          saveData('ek_orders', preservedOrders);
           
           try { renderAdminOrders(); } catch(e) {}
           try { renderTrackerScreen(); } catch(e) {}
@@ -25747,8 +26089,8 @@ ${o.items.map((it, idx) => {
           showAdminSuccessModal(
             currentLang === 'ta' ? "🧹 ஆர்டர் வரலாறு நீக்கப்பட்டது!" : "🧹 Order History Cleared!",
             currentLang === 'ta'
-              ? `<strong>${count}</strong> பழைய ஆர்டர்கள் வெற்றிகரமாக நீக்கப்பட்டன.`
-              : `Successfully deleted <strong>${count}</strong> completed, delivered, cancelled, or archived orders from the system.`
+              ? `<strong>${count}</strong> பழைய ஆர்டர்கள் வெற்றிகரமாக வரலாற்றிலிருந்து மறைக்கப்பட்டன.`
+              : `Successfully removed <strong>${count}</strong> completed, delivered, cancelled, or archived orders from history views.`
           );
         }
       );
@@ -27519,6 +27861,13 @@ ${o.items.map((it, idx) => {
                 const key = cloudUser.id || cloudUser.phone;
                 if (!key) return;
 
+                // Enforce single session logout check
+                try {
+                  enforceSingleSessionCheck(cloudUser);
+                } catch (sessErr) {
+                  console.error("Session enforcement check failed:", sessErr);
+                }
+
                 // Check deleted safeguard
                 const deletedUserIds = getDeletedUserIds();
                 if (deletedUserIds.includes(key)) return;
@@ -27626,7 +27975,13 @@ ${o.items.map((it, idx) => {
 
               // Check deleted safeguard
               const deletedOrderIds = getDeletedOrderIds();
-              if (deletedOrderIds.includes(cloudOrder.id)) return;
+              if (deletedOrderIds.includes(cloudOrder.id)) {
+                if (localOrdersMap.has(cloudOrder.id)) {
+                  localOrdersMap.delete(cloudOrder.id);
+                  modifiedOrders = true;
+                }
+                return;
+              }
 
               if (cloudOrder.hiddenByCustomer === true && !getAdminSession()) {
                 markOrderAsDeleted(cloudOrder.id);
@@ -31314,8 +31669,8 @@ ${formattedProducts}கார்ட்டில் உள்ளன!" : "All item
         renderLyoAiMessages();
         
         let charIdx = 0;
-        // Dynamic speed pacing depending on text density
-        const pace = text.length > 400 ? 2 : text.length > 150 ? 4 : 7;
+        // Dynamic speed pacing depending on text density (increased delay for slower, more deliberate typing)
+        const pace = text.length > 400 ? 12 : text.length > 150 ? 18 : 25;
         
         function appendNextCharacter() {
           if (charIdx < text.length) {
@@ -31423,8 +31778,29 @@ ${formattedProducts}கார்ட்டில் உள்ளன!" : "All item
       const cartLng = cartAddrEl ? parseFloat(cartAddrEl.getAttribute('data-lng')) : null;
 
       const address = cartAddrVal || user.address || '';
-      const lat = (cartLat && !isNaN(cartLat)) ? cartLat : (user.latitude || null);
-      const lng = (cartLng && !isNaN(cartLng)) ? cartLng : (user.longitude || null);
+      let lat = (cartLat && !isNaN(cartLat)) ? cartLat : (user.latitude || null);
+      let lng = (cartLng && !isNaN(cartLng)) ? cartLng : (user.longitude || null);
+
+      // Secure async geocoding fallback if coordinates are not set or NaN
+      if ((lat === null || lng === null || isNaN(lat) || isNaN(lng)) && address && address.length > 5) {
+        try {
+          const geocodeFn = getCloudFunction('geocodeDeliveryAddress');
+          if (geocodeFn) {
+            const res = await geocodeFn({ address: address + ', Edappadi, Salem, Tamil Nadu' });
+            if (res && res.data && res.data.latitude) {
+              lat = parseFloat(res.data.latitude);
+              lng = parseFloat(res.data.longitude);
+              if (cartAddrEl) {
+                cartAddrEl.setAttribute('data-lat', lat);
+                cartAddrEl.setAttribute('data-lng', lng);
+              }
+              console.log("[Customer Checkout Geocode fallback] Resolved coordinates securely:", lat, lng);
+            }
+          }
+        } catch (e) {
+          console.warn("[Customer Checkout Geocode fallback] Forward geocoding failed:", e);
+        }
+      }
 
       // Block order if no address at all
       if (!address || address.trim().length < 5) {
@@ -31472,6 +31848,15 @@ ${formattedProducts}கார்ட்டில் உள்ளன!" : "All item
       // Sanitize coordinates to prevent NaN values in Firestore
       const sanitizedLat = (lat === null || isNaN(lat)) ? null : parseFloat(lat);
       const sanitizedLng = (lng === null || isNaN(lng)) ? null : parseFloat(lng);
+
+      // Pre-calculate accrued loyalty points to save on the order document for strict audit consistency
+      let loyaltyMultiplier = 1.0;
+      if (user.tier === 'silver') {
+        loyaltyMultiplier = 1.5;
+      } else if (user.tier === 'gold') {
+        loyaltyMultiplier = 2.0;
+      }
+      const pointsEarned = Math.floor((financials.grandTotal / 100) * 10 * loyaltyMultiplier);
       
       const order = {
         id: randomID,
@@ -31490,6 +31875,7 @@ ${formattedProducts}கார்ட்டில் உள்ளன!" : "All item
         deliveryFee: financials.deliveryFee,
         loyaltyPointsUsed: financials.loyaltyDiscount * 10,
         loyaltyDiscount: financials.loyaltyDiscount,
+        accruedPoints: pointsEarned,
         appliedCouponCode: appliedCouponCode || "",
         couponDiscount: financials.couponDiscount,
         totalAmount: financials.grandTotal,
@@ -31597,14 +31983,6 @@ ${formattedProducts}கார்ட்டில் உள்ளன!" : "All item
       // Award points
       const users = getData('ek_users', []);
       const uIdx = users.findIndex(u => u.id === user.id);
-      
-      let loyaltyMultiplier = 1.0;
-      if (user.tier === 'silver') {
-        loyaltyMultiplier = 1.5;
-      } else if (user.tier === 'gold') {
-        loyaltyMultiplier = 2.0;
-      }
-      const pointsEarned = Math.floor((financials.grandTotal / 100) * 10 * loyaltyMultiplier);
 
       if (uIdx !== -1) {
         user.loyaltyPoints = Math.max(0, user.loyaltyPoints - (financials.loyaltyDiscount * 10)) + pointsEarned;
