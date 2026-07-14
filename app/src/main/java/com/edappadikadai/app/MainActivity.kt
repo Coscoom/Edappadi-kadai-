@@ -260,22 +260,7 @@ class MainActivity : ComponentActivity() {
             e.printStackTrace()
         }
 
-        // Request Notification permission for Android 13+ (Tiramisu API 33)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            val hasNotificationPermission = androidx.core.content.ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.POST_NOTIFICATIONS
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-            if (!hasNotificationPermission) {
-                try {
-                    notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                } catch (e: Exception) {
-                    try {
-                        requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
-                    } catch (e2: Exception) {}
-                }
-            }
-        }
+        // Notification permission is requested gracefully on-demand from JavaScript via AndroidStorage.requestNotificationPermission()
 
 
 
@@ -498,6 +483,20 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             )
                                         }
+                                    }
+
+                                    override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean {
+                                        if (consoleMessage != null) {
+                                            val logMsg = "[JS Console] ${consoleMessage.message()} (Line: ${consoleMessage.lineNumber()}, Source: ${consoleMessage.sourceId()})"
+                                            if (consoleMessage.messageLevel() == android.webkit.ConsoleMessage.MessageLevel.ERROR) {
+                                                android.util.Log.e("WebViewConsole", logMsg)
+                                            } else if (consoleMessage.messageLevel() == android.webkit.ConsoleMessage.MessageLevel.WARNING) {
+                                                android.util.Log.w("WebViewConsole", logMsg)
+                                            } else {
+                                                android.util.Log.d("WebViewConsole", logMsg)
+                                            }
+                                        }
+                                        return true
                                     }
 
                                     override fun onShowFileChooser(
