@@ -196,19 +196,30 @@ class MainActivity : ComponentActivity() {
         val data = result.data
         var responseText = ""
         if (data != null) {
-            val bundle = data.extras
-            if (bundle != null) {
-                val keys = bundle.keySet()
-                val sb = java.lang.StringBuilder()
-                for (key in keys) {
-                    val value = bundle.get(key)
-                    if (value != null) {
-                        sb.append(key).append("=").append(value).append("&")
+            responseText = data.getStringExtra("response")
+                ?: data.getStringExtra("res")
+                ?: data.getStringExtra("status")
+                ?: ""
+            
+            if (responseText.isEmpty()) {
+                val bundle = data.extras
+                if (bundle != null) {
+                    responseText = bundle.getString("response")
+                        ?: bundle.getString("res")
+                        ?: bundle.getString("status")
+                        ?: ""
+                    
+                    if (responseText.isEmpty()) {
+                        val sb = java.lang.StringBuilder()
+                        for (key in bundle.keySet()) {
+                            val value = bundle.get(key)
+                            if (value != null) {
+                                sb.append(key).append("=").append(value).append("&")
+                            }
+                        }
+                        responseText = sb.toString()
                     }
                 }
-                responseText = sb.toString()
-            } else {
-                responseText = data.getStringExtra("response") ?: ""
             }
         }
         
@@ -661,13 +672,32 @@ class MainActivity : ComponentActivity() {
                 val intent = Intent(Intent.ACTION_VIEW).apply {
                     data = Uri.parse(upiUri)
                 }
-                val chooser = Intent.createChooser(intent, "Pay with / பணம் செலுத்தவும்")
                 activity.runOnUiThread {
-                    activity.upiPaymentLauncher.launch(chooser)
+                    try {
+                        activity.upiPaymentLauncher.launch(intent)
+                    } catch (e: android.content.ActivityNotFoundException) {
+                        android.widget.Toast.makeText(activity, "யுபிஐ செயலிகள் ஏதும் இல்லை! / No UPI apps installed!", android.widget.Toast.LENGTH_LONG).show()
+                        activity.webView?.evaluateJavascript(
+                            "javascript:(function() { " +
+                            "  if (typeof onAndroidUpiPaymentResult === 'function') { " +
+                            "    onAndroidUpiPaymentResult('NO_UPI_APPS'); " +
+                            "  } " +
+                            "})()", null
+                        )
+                    } catch (e: Exception) {
+                        android.util.Log.e("UPI_PAYMENT", "Error launching UPI intent", e)
+                        activity.webView?.evaluateJavascript(
+                            "javascript:(function() { " +
+                            "  if (typeof onAndroidUpiPaymentResult === 'function') { " +
+                            "    onAndroidUpiPaymentResult('LAUNCH_ERROR'); " +
+                            "  } " +
+                            "})()", null
+                        )
+                    }
                 }
                 true
             } catch (e: Exception) {
-                android.util.Log.e("UPI_PAYMENT", "Error launching UPI intent", e)
+                android.util.Log.e("UPI_PAYMENT", "Error in startUpiPayment method", e)
                 false
             }
         }

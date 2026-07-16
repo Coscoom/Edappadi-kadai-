@@ -256,10 +256,48 @@ exports.geocodeDeliveryAddress = functions
 
         const item = response.data;
         if (item && item.display_name) {
+          const addr = item.address || {};
+          const parts = [];
+          
+          // House / Door Number
+          const door = addr.house_number || addr.building || addr.house_name || '';
+          if (door) parts.push(`Door No: ${door}`);
+          
+          // Street Name
+          const street = addr.road || addr.street || addr.footway || addr.path || '';
+          if (street) parts.push(street);
+          
+          // Area / Locality
+          const area = addr.suburb || addr.neighbourhood || addr.neighbourhood_district || addr.village_district || addr.quarter || '';
+          if (area) parts.push(area);
+          
+          // Village / Town
+          const village = addr.village || addr.town || addr.hamlet || '';
+          if (village) parts.push(village);
+          
+          // City
+          const city = addr.city || addr.municipality || '';
+          if (city && city !== village) parts.push(city);
+          
+          // District
+          const district = addr.county || addr.district || '';
+          if (district) parts.push(district);
+          
+          // State
+          const state = addr.state || '';
+          if (state) parts.push(state);
+          
+          // PIN Code
+          const postcode = addr.postcode || '';
+          if (postcode) parts.push(postcode);
+
+          const formattedAddress = parts.filter(Boolean).join(', ');
+          const displayName = formattedAddress || item.display_name;
+
           const result = {
             latitude: lat,
             longitude: lng,
-            displayName: item.display_name
+            displayName: displayName
           };
 
           geoCache.set(cacheKey, {
@@ -612,6 +650,59 @@ exports.repairDeliveryPartner = functions
       }
       throw new functions.https.HttpsError('internal', err.message);
     }
+  });
+
+exports.restoreStockOnOrderCancelled = functions
+  .region('asia-south1')
+  .firestore
+  .document('ek_orders/{orderId}')
+  .onUpdate(async (change, context) => {
+    const beforeData = change.before.data() || {};
+    const afterData = change.after.data() || {};
+
+    const beforeStatus = String(beforeData.status || '').toUpperCase();
+    const afterStatus = String(afterData.status || '').toUpperCase();
+
+    // Check if status changed to CANCELLED
+    if (afterStatus === 'CANCELLED' && beforeStatus !== 'CANCELLED') {
+      console.log(`[Stock Restore Trigger] Order ${context.params.orderId} status changed to CANCELLED. Restoring stocks...`);
+      
+      const items = afterData.items || [];
+      if (!Array.isArray(items) || items.length === 0) {
+        console.log(`[Stock Restore Trigger] No items found in order ${context.params.orderId}.`);
+        return null;
+      }
+
+      const firestore = admin.firestore();
+      const batch = firestore.batch();
+      
+      for (const item of items) {
+        if (!item.productId) continue;
+        const prodRef = firestore.collection('ek_products').doc(item.productId);
+        const prodSnap = await prodRef.get();
+        if (prodSnap.exists) {
+          const prodData = prodSnap.data() || {};
+          const serverStock = parseFloat(prodData.stockKg || 0);
+          const unit = prodData.unit || 'kg';
+          const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
+          const returnedQty = isWeight ? (parseFloat(item.weightGrams || 0) / 1000) : parseFloat(item.weightGrams || 0);
+          const newStock = parseFloat((serverStock + returnedQty).toFixed(3));
+
+          batch.update(prodRef, {
+            stockKg: newStock,
+            isOutOfStock: false,
+            updatedAt: new Date().toISOString()
+          });
+          console.log(`[Stock Restore Trigger] Prepared stock update for product ${item.productId}: stock ${serverStock} -> ${newStock}`);
+        } else {
+          console.warn(`[Stock Restore Trigger] Product ${item.productId} not found.`);
+        }
+      }
+
+      await batch.commit();
+      console.log(`[Stock Restore Trigger] Successfully restored stocks for order ${context.params.orderId}.`);
+    }
+    return null;
   });
 
 
