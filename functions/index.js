@@ -705,4 +705,109 @@ exports.restoreStockOnOrderCancelled = functions
     return null;
   });
 
+exports.sendEmailOtp = functions
+  .region('asia-south1')
+  .https.onCall(async (data, context) => {
+    const email = data.email;
+    if (!email) {
+      throw new functions.https.HttpsError('invalid-argument', 'Email is required.');
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const now = Date.now();
+    const expiresAt = now + 10 * 60 * 1000;
+
+    await admin.firestore().collection('ek_email_otps').doc(email).set({
+      otp: otp,
+      createdAt: now,
+      expiresAt: expiresAt,
+      attempts: 0
+    });
+
+    const nodemailer = require('nodemailer');
+    const gmailUser = functions.config().gmail.user;
+    const gmailPass = functions.config().gmail.pass;
+
+    if (!gmailUser || !gmailPass) {
+      throw new functions.https.HttpsError('failed-precondition', 'Gmail SMTP credentials are not configured.');
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: gmailUser,
+        pass: gmailPass
+      }
+    });
+
+    const mailOptions = {
+      from: `"Edappadi Kadai" <${gmailUser}>`,
+      to: email,
+      subject: "Edappadi Kadai - Password Reset OTP",
+      text: `Your Password Reset OTP is: ${otp}\n\nThis OTP is valid for 10 minutes. Do not share this code with anyone.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #f97316; text-align: center;">Edappadi Kadai</h2>
+          <p>Hello,</p>
+          <p>We received a request to reset your password. Use the following 6-digit One-Time Password (OTP) to proceed:</p>
+          <div style="font-size: 24px; font-weight: bold; text-align: center; margin: 30px 0; padding: 15px; background: #fff7ed; border-radius: 8px; color: #ea580c; border: 1px dashed #fdba74; letter-spacing: 4px;">
+            ${otp}
+          </div>
+          <p style="color: #666; font-size: 13px;">Please note: This OTP is valid for <strong>10 minutes</strong>. Do not share this OTP with anyone for security reasons.</p>
+          <p style="color: #666; font-size: 13px; border-top: 1px solid #eee; padding-top: 15px; margin-top: 25px;">If you did not request a password reset, you can safely ignore this email.</p>
+        </div>
+      `
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      return { success: true };
+    } catch (err) {
+      console.error("Error sending OTP email:", err);
+      throw new functions.https.HttpsError('internal', 'Failed to send OTP email: ' + err.message);
+    }
+  });
+
+exports.verifyEmailOtpAndResetPassword = functions
+  .region('asia-south1')
+  .https.onCall(async (data, context) => {
+    const { email, otp, newPassword } = data;
+    if (!email || !otp || !newPassword) {
+      throw new functions.https.HttpsError('invalid-argument', 'Email, OTP, and new password are required.');
+    }
+
+    const docRef = admin.firestore().collection('ek_email_otps').doc(email);
+    const snap = await docRef.get();
+
+    if (!snap.exists) {
+      throw new functions.https.HttpsError('not-found', 'No OTP request found for this email.');
+    }
+
+    const otpData = snap.data();
+    const now = Date.now();
+
+    if (now > otpData.expiresAt) {
+      throw new functions.https.HttpsError('failed-precondition', 'OTP expired');
+    }
+
+    if (otpData.attempts >= 5) {
+      throw new functions.https.HttpsError('resource-exhausted', 'Too many attempts');
+    }
+
+    if (String(otp).trim() !== String(otpData.otp).trim()) {
+      await docRef.update({ attempts: admin.firestore.FieldValue.increment(1) });
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid OTP');
+    }
+
+    try {
+      const userRecord = await admin.auth().getUserByEmail(email);
+      await admin.auth().updateUser(userRecord.uid, { password: newPassword });
+      await docRef.delete();
+      return { success: true };
+    } catch (err) {
+      console.error("Error resetting password:", err);
+      throw new functions.https.HttpsError('internal', err.message);
+    }
+  });
+
 
