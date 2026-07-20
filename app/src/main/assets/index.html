@@ -8065,7 +8065,40 @@
       deliveryCharge: 40,
       minOrderWeight: 50,
       minOrderAmount: 0,
-      merchantUpiId: "einsteinananth24@okaxis",
+      merchantUpiId: "8778148899@ptyes",
+      upiSettings: {
+        upiEnabled: true,
+        currency: 'INR',
+        accounts: [
+          {
+            id: 'primary',
+            label: 'Primary UPI',
+            upiId: '8778148899@ptyes',
+            merchantName: 'Edappadi Kadai',
+            displayName: 'Anantharaj Primary',
+            note: 'Order {id} - Edappadi Kadai',
+            isActive: true
+          },
+          {
+            id: 'backup1',
+            label: 'Backup UPI 1',
+            upiId: 'einsteinananth24-4@okicici',
+            merchantName: 'Edappadi Kadai',
+            displayName: 'Anantharaj Backup 1',
+            note: 'Order {id} - Edappadi Kadai',
+            isActive: true
+          },
+          {
+            id: 'backup2',
+            label: 'Backup UPI 2',
+            upiId: '',
+            merchantName: 'Edappadi Kadai',
+            displayName: 'Anantharaj Backup 2',
+            note: 'Order {id} - Edappadi Kadai',
+            isActive: false
+          }
+        ]
+      },
       announcement: "Festival Special Weekend discount active! Express door delivery within 30 minutes in Edappadi town.",
       bannerImage: "",
       useDynamicDistancePricing: true,
@@ -8084,6 +8117,110 @@
       smsTwilioFrom: '',
       smsCustomUrl: ''
     };
+
+    function initializeOrFixUpiSettings() {
+      const settings = getData('ek_settings', null) || { ...DEFAULT_SETTINGS };
+      let updated = false;
+
+      // Force upiSettings structure if missing or if accounts are not properly configured
+      if (!settings.upiSettings) {
+        settings.upiSettings = {
+          upiEnabled: true,
+          currency: 'INR',
+          accounts: [
+            {
+              id: 'primary',
+              label: 'Primary UPI',
+              upiId: '8778148899@ptyes',
+              merchantName: 'Edappadi Kadai',
+              displayName: 'Anantharaj Primary',
+              note: 'Order {id} - Edappadi Kadai',
+              isActive: true
+            },
+            {
+              id: 'backup1',
+              label: 'Backup UPI 1',
+              upiId: 'einsteinananth24-4@okicici',
+              merchantName: 'Edappadi Kadai',
+              displayName: 'Anantharaj Backup 1',
+              note: 'Order {id} - Edappadi Kadai',
+              isActive: true
+            },
+            {
+              id: 'backup2',
+              label: 'Backup UPI 2',
+              upiId: '',
+              merchantName: 'Edappadi Kadai',
+              displayName: 'Anantharaj Backup 2',
+              note: 'Order {id} - Edappadi Kadai',
+              isActive: false
+            }
+          ]
+        };
+        settings.merchantUpiId = '8778148899@ptyes';
+        updated = true;
+      } else {
+        // Ensure the accounts array exists
+        if (!settings.upiSettings.accounts || !Array.isArray(settings.upiSettings.accounts) || settings.upiSettings.accounts.length === 0) {
+          settings.upiSettings.accounts = [
+            {
+              id: 'primary',
+              label: 'Primary UPI',
+              upiId: '8778148899@ptyes',
+              merchantName: 'Edappadi Kadai',
+              displayName: 'Anantharaj Primary',
+              note: 'Order {id} - Edappadi Kadai',
+              isActive: true
+            },
+            {
+              id: 'backup1',
+              label: 'Backup UPI 1',
+              upiId: 'einsteinananth24-4@okicici',
+              merchantName: 'Edappadi Kadai',
+              displayName: 'Anantharaj Backup 1',
+              note: 'Order {id} - Edappadi Kadai',
+              isActive: true
+            },
+            {
+              id: 'backup2',
+              label: 'Backup UPI 2',
+              upiId: '',
+              merchantName: 'Edappadi Kadai',
+              displayName: 'Anantharaj Backup 2',
+              note: 'Order {id} - Edappadi Kadai',
+              isActive: false
+            }
+          ];
+          settings.merchantUpiId = '8778148899@ptyes';
+          updated = true;
+        } else {
+          // If accounts exist, check and correct the UPI IDs to the ones requested by the user
+          const primary = settings.upiSettings.accounts.find(a => a.id === 'primary');
+          const backup1 = settings.upiSettings.accounts.find(a => a.id === 'backup1');
+          
+          if (primary && primary.upiId !== '8778148899@ptyes') {
+            primary.upiId = '8778148899@ptyes';
+            primary.isActive = true;
+            settings.merchantUpiId = '8778148899@ptyes';
+            updated = true;
+          }
+          if (backup1 && backup1.upiId !== 'einsteinananth24-4@okicici') {
+            backup1.upiId = 'einsteinananth24-4@okicici';
+            backup1.isActive = true;
+            updated = true;
+          }
+        }
+      }
+
+      if (updated) {
+        saveData('ek_settings', settings);
+        if (typeof db !== 'undefined' && db) {
+          db.collection('ek_settings').doc('global_config').set(cleanFirestoreData(settings))
+            .then(() => console.log("[UPI Self-Heal] Successfully synced corrected UPI settings to Firestore"))
+            .catch(err => console.error("[UPI Self-Heal] Sync error:", err));
+        }
+      }
+    }
 
     function purgeAllDemoData() {
       console.log("[Slate Purge] purgeAllDemoData bypassed for safety. No collections are wiped.");
@@ -8155,6 +8292,11 @@
       }
       if (getData('ek_settings', null) === null) {
         saveData('ek_settings', DEFAULT_SETTINGS);
+      }
+      try {
+        initializeOrFixUpiSettings();
+      } catch (e) {
+        console.error("initializeOrFixUpiSettings failed: ", e);
       }
       let existingDeliv = getData('ek_delivery_persons');
       if (!Array.isArray(existingDeliv)) {
@@ -9594,6 +9736,7 @@
             renderAdminDashboard();
             initSectionCollapse('categories', 'collapsed');
             initSectionCollapse('carousel', 'collapsed');
+            initSectionCollapse('upi-config', 'collapsed');
           } else if (screenId === 'screen-delivery') {
             renderDeliveryScreen();
           } else if (screenId === 'screen-lyo-ai') {
@@ -17276,6 +17419,7 @@
           appliedCouponSnapshot: appliedCouponCode
         };
         window.pendingUpiOrderData = pendingOrderData;
+        window.currentUpiAttemptAccount = 'primary';
         saveData('ek_pending_upi_order_data', pendingOrderData);
 
         const upiSettings = settings.upiSettings || { upiEnabled: true, currency: 'INR' };
@@ -17773,6 +17917,11 @@
           borderLeftColor = 'var(--accent-green)';
         }
 
+        const isUpi = o.paymentMethod && (o.paymentMethod.toUpperCase().includes('UPI') || o.paymentMethod.toUpperCase().includes('ONLINE') || o.upiTxnId);
+        const paymentBadge = isUpi 
+          ? `<span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1.5px solid rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 800; font-size: 10px; padding: 2.5px 6.5px; border-radius: 6px; text-transform: uppercase;">📱 UPI PAY (PAID)</span>`
+          : `<span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1.5px solid rgba(245, 158, 11, 0.4); color: #f59e0b; font-weight: 800; font-size: 10px; padding: 2.5px 6.5px; border-radius: 6px; text-transform: uppercase;">💵 COD (CASH)</span>`;
+
         const mapQuery = encodeURIComponent(o.deliveryAddress);
         const isCollapsed = currentDeliveryFilter === 'history' && !window.expandedDeliveryOrders[o.id];
 
@@ -17790,9 +17939,10 @@
                     👤 ${escapeHtml(o.customerName)} <span style="font-size:10px; color:#888; font-weight:normal;">(${o.items.length} items)</span>
                   </div>
                 </div>
-                <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+                <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                   ${statusBadge}
                   <strong style="color:#2ecc71; font-size:13px; font-weight:bold;">₹${o.totalAmount}</strong>
+                  ${paymentBadge}
                 </div>
               </div>
               <div style="display:flex; justify-content:center; align-items:center; margin-top:8px; border-top:1px solid #1c1c1e; padding-top:6px; font-size:10px; font-weight:800; color:var(--accent-orange); text-transform:uppercase; letter-spacing:0.3px; gap:4px;">
@@ -17808,7 +17958,10 @@
                   <strong style="color:#f59e0b; font-family:'JetBrains Mono',monospace; font-size:15px;">${o.id}</strong>
                   <span style="font-size:11px; color:#888;">${dateStr}</span>
                 </div>
-                ${statusBadge}
+                <div style="display:flex; align-items:center; gap:6px;">
+                  ${paymentBadge}
+                  ${statusBadge}
+                </div>
               </div>
 
               <div style="font-size:13px; margin-bottom:10px;">
@@ -17817,9 +17970,9 @@
                 <p style="color:#888; font-size:11px; display:flex; align-items:center; gap:8px; margin-bottom:0; flex-wrap:wrap; overflow:hidden; text-overflow:ellipsis;">
                   <span>⏱️ Slot: <strong>${o.deliveryTimeSlot}</strong></span> | 
                   <span>💳 Pay:</span>
-                  ${(o.paymentMethod && (o.paymentMethod.toUpperCase().includes('UPI') || o.paymentMethod.toUpperCase().includes('ONLINE') || o.upiTxnId))
-                    ? `<span style="background: rgba(16, 185, 129, 0.15); border: 1.5px solid rgba(16, 185, 129, 0.35); color: #10b981; font-size: 10px; padding: 1.5px 6px; border-radius: 6px; font-weight: 800; display: inline-flex; align-items: center; gap: 2.5px;">📱 UPI PAYMENT (PAID)</span>`
-                    : `<span style="background: rgba(245, 158, 11, 0.15); border: 1.5px solid rgba(245, 158, 11, 0.35); color: #f59e0b; font-size: 10px; padding: 1.5px 6px; border-radius: 6px; font-weight: 800; display: inline-flex; align-items: center; gap: 2.5px;">💵 CASH ON DELIVERY</span>`
+                  ${isUpi
+                    ? `<span style="background: rgba(16, 185, 129, 0.15); border: 1.5px solid rgba(16, 185, 129, 0.35); color: #10b981; font-size: 10px; padding: 1.5px 6px; border-radius: 6px; font-weight: 800; display: inline-flex; align-items: center; gap: 2.5px;">📱 UPI PAYMENT (PAID / செலுத்தப்பட்டது)</span>`
+                    : `<span style="background: rgba(245, 158, 11, 0.15); border: 1.5px solid rgba(245, 158, 11, 0.35); color: #f59e0b; font-size: 10px; padding: 1.5px 6px; border-radius: 6px; font-weight: 800; display: inline-flex; align-items: center; gap: 2.5px;">💵 CASH ON DELIVERY (COD / ரொக்கம்)</span>`
                   }
                 </p>
               </div>
@@ -23745,6 +23898,11 @@ ${o.items.map((it, idx) => {
           );
         }
 
+        const isUpi = o.paymentMethod && (o.paymentMethod.toUpperCase().includes('UPI') || o.paymentMethod.toUpperCase().includes('ONLINE') || o.upiTxnId);
+        const paymentBadge = isUpi 
+          ? `<span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1.5px solid rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 800; font-size: 10px; padding: 2.5px 6.5px; border-radius: 6px; text-transform: uppercase;">📱 UPI PAY (PAID)</span>`
+          : `<span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1.5px solid rgba(245, 158, 11, 0.4); color: #f59e0b; font-weight: 800; font-size: 10px; padding: 2.5px 6.5px; border-radius: 6px; text-transform: uppercase;">💵 COD (CASH)</span>`;
+
         const card = `
           <div class="card" style="border-left: 4px solid var(--accent-orange); margin-bottom: 12px; padding: 14px; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; background: var(--bg-card); contain: layout style paint;" onclick="toggleOrderDetails('${o.id}')">
             <!-- Header Section (Always Visible) -->
@@ -23760,15 +23918,20 @@ ${o.items.map((it, idx) => {
             </div>
 
             <!-- Primary Customer Info (Always Visible) -->
-            <div style="font-size:13px; margin-bottom:2px; display:flex; flex-direction:column; gap:2.5px;">
-              <p style="margin: 0; font-weight:700; color:#ffffff; font-size:13.5px;">👤 ${escapeHtml(o.customerName)}</p>
-              <p style="margin: 0; font-size:12px; color:var(--text-secondary);">📞 <a href="tel:${o.customerPhone}" style="color:var(--accent-orange); text-decoration:none; font-weight:600;" onclick="event.stopPropagation()">${o.customerPhone}</a></p>
+            <div style="font-size:13px; margin-bottom:2px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <p style="margin: 0; font-weight:700; color:#ffffff; font-size:13.5px;">👤 ${escapeHtml(o.customerName)}</p>
+                <p style="margin: 0; font-size:12px; color:var(--text-secondary);">📞 <a href="tel:${o.customerPhone}" style="color:var(--accent-orange); text-decoration:none; font-weight:600;" onclick="event.stopPropagation()">${o.customerPhone}</a></p>
+              </div>
+              <div style="text-align:right;">
+                ${paymentBadge}
+              </div>
             </div>
 
             <!-- Quick Expand/Collapse and price Summary Badge (Visible in Collapsed State) -->
             ${!isExpanded ? `
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-top:1px dashed #262626; padding-top:8px; font-size:11.5px; color:var(--text-muted);">
-                <span>💰 Total : <strong style="color:var(--accent-green);">₹${o.totalAmount}</strong></span>
+                <span>💰 Total : <strong style="color:var(--accent-green);">₹${o.totalAmount}</strong> <span style="font-size:9.5px; color:#999; margin-left:4px; font-weight:bold;">(${isUpi ? 'Paid Online' : 'Pay COD'})</span></span>
                 <span style="color: var(--accent-orange); font-weight:600; font-size:10.5px; display:flex; align-items:center; gap:2px;">${currentLang === 'ta' ? 'விவரம் காண்க ⬇️' : 'View Details ⬇️'}</span>
               </div>
             ` : ''}
@@ -23780,7 +23943,7 @@ ${o.items.map((it, idx) => {
                 <p style="color:var(--text-secondary); margin-top:4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                   <span>⏱️ Slot: <strong>${o.deliveryTimeSlot}</strong></span> | 
                   <span>💳 Payment:</span> 
-                  ${(o.paymentMethod && (o.paymentMethod.toUpperCase().includes('UPI') || o.paymentMethod.toUpperCase().includes('ONLINE') || o.upiTxnId)) 
+                  ${isUpi 
                     ? `<span style="background: rgba(16, 185, 129, 0.15); border: 1.5px solid rgba(16, 185, 129, 0.35); color: #10b981; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 800; display: inline-flex; align-items: center; gap: 3px;">📱 UPI PAYMENT (PAID / செலுத்தப்பட்டது)</span>` 
                     : `<span style="background: rgba(245, 158, 11, 0.15); border: 1.5px solid rgba(245, 158, 11, 0.35); color: #f59e0b; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 800; display: inline-flex; align-items: center; gap: 3px;">💵 CASH ON DELIVERY (COD / ரொக்கம்)</span>`
                   }
@@ -26479,20 +26642,27 @@ ${o.items.map((it, idx) => {
       if (!u) return;
 
       const orders = getData('ek_orders');
-      const myOrders = orders.filter(o => o.customerId === userId);
-      const spent = myOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      const myOrders = orders.filter(o => o.customerId === userId || o.userId === userId);
+      const spent = myOrders.reduce((sum, o) => sum + (o.totalAmount || o.price || 0), 0);
+
+      const uName = u.name || 'Anonymous';
+      const uPhone = u.phone || 'N/A';
+      const uEmail = u.email || 'N/A';
+      const uAddress = u.address || 'N/A';
+      const uTier = u.tier || 'bronze';
+      const uPoints = u.loyaltyPoints || 0;
 
       showCustomAlert("வாடிக்கையாளர் விவரங்கள் / Customer Details", `
         <div style="text-align:left; font-size:12.5px; line-height:1.6; font-family:'Poppins', sans-serif;">
           <div style="font-size:15px; font-weight:800; border-bottom:1px dashed rgba(255,255,255,0.15); padding-bottom:8px; margin-bottom:12px; display:flex; align-items:center; gap:8px; color:var(--accent-orange);">
-            👤 ${u.name}
+            👤 ${escapeHtml(uName)}
           </div>
-          <p style="margin:4px 0;"><strong>ID:</strong> <span style="font-family:monospace; color:#888;">${u.id}</span></p>
-          <p style="margin:4px 0;"><strong>Phone:</strong> +91 ${u.phone}</p>
-          <p style="margin:4px 0;"><strong>Email:</strong> ${u.email || 'N/A'}</p>
-          <p style="margin:4px 0;"><strong>Address:</strong> ${u.address}</p>
-          <p style="margin:4px 0;"><strong>Landmark Tier:</strong> <span style="text-transform:uppercase; font-size:9.5px; padding:2px 6px; font-weight:800; background:#f59e0b; color:#000; border-radius:4px; margin-left:4px;">${u.tier.toUpperCase()}</span></p>
-          <p style="margin:4px 0;"><strong>Wallet Points:</strong> <span style="color:#10b981; font-weight:bold;">${Math.round(u.loyaltyPoints)} pts</span></p>
+          <p style="margin:4px 0;"><strong>ID:</strong> <span style="font-family:monospace; color:#888;">${u.id || ''}</span></p>
+          <p style="margin:4px 0;"><strong>Phone:</strong> +91 ${uPhone}</p>
+          <p style="margin:4px 0;"><strong>Email:</strong> ${uEmail}</p>
+          <p style="margin:4px 0;"><strong>Address:</strong> ${uAddress}</p>
+          <p style="margin:4px 0;"><strong>Landmark Tier:</strong> <span style="text-transform:uppercase; font-size:9.5px; padding:2px 6px; font-weight:800; background:#f59e0b; color:#000; border-radius:4px; margin-left:4px;">${uTier.toUpperCase()}</span></p>
+          <p style="margin:4px 0;"><strong>Wallet Points:</strong> <span style="color:#10b981; font-weight:bold;">${Math.round(uPoints)} pts</span></p>
           <p style="margin:4px 0;"><strong>Concluded Orders:</strong> ${myOrders.length}</p>
           <p style="margin:4px 0;"><strong>Gross Turnout:</strong> <span style="color:var(--accent-orange); font-weight:bold;">₹${spent}</span></p>
         </div>
@@ -26592,6 +26762,7 @@ ${o.items.map((it, idx) => {
       if (search) {
         const cleanSearch = search.replace(/\D/g, '');
         filtered = users.filter(u => {
+          if (!u) return false;
           const uName = (u.name || '').toLowerCase();
           const uPhone = (u.phone || '').replace(/\D/g, '');
           const phoneMatches = cleanSearch ? uPhone.includes(cleanSearch) : false;
@@ -26603,30 +26774,37 @@ ${o.items.map((it, idx) => {
 
       let customersHtml = '';
       filtered.forEach(u => {
-        const myOrders = orders.filter(o => o.customerId === u.id);
-        const spent = myOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+        if (!u) return;
+        const uId = u.id || '';
+        const uName = u.name || 'Anonymous';
+        const uPhone = u.phone || 'N/A';
+        const uTier = u.tier || 'bronze';
+        const uPoints = u.loyaltyPoints || 0;
+
+        const myOrders = orders.filter(o => o.customerId === uId || o.userId === uId);
+        const spent = myOrders.reduce((sum, o) => sum + (o.totalAmount || o.price || 0), 0);
 
         const card = `
           <div class="card" style="border-color:#2a2a2a; margin-bottom:10px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <div onclick="openCustomerDetail('${u.id}')" style="cursor:pointer; flex: 1; padding-right: 8px;">
-                <h4 style="color:#fff; font-size:14px;">👤 ${escapeHtml(u.name)} <span class="badge" style="background:#222; margin-left:4px;">${u.tier.toUpperCase()}</span></h4>
-                <p style="font-size:11px; color:var(--accent-orange); margin-top:2px;">📞 +91 ${u.phone}</p>
+              <div onclick="openCustomerDetail('${uId}')" style="cursor:pointer; flex: 1; padding-right: 8px;">
+                <h4 style="color:#fff; font-size:14px;">👤 ${escapeHtml(uName)} <span class="badge" style="background:#222; margin-left:4px;">${uTier.toUpperCase()}</span></h4>
+                <p style="font-size:11px; color:var(--accent-orange); margin-top:2px;">📞 +91 ${uPhone}</p>
                 <p style="font-size:11px; color:var(--text-secondary); margin-top:4px;">Orders counter: <strong>${myOrders.length} times</strong> | Gross Turnout: <strong>₹${spent}</strong></p>
               </div>
 
               <div style="text-align:right; flex-shrink: 0;">
                 <span style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">WALLET BALANCE</span>
                 <div style="display:flex; align-items:center; gap:6px;">
-                  <button class="btn btn-secondary" style="width:24px; height:24px; padding:0; font-size:11px;" onclick="adjustUserPoints('${u.id}', -20)">-</button>
-                  <strong style="color:var(--accent-orange); font-size:13px;">${Math.round(u.loyaltyPoints)}</strong>
-                  <button class="btn btn-secondary" style="width:24px; height:24px; padding:0; font-size:11px;" onclick="adjustUserPoints('${u.id}', 20)">+</button>
+                  <button class="btn btn-secondary" style="width:24px; height:24px; padding:0; font-size:11px;" onclick="adjustUserPoints('${uId}', -20)">-</button>
+                  <strong style="color:var(--accent-orange); font-size:13px;">${Math.round(uPoints)}</strong>
+                  <button class="btn btn-secondary" style="width:24px; height:24px; padding:0; font-size:11px;" onclick="adjustUserPoints('${uId}', 20)">+</button>
                 </div>
               </div>
             </div>
 
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px; border-top:1px dashed #222; padding-top:8px;">
-              <button class="btn" style="background:rgba(244,63,94,0.08); color:#f43f5e; border:1px solid rgba(244,63,94,0.25); padding:4px 10px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer; font-family:'Poppins', sans-serif;" onclick="deleteCustomerFromDb('${u.id}')">
+              <button class="btn" style="background:rgba(244,63,94,0.08); color:#f43f5e; border:1px solid rgba(244,63,94,0.25); padding:4px 10px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer; font-family:'Poppins', sans-serif;" onclick="deleteCustomerFromDb('${uId}')">
                 🗑️ Delete
               </button>
             </div>
@@ -27997,11 +28175,11 @@ STRICT PROTOCOLS:
       return upiSettings.accounts.find(acc => acc.isActive && acc.upiId && acc.upiId.trim() !== '') || null;
     }
 
-    function renderAdminUpiSettings() {
+    function renderAdminUpiSettings(force = false) {
       const container = document.getElementById('upi-accounts-container');
       if (!container) return;
 
-      const isExpanded = sessionStorage.getItem('collapse_upi-config') === 'expanded';
+      const isExpanded = force || sessionStorage.getItem('collapse_upi-config') === 'expanded';
       if (!isExpanded) {
         container.innerHTML = '';
         return;
@@ -28016,7 +28194,7 @@ STRICT PROTOCOLS:
           {
             id: 'primary',
             label: 'Primary UPI',
-            upiId: settings.merchantUpiId || 'einsteinananth24@okaxis',
+            upiId: settings.merchantUpiId || '8778148899@ptyes',
             merchantName: 'Edappadi Kadai',
             displayName: 'Anantharaj Primary',
             note: 'Order {id} - Edappadi Kadai',
@@ -28025,11 +28203,11 @@ STRICT PROTOCOLS:
           {
             id: 'backup1',
             label: 'Backup UPI 1',
-            upiId: '',
+            upiId: 'einsteinananth24-4@okicici',
             merchantName: 'Edappadi Kadai',
             displayName: 'Anantharaj Backup 1',
             note: 'Order {id} - Edappadi Kadai',
-            isActive: false
+            isActive: true
           },
           {
             id: 'backup2',
@@ -28064,7 +28242,7 @@ STRICT PROTOCOLS:
       }
 
       const adminSession = getAdminSession();
-      const isSuperAdmin = adminSession && adminSession.role === 'superadmin';
+      const isSuperAdmin = adminSession && (adminSession.role === 'superadmin' || adminSession.name === 'Anantharaj' || adminSession.phone === '8778148899' || (adminSession.email && adminSession.email.includes('8778148899')));
 
       let html = '';
       upiSettings.accounts.forEach(acc => {
@@ -28123,7 +28301,8 @@ STRICT PROTOCOLS:
 
     function saveAdminUpiSettings() {
       const adminSession = getAdminSession();
-      if (!adminSession || adminSession.role !== 'superadmin') {
+      const isSuperAdmin = adminSession && (adminSession.role === 'superadmin' || adminSession.name === 'Anantharaj' || adminSession.phone === '8778148899' || (adminSession.email && adminSession.email.includes('8778148899')));
+      if (!isSuperAdmin) {
         showToast("Error: Only Super Admin can modify UPI configurations.", "error");
         renderAdminUpiSettings(); // Revert any local UI modifications
         return;
@@ -29987,11 +30166,7 @@ STRICT PROTOCOLS:
 
             if (usersModified) {
               const merged = Array.from(localUsersMap.values());
-              const jsonStr = JSON.stringify(merged);
-              if (typeof AndroidStorage !== 'undefined') {
-                AndroidStorage.saveData('ek_users', jsonStr);
-              }
-              localStorage.setItem('ek_users', jsonStr);
+              saveData('ek_users', merged);
               console.log("[Cloud Sync] Merged users database from cloud: ", merged.length);
             }
           } else if (activeCust) {
@@ -30299,11 +30474,7 @@ STRICT PROTOCOLS:
 
             if (modifiedUsers) {
               const merged = Array.from(localUsersMap.values());
-              const jsonStr = JSON.stringify(merged);
-              if (typeof AndroidStorage !== 'undefined') {
-                AndroidStorage.saveData('ek_users', jsonStr);
-              }
-              localStorage.setItem('ek_users', jsonStr);
+              saveData('ek_users', merged);
               console.log("[Cloud Live Sync] Instantly merged new users from Firestore stream.");
               if (currentScreen === 'screen-admin') {
                 renderAdminDashboard();
@@ -31913,6 +32084,70 @@ STRICT PROTOCOLS:
       } else {
         console.warn("[UPI Payment] Payment was cancelled or failed. Status:", status);
 
+        // Automated Failover System to backup UPI ID if primary fails
+        const attempt = window.currentUpiAttemptAccount || 'primary';
+        if (attempt === 'primary') {
+          const settings = getDataCached('ek_settings', DEFAULT_SETTINGS);
+          const upiSettings = settings.upiSettings;
+          if (upiSettings && upiSettings.accounts) {
+            const backup1 = upiSettings.accounts.find(a => a.id === 'backup1' && a.isActive && a.upiId && a.upiId.trim() !== '');
+            if (backup1) {
+              console.log("[UPI Failover] Primary UPI failed or was cancelled. Automatically failing over to Backup UPI 1:", backup1.upiId);
+              window.currentUpiAttemptAccount = 'backup1';
+
+              showToast(currentLang === 'ta'
+                ? "முதன்மை யுபிஐ தோல்வி! மாற்று வழி மூலம் பணம் செலுத்தப்படுகிறது... 🔄"
+                : "Primary UPI payment did not complete. Launching backup UPI path... 🔄", "info");
+
+              const upiMerchantId = backup1.upiId;
+              const upiMerchantName = backup1.merchantName || backup1.displayName || "Edappadi Kadai";
+              let upiTxnNote = backup1.note || `Order ${orderData.order.id} - Edappadi Kadai`;
+              if (upiTxnNote) {
+                upiTxnNote = upiTxnNote.replace(/{id}/g, orderData.order.id).replace(/{orderId}/g, orderData.order.id);
+              }
+              const upiAmount = orderData.order.totalAmount.toFixed(2);
+              const upiTxnRef = orderData.order.id;
+              const upiCurrency = (upiSettings && upiSettings.currency) || 'INR';
+              const upiUri = `upi://pay?pa=${encodeURIComponent(upiMerchantId)}&pn=${encodeURIComponent(upiMerchantName)}&tr=${encodeURIComponent(upiTxnRef)}&tn=${encodeURIComponent(upiTxnNote)}&am=${upiAmount}&cu=${encodeURIComponent(upiCurrency)}`;
+
+              setTimeout(() => {
+                if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.startUpiPayment === 'function') {
+                  console.log("[UPI Failover Launch] Launching native UPI chooser for Backup 1:", upiUri);
+                  const successLaunch = AndroidStorage.startUpiPayment(upiUri);
+                  if (!successLaunch) {
+                    showToast("யுபிஐ செயலியை திறப்பதில் சிக்கல்! (Failed to launch UPI apps!)", "error");
+                    resetUpiPlacingOrderState();
+                  }
+                } else {
+                  console.warn("[UPI Failover Launch] AndroidStorage is undefined. Simulating backup UPI payment in browser.");
+                  showCustomConfirm(
+                    currentLang === 'ta' ? "📱 மாற்று யுபிஐ சோதனை" : "📱 Backup UPI Simulation",
+                    currentLang === 'ta'
+                      ? `[Web Preview Failover] முதன்மை கட்டணம் தோல்வியடைந்தது. மாற்று யுபிஐ மூலம் வெற்றிகரமாக செலுத்தப்பட்டதா என சோதிக்க வேண்டுமா?\n\nமொத்தம்: ₹${upiAmount}\nபெறுநர்: ${upiMerchantId}`
+                      : `[Web Preview Failover] Primary payment failed. Would you like to simulate a successful backup UPI payment?\n\nTotal: ₹${upiAmount}\nMerchant: ${upiMerchantId}`,
+                    () => {
+                      setTimeout(() => {
+                        if (typeof window.onAndroidUpiPaymentResult === 'function') {
+                          window.onAndroidUpiPaymentResult('SUCCESS_NO_RESPONSE_DATA');
+                        }
+                      }, 800);
+                    },
+                    () => {
+                      setTimeout(() => {
+                        if (typeof window.onAndroidUpiPaymentResult === 'function') {
+                          window.onAndroidUpiPaymentResult('CANCELLED');
+                        }
+                      }, 800);
+                    }
+                  );
+                }
+              }, 1200);
+              return; // Halt here to allow the retry to complete
+            }
+          }
+        }
+
+        // If backup UPI fails or doesn't exist, display the failure message
         const title = currentLang === 'ta' ? "❌ கட்டணம் தோல்வி" : "❌ Payment Unsuccessful";
         const displayBody = currentLang === 'ta'
           ? "யுபிஐ கட்டணம் ரத்து செய்யப்பட்டது அல்லது தோல்வியடைந்தது. உங்கள் ஆர்டர் பதிவு செய்யப்படவில்லை."
@@ -31921,11 +32156,16 @@ STRICT PROTOCOLS:
         showCustomAlert(title, displayBody);
         showToast(displayBody, "error");
 
-        window.isPlacingOrder = false;
-        window.pendingUpiOrderData = null;
-        removeData('ek_pending_upi_order_data');
+        resetUpiPlacingOrderState();
       }
     };
+
+    function resetUpiPlacingOrderState() {
+      window.isPlacingOrder = false;
+      window.pendingUpiOrderData = null;
+      window.currentUpiAttemptAccount = 'primary';
+      removeData('ek_pending_upi_order_data');
+    }
 
     async function completeOrderPlacement(order, customerProfile, address, finalLat, finalLng, pointsEarned, financials, user, cartItems, appliedCoupon) {
       if (typeof db !== 'undefined' && db) {
@@ -32527,6 +32767,7 @@ STRICT PROTOCOLS:
           appliedCouponSnapshot: ""
         };
         window.pendingUpiOrderData = pendingOrderData;
+        window.currentUpiAttemptAccount = 'primary';
         saveData('ek_pending_upi_order_data', pendingOrderData);
 
         const upiSettings = settings.upiSettings || { upiEnabled: true, currency: 'INR' };
