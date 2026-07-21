@@ -1326,7 +1326,7 @@
     .special-card {
       flex: 0 0 165px;
       width: 165px;
-      height: 165px;
+      height: 196px;
       background: #141b2b !important;
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -2168,12 +2168,16 @@
       border: 1.5px solid var(--border-color) !important;
       box-shadow: 0 4px 12px rgba(0,0,0,0.04) !important;
       border-radius: 16px !important;
+      height: 196px !important;
     }
     #screen-home .special-card h5 {
       color: var(--text-primary) !important;
     }
     #screen-home .special-card .tamil-text {
-      color: var(--text-secondary) !important;
+      font-size: 11px !important;
+      color: var(--accent-orange) !important;
+      font-weight: 600 !important;
+      margin-top: 1px !important;
     }
     #screen-home .special-card strong {
       color: var(--accent-green) !important; /* Green price for specials too */
@@ -2190,6 +2194,8 @@
       flex-direction: row !important; /* Horizontal layout! */
       align-items: center !important;
       gap: 12px !important;
+      height: 132px !important;
+      position: relative !important;
       transition: transform 0.15s ease, box-shadow 0.15s ease !important;
     }
     #screen-home .product-grid-card:active {
@@ -2198,11 +2204,11 @@
       background: var(--bg-card-hover) !important;
     }
 
-    /* Card real product image on left */
-    #screen-home .product-card-img-container {
-      width: 80px !important;
-      height: 80px !important;
-      border-radius: 12px !important;
+    /* Card real product image on left - slightly larger for enhanced beautiful visual scanning */
+    #screen-home .product-grid-card .product-card-img-container {
+      width: 104px !important;
+      height: 104px !important;
+      border-radius: 14px !important;
       overflow: hidden !important;
       flex-shrink: 0 !important;
       background: rgba(255, 255, 255, 0.05) !important;
@@ -2211,19 +2217,20 @@
       align-items: center !important;
       justify-content: center !important;
     }
-    #screen-home .product-card-img-container img {
+    #screen-home .product-grid-card .product-card-img-container img {
       width: 100% !important;
       height: 100% !important;
       object-fit: cover !important;
     }
 
     /* Card details column on right */
-    #screen-home .product-card-details {
+    #screen-home .product-grid-card .product-card-details {
       display: flex !important;
       flex-direction: column !important;
       flex-grow: 1 !important;
       min-width: 0 !important;
-      height: 80px !important;
+      min-height: 104px !important;
+      height: auto !important;
       justify-content: space-between !important;
       padding: 3px 4px 3px 0 !important; /* Elegant breathing room and padding-bottom/right to stay away from curved edges */
     }
@@ -2238,9 +2245,13 @@
       color: var(--text-primary) !important;
       margin: 0 !important;
       line-height: 1.25 !important;
+      word-break: break-word !important;
+      display: -webkit-box !important;
+      -webkit-line-clamp: 2 !important;
+      -webkit-box-orient: vertical !important;
       overflow: hidden !important;
       text-overflow: ellipsis !important;
-      white-space: nowrap !important;
+      max-height: 2.5em !important;
     }
     #screen-home .product-grid-card .tamil-text {
       font-size: 11.5px !important;
@@ -3001,8 +3012,8 @@
           <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
             <img id="add-conf-img" src="" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);" alt="Product">
             <div style="min-width: 0; flex: 1;">
-              <p id="add-conf-name-en" style="color: #fff; font-size: 13px; font-weight: 700; margin: 0; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"></p>
-              <p id="add-conf-name-ta" style="color: var(--accent-orange); font-size: 11px; font-weight: 600; margin: 2px 0 0 0; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-family: 'Hind Madurai', sans-serif;"></p>
+              <p id="add-conf-name-en" style="color: #fff; font-size: 13px; font-weight: 700; margin: 0; word-break: break-word;"></p>
+              <p id="add-conf-name-ta" style="color: var(--accent-orange); font-size: 11px; font-weight: 600; margin: 2px 0 0 0; word-break: break-word; font-family: 'Hind Madurai', sans-serif;"></p>
             </div>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.7); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
@@ -3919,6 +3930,47 @@
           மூடுக / Cancel
         </button>
 
+      </div>
+    </div>
+
+    <!-- MANUAL LOCATION PIN MODAL -->
+    <div id="manual-location-pin-modal" class="modal-backdrop" onclick="closeManualPinModal()" style="align-items: center; padding: 20px; display: none; z-index: 10025; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
+      <div style="background: #111111; color: #ffffff; border: 1.5px solid var(--border-color); border-radius: 28px; width: 100%; max-width: 400px; padding: 24px; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.85); display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+        <!-- Modal Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">📍</span>
+            <div>
+              <h3 style="font-size: 16px; font-weight: 700; color: var(--accent-orange); margin: 0; font-family: 'Poppins', 'Hind Madurai', sans-serif;">Manual Location Pin</h3>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0;">Update coordinates manually for delivery routing</p>
+            </div>
+          </div>
+          <button onclick="closeManualPinModal()" style="background: #222222; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;">×</button>
+        </div>
+
+        <input type="hidden" id="manual-pin-order-id" value="">
+
+        <!-- Form fields -->
+        <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Latitude / அட்சரேகை (e.g. 11.5815)</label>
+            <input type="number" step="any" id="manual-pin-lat" class="form-control" placeholder="e.g. 11.5815" style="margin-top: 4px; padding: 10px; font-size: 13px; background: #000; color: #fff; border: 1px solid #333; border-radius: 8px;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Longitude / தீர்க்கரேகை (e.g. 77.8488)</label>
+            <input type="number" step="any" id="manual-pin-lng" class="form-control" placeholder="e.g. 77.8488" style="margin-top: 4px; padding: 10px; font-size: 13px; background: #000; color: #fff; border: 1px solid #333; border-radius: 8px;">
+          </div>
+        </div>
+
+        <!-- Quick Controls -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <button onclick="closeManualPinModal()" style="background: #222222; color: #ffffff; border: 1px solid var(--border-color); font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; padding: 13px; border-radius: 14px; cursor: pointer; text-align: center;">
+            மூடுக / Cancel
+          </button>
+          <button onclick="saveManualPinLocation()" style="background: var(--accent-orange); color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; padding: 13px; border-radius: 14px; border: none; cursor: pointer; text-align: center; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25);">
+            Save Location 📍
+          </button>
+        </div>
       </div>
     </div>
 
@@ -6943,7 +6995,11 @@
     async function getAuthenticatedCustomerUser() {
       const authUser = await resolveFirebaseUserSafely();
       if (!authUser) {
-        console.warn("[Diagnostic] Authentication unavailable: Firebase currentUser is null or anonymous.");
+        console.warn("[Diagnostic] Authentication unavailable: Firebase currentUser is null or anonymous. Falling back to active local session.");
+        const localUser = getActiveUser();
+        if (localUser) {
+          return localUser;
+        }
         return null;
       }
 
@@ -7304,6 +7360,11 @@
         }
       }
       return unit;
+    }
+
+    function cleanProductName(name) {
+      if (!name) return "";
+      return name.replace(/\s*\((packet|bunch|piece|kg|pkt|bundle|pcs|dozen|dozens|litre|liter|l|bottle|box|cup|units)\)/gi, "").trim();
     }
 
     function getProductPriceText(p, isTa = false) {
@@ -8249,14 +8310,6 @@
         }
       } else {
         const deletedProdIds = getDeletedProductIds();
-        const demoIds = DEMO_PRODUCTS.map(dp => dp.id);
-        if (Array.isArray(existingProds) && existingProds.length > 0) {
-          const originalLength = existingProds.length;
-          existingProds = existingProds.filter(p => demoIds.includes(p.id));
-          if (existingProds.length !== originalLength) {
-            saveData('ek_products', existingProds);
-          }
-        }
         if (!Array.isArray(existingProds) || existingProds.length === 0) {
           const seededProducts = DEMO_PRODUCTS
             .filter(p => !deletedProdIds.includes(p.id))
@@ -8268,22 +8321,6 @@
           seededProducts.forEach(p => {
             logProductWriteAudit('seed', p.id, 'seedDatabase');
           });
-        } else {
-          let updated = false;
-          DEMO_PRODUCTS.forEach(p => {
-            if (deletedProdIds.includes(p.id)) return;
-            if (!existingProds.some(ep => ep.id === p.id)) {
-              existingProds.push({
-                ...p,
-                updatedAt: p.createdAt || new Date().toISOString()
-              });
-              updated = true;
-              logProductWriteAudit('seed', p.id, 'seedDatabase_autoInject');
-            }
-          });
-          if (updated) {
-            saveData('ek_products', existingProds);
-          }
         }
       }
       let existingUsers = getData('ek_users');
@@ -8583,7 +8620,7 @@
         } else if (sectionId === 'carousel' && typeof renderAdminBannerList === 'function') {
           renderAdminBannerList(true);
         } else if (sectionId === 'upi-config' && typeof renderAdminUpiSettings === 'function') {
-          renderAdminUpiSettings();
+          renderAdminUpiSettings(true);
         }
 
         container.style.maxHeight = container.scrollHeight + 'px';
@@ -8633,7 +8670,7 @@
         } else if (sectionId === 'carousel' && typeof renderAdminBannerList === 'function') {
           renderAdminBannerList(true);
         } else if (sectionId === 'upi-config' && typeof renderAdminUpiSettings === 'function') {
-          renderAdminUpiSettings();
+          renderAdminUpiSettings(true);
         }
         container.style.maxHeight = 'none';
         if (arrow) arrow.style.transform = 'rotate(180deg)';
@@ -9853,7 +9890,7 @@
         return true; // handled
       }
 
-      if (currentScreen === 'screen-splash' || currentScreen === 'screen-home') {
+      if (currentScreen === 'screen-splash' || currentScreen === 'screen-home' || currentScreen === 'screen-admin' || currentScreen === 'screen-delivery') {
         return false;
       }
 
@@ -10141,17 +10178,6 @@
               db.collection('ek_products').doc(p.id).set(cleanFirestoreData(p))
                 .then(() => console.log(`[Cloud Sync] Auto-seeded product ${p.id} to Firestore.`))
                 .catch(e => console.warn(`[Cloud Sync] Failed to seed product ${p.id} to Firestore:`, e));
-            });
-          } else {
-            DEMO_PRODUCTS.forEach(p => {
-              if (deletedProdIds.includes(p.id)) return;
-              if (!cloudProducts.some(cp => cp.id === p.id)) {
-                console.log(`[Cloud Sync] Demo product ${p.id} missing from cloud. Injecting locally for robust fallback.`);
-                cloudProducts.push({
-                  ...p,
-                  updatedAt: p.createdAt || new Date().toISOString()
-                });
-              }
             });
           }
 
@@ -13563,27 +13589,35 @@
     } catch (e) {}
 
     function handleAdminLogoutClick() {
-      const ok = confirm(currentLang === 'ta' ? "நிர்வாகி பேனலில் இருந்து வெளியேறவா?" : "Log out from Admin Panel?");
-      if (!ok) return;
-      try {
-        showGlobalLogoutLoading();
-        if (typeof firebase !== 'undefined' && firebase.auth) {
-          firebase.auth().signOut().catch(e => console.error(e));
+      const title = currentLang === 'ta' ? "வெளியேறு" : "Logout";
+      const msg = currentLang === 'ta'
+        ? "நிர்வாகி பேனலில் இருந்து வெளியேறவா?"
+        : "Log out from Admin Panel?";
+
+      const okText = currentLang === 'ta' ? "வெளியேறு" : "Logout";
+      const cancelText = currentLang === 'ta' ? "ரத்துசெய்" : "Cancel";
+
+      showCustomConfirm(title, msg, () => {
+        try {
+          showGlobalLogoutLoading();
+          if (typeof firebase !== 'undefined' && firebase.auth) {
+            firebase.auth().signOut().catch(e => console.error(e));
+          }
+          try { teardownLiveListeners(); } catch(te) {}
+          removeData('ek_admin_session');
+          removeData('ek_admin_remember_me');
+          removeData('ek_remembered_admin_credentials');
+          screenHistory = [];
+          currentLoginMode = 'customer';
+          enterCustomerLogin();
+          showScreen('screen-login');
+        } catch (err) {
+          console.error(err);
+          showScreen('screen-login');
+        } finally {
+          hideGlobalLogoutLoading();
         }
-        try { teardownLiveListeners(); } catch(te) {}
-        removeData('ek_admin_session');
-        removeData('ek_admin_remember_me');
-        removeData('ek_remembered_admin_credentials');
-        screenHistory = [];
-        currentLoginMode = 'customer';
-        enterCustomerLogin();
-        showScreen('screen-login');
-      } catch (err) {
-        console.error(err);
-        showScreen('screen-login');
-      } finally {
-        hideGlobalLogoutLoading();
-      }
+      }, null, okText, cancelText);
     }
 
     function scrollToEditProfile() {
@@ -14777,8 +14811,8 @@
       let html = '';
       matches.forEach(p => {
         const isOutOfStock = p.isOutOfStock || p.stockKg <= 0;
-        const nameText = currentLang === 'ta' ? p.tamilName : p.englishName;
-        const subText = currentLang === 'ta' ? p.englishName : p.tamilName;
+        const nameText = currentLang === 'ta' ? p.tamilName : cleanProductName(p.englishName);
+        const subText = currentLang === 'ta' ? cleanProductName(p.englishName) : p.tamilName;
         const priceText = getProductPriceText(p, currentLang);
 
         html += `
@@ -14920,6 +14954,22 @@
       }
       renderCategoryPills();
       renderHomeScreenProducts();
+    }
+
+    function handleProductImageError(img, category) {
+      console.warn("[Image Error Handled] Failed to load product image, category:", category);
+      const container = img.closest('.lazy-image-container');
+      if (container) {
+        const categoryConfig = getCategoryConfig(category);
+        container.innerHTML = `<span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));">${categoryConfig.icon}</span>`;
+        container.classList.remove('lazy-image-container');
+        container.classList.add('product-card-img-container');
+        container.style.background = `${categoryConfig.color}15`;
+        container.style.border = `1px solid ${categoryConfig.color}25`;
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        container.style.justifyContent = 'center';
+      }
     }
 
     function getBlurPlaceholderUrl(url) {
@@ -15078,21 +15128,40 @@
               const isOutOfStock = p.isOutOfStock || p.stockKg <= 0 || (p.isScheduled && p.isAvailable === false) || isCategoryUnavailable;
               const overlayHtml = isOutOfStock ? `<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:var(--accent-red); font-weight:700; font-size:11px;">OUT OF STOCK</div>` : '';
 
-              const cardHtml = `
-                <div class="special-card" id="card-special-${p.id}" style="height: 165px; display: flex; flex-direction: column; justify-content: space-between;">
-                  ${overlayHtml}
-                  <div class="lazy-image-container" style="height: 85px; border-radius: 10px; margin: 6px 6px 0 6px; overflow: hidden; position: relative; cursor: pointer;" ${isOutOfStock ? '' : `onclick="openProductModalDetail('${p.id}')"`}>
-                    <img data-src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" class="lazy-image-main special-img" style="height: 85px; width: 100%; object-fit: cover; border-radius: 10px;" alt="${p.englishName}">
-                    <img src="${getBlurPlaceholderUrl(getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt))}" class="lazy-image-placeholder" style="height: 85px; width: 100%; object-fit: cover; border-radius: 10px;" alt="${p.englishName} loader">
+              const hasRealSpecImage = p.imageUrl && p.imageUrl.trim() !== '' && p.imageUrl !== 'null' && p.imageUrl !== 'undefined' && !p.imageUrl.toLowerCase().includes('placeholder') && !p.imageUrl.toLowerCase().includes('default') && !p.imageUrl.toLowerCase().includes('null') && !p.imageUrl.toLowerCase().includes('undefined');
+              const categoryConfig = getCategoryConfig(p.category);
+              let specImgHtml = '';
+              if (hasRealSpecImage) {
+                specImgHtml = `
+                  <div class="lazy-image-container" style="height: 85px; border-radius: 10px; margin: 6px 6px 0 6px; overflow: hidden; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center;" ${isOutOfStock ? '' : `onclick="openProductModalDetail('${p.id}')"`}>
+                    <img data-src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" class="lazy-image-main special-img" style="height: 85px; width: 100%; object-fit: cover; border-radius: 10px;" alt="${p.englishName}" onerror="handleProductImageError(this, '${p.category}')">
+                    <img src="${getBlurPlaceholderUrl(getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt))}" class="lazy-image-placeholder" style="height: 85px; width: 100%; object-fit: cover; border-radius: 10px; position: absolute; top:0; left:0;" alt="${p.englishName} loader">
                   </div>
-                  <div class="special-detail" style="padding: 4px 8px 8px 8px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                `;
+              } else {
+                specImgHtml = `
+                  <div class="product-card-img-container" style="height: 85px; border-radius: 10px; margin: 6px 6px 0 6px; overflow: hidden; position: relative; cursor: pointer; background: ${categoryConfig.color}15; border: 1px solid ${categoryConfig.color}25; display: flex; align-items: center; justify-content: center;" ${isOutOfStock ? '' : `onclick="openProductModalDetail('${p.id}')"`}>
+                    <span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));">${categoryConfig.icon}</span>
+                  </div>
+                `;
+              }
+
+              const isFav = isProductFavorite(p.id);
+              const favHeart = `<span class="fav-heart-btn" data-id="${p.id}" onclick="event.stopPropagation(); toggleFavoriteProduct('${p.id}', event)" style="position: absolute; top: 12px; right: 12px; cursor: pointer; font-size: 14px; padding: 4px; display: inline-flex; align-items: center; justify-content: center; height: 26px; width: 26px; border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 10;" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">${isFav ? '❤️' : '🤍'}</span>`;
+
+              const cardHtml = `
+                <div class="special-card" id="card-special-${p.id}" style="height: 196px; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+                  ${overlayHtml}
+                  ${favHeart}
+                  ${specImgHtml}
+                  <div class="special-detail" style="padding: 4px 8px 8px 8px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; height: 101px !important; box-sizing: border-box;">
                     <div>
-                      <h5 style="font-size:11.5px; font-weight:700; color:#ffffff; margin: 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.englishName}</h5>
-                      <p class="tamil-text" style="font-size:9.5px; color:var(--accent-orange); font-weight:600; margin: 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.tamilName}</p>
+                      <h5 style="font-size:11.5px; font-weight:700; color:#ffffff; margin: 0; word-break: break-word; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; max-height: 2.4em;">${cleanProductName(p.englishName)}</h5>
+                      <p class="tamil-text" style="font-size:11px !important; color:var(--accent-orange) !important; font-weight:600 !important; margin: 0; word-break: break-word; line-height: 1.4 !important;">${p.tamilName || ''}</p>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-top: 2px;">
-                      <strong style="font-size:11px; color:var(--text-primary); font-weight: 700;">${getProductPriceText(p, currentLang)}</strong>
-                      <button class="btn btn-primary" style="width:auto !important; min-width:unset !important; height:22px !important; min-height:auto !important; padding:0 8px !important; font-size:10px !important; font-weight:800; border-radius:11px !important; display:inline-flex; align-items:center; justify-content:center; gap:2px; backdrop-filter:blur(10px) !important; -webkit-backdrop-filter:blur(10px) !important; background: linear-gradient(135deg, #06b6d4 0%, #0d9488 100%) !important; border: 1px solid rgba(255, 255, 255, 0.3) !important; box-shadow: 0 4px 10px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important; color:#ffffff !important; text-shadow: 0 1px 1px rgba(0,0,0,0.15) !important;" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">
+                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top: 4px;">
+                      <strong style="font-size:11.5px; color:var(--text-primary); font-weight: 700;">${getProductPriceText(p, currentLang)}</strong>
+                      <button class="btn btn-primary" style="width:auto !important; min-width:unset !important; height:24px !important; min-height:auto !important; padding:0 10px !important; font-size:10.5px !important; font-weight:800; border-radius:12px !important; display:inline-flex; align-items:center; justify-content:center; gap:2px; backdrop-filter:blur(10px) !important; -webkit-backdrop-filter:blur(10px) !important; background: linear-gradient(135deg, #06b6d4 0%, #0d9488 100%) !important; border: 1px solid rgba(255, 255, 255, 0.3) !important; box-shadow: 0 4px 10px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important; color:#ffffff !important; text-shadow: 0 1px 1px rgba(0,0,0,0.15) !important;" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${p.id}')">
                         <span>Buy ➔</span>
                       </button>
                     </div>
@@ -15242,19 +15311,19 @@
           const isOutOfStock = p.isOutOfStock || p.stockKg <= 0 || (p.isScheduled && p.isAvailable === false) || isCategoryUnavailable;
 
           const categoryConfig = getCategoryConfig(p.category);
-          const hasRealImage = p.imageUrl && p.imageUrl.trim() !== '' && !p.imageUrl.toLowerCase().includes('placeholder') && !p.imageUrl.toLowerCase().includes('default');
+           const hasRealImage = p.imageUrl && p.imageUrl.trim() !== '' && p.imageUrl !== 'null' && p.imageUrl !== 'undefined' && !p.imageUrl.toLowerCase().includes('placeholder') && !p.imageUrl.toLowerCase().includes('default') && !p.imageUrl.toLowerCase().includes('null') && !p.imageUrl.toLowerCase().includes('undefined');
           let imgHtml = '';
           if (hasRealImage) {
             imgHtml = `
               <div class="product-card-img-container lazy-image-container">
-                <img data-src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" class="lazy-image-main" style="width: 100%; height: 100%; object-fit: cover;" alt="${p.englishName}">
+                <img data-src="${getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt)}" class="lazy-image-main" style="width: 100%; height: 100%; object-fit: cover;" alt="${p.englishName}" onerror="handleProductImageError(this, '${p.category}')">
                 <img src="${getBlurPlaceholderUrl(getImageUrlWithCacheBuster(p.imageUrl, p.updatedAt))}" class="lazy-image-placeholder" style="width: 100%; height: 100%; object-fit: cover;" alt="${p.englishName} loader">
               </div>
             `;
           } else {
             imgHtml = `
               <div class="product-card-img-container" style="background: ${categoryConfig.color}15; border: 1px solid ${categoryConfig.color}25;">
-                <span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));">${categoryConfig.icon}</span>
+                <span style="font-size: 38px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));">${categoryConfig.icon}</span>
               </div>
             `;
           }
@@ -15264,7 +15333,6 @@
           const shortDescHtml = hasShortDesc ? `<span style="font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.shortDescription}</span>` : '';
 
           const isFav = isProductFavorite(p.id);
-          const favHeart = `<span class="fav-heart-btn" data-id="${p.id}" onclick="toggleFavoriteProduct('${p.id}', event)" style="cursor: pointer; font-size: 14px; padding: 4px; display: inline-flex; align-items: center; justify-content: center; height: 24px; width: 24px; border-radius: 50%; background: rgba(0,0,0,0.03);" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">${isFav ? '❤️' : '🤍'}</span>`;
 
           const uVal = p.sellingUnit || p.unit || 'kg';
           const isGram = (uVal.toLowerCase() === 'g' || uVal.toLowerCase() === 'gram');
@@ -15277,10 +15345,9 @@
             <div class="product-grid-card" id="card-prod-${p.id}" onclick="openProductModalDetail('${p.id}')">
               ${overlayHtml}
               ${imgHtml}
-              <div class="product-card-details" style="display: flex !important; flex-direction: column !important; justify-content: center !important; gap: 2px !important; flex-grow: 1 !important; min-width: 0 !important; height: 80px !important; padding: 0 !important;">
+              <div class="product-card-details" style="display: flex !important; flex-direction: column !important; justify-content: center !important; gap: 2px !important; flex-grow: 1 !important; min-width: 0 !important; min-height: 80px !important; height: auto !important; padding: 0 !important;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; width: 100%;">
-                  <h4 style="margin: 0; flex-grow: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${p.englishName}</h4>
-                  ${favHeart}
+                  <h4 style="margin: 0; flex-grow: 1; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; max-height: 2.5em; line-height: 1.25;">${cleanProductName(p.englishName)}</h4>
                 </div>
                 <p class="tamil-text" style="margin: 0;">${p.tamilName}</p>
                 <div style="margin-top: 2px; display: flex; align-items: center; gap: 4px; overflow: hidden; max-width: 100%;">
@@ -15290,7 +15357,10 @@
                   <span class="product-price">${getProductPriceText(p, currentLang)}</span>
                 </div>
               </div>
-              <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-shrink: 0; padding-right: 4px;">
+              <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; align-self: stretch !important; flex-shrink: 0; padding-right: 4px; padding-top: 4px; padding-bottom: 4px;">
+                <span class="fav-heart-btn" data-id="${p.id}" onclick="event.stopPropagation(); toggleFavoriteProduct('${p.id}', event)" style="cursor: pointer; font-size: 15px; padding: 4px; display: inline-flex; align-items: center; justify-content: center; height: 26px; width: 26px; border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-right: 4px; z-index: 10;" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                  ${isFav ? '❤️' : '🤍'}
+                </span>
                 <button class="btn-add-orange" ${isOutOfStock ? 'disabled' : ''} onclick="event.stopPropagation(); openProductModalDetail('${p.id}')">
                   <span>+ ADD</span>
                 </button>
@@ -15872,7 +15942,7 @@
 
       if (lightbox && img && caption) {
         img.src = activeProduct.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400';
-        caption.innerHTML = `${activeProduct.tamilName}<br><small style="color:var(--text-muted); font-size:11px;">${activeProduct.englishName}</small>`;
+        caption.innerHTML = `${activeProduct.tamilName}<br><small style="color:var(--text-muted); font-size:11px;">${cleanProductName(activeProduct.englishName)}</small>`;
         lightbox.style.display = 'flex';
       }
     }
@@ -15981,7 +16051,7 @@
       activeProduct = prod;
 
       const engNameEl = document.getElementById('modal-english-name');
-      if (engNameEl) engNameEl.innerText = prod.englishName || '';
+      if (engNameEl) engNameEl.innerText = cleanProductName(prod.englishName) || '';
       const tamNameEl = document.getElementById('modal-tamil-name');
       if (tamNameEl) tamNameEl.innerText = prod.tamilName || '';
       const priceKgEl = document.getElementById('calc-price-kg');
@@ -16510,7 +16580,7 @@
             <div style="display:flex; align-items:center; gap:10px;">
               <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=100'}" style="width:44px; height:44px; border-radius:6px; object-fit:cover;" alt="" loading="lazy" decoding="async">
               <div>
-                <h4 style="font-size:12.5px; color:#ffffff; font-weight:700;">${item.englishName}</h4>
+                <h4 style="font-size:12.5px; color:#ffffff; font-weight:700;">${cleanProductName(item.englishName)}</h4>
                 <p class="tamil-text" style="font-size:11.5px; color:var(--accent-orange); font-weight:600; margin-top:1px;">${item.tamilName}</p>
                 ${(item.category === 'meat' || item.category === 'fish') ? `
                   <div style="margin: 4px 0 6px 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
@@ -17070,54 +17140,66 @@
     }
 
     async function placeOrder() {
-      const settings = getSettings();
-      if (settings.leaveMode) {
-        showCustomAlert(
-          currentLang === 'ta' ? "🌴 விடுமுறை அறிவிப்பு" : "🌴 Holiday / Leave Notice",
-          settings.leaveNotice || (currentLang === 'ta' ? "மன்னிக்கவும்! கடை தற்காலிகமாக விடுமுறையில் உள்ளது. ஆர்டர் செய்ய இயலாது." : "Sorry, the shop is currently closed on holiday. Ordering is temporarily paused.")
-        );
-        return;
-      }
-      if (window.isPlacingOrder) {
-        showToast(currentLang === 'ta' ? "மன்னிக்கவும்! ஒரு ஆர்டர் ஏற்கனவே செயலாக்கத்தில் உள்ளது." : "Please wait! Your order is already being processed.", "warning");
-        return;
-      }
-      if (cart.length === 0) {
-        showToast("மன்னிக்கவும்! உங்கள் கார்ட் காலியாக உள்ளது. (Your checkout cart is completely empty!)", "error");
-        return;
-      }
-
-      const user = await getAuthenticatedCustomerUser();
-      if (!user) {
-        if (typeof firebase !== 'undefined' && firebase.auth) {
-          const authUser = firebase.auth().currentUser;
-          const reason = !authUser ? "Firebase currentUser is null" : (authUser.isAnonymous ? "Firebase currentUser is anonymous guest" : "No registered user record found");
-          console.warn("[Diagnostic] Authentication unavailable: " + reason);
-        } else {
-          console.error("[Diagnostic] Authentication unavailable: Firebase SDK is not loaded.");
+      try {
+        const settings = getSettings();
+        if (settings.leaveMode) {
+          showCustomAlert(
+            currentLang === 'ta' ? "🌴 விடுமுறை அறிவிப்பு" : "🌴 Holiday / Leave Notice",
+            settings.leaveNotice || (currentLang === 'ta' ? "மன்னிக்கவும்! கடை தற்காலிகமாக விடுமுறையில் உள்ளது. ஆர்டர் செய்ய இயலாது." : "Sorry, the shop is currently closed on holiday. Ordering is temporarily paused.")
+          );
+          return;
         }
-        showToast(
+        if (window.isPlacingOrder || window.isConfirmingOrder) {
+          showToast(currentLang === 'ta' ? "மன்னிக்கவும்! ஒரு ஆர்டர் ஏற்கனவே செயலாக்கத்தில் உள்ளது." : "Please wait! Your order is already being processed.", "warning");
+          return;
+        }
+        if (cart.length === 0) {
+          showToast("மன்னிக்கவும்! உங்கள் கார்ட் காலியாக உள்ளது. (Your checkout cart is completely empty!)", "error");
+          return;
+        }
+
+        const user = await getAuthenticatedCustomerUser();
+        if (!user) {
+          if (typeof firebase !== 'undefined' && firebase.auth) {
+            const authUser = firebase.auth().currentUser;
+            const reason = !authUser ? "Firebase currentUser is null" : (authUser.isAnonymous ? "Firebase currentUser is anonymous guest" : "No registered user record found");
+            console.warn("[Diagnostic] Authentication unavailable: " + reason);
+          } else {
+            console.error("[Diagnostic] Authentication unavailable: Firebase SDK is not loaded.");
+          }
+          showToast(
+            currentLang === 'ta'
+              ? "ஆர்டர் செய்ய முதலில் லாகின் அல்லது பதிவு செய்து கொள்ளவும்! (Please log in or register first!)"
+              : "Login Required\nPlease log in before placing an order.",
+            "error"
+          );
+          showScreen('screen-login');
+          return;
+        }
+
+        const weatherBrief = document.getElementById('briefing-weather-temp')?.innerText || "34°C - Partly Cloudy";
+        const trafficBrief = document.getElementById('briefing-traffic-status')?.innerText || "Green / Low Congestion";
+
+        window.isConfirmingOrder = true;
+
+        showCustomConfirm(
+          currentLang === 'ta' ? "⛈️ நேரலை நிலவரம் & ஆர்டர்" : "⛈️ Real-Time Briefing & Order",
           currentLang === 'ta'
-            ? "ஆர்டர் செய்ய முதலில் லாகின் அல்லது பதிவு செய்து கொள்ளவும்! (Please log in or register first!)"
-            : "Login Required\nPlease log in before placing an order.",
-          "error"
+            ? `⛈️ தற்போதைய நேரலை நிலவரம்:\n• வானிலை: ${weatherBrief}\n• போக்குவரத்து: ${trafficBrief}\n\nவானிலை மற்றும் போக்குவரத்து விநியோகத்திற்கு மிகவும் சாதகமாக உள்ளது. ஆர்டரை இறுதி செய்யலாமா?`
+            : `⛈️ Real-Time Edappadi Briefing:\n• Weather: ${weatherBrief}\n• Traffic: ${trafficBrief}\n\nConditions are highly optimal for sweet, safe delivery. Proceed to finalize order?`,
+          () => {
+            window.isConfirmingOrder = false;
+            actualPlaceOrder();
+          },
+          () => {
+            window.isConfirmingOrder = false;
+          }
         );
-        showScreen('screen-login');
-        return;
+      } catch (err) {
+        window.isConfirmingOrder = false;
+        console.error("Critical error in placeOrder:", err);
+        showToast(currentLang === 'ta' ? "ஆர்டர் முயற்சியில் பிழை ஏற்பட்டது: " + err.message : "Error during order placement: " + err.message, "error");
       }
-
-      const weatherBrief = document.getElementById('briefing-weather-temp')?.innerText || "34°C - Partly Cloudy";
-      const trafficBrief = document.getElementById('briefing-traffic-status')?.innerText || "Green / Low Congestion";
-
-      showCustomConfirm(
-        currentLang === 'ta' ? "⛈️ நேரலை நிலவரம் & ஆர்டர்" : "⛈️ Real-Time Briefing & Order",
-        currentLang === 'ta'
-          ? `⛈️ தற்போதைய நேரலை நிலவரம்:\n• வானிலை: ${weatherBrief}\n• போக்குவரத்து: ${trafficBrief}\n\nவானிலை மற்றும் போக்குவரத்து விநியோகத்திற்கு மிகவும் சாதகமாக உள்ளது. ஆர்டரை இறுதி செய்யலாமா?`
-          : `⛈️ Real-Time Edappadi Briefing:\n• Weather: ${weatherBrief}\n• Traffic: ${trafficBrief}\n\nConditions are highly optimal for sweet, safe delivery. Proceed to finalize order?`,
-        () => {
-          actualPlaceOrder();
-        }
-      );
     }
 
     function generateUniqueOrderId() {
@@ -17283,44 +17365,54 @@
         finalLng = customerProfile.longitude ? parseFloat(customerProfile.longitude) : null;
       }
 
-      if (finalLat === null || isNaN(finalLat) || finalLng === null || isNaN(finalLng)) {
+      const isCod = selectedPaymentMethod && selectedPaymentMethod.toUpperCase() === 'COD';
+      let needsManualLocationPin = false;
+
+      const hasValidCoords = (finalLat !== null && !isNaN(finalLat) && finalLng !== null && !isNaN(finalLng));
+
+      if (!hasValidCoords) {
         if (address && address.length > 5) {
-          try {
-            const geocodeFn = getCloudFunction('geocodeDeliveryAddress');
-            if (!geocodeFn) {
+          if (isCod) {
+            // COD payment skips blocking geocoding completely to proceed instantly
+            needsManualLocationPin = true;
+            console.log("[Checkout COD Geocode] COD Order: skipping blocking geocoding flow, marking for background attempt.");
+          } else {
+            try {
+              const geocodeFn = getCloudFunction('geocodeDeliveryAddress');
+              if (!geocodeFn) {
+                console.warn("[Checkout Geocode] Geocode service not deployed yet.");
+                needsManualLocationPin = true;
+              } else {
+                console.log("[Checkout Geocode] Attempting geocoding with 6-second timeout...");
+                const geocodePromise = geocodeFn({ address: address + ', Edappadi, Salem, Tamil Nadu' });
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000));
+                
+                const res = await Promise.race([geocodePromise, timeoutPromise]);
+                if (res && res.data && res.data.latitude) {
+                  finalLat = parseFloat(res.data.latitude);
+                  finalLng = parseFloat(res.data.longitude);
+                  console.log('[Checkout Geocode] Address geocoded securely:', finalLat, finalLng);
+                } else {
+                  console.warn("[Checkout Geocode] No latitude returned in response.");
+                  needsManualLocationPin = true;
+                  showToast(
+                    currentLang === 'ta'
+                      ? "📍 உங்கள் இருப்பிடத்தை துல்லியமாக கண்டறிய முடியவில்லை. ஆர்டர் வெற்றிகரமாக பதிவு செய்யப்பட்டது — எங்கள் அணி விரைவில் தொடர்பு கொள்ளும்."
+                      : "📍 We could not pinpoint your exact location. Order placed successfully — our team will contact you shortly.",
+                    "info"
+                  );
+                }
+              }
+            } catch (geoErr) {
+              console.warn('[Checkout Geocode] Forward geocode failed or timed out:', geoErr);
+              needsManualLocationPin = true;
               showToast(
                 currentLang === 'ta'
-                  ? "சர்வர் சேவை இன்னும் செயல்படுத்தப்படவில்லை. தயவுசெய்து பின்னர் முயற்சிக்கவும்."
-                  : "Server service is not deployed yet. Please try again later.",
-                "error"
+                  ? "📍 உங்கள் இருப்பிடத்தை துல்லியமாக கண்டறிய முடியவில்லை. ஆர்டர் வெற்றிகரமாக பதிவு செய்யப்பட்டது — எங்கள் அணி விரைவில் தொடர்பு கொள்ளும்."
+                  : "📍 We could not pinpoint your exact location. Order placed successfully — our team will contact you shortly.",
+                "info"
               );
-              window.isPlacingOrder = false;
-              return;
             }
-            const res = await geocodeFn({ address: address + ', Edappadi, Salem, Tamil Nadu' });
-            if (res && res.data && res.data.latitude) {
-              finalLat = parseFloat(res.data.latitude);
-              finalLng = parseFloat(res.data.longitude);
-              console.log('[Checkout Geocode] Address geocoded securely:', finalLat, finalLng);
-            } else {
-              showToast(
-                currentLang === 'ta'
-                  ? "குறிப்பிட்ட முகவரியை வரைபடத்தில் கண்டறிய முடியவில்லை. தயவுசெய்து சரியான முகவரியை உள்ளிடவும்."
-                  : "We could not find the specified address on the map. Please verify and enter a valid address.",
-                "error"
-              );
-              window.isPlacingOrder = false;
-              return; // Halt placement so customer can correct address
-            }
-          } catch (geoErr) {
-            console.warn('[Checkout Geocode] Forward geocode failed:', geoErr);
-            const isNotDeployed = geoErr && (geoErr.code === 'not-found' || geoErr.message?.includes('not-found') || geoErr.code === 'unimplemented');
-            const errMsg = isNotDeployed
-              ? (currentLang === 'ta' ? "சர்வர் சேவை இன்னும் செயல்படுத்தப்படவில்லை. தயவுசெய்து பின்னர் முயற்சிக்கவும்." : "Server service is not deployed yet. Please try again later.")
-              : (currentLang === 'ta' ? "முகவரி இருப்பிடத்தைக் கண்டறிய முடியவில்லை. முகவரியை சரிபார்த்து மீண்டும் முயற்சிக்கவும்." : "Failed to locate the address. Please check your address format and try again.");
-            showToast(errMsg, "error");
-            window.isPlacingOrder = false;
-            return; // Halt placement so customer can correct address
           }
         } else {
           showToast(
@@ -17358,12 +17450,7 @@
       const randomID = generateUniqueOrderId();
 
       const user = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
-      if (!user) {
-        showToast("மன்னிக்கவும்! மீண்டும் உள்நுழைக வேண்டும். (Session expired, please login.)", "error");
-        window.isPlacingOrder = false;
-        showScreen('screen-login');
-        return;
-      }
+      const orderUserId = user ? user.uid : (customerProfile ? customerProfile.id : 'offline_guest');
 
       const sanitizedLat = (finalLat === null || isNaN(finalLat)) ? null : parseFloat(finalLat);
       const sanitizedLng = (finalLng === null || isNaN(finalLng)) ? null : parseFloat(finalLng);
@@ -17378,14 +17465,15 @@
 
       const order = {
         id: randomID,
-        userId: user.uid,
-        customerId: user.uid,
+        userId: orderUserId,
+        customerId: orderUserId,
         customerName: customerProfile.name || "Customer / வாடிக்கையாளர்",
-        customerPhone: customerProfile.phone || user.phoneNumber || "",
+        customerPhone: customerProfile.phone || (user ? user.phoneNumber : "") || "",
         customerFcmToken: customerProfile.fcmToken || (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.getFcmToken === 'function' ? AndroidStorage.getFcmToken() : ''),
         deliveryAddress: address,
         deliveryLatitude: sanitizedLat,
         deliveryLongitude: sanitizedLng,
+        needsManualLocationPin: needsManualLocationPin,
         deliveryTimeSlot: selectedDeliverySlot,
         paymentMethod: selectedPaymentMethod,
         items: [...cart],
@@ -17399,9 +17487,47 @@
         couponDiscount: financials.couponDiscount,
         totalAmount: financials.grandTotal,
         status: 'pending',
+        orderSource: 'MANUAL',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
+
+      // Asynchronous background geocoding if coordinates are missing
+      if (needsManualLocationPin) {
+        setTimeout(async () => {
+          try {
+            const geocodeFn = getCloudFunction('geocodeDeliveryAddress');
+            if (geocodeFn) {
+              console.log("[Background Geocode] Resolving in background for Order ID:", randomID);
+              const res = await geocodeFn({ address: address + ', Edappadi, Salem, Tamil Nadu' });
+              if (res && res.data && res.data.latitude) {
+                const bgLat = parseFloat(res.data.latitude);
+                const bgLng = parseFloat(res.data.longitude);
+                console.log("[Background Geocode] Successfully geocoded. Updating Firestore and cache:", randomID, bgLat, bgLng);
+                
+                await db.collection('ek_orders').doc(randomID).update({
+                  deliveryLatitude: bgLat,
+                  deliveryLongitude: bgLng,
+                  needsManualLocationPin: false,
+                  updatedAt: new Date().toISOString()
+                });
+                
+                const cachedOrders = getDataCached('ek_orders', []);
+                const idx = cachedOrders.findIndex(o => o.id === randomID);
+                if (idx !== -1) {
+                  cachedOrders[idx].deliveryLatitude = bgLat;
+                  cachedOrders[idx].deliveryLongitude = bgLng;
+                  cachedOrders[idx].needsManualLocationPin = false;
+                  cachedOrders[idx].updatedAt = new Date().toISOString();
+                  saveData('ek_orders', cachedOrders);
+                }
+              }
+            }
+          } catch (bgErr) {
+            console.warn("[Background Geocode] Background geocoding failed/timed out:", bgErr);
+          }
+        }, 1500);
+      }
 
       if (selectedPaymentMethod === 'UPI') {
         showToast(currentLang === 'ta' ? "யுபிஐ செலுத்துதல் துவங்குகிறது... ⏳" : "UPI Payment Initializing... ⏳", "info");
@@ -19129,9 +19255,12 @@
               }
 
               if (cloudOrder.items && Array.isArray(cloudOrder.items)) {
-                for (const item of cloudOrder.items) {
-                  const prodRef = db.collection('ek_products').doc(item.productId);
-                  const prodSnap = await transaction.get(prodRef);
+                const productSnaps = await Promise.all(
+                  cloudOrder.items.map(item => transaction.get(db.collection('ek_products').doc(item.productId)))
+                );
+
+                cloudOrder.items.forEach((item, i) => {
+                  const prodSnap = productSnaps[i];
                   if (prodSnap.exists) {
                     const prodData = prodSnap.data();
                     const serverStock = parseFloat(prodData.stockKg || 0);
@@ -19139,13 +19268,13 @@
                     const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
                     const returnedQty = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
                     const newStock = parseFloat((serverStock + returnedQty).toFixed(3));
-                    transaction.update(prodRef, {
+                    transaction.update(prodSnap.ref, {
                       stockKg: newStock,
                       isOutOfStock: false,
                       updatedAt: new Date().toISOString()
                     });
                   }
-                }
+                });
               }
 
               const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
@@ -21298,7 +21427,7 @@
     function openCustomerOrderDetail(id) {
       const orders = getData('ek_orders');
       const o = orders.find(ord => ord.id === id);
-      if (!o) return;
+      if (!o || o.hiddenByCustomer) return;
 
       document.getElementById('cod-order-id').innerText = `${o.id}`;
 
@@ -23842,6 +23971,8 @@
 
         if (isExpanded) {
           const riderNameText = o.assignedRiderName ? o.assignedRiderName : (currentLang === 'ta' ? "எங்களது விநியோகக் குழு" : "Our delivery team");
+          const subtotalVal = o.subtotalAmount !== undefined ? o.subtotalAmount : (o.subtotal || (o.totalAmount - (o.deliveryFee || o.deliveryCharge || 0)));
+          const deliveryFeeVal = o.deliveryFee !== undefined ? o.deliveryFee : (o.deliveryCharge !== undefined ? o.deliveryCharge : 0);
 
           waCustomerMsg = encodeURIComponent(
 `🥩 *எடப்பாடி கடை / EDAPPADI KADAI* 🥩
@@ -23849,17 +23980,26 @@
 வணக்கம் *${o.customerName}*! உங்களுடைய ஆர்டர் வெற்றிகரமாக உறுதி செய்யப்பட்டுள்ளது.
 
 📋 *ஆர்டர் எண் (Order ID):* ${o.id}
-💵 *செலுத்த வேண்டிய தொகை:* ₹${o.totalAmount}
 ⏱️ *டெலிவரி நேரம்:* ${o.deliveryTimeSlot}
 📍 *விநியோக முகவரி (Address):* ${o.deliveryAddress}
-
+${o.orderSource === 'AI_ASSISTANT' ? '🤖 இந்த ஆர்டர் Edappadi Kadai AI Assistant மூலம் Professional-ஆ தயார் செய்யப்பட்டது.\n' : ''}
 🛒 *ஆர்டர் செய்த பொருட்கள் (Items):*
+━━━━━━━━━━━━━━━━━━━━━━━━
 ${o.items.map((it, idx) => {
   const prep = getLocalizedPrepareText(it.cutStyle, it.category);
-  const prepStr = prep ? ` [${prep}]` : '';
-  const itemNote = it.specialNote ? ` (Note: ${it.specialNote})` : '';
-  return `🔹 ${idx + 1}. *${it.tamilName}* (${it.englishName}) - ${getFormattedItemQty(it, currentLang)}${prepStr}${itemNote}`;
-}).join('\n')}
+  const prepStr = prep ? `\n   ✂️ *தயாரிப்பு முறை:* ${prep}` : '';
+  const itemNote = it.specialNote ? `\n   📝 *குறிப்பு:* ${it.specialNote}` : '';
+  const itemPriceVal = it.totalPrice || it.itemTotalPrice || ((it.pricePerUnit || it.price || 0) * (it.weightGrams ? (isUnitWeight(it.sellingUnit || it.unit || 'kg') ? it.weightGrams/1000 : it.weightGrams) : 1));
+  return `🔹 ${idx + 1}. *${it.tamilName}* (${it.englishName})
+   ⚡ *அளவு:* ${getFormattedItemQty(it, currentLang)}${prepStr}${itemNote}
+   💵 *விலை:* ₹${itemPriceVal}`;
+}).join('\n─────\n')}
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+💰 பொருட்கள் தொகை: ₹${subtotalVal}
+🚚 டெலிவரி கட்டணம்: ₹${deliveryFeeVal}
+━━━━━━━━━━━━━━━━━━━━━━━━
+💵 *மொத்த தொகை: ₹${o.totalAmount}*
 
 நன்றி! உங்களது ஆர்டர் விரைவில் உங்களது இல்லம் தேடி வரும்! 🛵✨
 ━━━━━━━━━━━━━━━━━━━━━━━━`
@@ -23883,15 +24023,19 @@ ${o.items.map((it, idx) => {
 ━━━━━━━━━━━━━━━━━━━━━━━━
 📋 *ஆர்டர் எண் (ID):* ${o.id}
 👤 *வாடிக்கையாளர்:* ${o.customerName}
+📞 *தொடர்பு எண்:* ${o.customerPhone}
 ⏱️ *டெலிவரி ஸ்லாட்:* ${o.deliveryTimeSlot}
-
+${o.orderSource === 'AI_ASSISTANT' ? '🤖 இந்த ஆர்டர் Edappadi Kadai AI Assistant மூலம் Professional-ஆ தயார் செய்யப்பட்டது.\n' : ''}
 📦 *பேக் செய்ய வேண்டிய பொருட்கள் (Items):*
+━━━━━━━━━━━━━━━━━━━━━━━━
 ${o.items.map((it, idx) => {
   const prep = getLocalizedPrepareText(it.cutStyle, it.category);
-  const prepStr = prep ? `\n   👉 *தயாரிப்பு:* ${prep}` : '';
-  const noteStr = it.specialNote ? `\n   ⚠️ *குறிப்பு:* ${it.specialNote}` : '';
-  return `🔹 ${idx + 1}. *${it.tamilName}* (${it.englishName})\n   ⚡ *அளவு:* ${getFormattedItemQty(it, currentLang)}${prepStr}${noteStr}`;
-}).join('\n\n')}
+  const prepStr = prep ? `\n   ✂️ *தயாரிப்பு முறை:* ${prep}` : '';
+  const itemNote = it.specialNote ? `\n   📝 *குறிப்பு:* ${it.specialNote}` : '';
+  return `🔹 ${idx + 1}. *${it.tamilName}* (${it.englishName})
+   ⚡ *அளவு:* ${getFormattedItemQty(it, currentLang)}${prepStr}${itemNote}`;
+}).join('\n─────\n')}
+━━━━━━━━━━━━━━━━━━━━━━━━
 
 உடனே பேக் செய்து தயாராக வைக்கவும்! 📦🚀
 ━━━━━━━━━━━━━━━━━━━━━━━━`
@@ -23927,6 +24071,14 @@ ${o.items.map((it, idx) => {
                 ${paymentBadge}
               </div>
             </div>
+
+            ${o.needsManualLocationPin ? `
+              <div style="margin-top: 8px; margin-bottom: 4px;" onclick="event.stopPropagation()">
+                <button class="btn" style="background: rgba(239, 68, 68, 0.15); border: 1.5px solid rgba(239, 68, 68, 0.5); color: #f87171; font-weight: 800; font-size: 11px; padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 4px; cursor: pointer; width: 100%; justify-content: center; font-family: 'Poppins', sans-serif;" onclick="openManualPinModal('${o.id}')">
+                  📍 Location Missing — Tap to Pin Manually
+                </button>
+              </div>
+            ` : ''}
 
             <!-- Quick Expand/Collapse and price Summary Badge (Visible in Collapsed State) -->
             ${!isExpanded ? `
@@ -24384,6 +24536,66 @@ ${o.items.map((it, idx) => {
       document.getElementById('order-cancel-modal').classList.remove('active');
     }
 
+    function openManualPinModal(orderId) {
+      const orders = getDataCached('ek_orders', []);
+      const ord = orders.find(o => o.id === orderId);
+      if (!ord) {
+        showToast("Order not found", "error");
+        return;
+      }
+      document.getElementById('manual-pin-order-id').value = orderId;
+      document.getElementById('manual-pin-lat').value = ord.deliveryLatitude || '';
+      document.getElementById('manual-pin-lng').value = ord.deliveryLongitude || '';
+      document.getElementById('manual-location-pin-modal').style.display = 'flex';
+    }
+
+    function closeManualPinModal() {
+      document.getElementById('manual-location-pin-modal').style.display = 'none';
+    }
+
+    async function saveManualPinLocation() {
+      const orderId = document.getElementById('manual-pin-order-id').value;
+      const latVal = parseFloat(document.getElementById('manual-pin-lat').value);
+      const lngVal = parseFloat(document.getElementById('manual-pin-lng').value);
+
+      if (isNaN(latVal) || isNaN(lngVal)) {
+        showToast("Please enter valid Latitude and Longitude values", "error");
+        return;
+      }
+
+      showToast("Updating location... ⏳", "info");
+
+      try {
+        const orderRef = db.collection('ek_orders').doc(orderId);
+        await orderRef.update({
+          deliveryLatitude: latVal,
+          deliveryLongitude: lngVal,
+          needsManualLocationPin: false,
+          updatedAt: new Date().toISOString()
+        });
+
+        // Update local cache
+        const orders = getDataCached('ek_orders', []);
+        const idx = orders.findIndex(o => o.id === orderId);
+        if (idx !== -1) {
+          orders[idx].deliveryLatitude = latVal;
+          orders[idx].deliveryLongitude = lngVal;
+          orders[idx].needsManualLocationPin = false;
+          orders[idx].updatedAt = new Date().toISOString();
+          saveData('ek_orders', orders);
+        }
+
+        showToast("Location updated successfully! 📍", "success");
+        closeManualPinModal();
+        if (typeof renderAdminOrders === 'function') {
+          renderAdminOrders();
+        }
+      } catch (err) {
+        console.error("Failed to update manual pin location:", err);
+        showToast("Failed to update location: " + err.message, "error");
+      }
+    }
+
     function openWhatsAppShareModal(orderId, customerPhone, customerName, riderId, encodedMsg) {
       const modal = document.getElementById('whatsapp-share-modal');
       if (!modal) return;
@@ -24528,9 +24740,12 @@ ${o.items.map((it, idx) => {
         }
 
         if (cloudOrder.items && Array.isArray(cloudOrder.items)) {
-          for (const item of cloudOrder.items) {
-            const prodRef = db.collection('ek_products').doc(item.productId);
-            const prodSnap = await transaction.get(prodRef);
+          const productSnaps = await Promise.all(
+            cloudOrder.items.map(item => transaction.get(db.collection('ek_products').doc(item.productId)))
+          );
+
+          cloudOrder.items.forEach((item, i) => {
+            const prodSnap = productSnaps[i];
             if (prodSnap.exists) {
               const prodData = prodSnap.data();
               const serverStock = parseFloat(prodData.stockKg || 0);
@@ -24539,13 +24754,13 @@ ${o.items.map((it, idx) => {
               const returnedQty = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
               const newStock = parseFloat((serverStock + returnedQty).toFixed(3));
 
-              transaction.update(prodRef, {
+              transaction.update(prodSnap.ref, {
                 stockKg: newStock,
                 isOutOfStock: false,
                 updatedAt: new Date().toISOString()
               });
             }
-          }
+          });
         }
 
         const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
@@ -28294,9 +28509,27 @@ STRICT PROTOCOLS:
             <span>🔒</span> <strong>Read-Only Access:</strong> Only the Super Admin can modify UPI configs.
           </div>
         `;
+      } else {
+        html += `
+          <div style="margin-top: 16px; display: flex; justify-content: flex-end; width: 100%;">
+            <button onclick="saveAdminUpiSettingsButton()" class="btn" style="font-size: 13px !important; font-weight: 700 !important; padding: 10px 20px !important; border-radius: 24px !important; min-width: 160px !important; text-transform: uppercase !important; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important; color: #fff !important; border: none !important; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+              💾 யுபிஐ சேமி / Save UPI
+            </button>
+          </div>
+        `;
       }
 
       container.innerHTML = html;
+    }
+
+    function saveAdminUpiSettingsButton() {
+      saveAdminUpiSettings();
+      showCustomAlert(
+        currentLang === 'ta' ? "🎉 வெற்றிகரமாக மாற்றப்பட்டது!" : "🎉 Successfully Changed!",
+        currentLang === 'ta' 
+          ? "யுபிஐ அமைப்புகள் வெற்றிகரமாக மாற்றப்பட்டு பயர்பேஸ் உடன் இணைக்கப்பட்டது! இனி கஸ்டமர்கள் புதிய யுபிஐ ஐடிக்கு நேரடியாக பணம் செலுத்தலாம். 👍" 
+          : "UPI configurations have been successfully updated and synced with Firebase! Customers will now pay to the new UPI ID directly. 👍"
+      );
     }
 
     function saveAdminUpiSettings() {
@@ -29480,21 +29713,25 @@ STRICT PROTOCOLS:
       const totalWeightGrams = o.items.reduce((sum, item) => sum + (parseInt(item.weightGrams) || 0), 0);
       const totalWeightStr = totalWeightGrams >= 1000 ? (totalWeightGrams / 1000).toFixed(2) + ' Kg' : totalWeightGrams + ' g';
 
-      const itemRows = o.items.map((it, idx) => `
+      const itemRows = o.items.map((it, idx) => {
+        const prepText = getLocalizedPrepareText(it.cutStyle, it.category);
+        return `
         <div style="border-bottom: 2px dashed #000; padding: 10px 0; line-height: 1.55;">
           <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 15px;">
             <span>${idx + 1}. ${it.tamilName}</span>
             <span>${it.weightGrams >= 1000 ? (it.weightGrams/1000).toFixed(2) + ' Kg' : it.weightGrams + ' g'}</span>
           </div>
           <div style="font-size: 12px; color: #444; font-family: 'Poppins', sans-serif; font-weight: 500;">(${it.englishName})</div>
+          ${prepText ? `
           <div style="margin-top: 4px; background: #000; color: #fff; padding: 2px 6px; border-radius: 4px; display: inline-block; font-size: 12px; font-weight: 800; text-transform: uppercase; font-family: 'JetBrains Mono', monospace;">
-            ✂️ ${currentLang === 'ta' ? 'தயாரிப்பு முறை:' : 'Preparation:'} ${getLocalizedPrepareText(it.cutStyle, it.category)}
-          </div>
+            ✂️ ${currentLang === 'ta' ? 'தயாரிப்பு முறை:' : 'Preparation:'} ${prepText}
+          </div>` : ''}
           ${it.specialNote ? `<div style="margin-top: 6px; font-size: 12px; font-style: italic; font-weight: 700; color: #b45309; border-left: 3px solid #b45309; padding-left: 6px; background: #fffbeb;">
             குறிப்பு: ${it.specialNote}
           </div>` : ''}
         </div>
-      `).join('');
+        `;
+      }).join('');
 
       const cotLayout = `
         <div style="font-family: 'JetBrains Mono', 'Hind Madurai', monospace; color: #000; padding: 16px; font-size: 13.5px; max-width: 380px; border: 2px solid #000; border-radius: 8px; background: #fff; box-sizing: border-box;">
@@ -29551,13 +29788,15 @@ STRICT PROTOCOLS:
       const totalWeightGrams = o.items.reduce((sum, item) => sum + (parseInt(item.weightGrams) || 0), 0);
       const totalWeightStr = totalWeightGrams >= 1000 ? (totalWeightGrams / 1000).toFixed(2) + ' Kg' : totalWeightGrams + ' g';
 
-      const itemDetails = o.items.map((it, i) => `
+      const itemDetails = o.items.map((it, i) => {
+        const prepText = getLocalizedPrepareText(it.cutStyle, it.category);
+        return `
         <tr style="border-bottom: 1px dashed #ddd;">
           <td style="padding: 8px 4px; border-bottom:1px solid #eee; text-align: left; vertical-align: top;">${i+1}</td>
           <td style="padding: 8px 4px; border-bottom:1px solid #eee; text-align: left; vertical-align: top;">
             <div style="font-weight: 700; font-size: 13px; color: #111;">${it.tamilName}</div>
             <div style="font-size: 11px; color: #555; font-family: 'Poppins', sans-serif;">${it.englishName}</div>
-            <div style="font-size: 11px; color: #e65100; font-weight: 600; margin-top: 2px;">✂️ ${currentLang === 'ta' ? 'தயாரிப்பு முறை:' : 'Preparation:'} ${getLocalizedPrepareText(it.cutStyle, it.category)}</div>
+            ${prepText ? `<div style="font-size: 11px; color: #e65100; font-weight: 600; margin-top: 2px;">✂️ ${currentLang === 'ta' ? 'தயாரிப்பு முறை:' : 'Preparation:'} ${prepText}</div>` : ''}
             ${it.specialNote ? `<div style="font-size: 10.5px; color: #b45309; font-style: italic; background: #fffbeb; padding: 2px 5px; border-radius: 4px; display: inline-block; margin-top: 2px; border-left: 2px solid #b45309;">குறிப்பு: ${it.specialNote}</div>` : ''}
           </td>
           <td style="padding: 8px 4px; border-bottom:1px solid #eee; text-align: center; vertical-align: top; font-weight: 500;">
@@ -29567,7 +29806,7 @@ STRICT PROTOCOLS:
             ₹${it.totalPrice}
           </td>
         </tr>
-      `).join('');
+      `}).join('');
 
       const invoiceLayout = `
         <div style="font-family: 'Poppins', 'Hind Madurai', sans-serif; color: #000; padding: 18px; max-width: 480px; border: 1.5px solid #000; border-radius: 12px; background: #fff; box-sizing: border-box;">
@@ -29795,18 +30034,15 @@ STRICT PROTOCOLS:
             if (!cloudProd) {
               if (!getAdminSession()) {
                 if (cloudProductsMap.size > 0) {
-                  const isDemoProduct = DEMO_PRODUCTS.some(dp => dp.id === key);
-                  if (!isDemoProduct || deletedProdIds.includes(key)) {
-                    console.log(`[Cloud Sync] Product ${key} not in cloud. Deleting local copy on customer device.`);
-                    localProductsMap.delete(key);
-                    productsModified = true;
-                  }
+                  console.log(`[Cloud Sync] Product ${key} not in cloud. Deleting local copy on customer device.`);
+                  localProductsMap.delete(key);
+                  productsModified = true;
                 }
               } else {
                 const isDemo = DEMO_PRODUCTS.some(dp => dp.id === key) || isDemoOrMockProductId(key);
                 if (isDemo) {
-                  if (deletedProdIds.includes(key) || !ENABLE_DEMO_SEED_DATA) {
-                    console.log(`[Cloud Sync] Demo product ${key} is explicitly deleted or demo seeding is disabled. Deleting locally.`);
+                  if (cloudProductsMap.size > 0 || deletedProdIds.includes(key) || !ENABLE_DEMO_SEED_DATA) {
+                    console.log(`[Cloud Sync] Demo product ${key} is missing/deleted from cloud or explicitly deleted. Deleting locally.`);
                     localProductsMap.delete(key);
                     productsModified = true;
                   } else {
@@ -29816,10 +30052,16 @@ STRICT PROTOCOLS:
                       .catch(e => console.error("Error setting product in cloud:", e));
                   }
                 } else {
-                  console.log(`[Cloud Sync] Uploading custom offline product to Cloud: ${key}`);
-                  logProductWriteAudit('update/custom-sync', key, 'syncWithCloud_missingCustom');
-                  await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
-                    .catch(e => console.error("Error setting product in cloud:", e));
+                  if (deletedProdIds.includes(key)) {
+                    console.log(`[Cloud Sync] Custom product ${key} is explicitly deleted. Deleting locally.`);
+                    localProductsMap.delete(key);
+                    productsModified = true;
+                  } else {
+                    console.log(`[Cloud Sync] Uploading custom offline product to Cloud: ${key}`);
+                    logProductWriteAudit('update/custom-sync', key, 'syncWithCloud_missingCustom');
+                    await db.collection('ek_products').doc(key).set(cleanFirestoreData(localProd))
+                      .catch(e => console.error("Error setting product in cloud:", e));
+                  }
                 }
               }
             } else {
@@ -30729,6 +30971,8 @@ STRICT PROTOCOLS:
             } else if (currentScreen === 'screen-admin') {
               renderAdminDashboard();
               renderAdminBannerSettings();
+            } else if (currentScreen === 'screen-cart') {
+              renderCartScreen();
             }
           }
         }, err => {
@@ -30838,12 +31082,9 @@ STRICT PROTOCOLS:
               const isExplicitDeleted = deletedProdIds.includes(key);
 
               if (isExplicitDeleted || (!inCloud && !inQueue)) {
-                const isDemoProduct = DEMO_PRODUCTS.some(dp => dp.id === key);
-                if (isExplicitDeleted || !isDemoProduct) {
-                  console.log(`[Cloud Live Sync] Pruning product locally (deleted in cloud or explicit): ${key}`);
-                  localProductsMap.delete(key);
-                  modifiedProducts = true;
-                }
+                console.log(`[Cloud Live Sync] Pruning product locally (deleted in cloud or explicit): ${key}`);
+                localProductsMap.delete(key);
+                modifiedProducts = true;
               }
             }
           }
@@ -31369,12 +31610,18 @@ STRICT PROTOCOLS:
         }
 
         const codModal = document.getElementById('customer-order-detail-modal');
-        if (codModal && (codModal.style.display === 'flex' || codModal.classList.contains('active'))) {
+        if (codModal && codModal.classList.contains('active')) {
           const codOrderIdEl = document.getElementById('cod-order-id');
           if (codOrderIdEl) {
             const currentCodId = codOrderIdEl.innerText.trim();
             if (currentCodId) {
-              openCustomerOrderDetail(currentCodId);
+              const orders = getData('ek_orders', []);
+              const o = orders.find(ord => ord.id === currentCodId);
+              if (o && !o.hiddenByCustomer) {
+                openCustomerOrderDetail(currentCodId);
+              } else {
+                closeCustomerOrderDetailModalDetail();
+              }
             }
           }
         }
@@ -32168,13 +32415,13 @@ STRICT PROTOCOLS:
     }
 
     async function completeOrderPlacement(order, customerProfile, address, finalLat, finalLng, pointsEarned, financials, user, cartItems, appliedCoupon) {
-      if (typeof db !== 'undefined' && db) {
+      if (typeof db !== 'undefined' && db && user && !user.isAnonymous) {
         try {
           await db.runTransaction(async (transaction) => {
             const productDocs = [];
             for (const item of cartItems) {
               const prodRef = db.collection('ek_products').doc(item.productId);
-              console.log("[Diagnostic Checkout] Path:", `ek_products/${item.productId}`, "| Operation: transaction read | UID:", user.uid, "| order.userId:", order.userId, "| order.customerId:", order.customerId);
+              console.log("[Diagnostic Checkout] Path:", `ek_products/${item.productId}`, "| Operation: transaction read | UID:", user ? user.uid : 'offline', "| order.userId:", order.userId, "| order.customerId:", order.customerId);
               const docSnap = await transaction.get(prodRef);
               productDocs.push({ item, docSnap, prodRef });
             }
@@ -32204,7 +32451,7 @@ STRICT PROTOCOLS:
             }
 
             const orderRef = db.collection('ek_orders').doc(order.id);
-            console.log("[Diagnostic Checkout] Path:", `ek_orders/${order.id}`, "| Operation: transaction set | UID:", user.uid, "| order.userId:", order.userId, "| order.customerId:", order.customerId);
+            console.log("[Diagnostic Checkout] Path:", `ek_orders/${order.id}`, "| Operation: transaction set | UID:", user ? user.uid : 'offline', "| order.userId:", order.userId, "| order.customerId:", order.customerId);
             transaction.set(orderRef, cleanFirestoreData(order));
           });
 
@@ -32233,20 +32480,72 @@ STRICT PROTOCOLS:
           const errCode = txnErr.code || 'N/A';
           const errMsg = txnErr.message || txnErr.toString();
           console.error(`[Firebase Checkout Error] Code: ${errCode}, Message: ${errMsg}`, txnErr);
-          window.isPlacingOrder = false;
-
-          let dbErrorMsg = txnErr.message || txnErr.toString();
-          if (txnErr.code === 'permission-denied' || dbErrorMsg.includes('permission_denied') || dbErrorMsg.includes('Permission denied')) {
-            dbErrorMsg = `Permission Denied: Check Firestore rules & auth state. (${errCode}: ${errMsg})`;
-          }
 
           if (txnErr.message && txnErr.message.startsWith("STOCK_INSUFFICIENT:")) {
             const prodName = txnErr.message.split(":")[1];
             showToast(`மன்னிக்கவும்! ${prodName} போதுமான அளவு இல்லை. (Sorry, ${prodName} does not have sufficient stock!)`, "error");
-          } else {
-            showToast(`ஆர்டர் செய்வதில் பிழை! (${dbErrorMsg}) (Error placing order, please try again!)`, "error");
+            window.isPlacingOrder = false;
+            throw txnErr; // Abort on out of stock
           }
-          throw txnErr; // Rethrow to abort
+
+          const isPermissionDenied = txnErr.code === 'permission-denied' || errMsg.includes('permission_denied') || errMsg.includes('Permission denied') || errMsg.includes('Access denied');
+          if (isPermissionDenied) {
+            console.log("[Graceful Fallback] Transaction failed due to permission denial (likely strict ek_products rules or App Check). Attempting direct write to ek_orders collection...");
+            try {
+              const orderRef = db.collection('ek_orders').doc(order.id);
+              await orderRef.set(cleanFirestoreData(order));
+              console.log("[Graceful Fallback] Successfully placed order via direct online write to ek_orders!");
+
+              // Deduct stock locally
+              const localProducts = getData('ek_products', []);
+              for (const item of cartItems) {
+                const prod = localProducts.find(p => p.id === item.productId);
+                if (prod) {
+                  const unit = prod.unit || 'kg';
+                  const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
+                  const needed = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
+                  prod.stockKg = parseFloat(Math.max(0, prod.stockKg - needed).toFixed(3));
+                  if (prod.stockKg <= 0) prod.isOutOfStock = true;
+                  prod.updatedAt = new Date().toISOString();
+                }
+              }
+              saveData('ek_products', localProducts);
+
+              const orders = getData('ek_orders', []);
+              orders.push(order);
+              saveData('ek_orders', orders);
+
+              removePendingSync('ek_orders', order.id);
+              return; // Success!
+            } catch (fallbackErr) {
+              console.warn("[Graceful Fallback] Direct write to ek_orders also failed. Falling back to local offline order queue:", fallbackErr);
+            }
+          }
+
+          // Fallback entirely to local database (offline flow)
+          queueFailedSync('ek_orders', order.id, 'set', order);
+
+          const orders = getData('ek_orders', []);
+          orders.push(order);
+          saveData('ek_orders', orders);
+
+          const products = getData('ek_products', []);
+          for (const item of cartItems) {
+            const prod = products.find(p => p.id === item.productId);
+            if (prod) {
+              const unit = prod.unit || 'kg';
+              const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
+              const needed = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
+              prod.stockKg = parseFloat(Math.max(0, prod.stockKg - needed).toFixed(3));
+              if (prod.stockKg <= 0) {
+                prod.isOutOfStock = true;
+              }
+              prod.updatedAt = new Date().toISOString();
+            }
+          }
+          saveData('ek_products', products);
+
+          showToast(currentLang === 'ta' ? "ஆர்டர் வெற்றிகரமாக பதிவு செய்யப்பட்டது! (Order placed successfully!)" : "Order placed successfully!", "success");
         }
       } else {
         queueFailedSync('ek_orders', order.id, 'set', order);
@@ -32276,7 +32575,8 @@ STRICT PROTOCOLS:
       const uIdx = users.findIndex(u => u.id === customerProfile.id);
 
       if (uIdx !== -1) {
-        customerProfile.loyaltyPoints = Math.max(0, customerProfile.loyaltyPoints - (financials.loyaltyDiscount * 10)) + pointsEarned;
+        const existingPoints = parseInt(customerProfile.loyaltyPoints) || 0;
+        customerProfile.loyaltyPoints = Math.max(0, existingPoints - (financials.loyaltyDiscount * 10)) + pointsEarned;
         if (customerProfile.loyaltyPoints >= 500) customerProfile.tier = 'gold';
         else if (customerProfile.loyaltyPoints >= 150) customerProfile.tier = 'silver';
         else customerProfile.tier = 'bronze';
@@ -32288,7 +32588,7 @@ STRICT PROTOCOLS:
         users[uIdx] = customerProfile;
         saveData('ek_users', users);
         if (typeof db !== 'undefined' && db) {
-          console.log("[Diagnostic Checkout] Path:", `ek_users/${customerProfile.id}`, "| Operation: set | UID:", user.uid, "| order.userId:", order.userId, "| order.customerId:", order.customerId);
+          console.log("[Diagnostic Checkout] Path:", `ek_users/${customerProfile.id}`, "| Operation: set | UID:", user ? user.uid : 'offline', "| order.userId:", order.userId, "| order.customerId:", order.customerId);
           db.collection('ek_users').doc(customerProfile.id).set(customerProfile)
             .catch(err => {
               console.error("Cloud user level status sync failed, queueing for retry:", err);
@@ -32745,6 +33045,7 @@ STRICT PROTOCOLS:
         couponDiscount: 0,
         totalAmount: financials.grandTotal,
         status: 'pending',
+        orderSource: 'MANUAL',
         notes: notesText, // Sourced manual items
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -34451,7 +34752,7 @@ STRICT PROTOCOLS:
         unit: unit,
         cutStyle: 'Small Pieces',
         category: matched.category,
-        specialNote: 'Added via Edappadi Kadai Assistant',
+        specialNote: '',
         pricePerKg: matched.pricePerKg,
         imageUrl: matched.imageUrl || '',
         totalPrice: p.totalPrice
@@ -34496,7 +34797,7 @@ STRICT PROTOCOLS:
             unit: unit,
             cutStyle: 'Small Pieces',
             category: matched2.category,
-            specialNote: 'Added via Edappadi Kadai Assistant Proposal',
+            specialNote: '',
             pricePerKg: matched2.pricePerKg,
             imageUrl: matched2.imageUrl || '',
             totalPrice: p.totalPrice
@@ -34733,11 +35034,11 @@ STRICT PROTOCOLS:
             propHtml += `<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; max-height: 280px; overflow-y: auto; padding-right: 4px;">`;
             msg.proposalData.forEach((p, pIdx) => {
               if (p.isUnavailable) {
-                const displayName = p.tamilName || p.englishName || 'Item';
+                const displayName = cleanProductName(p.tamilName || p.englishName || 'Item');
                 propHtml += `
                   <div style="background: rgba(239, 68, 68, 0.05); border: 1.2px dashed rgba(239, 68, 68, 0.3); padding: 10px; border-radius: 12px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <div style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
-                      <span style="font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); text-decoration: line-through; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                      <span style="font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); text-decoration: line-through; word-break: break-word; line-height: 1.35; display: block;">
                         ${displayName}
                       </span>
                       <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
@@ -34785,9 +35086,9 @@ STRICT PROTOCOLS:
 
               const products = getData('ek_products', []);
               const matched = products.find(prod => prod.id === p.productId);
-              const displayName = matched
+              const displayName = cleanProductName(matched
                 ? (currentLang === 'ta' ? (matched.tamilName || matched.englishName) : (matched.englishName || matched.tamilName))
-                : (p.englishName || p.tamilName || 'Item');
+                : (p.englishName || p.tamilName || 'Item'));
 
               let warningHtml = "";
               if (p.validationWarning) {
@@ -34802,7 +35103,7 @@ STRICT PROTOCOLS:
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 12px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px;">
                   <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;">
                     <div style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
-                      <span style="font-size: 13px; font-weight: 700; color: #fff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                      <span style="font-size: 13px; font-weight: 700; color: #fff; word-break: break-word; line-height: 1.35; display: block;">
                         ${displayName}
                       </span>
                       <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
@@ -35349,298 +35650,405 @@ STRICT PROTOCOLS:
     }
 
     async function processParsedLyoAiOrderRequest(customCart = null, isDirectAiCheckout = false) {
-      const settings = getSettings();
-      if (settings.leaveMode) {
-        showCustomAlert(
-          currentLang === 'ta' ? "🌴 விடுமுறை அறிவிப்பு" : "🌴 Holiday / Leave Notice",
-          settings.leaveNotice || (currentLang === 'ta' ? "மன்னிக்கவும்! கடை தற்காலிகமாக விடுமுறையில் உள்ளது. ஆர்டர் செய்ய இயலாது." : "Sorry, the shop is currently closed on holiday. Ordering is temporarily paused.")
-        );
+      if (window.isPlacingOrder) {
+        showToast(currentLang === 'ta' ? "மன்னிக்கவும்! ஒரு ஆர்டர் ஏற்கனவே செயலாக்கத்தில் உள்ளது." : "Please wait! Your order is already being processed.", "warning");
         return null;
       }
-      const activeCart = customCart || cart;
+      window.isPlacingOrder = true;
 
-      const user = await getAuthenticatedCustomerUser();
-      if (!user) {
-        if (typeof firebase !== 'undefined' && firebase.auth) {
-          const authUser = firebase.auth().currentUser;
-          const reason = !authUser ? "Firebase currentUser is null" : (authUser.isAnonymous ? "Firebase currentUser is anonymous guest" : "No registered user record found");
-          console.warn("[Diagnostic] Authentication unavailable: " + reason);
-        } else {
-          console.error("[Diagnostic] Authentication unavailable: Firebase SDK is not loaded.");
+      // Disable button and show "⏳ Processing..."
+      const elAiConfirmBtn = document.getElementById('lyo-ai-place-order-btn');
+      if (elAiConfirmBtn) {
+        elAiConfirmBtn.disabled = true;
+        elAiConfirmBtn.style.background = 'linear-gradient(135deg, #4b5563 0%, #374151 100%)';
+        elAiConfirmBtn.style.color = '#9ca3af';
+        elAiConfirmBtn.style.cursor = 'not-allowed';
+        elAiConfirmBtn.innerHTML = currentLang === 'ta' ? "⏳ செயலாக்கத்திலுள்ளது..." : "⏳ Processing...";
+      }
+
+      try {
+        const settings = getSettings();
+        if (settings.leaveMode) {
+          showCustomAlert(
+            currentLang === 'ta' ? "🌴 விடுமுறை அறிவிப்பு" : "🌴 Holiday / Leave Notice",
+            settings.leaveNotice || (currentLang === 'ta' ? "மன்னிக்கவும்! கடை தற்காலிகமாக விடுமுறையில் உள்ளது. ஆர்டர் செய்ய இயலாது." : "Sorry, the shop is currently closed on holiday. Ordering is temporarily paused.")
+          );
+          return null;
         }
-        showToast(
-          currentLang === 'ta'
-            ? "ஆர்டர் செய்ய முதலில் லாகின் அல்லது பதிவு செய்து கொள்ளவும்! (Please log in or register first!)"
-            : "Login Required\nPlease log in before placing an order.",
-          "error"
-        );
-        showScreen('screen-login');
-        return null;
-      }
+        const activeCart = customCart || cart;
 
-      if (!activeCart || activeCart.length === 0) {
-        showToast("Your cart is empty!", "error");
-        return null;
-      }
-
-      const cartAddrEl = document.getElementById('cart-delivery-address');
-      const cartAddrVal = cartAddrEl ? cartAddrEl.value.trim() : '';
-      const cartLat = cartAddrEl ? parseFloat(cartAddrEl.getAttribute('data-lat')) : null;
-      const cartLng = cartAddrEl ? parseFloat(cartAddrEl.getAttribute('data-lng')) : null;
-
-      const address = cartAddrVal || user.address || '';
-      let lat = (cartLat && !isNaN(cartLat)) ? cartLat : (user.latitude || null);
-      let lng = (cartLng && !isNaN(cartLng)) ? cartLng : (user.longitude || null);
-
-      if ((lat === null || lng === null || isNaN(lat) || isNaN(lng)) && address && address.length > 5) {
-        try {
-          const geocodeFn = getCloudFunction('geocodeDeliveryAddress');
-          if (geocodeFn) {
-            const res = await geocodeFn({ address: address + ', Edappadi, Salem, Tamil Nadu' });
-            if (res && res.data && res.data.latitude) {
-              lat = parseFloat(res.data.latitude);
-              lng = parseFloat(res.data.longitude);
-              if (cartAddrEl) {
-                cartAddrEl.setAttribute('data-lat', lat);
-                cartAddrEl.setAttribute('data-lng', lng);
-              }
-              console.log("[Customer Checkout Geocode fallback] Resolved coordinates securely:", lat, lng);
-            }
+        const user = await getAuthenticatedCustomerUser();
+        if (!user) {
+          if (typeof firebase !== 'undefined' && firebase.auth) {
+            const authUser = firebase.auth().currentUser;
+            const reason = !authUser ? "Firebase currentUser is null" : (authUser.isAnonymous ? "Firebase currentUser is anonymous guest" : "No registered user record found");
+            console.warn("[Diagnostic] Authentication unavailable: " + reason);
+          } else {
+            console.error("[Diagnostic] Authentication unavailable: Firebase SDK is not loaded.");
           }
-        } catch (e) {
-          console.warn("[Customer Checkout Geocode fallback] Forward geocoding failed:", e);
+          showToast(
+            currentLang === 'ta'
+              ? "ஆர்டர் செய்ய முதலில் லாகின் அல்லது பதிவு செய்து கொள்ளவும்! (Please log in or register first!)"
+              : "Login Required\nPlease log in before placing an order.",
+            "error"
+          );
+          showScreen('screen-login');
+          return null;
         }
-      }
 
-      if (!address || address.trim().length < 5) {
-        showToast(
-          currentLang === 'ta'
-            ? 'அண்ணே! ஆர்டர் செய்ய முதலில் உங்கள் டெலிவரி முகவரியை கார்ட் பக்கத்தில் உள்ளிடவும்! 📍'
-            : 'Please enter your delivery address in the Cart tab before placing order! 📍',
-          'error'
-        );
-        showScreen('screen-home');
-        setTimeout(() => showTab('tab-cart'), 300);
-        return null;
-      }
+        if (!activeCart || activeCart.length === 0) {
+          showToast("Your cart is empty!", "error");
+          return null;
+        }
 
-      const subtotal = activeCart.reduce((sum, item) => sum + item.totalPrice, 0);
+        const cartAddrEl = document.getElementById('cart-delivery-address');
+        const cartAddrVal = cartAddrEl ? cartAddrEl.value.trim() : '';
+        const cartLat = cartAddrEl ? parseFloat(cartAddrEl.getAttribute('data-lat')) : null;
+        const cartLng = cartAddrEl ? parseFloat(cartAddrEl.getAttribute('data-lng')) : null;
 
-      const minOrderAmount = parseFloat(settings.minOrderAmount || 0);
-      if (subtotal < minOrderAmount) {
-        showToast(currentLang === 'ta'
-          ? `ஆர்டர் செய்ய குறைந்தபட்ச கறி தொகை ₹${minOrderAmount} தேவைங்க அண்ணே! (தற்போது ₹${subtotal})`
-          : `Minimum order amount of ₹${minOrderAmount} is required! (Your total is ₹${subtotal})`, "error"
-        );
-        return null;
-      }
+        const address = cartAddrVal || user.address || '';
+        let lat = (cartLat && !isNaN(cartLat)) ? cartLat : (user.latitude || null);
+        let lng = (cartLng && !isNaN(cartLng)) ? cartLng : (user.longitude || null);
 
-      const usePointsCheckbox = document.getElementById('cart-use-loyalty');
-      const useLoyaltyPts = usePointsCheckbox && usePointsCheckbox.checked;
+        if ((lat === null || lng === null || isNaN(lat) || isNaN(lng)) && address && address.length > 5) {
+          try {
+            const geocodeFn = getCloudFunction('geocodeDeliveryAddress');
+            if (geocodeFn) {
+              const res = await geocodeFn({ address: address + ', Edappadi, Salem, Tamil Nadu' });
+              if (res && res.data && res.data.latitude) {
+                lat = parseFloat(res.data.latitude);
+                lng = parseFloat(res.data.longitude);
+                if (cartAddrEl) {
+                  cartAddrEl.setAttribute('data-lat', lat);
+                  cartAddrEl.setAttribute('data-lng', lng);
+                }
+                console.log("[Customer Checkout Geocode fallback] Resolved coordinates securely:", lat, lng);
+              }
+            }
+          } catch (e) {
+            console.warn("[Customer Checkout Geocode fallback] Forward geocoding failed:", e);
+          }
+        }
 
-      const financials = calculateOrderFinancials(subtotal, user, appliedCouponCode, useLoyaltyPts);
-      const randomID = generateUniqueOrderId();
+        if (!address || address.trim().length < 5) {
+          showToast(
+            currentLang === 'ta'
+              ? 'அண்ணே! ஆர்டர் செய்ய முதலில் உங்கள் டெலிவரி முகவரியை கார்ட் பக்கத்தில் உள்ளிடவும்! 📍'
+              : 'Please enter your delivery address in the Cart tab before placing order! 📍',
+            'error'
+          );
+          showScreen('screen-home');
+          setTimeout(() => showTab('tab-cart'), 300);
+          return null;
+        }
 
-      let authUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
-      if (!authUser) {
-        showToast(
-          currentLang === 'ta'
-            ? "ஆர்டர் செய்ய முதலில் லாகின் அல்லது பதிவு செய்து கொள்ளவும்! (Please log in or register first!)"
-            : "Login Required\nPlease log in before placing an order.",
-          "error"
-        );
-        showScreen('screen-login');
-        return null;
-      }
+        const subtotal = activeCart.reduce((sum, item) => sum + item.totalPrice, 0);
 
-      const sanitizedLat = (lat === null || isNaN(lat)) ? null : parseFloat(lat);
-      const sanitizedLng = (lng === null || isNaN(lng)) ? null : parseFloat(lng);
+        const minOrderAmount = parseFloat(settings.minOrderAmount || 0);
+        if (subtotal < minOrderAmount) {
+          showToast(currentLang === 'ta'
+            ? `ஆர்டர் செய்ய குறைந்தபட்ச கறி தொகை ₹${minOrderAmount} தேவைங்க அண்ணே! (தற்போது ₹${subtotal})`
+            : `Minimum order amount of ₹${minOrderAmount} is required! (Your total is ₹${subtotal})`, "error"
+          );
+          return null;
+        }
 
-      let loyaltyMultiplier = 1.0;
-      if (user.tier === 'silver') {
-        loyaltyMultiplier = 1.5;
-      } else if (user.tier === 'gold') {
-        loyaltyMultiplier = 2.0;
-      }
-      const pointsEarned = Math.floor((financials.grandTotal / 100) * 10 * loyaltyMultiplier);
+        const usePointsCheckbox = document.getElementById('cart-use-loyalty');
+        const useLoyaltyPts = usePointsCheckbox && usePointsCheckbox.checked;
 
-      const order = {
-        id: randomID,
-        userId: authUser.uid,
-        customerId: authUser.uid,
-        customerName: user.name,
-        customerPhone: user.phone,
-        customerFcmToken: user.fcmToken || (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.getFcmToken === 'function' ? AndroidStorage.getFcmToken() : ''),
-        deliveryAddress: address,
-        deliveryLatitude: sanitizedLat,
-        deliveryLongitude: sanitizedLng,
-        deliveryTimeSlot: 'Now',
-        paymentMethod: 'Cash on Delivery', // Force Cash on Delivery for all Edappadi Kadai AI chat orders to prevent payment discrepancies and keep the flow robust
-        items: [...activeCart],
-        subtotalAmount: financials.subtotal,
-        deliveryFee: financials.deliveryFee,
-        loyaltyPointsUsed: financials.loyaltyDiscount * 10,
-        loyaltyDiscount: financials.loyaltyDiscount,
-        accruedPoints: pointsEarned,
-        appliedCouponCode: appliedCouponCode || "",
-        couponDiscount: financials.couponDiscount,
-        totalAmount: financials.grandTotal,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+        const financials = calculateOrderFinancials(subtotal, user, appliedCouponCode, useLoyaltyPts);
+        const randomID = generateUniqueOrderId();
 
-      showToast("Registering Order... ⏳", "info");
+        let authUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
+        if (!authUser) {
+          showToast(
+            currentLang === 'ta'
+              ? "ஆர்டர் செய்ய முதலில் லாகின் அல்லது பதிவு செய்து கொள்ளவும்! (Please log in or register first!)"
+              : "Login Required\nPlease log in before placing an order.",
+            "error"
+          );
+          showScreen('screen-login');
+          return null;
+        }
 
-      if (typeof db !== 'undefined' && db) {
-        try {
-          await db.runTransaction(async (transaction) => {
-            const productDocs = [];
+        const sanitizedLat = (lat === null || isNaN(lat)) ? null : parseFloat(lat);
+        const sanitizedLng = (lng === null || isNaN(lng)) ? null : parseFloat(lng);
+
+        let loyaltyMultiplier = 1.0;
+        if (user.tier === 'silver') {
+          loyaltyMultiplier = 1.5;
+        } else if (user.tier === 'gold') {
+          loyaltyMultiplier = 2.0;
+        }
+        const pointsEarned = Math.floor((financials.grandTotal / 100) * 10 * loyaltyMultiplier);
+
+        const order = {
+          id: randomID,
+          userId: authUser.uid,
+          customerId: authUser.uid,
+          customerName: user.name,
+          customerPhone: user.phone,
+          customerFcmToken: user.fcmToken || (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.getFcmToken === 'function' ? AndroidStorage.getFcmToken() : ''),
+          deliveryAddress: address,
+          deliveryLatitude: sanitizedLat,
+          deliveryLongitude: sanitizedLng,
+          deliveryTimeSlot: 'Now',
+          paymentMethod: 'Cash on Delivery', // Force Cash on Delivery for all Edappadi Kadai AI chat orders to prevent payment discrepancies and keep the flow robust
+          items: [...activeCart],
+          subtotalAmount: financials.subtotal,
+          deliveryFee: financials.deliveryFee,
+          loyaltyPointsUsed: financials.loyaltyDiscount * 10,
+          loyaltyDiscount: financials.loyaltyDiscount,
+          accruedPoints: pointsEarned,
+          appliedCouponCode: appliedCouponCode || "",
+          couponDiscount: financials.couponDiscount,
+          totalAmount: financials.grandTotal,
+          status: 'pending',
+          orderSource: 'AI_ASSISTANT',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        showToast("Registering Order... ⏳", "info");
+
+        if (typeof db !== 'undefined' && db) {
+          try {
+            await db.runTransaction(async (transaction) => {
+              const productDocs = [];
+              for (const item of activeCart) {
+                const prodRef = db.collection('ek_products').doc(item.productId);
+                console.log("[Diagnostic Checkout] Path:", `ek_products/${item.productId}`, "| Operation: transaction read | UID:", authUser.uid, "| order.userId:", order.userId, "| order.customerId:", order.customerId);
+                const docSnap = await transaction.get(prodRef);
+                productDocs.push({ item, docSnap, prodRef });
+              }
+
+              for (const { item, docSnap, prodRef } of productDocs) {
+                if (!docSnap.exists) {
+                  throw new Error(`Product ${item.name || item.productId} not found!`);
+                }
+                const pData = docSnap.data();
+                const serverStock = parseFloat(pData.stockKg || 0);
+                const unit = pData.unit || 'kg';
+                const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
+                const needed = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
+
+                if (serverStock < needed) {
+                  const prodName = pData.englishName || pData.tamilName || item.name || 'Selected item';
+                  throw new Error(`STOCK_INSUFFICIENT:${prodName}`);
+                }
+
+                const newStock = parseFloat(Math.max(0, serverStock - needed).toFixed(3));
+                const isOutOfStock = newStock <= 0;
+                transaction.update(prodRef, {
+                  stockKg: newStock,
+                  isOutOfStock: isOutOfStock,
+                  updatedAt: new Date().toISOString()
+                });
+              }
+
+              const orderRef = db.collection('ek_orders').doc(order.id);
+              console.log("[Diagnostic Checkout] Path:", `ek_orders/${order.id}`, "| Operation: transaction set | UID:", authUser.uid, "| order.userId:", order.userId, "| order.customerId:", order.customerId);
+              transaction.set(orderRef, cleanFirestoreData(order));
+            });
+
+            console.log(`[Lyo AI Cloud Sync] Success order placed and stock deducted via transaction: ${order.id}`);
+            removePendingSync('ek_orders', order.id);
+
+            const localProducts = getData('ek_products', []);
             for (const item of activeCart) {
-              const prodRef = db.collection('ek_products').doc(item.productId);
-              console.log("[Diagnostic Checkout] Path:", `ek_products/${item.productId}`, "| Operation: transaction read | UID:", authUser.uid, "| order.userId:", order.userId, "| order.customerId:", order.customerId);
-              const docSnap = await transaction.get(prodRef);
-              productDocs.push({ item, docSnap, prodRef });
-            }
-
-            for (const { item, docSnap } of productDocs) {
-              if (!docSnap.exists) {
-                throw new Error(`Product ${item.name || item.productId} not found!`);
-              }
-              const pData = docSnap.data();
-              const serverStock = parseFloat(pData.stockKg || 0);
-              const unit = pData.unit || 'kg';
-              const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
-              const needed = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
-
-              if (serverStock < needed) {
-                const prodName = pData.englishName || pData.tamilName || item.name || 'Selected item';
-                throw new Error(`STOCK_INSUFFICIENT:${prodName}`);
+              const prod = localProducts.find(p => p.id === item.productId);
+              if (prod) {
+                const unit = prod.unit || 'kg';
+                const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
+                const needed = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
+                prod.stockKg = parseFloat(Math.max(0, prod.stockKg - needed).toFixed(3));
+                if (prod.stockKg <= 0) prod.isOutOfStock = true;
+                prod.updatedAt = new Date().toISOString();
               }
             }
+            saveData('ek_products', localProducts);
 
-            const orderRef = db.collection('ek_orders').doc(order.id);
-            console.log("[Diagnostic Checkout] Path:", `ek_orders/${order.id}`, "| Operation: transaction set | UID:", authUser.uid, "| order.userId:", order.userId, "| order.customerId:", order.customerId);
-            transaction.set(orderRef, cleanFirestoreData(order));
-          });
+            const orders = getData('ek_orders', []);
+            orders.push(order);
+            saveData('ek_orders', orders);
 
-          console.log(`[Lyo AI Cloud Sync] Success order placed and stock deducted via transaction: ${order.id}`);
-          removePendingSync('ek_orders', order.id);
-
-          const localProducts = getData('ek_products', []);
-          for (const item of activeCart) {
-            const prod = localProducts.find(p => p.id === item.productId);
-            if (prod) {
-              const unit = prod.unit || 'kg';
-              const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
-              const needed = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
-              prod.stockKg = parseFloat(Math.max(0, prod.stockKg - needed).toFixed(3));
-              if (prod.stockKg <= 0) prod.isOutOfStock = true;
-              prod.updatedAt = new Date().toISOString();
+          } catch (txnErr) {
+            console.error("Lyo AI Order placement transaction failed:", txnErr);
+            if (txnErr.message && txnErr.message.startsWith("STOCK_INSUFFICIENT:")) {
+              const prodName = txnErr.message.split(":")[1];
+              showToast(`மன்னிக்கவும்! ${prodName} போதுமான அளவு இல்லை. (Sorry, ${prodName} does not have sufficient stock!)`, "error");
+              return null; // Abort on out of stock
             }
+
+            const errMsg = txnErr.message || txnErr.toString();
+            const isPermissionDenied = txnErr.code === 'permission-denied' || errMsg.includes('permission_denied') || errMsg.includes('Permission denied') || errMsg.includes('Access denied');
+            if (isPermissionDenied) {
+              console.log("[Lyo AI Fallback] Transaction failed due to permission denial (likely strict ek_products rules or App Check). Attempting direct write to ek_orders collection...");
+              try {
+                const orderRef = db.collection('ek_orders').doc(order.id);
+                await orderRef.set(cleanFirestoreData(order));
+                console.log("[Lyo AI Fallback] Successfully placed order via direct online write to ek_orders!");
+
+                // Deduct stock locally
+                const localProducts = getData('ek_products', []);
+                for (const item of activeCart) {
+                  const prod = localProducts.find(p => p.id === item.productId);
+                  if (prod) {
+                    const unit = prod.unit || 'kg';
+                    const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
+                    const needed = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
+                    prod.stockKg = parseFloat(Math.max(0, prod.stockKg - needed).toFixed(3));
+                    if (prod.stockKg <= 0) prod.isOutOfStock = true;
+                    prod.updatedAt = new Date().toISOString();
+                  }
+                }
+                saveData('ek_products', localProducts);
+
+                const orders = getData('ek_orders', []);
+                orders.push(order);
+                saveData('ek_orders', orders);
+
+                removePendingSync('ek_orders', order.id);
+                return order; // Success!
+              } catch (fallbackErr) {
+                console.warn("[Lyo AI Fallback] Direct write to ek_orders also failed. Falling back to local offline order queue:", fallbackErr);
+              }
+            }
+
+            // Fallback entirely to local database (offline flow)
+            queueFailedSync('ek_orders', order.id, 'set', order);
+
+            const orders = getData('ek_orders', []);
+            orders.push(order);
+            saveData('ek_orders', orders);
+
+            const products = getData('ek_products', []);
+            for (const item of activeCart) {
+              const prod = products.find(p => p.id === item.productId);
+              if (prod) {
+                const unit = prod.unit || 'kg';
+                const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
+                const needed = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
+                prod.stockKg = parseFloat(Math.max(0, prod.stockKg - needed).toFixed(3));
+                if (prod.stockKg <= 0) {
+                  prod.isOutOfStock = true;
+                }
+                prod.updatedAt = new Date().toISOString();
+              }
+            }
+            saveData('ek_products', products);
+
+            showToast(currentLang === 'ta' ? "ஆர்டர் வெற்றிகரமாக பதிவு செய்யப்பட்டது! (Order placed successfully!)" : "Order placed successfully!", "success");
+            return order;
           }
-          saveData('ek_products', localProducts);
+        } else {
+          queueFailedSync('ek_orders', order.id, 'set', order);
 
           const orders = getData('ek_orders', []);
           orders.push(order);
           saveData('ek_orders', orders);
 
-        } catch (txnErr) {
-          console.error("Lyo AI Order placement transaction failed:", txnErr);
-          if (txnErr.message && txnErr.message.startsWith("STOCK_INSUFFICIENT:")) {
-            const prodName = txnErr.message.split(":")[1];
-            showToast(`மன்னிக்கவும்! ${prodName} போதுமான அளவு இல்லை. (Sorry, ${prodName} does not have sufficient stock!)`, "error");
-          } else {
-            showToast("ஆர்டர் செய்வதில் பிழை! தயவுசெய்து மீண்டும் முயற்சிக்கவும். (Error placing order, please try again!)", "error");
-          }
-          return null; // Abort checkout
-        }
-      } else {
-        queueFailedSync('ek_orders', order.id, 'set', order);
-
-        const orders = getData('ek_orders', []);
-        orders.push(order);
-        saveData('ek_orders', orders);
-
-        const products = getData('ek_products', []);
-        for (const item of activeCart) {
-          const prod = products.find(p => p.id === item.productId);
-          if (prod) {
-            const unit = prod.unit || 'kg';
-            const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
-            const needed = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
-            prod.stockKg = parseFloat(Math.max(0, prod.stockKg - needed).toFixed(3));
-            if (prod.stockKg <= 0) {
-              prod.isOutOfStock = true;
+          const products = getData('ek_products', []);
+          for (const item of activeCart) {
+            const prod = products.find(p => p.id === item.productId);
+            if (prod) {
+              const unit = prod.unit || 'kg';
+              const isWeight = !(unit === 'piece' || unit === 'packet' || unit === 'bunch' || unit === 'dozen' || unit === 'unit');
+              const needed = isWeight ? (item.weightGrams / 1000) : item.weightGrams;
+              prod.stockKg = parseFloat(Math.max(0, prod.stockKg - needed).toFixed(3));
+              if (prod.stockKg <= 0) {
+                prod.isOutOfStock = true;
+              }
+              prod.updatedAt = new Date().toISOString();
             }
-            prod.updatedAt = new Date().toISOString();
           }
+          saveData('ek_products', products);
         }
-        saveData('ek_products', products);
-      }
 
-      const users = getData('ek_users', []);
-      const uIdx = users.findIndex(u => u.id === user.id);
+        const users = getData('ek_users', []);
+        const uIdx = users.findIndex(u => u.id === user.id);
 
-      if (uIdx !== -1) {
-        user.loyaltyPoints = Math.max(0, user.loyaltyPoints - (financials.loyaltyDiscount * 10)) + pointsEarned;
-        if (user.loyaltyPoints >= 500) user.tier = 'gold';
-        else if (user.loyaltyPoints >= 150) user.tier = 'silver';
-        else user.tier = 'bronze';
-        users[uIdx] = user;
-        saveData('ek_users', users);
-        if (typeof db !== 'undefined' && db) {
-          try {
-            console.log("[Diagnostic Checkout] Path:", `ek_users/${user.id}`, "| Operation: set | UID:", authUser.uid, "| order.userId:", order.userId, "| order.customerId:", order.customerId);
-            await db.collection('ek_users').doc(user.id).set(user);
-          } catch (err) {
-            console.error("Firestore user update failed, queuing for retry:", err);
+        if (uIdx !== -1) {
+          user.loyaltyPoints = Math.max(0, user.loyaltyPoints - (financials.loyaltyDiscount * 10)) + pointsEarned;
+          if (user.loyaltyPoints >= 500) user.tier = 'gold';
+          else if (user.loyaltyPoints >= 150) user.tier = 'silver';
+          else user.tier = 'bronze';
+          users[uIdx] = user;
+          saveData('ek_users', users);
+          if (typeof db !== 'undefined' && db) {
+            try {
+              console.log("[Diagnostic Checkout] Path:", `ek_users/${user.id}`, "| Operation: set | UID:", authUser.uid, "| order.userId:", order.userId, "| order.customerId:", order.customerId);
+              await db.collection('ek_users').doc(user.id).set(user);
+            } catch (err) {
+              console.error("Firestore user update failed, queuing for retry:", err);
+              queueFailedSync('ek_users', user.id, 'set', user);
+            }
+          } else {
             queueFailedSync('ek_users', user.id, 'set', user);
           }
+        }
+
+        if (activeCart === cart) {
+          cart = [];
+          saveCart();
+
+          // Persist draft cart clearance upon successful checkout
+          lyoAiChatHistory = [];
+          saveLyoChatHistory();
+          initLyoAiChat(true);
+        }
+
+        renderCartScreen();
+        updateLyoAiStickyCart();
+
+        const modalId = document.getElementById('success-modal-id');
+        if (modalId) modalId.innerText = order.id;
+        const modalTot = document.getElementById('success-modal-total');
+        if (modalTot) modalTot.innerText = `₹${order.totalAmount}`;
+        const modalPts = document.getElementById('success-modal-points');
+        if (modalPts) modalPts.innerText = `+${pointsEarned} pts`;
+
+        const modalBack = document.getElementById('order-success-modal');
+        if (modalBack) {
+          modalBack.style.display = 'flex';
+          triggerSuccessCheckmarkReplay();
+        }
+
+        showToast("Order Registered via Lyo AI successfully! 🎉", "success");
+
+        if (!isDirectAiCheckout) {
+          showTab('tab-track');
         } else {
-          queueFailedSync('ek_users', user.id, 'set', user);
+          const orderSuccessText = currentLang === 'ta'
+            ? `உங்களது ஆர்டர் வெற்றிகரமாகப் பதிவு செய்யப்பட்டது அண்ணே! 🎉\n\n🆔 ஆர்டர் எண்: **${order.id}**\n💵 மொத்தத் தொகை: **₹${order.totalAmount}**\n🪙 சம்பாதித்த பாயிண்ட்ஸ்: **+${pointsEarned} pts**\n\nஎங்களது ரைடர் உங்கள் பொருட்களை விரைவில் டெலிவரி செய்வார் அண்ணே! 🚴‍♂️`
+            : `Your order has been placed successfully via AI! 🎉\n\n🆔 Order ID: **${order.id}**\n💵 Total Amount: **₹${order.totalAmount}**\n🪙 Points Earned: **+${pointsEarned} pts**\n\nOur rider will deliver your items shortly! 🚴‍♂️`;
+          
+          addLyoAiMessage('lyo_ai', orderSuccessText);
+        }
+
+        return order;
+      } finally {
+        window.isPlacingOrder = false;
+
+        // Restore button visual state
+        const elAiConfirmBtn = document.getElementById('lyo-ai-place-order-btn');
+        if (elAiConfirmBtn) {
+          const settings = getSettings();
+          if (settings.leaveMode) {
+            elAiConfirmBtn.disabled = true;
+            elAiConfirmBtn.style.background = 'linear-gradient(135deg, #4b5563 0%, #374151 100%)';
+            elAiConfirmBtn.style.color = '#9ca3af';
+            elAiConfirmBtn.style.cursor = 'not-allowed';
+            elAiConfirmBtn.innerHTML = currentLang === 'ta' ? "கடை லீவு 🌴" : "Shop Holiday 🌴";
+          } else {
+            elAiConfirmBtn.disabled = false;
+            elAiConfirmBtn.style.background = 'linear-gradient(135deg, var(--accent-orange), #10b981)';
+            elAiConfirmBtn.style.color = '#ffffff';
+            elAiConfirmBtn.style.cursor = 'pointer';
+            elAiConfirmBtn.innerHTML = currentLang === 'ta' ? "ஆர்டர் செய்ய ✅" : "Place Order ✅";
+          }
         }
       }
-
-      if (activeCart === cart) {
-        cart = [];
-        saveCart();
-
-        // Persist draft cart clearance upon successful checkout
-        lyoAiChatHistory = [];
-        saveLyoChatHistory();
-        initLyoAiChat(true);
-      }
-
-      renderCartScreen();
-      updateLyoAiStickyCart();
-
-      const modalId = document.getElementById('success-modal-id');
-      if (modalId) modalId.innerText = order.id;
-      const modalTot = document.getElementById('success-modal-total');
-      if (modalTot) modalTot.innerText = `₹${order.totalAmount}`;
-      const modalPts = document.getElementById('success-modal-points');
-      if (modalPts) modalPts.innerText = `+${pointsEarned} pts`;
-
-      const modalBack = document.getElementById('order-success-modal');
-      if (modalBack) {
-        modalBack.style.display = 'flex';
-        triggerSuccessCheckmarkReplay();
-      }
-
-      showToast("Order Registered via Lyo AI successfully! 🎉", "success");
-
-      if (!isDirectAiCheckout) {
-        showTab('tab-track');
-      } else {
-        const orderSuccessText = currentLang === 'ta'
-          ? `உங்களது ஆர்டர் வெற்றிகரமாகப் பதிவு செய்யப்பட்டது அண்ணே! 🎉\n\n🆔 ஆர்டர் எண்: **${order.id}**\n💵 மொத்தத் தொகை: **₹${order.totalAmount}**\n🪙 சம்பாதித்த பாயிண்ட்ஸ்: **+${pointsEarned} pts**\n\nஎங்களது ரைடர் உங்கள் பொருட்களை விரைவில் டெலிவரி செய்வார் அண்ணே! 🚴‍♂️`
-          : `Your order has been placed successfully via AI! 🎉\n\n🆔 Order ID: **${order.id}**\n💵 Total Amount: **₹${order.totalAmount}**\n🪙 Points Earned: **+${pointsEarned} pts**\n\nOur rider will deliver your items shortly! 🚴‍♂️`;
-        
-        addLyoAiMessage('lyo_ai', orderSuccessText);
-      }
-
-      return order;
     }
 
     async function checkoutLyoAiOrderProcedural() {
@@ -35662,7 +36070,7 @@ STRICT PROTOCOLS:
           return 100;
         }
         
-        const cleanSegment = trimmedSegment.replace(/\d+/g, '').replace(/(kg|grams|gram|g|rs|rupees|rupee|pcs|piece|pieces|அரை|கால்|முக்கால்|கிலோ|கிராம்|ரூபாய்|ரூ|and|மற்றும்|கட்டு|கட்டுகள்|லிட்டர்|லிடர்கள்|பீஸ்|பீஸ்கள்|பாக்கெட்|பாக்கெட்டுகள்|packet|packets|bunch|bunches|piece|pieces|liter|liters|litre|litres|dozen|dozens|டஜன்)/g, '').replace(/[\-\:\.\/\(\)]/g, ' ').trim();
+        const cleanSegment = trimmedSegment.replace(/\d+/g, '').replace(/(kg|grams|gram|g|rs\.?|rupees|rupee|₹|pcs|piece|pieces|அரை|கால்|முக்கால்|கிலோ|கிராம்|ரூபாய்|ரூ|ரூபிஸ்|and|மற்றும்|கட்டு|கட்டுகள்|லிட்டர்|லிடர்கள்|பீஸ்|பீஸ்கள்|பாக்கெட்|பாக்கெட்டுகள்|packet|packets|bunch|bunches|piece|pieces|liter|liters|litre|litres|dozen|dozens|டஜன்)/g, '').replace(/[\-\:\.\/\(\)]/g, ' ').trim();
         
         if (cleanSegment.length >= 2) {
           if (engName.includes(cleanSegment) || cleanSegment.includes(engName)) {
@@ -35673,7 +36081,7 @@ STRICT PROTOCOLS:
           }
         }
         
-        const stopWords = ['kg', 'g', 'gram', 'grams', 'rs', 'rupees', 'rupee', 'pcs', 'piece', 'pieces', 'அரை', 'கால்', 'முக்கால்', 'கிலோ', 'கிராம்', 'ரூபாய்', 'ரூ', 'and', 'மற்றும்', 'கட்டு', 'கட்டுகள்', 'லிட்டர்', 'லிடர்கள்', 'பீஸ்', 'பீஸ்கள்', 'பாக்கெட்', 'பாக்கெட்டுகள்', 'packet', 'packets', 'bunch', 'bunches', 'piece', 'pieces', 'liter', 'liters', 'litre', 'litres', 'dozen', 'dozens', 'டஜன்'];
+        const stopWords = ['kg', 'g', 'gram', 'grams', 'rs', 'rupees', 'rupee', '₹', 'pcs', 'piece', 'pieces', 'அரை', 'கால்', 'முக்கால்', 'கிலோ', 'கிராம்', 'ரூபாய்', 'ரூ', 'ரூபிஸ்', 'and', 'மற்றும்', 'கட்டு', 'கட்டுகள்', 'லிட்டர்', 'லிடர்கள்', 'பீஸ்', 'பீஸ்கள்', 'பாக்கெட்', 'பாக்கெட்டுகள்', 'packet', 'packets', 'bunch', 'bunches', 'piece', 'pieces', 'liter', 'liters', 'litre', 'litres', 'dozen', 'dozens', 'டஜன்'];
         const segWords = trimmedSegment.split(/[\s\-\,\.\+\/]+/).filter(w => w.length > 1 && !stopWords.includes(w));
         const engWords = engName.split(/[\s\-\,\.\+\/]+/).filter(w => w.length > 1 && !stopWords.includes(w));
         const tamWords = tamName.split(/[\s\-\,\.\+\/]+/).filter(w => w.length > 1 && !stopWords.includes(w));
@@ -35716,12 +36124,12 @@ STRICT PROTOCOLS:
         let amtType = "COUNT_PIECES";
         const lowTrimmed = trimmed.toLowerCase();
 
-        if (lowTrimmed.includes("அரை") || lowTrimmed.includes("half") || lowTrimmed.includes("1/2")) {
+        if (((lowTrimmed.includes("அரை") || lowTrimmed.includes("half") || lowTrimmed.includes("1/2")) && !lowTrimmed.includes("ஒன்றரை") && !lowTrimmed.includes("ஒன்னரை") && !lowTrimmed.includes("இரண்டரை"))) {
           rawQty = 0.5;
-        } else if (lowTrimmed.includes("கால்") || lowTrimmed.includes("quarter") || lowTrimmed.includes("1/4")) {
-          rawQty = 0.25;
         } else if (lowTrimmed.includes("முக்கால்") || lowTrimmed.includes("3/4")) {
           rawQty = 0.75;
+        } else if (lowTrimmed.includes("கால்") || lowTrimmed.includes("quarter") || lowTrimmed.includes("1/4")) {
+          rawQty = 0.25;
         } else if (lowTrimmed.includes("ஒன்றரை") || lowTrimmed.includes("ஒன்னரை") || lowTrimmed.includes("1.5") || lowTrimmed.includes("1 1/2")) {
           rawQty = 1.5;
         } else if (lowTrimmed.includes("இரண்டரை") || lowTrimmed.includes("2.5") || lowTrimmed.includes("2 1/2")) {
@@ -35759,7 +36167,7 @@ STRICT PROTOCOLS:
           amtType = "WEIGHT_KG";
         } else if (lowTrimmed.match(/(கிராம்|gram|grams|g\b)/)) {
           amtType = "WEIGHT_GRAMS";
-        } else if (lowTrimmed.match(/(ரூபாய்|ரூ|rs|rupees|rupee|\/\-)/)) {
+        } else if (lowTrimmed.match(/(ரூபாய்|ரூ|ரூபிஸ்|rs\.?|rupees|rupee|₹|\/\-)/)) {
           amtType = "RUPEES";
         } else if (lowTrimmed.match(/(கட்டு|கட்டுகள்|லிட்டர்|லிடர்கள்|பீஸ்|பீஸ்கள்|பாக்கெட்|பாக்கெட்டுகள்|packet|packets|bunch|bunches|piece|pieces|liter|liters|litre|litres|dozen|dozens|டஜன்)/)) {
           amtType = "COUNT_PIECES";
@@ -35787,7 +36195,7 @@ STRICT PROTOCOLS:
             amount_type: amtType
           });
         } else {
-          let cleanName = trimmed.replace(/\d+/g, '').replace(/(kg|grams|gram|g|rs|rupees|rupee|pcs|piece|pieces|அரை|கால்|முக்கால்|கிலோ|கிராம்|ரூபாய்|ரூ|and|மற்றும்|கட்டு|கட்டுகள்|லிட்டர்|லிடர்கள்|பீஸ்|பீஸ்கள்|பாக்கெட்|பாக்கெட்டுகள்|packet|packets|bunch|bunches|piece|pieces|liter|liters|litre|litres|dozen|dozens|டஜன்)/g, '').replace(/[\-\:\.\/\(\)]/g, ' ').trim();
+          let cleanName = trimmed.replace(/\d+/g, '').replace(/(kg|grams|gram|g|rs\.?|rupees|rupee|₹|pcs|piece|pieces|அரை|கால்|முக்கால்|கிலோ|கிராம்|ரூபாய்|ரூ|ரூபிஸ்|and|மற்றும்|கட்டு|கட்டுகள்|லிட்டர்|லிடர்கள்|பீஸ்|பீஸ்கள்|பாக்கெட்|பாக்கெட்டுகள்|packet|packets|bunch|bunches|piece|pieces|liter|liters|litre|litres|dozen|dozens|டஜன்)/g, '').replace(/[\-\:\.\/\(\)]/g, ' ').trim();
           if (!cleanName) {
             cleanName = trimmed;
           }
@@ -36005,7 +36413,7 @@ STRICT PROTOCOLS:
         }
       }
 
-      if (qLower.includes('track') || qLower.includes('டிராக்') || qLower.includes('ஆர்டர் எங்கே') || qLower.includes('ஆர்டர் நிலை') || qLower.includes('டெலிவரி') || qLower.includes('status') || qLower.includes('delivery')) {
+      if (qLower.includes('track') || qLower.includes('டிராக்') || qLower.includes('ஆர்டர் எங்கே') || qLower.includes('ஆர்டர் நிலை') || qLower.includes('டெலிவரி') || qLower.includes('status') || qLower.includes('delivery') || qLower.includes('ஆர்டர்') || qLower.includes('order') || qLower.includes('ஸ்டேட்டஸ்')) {
         let activeOrder = orders.filter(o => (o.customerId === user.id || o.customerPhone === user.phone) && o.status !== 'delivered' && o.status !== 'rejected' && o.status !== 'canceled').sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
         if (activeOrder) {
           const status = activeOrder.status;
@@ -36069,7 +36477,7 @@ STRICT PROTOCOLS:
         };
       }
 
-      if (qLower.includes('timings') || qLower.includes('location') || qLower.includes('maps') || qLower.includes('நேரம்') || qLower.includes('எங்கே') || qLower.includes('இடம்') || qLower.includes('அட்ரஸ்') || qLower.includes('address') || qLower.includes('time') || qLower.includes('timing') || qLower.includes('எடப்பாடி')) {
+      if (qLower.includes('timings') || qLower.includes('location') || qLower.includes('maps') || qLower.includes('நேரம்') || qLower.includes('எங்கே') || qLower.includes('இடம்') || qLower.includes('அட்ரஸ்') || qLower.includes('address') || qLower.includes('time') || qLower.includes('timing') || qLower.includes('எடப்பாடி') || qLower.includes('முகவரி')) {
         return {
           text: "அண்ணே! நம்ம எடப்பாடி கடை சேலம் மாவட்டம், எடப்பாடிக்கு உட்பட்ட **கவண்டம்பட்டி (Cavandampatti)** மெயின் ரோட்டில் (செந்தில் மருத்துவமனை அருகில்) அமைந்துள்ளது அண்ணே! எங்களது வேலை நேரம் **காலை 7:00 மணி முதல் இரவு 9:00 மணி வரை** அண்ணே. எடப்பாடி வட்டாரத்தில் மிகத் துரிதமான 20 நிமிட ஸ்பெஷல் எக்ஸ்பிரஸ் டெலிவரிக்கு நாங்கள் உத்தரவாதம் தருகிறோம் அண்ணே! 📍🛵",
           proposalData: null,
@@ -36287,6 +36695,67 @@ STRICT PROTOCOLS:
       });
     }
 
+    async function parseOrderWithGemini(queryText, activeProducts, apiKey) {
+      const compactProductList = activeProducts.map(p => 
+        `- English: "${p.englishName}" | Tamil: "${p.tamilName}" | Unit Price: ₹${p.price || p.pricePerKg || 0} | Unit: "${p.sellingUnit || p.unit || 'kg'}"`
+      ).join("\n");
+
+      const systemPrompt = `You are a precise order parser for "Edappadi Kadai".
+Analyze the customer's text and extract the list of products they want to buy.
+
+Available Products:
+${compactProductList}
+
+Return a JSON array of objects, where each object has EXACTLY this format:
+{
+  "product_name": "Product Name (should match or be close to the available product's English name)",
+  "raw_quantity_val": number,
+  "amount_type": "WEIGHT_KG" | "WEIGHT_GRAMS" | "RUPEES" | "COUNT_PIECES"
+}
+
+STRICT RULE for amount_type:
+- If the customer mentions "₹" symbol, or currency words like "ரூபாய்", "ரூபிஸ்", "ரூ", "rs", "rupee", "rupees", then amount_type MUST be "RUPEES". For example: "₹20 தக்காளி" or "20 ரூபாய் தக்காளி" -> product_name: "Country Tomato", raw_quantity_val: 20, amount_type: "RUPEES". DO NOT interpret the 20 as kilograms!
+- If they mention weight like "கிலோ", "kg", "kilograms", "half", "அரை", "கால்", "முக்கால்", use "WEIGHT_KG" (or "WEIGHT_GRAMS" if grams/g).
+- If they specify count like "முட்டை 10" or "10 pieces", use "COUNT_PIECES".
+
+Return ONLY the JSON array, with no markdown code blocks, no backticks, no comments, and no extra text. Just raw JSON starting with [ and ending with ].`;
+
+      const requestPayload = {
+        contents: [{
+          role: 'user',
+          parts: [{ text: queryText }]
+        }],
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        generationConfig: {
+          temperature: 0,
+          responseMimeType: "application/json"
+        }
+      };
+
+      const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestPayload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Order parser responded with status ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      let responseText = "";
+      if (responseData.candidates && responseData.candidates[0] && responseData.candidates[0].content && responseData.candidates[0].content.parts[0]) {
+        responseText = responseData.candidates[0].content.parts[0].text || "";
+      }
+
+      return JSON.parse(responseText.trim());
+    }
+
     async function sendLyoAiMessage(explicitText = null) {
       if (lyoIsReplying) return;
 
@@ -36340,6 +36809,15 @@ STRICT PROTOCOLS:
         return;
       }
 
+      if (isLyoCancellationPhrase(queryText)) {
+        setTimeout(() => {
+          removeLyoAiTypingBubble();
+          clearLyoAiCart();
+          lyoIsReplying = false;
+        }, 500);
+        return;
+      }
+
       if (checkLyoQueryOffTopic(queryText, products)) {
         setTimeout(() => {
           removeLyoAiTypingBubble();
@@ -36350,44 +36828,14 @@ STRICT PROTOCOLS:
         return;
       }
 
-      const qLower = queryText.toLowerCase();
-      const hasLocalKeywords = [
-        'hello', 'வணக்கம்', 'hi', 'ஹலோ', 'vanakkam', 'epdi irukinga',
-        'மழை', 'rain', 'weather', 'வெதர்', 'டிகிரி', 'degree',
-        'special', 'ஸ்பெஷல்', 'offer', 'ஆஃபர்', 'today', 'இன்றைய',
-        'cart', 'கூடை', 'கார்ட்', 'பில்', 'total', 'basket',
-        'track', 'டிராக்', 'ஆர்டர் எங்கே', 'ஆர்டர் நிலை', 'டெலிவரி', 'status', 'delivery',
-        'points', 'loyalty', 'பாயிண்ட்ஸ்', 'profile', 'ப்ரோபைல்'
-      ].some(k => qLower.includes(k));
-
-      const isPurchaseIntent = [
-        'வேணும்', 'வாங்கு', 'போடு', 'buy', 'add', 'podu', 'venum', 'vangunen',
-        'chicken', 'mutton', 'egg', 'tomato', 'onion',
-        'சிக்கன்', 'மட்டன்', 'முட்டை', 'தக்காளி', 'வெங்காயம்'
-      ].some(k => qLower.includes(k));
-
-      if (hasLocalKeywords && !isPurchaseIntent) {
-        setTimeout(() => {
-          removeLyoAiTypingBubble();
-          const response = getComprehensiveLocalOfflineResponse(queryText, user, products, orders, settings);
-          addLyoAiMessage('lyo_ai', response.text, response.proposalData, response.phone, response.showTrack);
-          if (typeof playLyoChimeSound === 'function') playLyoChimeSound();
-          lyoIsReplying = false;
-        }, 500);
-        return;
-      }
-
-      // Proceed to Gemini API online response for complex order generation & bilingual chat
       const supportPhoneNo = settings.supportPhone || "8778148899";
       let activeOrder = null;
       if (orders && orders.length > 0) {
-        const activeOrdersList = orders.filter(o => o.customerId === user.id && o.status !== 'delivered' && o.status !== 'cancelled');
+        const activeOrdersList = orders.filter(o => (o.customerId === user.id || o.customerPhone === user.phone) && o.status !== 'delivered' && o.status !== 'cancelled');
         if (activeOrdersList.length > 0) {
           activeOrder = activeOrdersList[0];
         }
       }
-
-      const dynamicCategoryBlock = (settings.deliveryZones || []).map(z => z.name).join(', ') || "Meat, Vegetables, Fruits, Dairy, Grocery";
 
       const finalSystemInstructions = `You are "Premium Edappadi Kadai Assistant", the ultra-vibrant, energetic Salem-accent bilingual virtual companion of "Edappadi Kadai" in Kavandampatti, Edappadi, Salem, Tamil Nadu.
 
@@ -36414,15 +36862,18 @@ STRICT BEHAVIORAL PROTOCOLS:
 
       if (!apiKey) {
         console.warn("[Lyo AI] Gemini API Key not found. Falling back to offline response.");
-        removeLyoAiTypingBubble();
-        const response = getComprehensiveLocalOfflineResponse(queryText, user, products, orders, settings);
-        addLyoAiMessage('lyo_ai', response.text, response.proposalData, response.phone, response.showTrack);
-        lyoIsReplying = false;
+        setTimeout(() => {
+          removeLyoAiTypingBubble();
+          const response = getComprehensiveLocalOfflineResponse(queryText, user, products, orders, settings);
+          addLyoAiMessage('lyo_ai', response.text, response.proposalData, response.phone, response.showTrack);
+          if (typeof playLyoChimeSound === 'function') playLyoChimeSound();
+          lyoIsReplying = false;
+        }, 500);
         return;
       }
 
       try {
-        const contents = [];
+        let contents = [];
         const maxHistory = lyoAiChatHistory.filter(m => m.id !== 'typing' && m.sender !== 'typing' && m.text !== '__TYPING__');
         
         maxHistory.slice(-8).forEach(m => {
@@ -36434,7 +36885,37 @@ STRICT BEHAVIORAL PROTOCOLS:
         });
 
         if (contents.length === 0 || contents[contents.length - 1].role !== 'user') {
-          contents.push({
+          const hasQuery = contents.some(c => c.role === 'user' && c.parts[0].text === queryText);
+          if (!hasQuery) {
+            contents.push({
+              role: 'user',
+              parts: [{ text: queryText }]
+            });
+          }
+        }
+
+        while (contents.length > 0 && contents[0].role !== 'user') {
+          contents.shift();
+        }
+
+        const alternatingContents = [];
+        for (const item of contents) {
+          if (alternatingContents.length === 0) {
+            if (item.role === 'user') {
+              alternatingContents.push(item);
+            }
+          } else {
+            const lastItem = alternatingContents[alternatingContents.length - 1];
+            if (lastItem.role !== item.role) {
+              alternatingContents.push(item);
+            } else {
+              lastItem.parts[0].text += "\n" + item.parts[0].text;
+            }
+          }
+        }
+
+        if (alternatingContents.length === 0 || alternatingContents[alternatingContents.length - 1].role !== 'user') {
+          alternatingContents.push({
             role: 'user',
             parts: [{ text: queryText }]
           });
@@ -36443,10 +36924,65 @@ STRICT BEHAVIORAL PROTOCOLS:
         const lyoConfig = getLyoAiConfig();
         const systemInstructionsToUse = lyoConfig.systemPrompt || finalSystemInstructions;
 
+        // Construct dynamic contexts for Gemini
+        const userProfileContext = `
+Customer Profile:
+- Name: ${user.name || 'Valued Customer'}
+- Phone: ${user.phone || 'N/A'}
+- Loyalty Points: ${user.loyaltyPoints || 0}
+- Membership Tier: ${(user.tier || 'bronze').toUpperCase()} (Bronze/Silver/Gold Tiers)
+`;
+
+        const shopStatusContext = `
+Shop Status & Settings:
+- Status: ${settings.leaveMode ? 'TEMPORARILY CLOSED ON HOLIDAY/LEAVE 🌴' : 'OPEN'}
+- Holiday Notice: ${settings.leaveNotice || 'None'}
+- Minimum Order Amount: ₹${settings.minOrderAmount || 0}
+- Flat Delivery Charge: ₹${settings.deliveryCharge || 40}
+- Support Contact Phone: ${supportPhoneNo}
+`;
+
+        let activeOrderInfo = "No active pending/delivering orders found.";
+        if (orders && orders.length > 0) {
+          const activeOrdersList = orders.filter(o => (o.customerId === user.id || o.customerPhone === user.phone) && o.status !== 'delivered' && o.status !== 'rejected' && o.status !== 'cancelled');
+          if (activeOrdersList.length > 0) {
+            const o = activeOrdersList[0];
+            const itemsDesc = o.items.map(it => `${it.englishName} (${it.weightGrams}g)`).join(", ");
+            const statusMap = {
+              'pending': 'PREPARING (கறி வெட்டப்பட்டு பேக் செய்யப்படுகிறது)',
+              'ready': 'READY FOR DISPATCH (பார்சல் தயாராக உள்ளது)',
+              'delivering': 'EN-ROUTE / OUT FOR DELIVERY (டெலிவரி பாய் கிளம்பி வந்துட்டு இருக்காரு)'
+            };
+            const statusText = statusMap[o.status] || o.status;
+            activeOrderInfo = `Order ID: ${o.id} | Status: ${statusText} | Items: ${itemsDesc} | Created At: ${o.createdAt}`;
+          }
+        }
+
+        const liveCatalogContext = activeProducts.map(p => {
+          const stockStatus = p.isOutOfStock || p.stockKg <= 0 ? "OUT OF STOCK ❌" : `IN STOCK (Available Stock: ${p.stockKg} ${p.unit || 'Kg'})`;
+          return `- ${p.englishName} (${p.tamilName || ''}) | Price: ₹${p.pricePerKg || p.price || 0} per ${p.sellingUnit || p.unit || 'Kg'} | Category: ${p.category} | ${stockStatus}`;
+        }).join("\n");
+
+        const dynamicContext = `
+=== REAL-TIME STORE DATABASE CONTEXT ===
+${userProfileContext}
+
+${shopStatusContext}
+
+Active Order Status (For Tracking):
+${activeOrderInfo}
+
+Live Store Product Catalog (Stock levels are live! If an item is out of stock, tell the customer politely and suggest in-stock alternatives):
+${liveCatalogContext}
+=======================================
+`;
+
+        const finalSystemInstructionsCombined = `${systemInstructionsToUse}\n\n${dynamicContext}\n\nStrictly utilize the above REAL-TIME STORE DATABASE CONTEXT to answer user queries accurately in high-energy Salem accent bilingual conversational Tamil/English. If the user wants to buy something, parse their request and tell them what you are adding.`;
+
         const requestPayload = {
-          contents: contents,
+          contents: alternatingContents,
           systemInstruction: {
-            parts: [{ text: systemInstructionsToUse }]
+            parts: [{ text: finalSystemInstructionsCombined }]
           },
           generationConfig: {
             temperature: 0.5,
@@ -36497,19 +37033,34 @@ STRICT BEHAVIORAL PROTOCOLS:
         }
 
         let proposalData = null;
+        let isOfflineFallbackUsed = false;
         const purchaseKeywords = ['buy', 'add', 'podu', 'venum', 'vangunen', 'சிக்கன்', 'மட்டன்', 'முட்டை', 'தக்காளி', 'வெங்காயம்', 'போடு', 'வேணும்', 'வாங்கு'];
         const isPurchaseIntentDetected = purchaseKeywords.some(k => queryText.toLowerCase().includes(k) || replyText.toLowerCase().includes(k));
         
         if (isPurchaseIntentDetected) {
-          const parsedItems = offlineParseUserRequest(queryText) || [];
-          if (parsedItems.length === 0) {
-            const parsedFromResponse = offlineParseUserRequest(replyText) || [];
-            if (parsedFromResponse.length > 0) {
-              proposalData = convertParsedItemsToProposalList(parsedFromResponse);
+          try {
+            console.log("[Lyo AI] Attempting Gemini structured order parsing...");
+            const parsedItems = await parseOrderWithGemini(queryText, activeProducts, apiKey);
+            if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+              proposalData = convertParsedItemsToProposalList(parsedItems);
             }
-          } else {
-            proposalData = convertParsedItemsToProposalList(parsedItems);
+          } catch (parseErr) {
+            console.warn("[Lyo AI] Gemini order parsing failed, falling back to offline regex parser:", parseErr);
+            isOfflineFallbackUsed = true;
+            const parsedItems = offlineParseUserRequest(queryText) || [];
+            if (parsedItems.length === 0) {
+              const parsedFromResponse = offlineParseUserRequest(replyText) || [];
+              if (parsedFromResponse.length > 0) {
+                proposalData = convertParsedItemsToProposalList(parsedFromResponse);
+              }
+            } else {
+              proposalData = convertParsedItemsToProposalList(parsedItems);
+            }
           }
+        }
+
+        if (isOfflineFallbackUsed) {
+          replyText += "\n\n*(ஆஃப்லைன் இன்ஜின் மூலம் பதில் அளிக்கப்பட்டது)*";
         }
 
         removeLyoAiTypingBubble();

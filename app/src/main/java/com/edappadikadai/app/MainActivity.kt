@@ -249,6 +249,36 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    val startupPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineGranted = permissions[android.Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val coarseGranted = permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+        val notifGranted = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            permissions[android.Manifest.permission.POST_NOTIFICATIONS] ?: false
+        } else {
+            true
+        }
+        
+        android.util.Log.d("STARTUP_PERM", "Startup Permissions: FineLocation=$fineGranted, CoarseLocation=$coarseGranted, Notification=$notifGranted")
+        if (fineGranted || coarseGranted) {
+            startActiveLocationUpdates()
+        }
+        
+        runOnUiThread {
+            webView?.evaluateJavascript(
+                "javascript:(function() { " +
+                "  if (typeof onAndroidLocationPermissionResult === 'function') { " +
+                "    onAndroidLocationPermissionResult(${fineGranted || coarseGranted}); " +
+                "  } " +
+                "  if (typeof onAndroidNotificationPermissionResult === 'function') { " +
+                "    onAndroidNotificationPermissionResult($notifGranted); " +
+                "  } " +
+                "})()", null
+            )
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -550,6 +580,20 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
+        }
+
+        // Ask for Notification and Location permissions immediately on install/launch
+        try {
+            val permissionsToRequest = mutableListOf(
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+            startupPermissionLauncher.launch(permissionsToRequest.toTypedArray())
+        } catch (e: Exception) {
+            android.util.Log.e("STARTUP_PERM", "Failed to launch startup permissions: ${e.message}", e)
         }
     }
 
