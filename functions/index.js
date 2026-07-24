@@ -1,36 +1,46 @@
+const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
-exports.sendFcmOnQueue = functions
-  .region('asia-south1')
-  .firestore
-  .document('ek_fcm_queue/{docId}')
-  .onCreate(async (snap, context) => {
-    const data = snap.data();
-    if (!data.targetToken || data.processed) return;
-    const message = {
-      token: data.targetToken,
-      notification: { title: data.title, body: data.body },
-      data: {
-        orderId: data.orderId,
-        oldStatus: data.oldStatus,
-        newStatus: data.newStatus,
-        click_action: 'OPEN_MAIN_ACTIVITY'
-      },
-      android: { priority: 'high',
-        notification: { channelId: 'status_alerts' }
-      }
-    };
-    try {
-      await admin.messaging().send(message);
-      await snap.ref.update({ processed: true,
-        sentAt: new Date().toISOString() });
-    } catch (err) {
-      await snap.ref.update({ processed: false,
-        error: err.message });
+// Keeping 1 instance warm 24/7 for instant FCM push notification dispatch.
+// Note: minInstances: 1 keeps one instance warm 24/7 and incurs a small recurring Firebase billing cost.
+exports.sendFcmOnQueue = onDocumentCreated({
+  document: 'ek_fcm_queue/{docId}',
+  region: 'asia-south1',
+  minInstances: 1
+}, async (event) => {
+  const snap = event.data;
+  if (!snap) return;
+  const data = snap.data();
+  if (!data || !data.targetToken || data.processed) return;
+  const message = {
+    token: data.targetToken,
+    notification: { title: data.title || '', body: data.body || '' },
+    data: {
+      orderId: data.orderId || '',
+      oldStatus: data.oldStatus || '',
+      newStatus: data.newStatus || '',
+      click_action: 'OPEN_MAIN_ACTIVITY'
+    },
+    android: {
+      priority: 'high',
+      notification: { channelId: 'status_alerts' }
     }
-  });
+  };
+  try {
+    await admin.messaging().send(message);
+    await snap.ref.update({
+      processed: true,
+      sentAt: new Date().toISOString()
+    });
+  } catch (err) {
+    await snap.ref.update({
+      processed: false,
+      error: err.message
+    });
+  }
+});
 
 exports.sendOtpSms = functions
   .region('asia-south1')

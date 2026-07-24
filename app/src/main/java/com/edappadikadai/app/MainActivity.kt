@@ -584,14 +584,51 @@ class MainActivity : ComponentActivity() {
 
         // Ask for Notification and Location permissions immediately on install/launch
         try {
-            val permissionsToRequest = mutableListOf(
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
+            checkAndRequestStartupPermissions()
+        } catch (e: Exception) {
+            android.util.Log.e("STARTUP_PERM", "Failed to launch startup permissions: ${e.message}", e)
+        }
+    }
+
+    fun hasLocationPermission(): Boolean {
+        val fine = androidx.core.content.ContextCompat.checkSelfPermission(
+            this,
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val coarse = androidx.core.content.ContextCompat.checkSelfPermission(
+            this,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        return fine || coarse
+    }
+
+    fun hasNotificationPermission(): Boolean {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            return androidx.core.content.ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+        return true
+    }
+
+    fun checkAndRequestStartupPermissions() {
+        try {
+            val needsLoc = !hasLocationPermission()
+            val needsNotif = !hasNotificationPermission()
+            if (needsLoc || needsNotif) {
+                val permissionsToRequest = mutableListOf<String>()
+                if (needsLoc) {
+                    permissionsToRequest.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    permissionsToRequest.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                }
+                if (needsNotif && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
+                }
+                if (permissionsToRequest.isNotEmpty()) {
+                    startupPermissionLauncher.launch(permissionsToRequest.toTypedArray())
+                }
             }
-            startupPermissionLauncher.launch(permissionsToRequest.toTypedArray())
         } catch (e: Exception) {
             android.util.Log.e("STARTUP_PERM", "Failed to launch startup permissions: ${e.message}", e)
         }
@@ -601,7 +638,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         isActivityInForeground = true
         webView?.requestFocus()
-        // No automatic background GPS updates on resume. We will request location on-demand instead!
+        checkAndRequestStartupPermissions()
     }
 
     override fun onPause() {
@@ -786,6 +823,20 @@ class MainActivity : ComponentActivity() {
         }
 
         @JavascriptInterface
+        fun minimizeApp() {
+            (context as? Activity)?.runOnUiThread {
+                (context as? Activity)?.moveTaskToBack(true)
+            }
+        }
+
+        @JavascriptInterface
+        fun exitApp() {
+            (context as? Activity)?.runOnUiThread {
+                (context as? Activity)?.finish()
+            }
+        }
+
+        @JavascriptInterface
         fun saveData(key: String, value: String) {
             val encryptedValue = CryptoHelper.encrypt(value)
             sharedPreferences.edit().putString(key, encryptedValue).apply()
@@ -916,7 +967,13 @@ class MainActivity : ComponentActivity() {
                             try {
                                 val printManager = context.getSystemService(Context.PRINT_SERVICE) as? PrintManager
                                 val printAdapter = printWebView.createPrintDocumentAdapter(jobName)
-                                printManager?.print(jobName, printAdapter, PrintAttributes.Builder().build())
+                                val receiptMediaSize = PrintAttributes.MediaSize("EK_RECEIPT_80MM", "Receipt 80mm", 3150, 15000)
+                                val attrs = PrintAttributes.Builder()
+                                    .setMediaSize(receiptMediaSize)
+                                    .setResolution(PrintAttributes.Resolution("EK_RES", "default", 300, 300))
+                                    .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+                                    .build()
+                                printManager?.print(jobName, printAdapter, attrs)
                             } catch (e: Exception) {
                                 Toast.makeText(context, "Print error: ${e.message}", Toast.LENGTH_LONG).show()
                             }
