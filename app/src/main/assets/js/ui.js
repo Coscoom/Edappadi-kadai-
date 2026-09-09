@@ -544,17 +544,6 @@
 
       if (!totalDistEl) return; // Element not present on the current DOM page
 
-      function utils_calcLatLonDistanceKm(lat1, lon1, lat2, lon2) {
-        var R = 6371; // earth radius in km
-        var dLat = (lat2 - lat1) * Math.PI / 180;
-        var dLon = (lon2 - lon1) * Math.PI / 180;
-        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return Math.round(R * c * 10) / 10;
-      }
-
       const totalDist = utils_calcLatLonDistanceKm(storePos[0], storePos[1], custPos[0], custPos[1]);
       totalDistEl.innerText = `${totalDist} Km`;
 
@@ -2434,10 +2423,7 @@
           }
         }
 
-        if (!targetFcmToken || typeof targetFcmToken !== 'string' || !targetFcmToken.trim() || targetFcmToken === 'null' || targetFcmToken === 'undefined') {
-          console.warn(`[FCM Push] Cannot send push notification for order ${order ? order.id : 'N/A'}. Customer has missing or invalid FCM token.`);
-          return;
-        }
+        const hasValidTargetToken = Boolean(targetFcmToken && typeof targetFcmToken === 'string' && targetFcmToken.trim() && targetFcmToken !== 'null' && targetFcmToken !== 'undefined');
 
         const shortId = order.id ? order.id.slice(0, 8).toUpperCase() : 'N/A';
         const itemsSummary = formatOrderItemsSummary(order);
@@ -2549,46 +2535,50 @@
           }).catch(e => console.warn('[Customer Notif Queue] Write failed:', e));
         }
 
-        if (typeof db !== 'undefined' && db) {
-          db.collection('ek_fcm_queue').add({
-            targetToken: targetFcmToken,
-            targetUserId: order.customerId || order.customerPhone || '',
-            title: finalTitle,
-            body: finalBody,
-            orderId: order.id,
-            oldStatus: oldStatus,
-            newStatus: newStatus,
-            createdAt: new Date().toISOString(),
-            processed: false
-          }).catch(e => console.warn('[FCM Queue] Write failed:', e));
-        }
-
-        if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.simulateFcmPushNotification === 'function') {
-          try {
-            AndroidStorage.simulateFcmPushNotification(
-              targetFcmToken,
-              finalTitle,
-              finalBody,
-              JSON.stringify({ orderId: order.id, oldStatus, newStatus, type: "order_status_update" })
-            );
-          } catch (simErr) {
-            console.warn("[FCM Simulator] Failed calling Android FCM Simulation bridge:", simErr);
+        if (hasValidTargetToken) {
+          if (typeof db !== 'undefined' && db) {
+            db.collection('ek_fcm_queue').add({
+              targetToken: targetFcmToken,
+              targetUserId: order.customerId || order.customerPhone || '',
+              title: finalTitle,
+              body: finalBody,
+              orderId: order.id,
+              oldStatus: oldStatus,
+              newStatus: newStatus,
+              createdAt: new Date().toISOString(),
+              processed: false
+            }).catch(e => console.warn('[FCM Queue] Write failed:', e));
           }
-        }
 
-        if (typeof db !== 'undefined' && db) {
-          db.collection('ek_fcm_logs').add({
-            orderId: order.id,
-            targetToken: targetFcmToken,
-            titleEn: titleEn,
-            titleTa: titleTa,
-            bodyEn: bodyEn,
-            bodyTa: bodyTa,
-            oldStatus: oldStatus,
-            newStatus: newStatus,
-            sentAt: new Date().toISOString(),
-            status: "delivered"
-          }).catch(err => console.error("[Cloud FCM Audit Log] Error:", err));
+          if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.simulateFcmPushNotification === 'function') {
+            try {
+              AndroidStorage.simulateFcmPushNotification(
+                targetFcmToken,
+                finalTitle,
+                finalBody,
+                JSON.stringify({ orderId: order.id, oldStatus, newStatus, type: "order_status_update" })
+              );
+            } catch (simErr) {
+              console.warn("[FCM Simulator] Failed calling Android FCM Simulation bridge:", simErr);
+            }
+          }
+
+          if (typeof db !== 'undefined' && db) {
+            db.collection('ek_fcm_logs').add({
+              orderId: order.id,
+              targetToken: targetFcmToken,
+              titleEn: titleEn,
+              titleTa: titleTa,
+              bodyEn: bodyEn,
+              bodyTa: bodyTa,
+              oldStatus: oldStatus,
+              newStatus: newStatus,
+              sentAt: new Date().toISOString(),
+              status: "delivered"
+            }).catch(err => console.error("[Cloud FCM Audit Log] Error:", err));
+          }
+        } else {
+          console.info(`[FCM Push] In-app notification delivered for order ${order.id}. Push skipped (no device token registered).`);
         }
       } catch (fcmEx) {
         console.warn("[FCM Push Exception Handled]", fcmEx);

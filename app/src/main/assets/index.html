@@ -620,13 +620,13 @@
           </div>
           <div class="form-group">
             <label>Delivery Address / விநியோக முகவரி *</label>
-            <textarea id="reg-address" class="form-control" rows="2" placeholder="Kavandampatti, Idappadi, Salem, pincode..." style="height: auto !important; padding: 8px 12px !important;" required></textarea>
-            <div style="display: flex; gap: 6px; margin-top: 6px;">
-              <button type="button" class="btn btn-secondary" onclick="openMapAddressPicker('reg-address')" style="background: rgba(249, 115, 22, 0.12); border-color: rgba(249, 115, 22, 0.3); color: #f59e0b; flex: 1.1; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; padding: 8px; font-weight: 700; cursor: pointer; border-radius: 8px;">
-                🗺️ Map Picker / வரைபடம்
+            <textarea id="reg-address" class="form-control" rows="2" placeholder="House No, Street, Area, Edappadi, Salem - 637101" style="height: auto !important; padding: 10px 12px !important; width: 100%; box-sizing: border-box; resize: vertical; font-size: 13px; line-height: 1.4;" required></textarea>
+            <div style="display: flex; gap: 8px; margin-top: 8px; width: 100%; box-sizing: border-box;">
+              <button type="button" class="btn btn-secondary" onclick="openMapAddressPicker('reg-address')" style="background: rgba(249, 115, 22, 0.12); border: 1.2px solid rgba(249, 115, 22, 0.35); color: #f59e0b; flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11.5px; height: 38px; padding: 0 8px; font-weight: 700; cursor: pointer; border-radius: 10px; box-sizing: border-box;">
+                <span>🗺️</span> <span>Map Picker / வரைபடம்</span>
               </button>
-              <button type="button" class="btn btn-secondary" onclick="autoDetectCoordinatesForTarget('reg-address', this)" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.3); color: #10b981; flex: 0.9; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; padding: 8px; font-weight: 700; cursor: pointer; border-radius: 8px;">
-                🛰️ Auto GPS / ஜிபிஎஸ்
+              <button type="button" class="btn btn-secondary" onclick="autoDetectCoordinatesForTarget('reg-address', this)" style="background: rgba(16, 185, 129, 0.12); border: 1.2px solid rgba(16, 185, 129, 0.35); color: #10b981; flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11.5px; height: 38px; padding: 0 8px; font-weight: 700; cursor: pointer; border-radius: 10px; box-sizing: border-box;">
+                <span>🛰️</span> <span>Auto GPS / ஜிபிஎஸ்</span>
               </button>
             </div>
           </div>
@@ -2193,8 +2193,14 @@
         </div>
 
         <div>
-          <h3 style="font-family: 'Poppins', 'Hind Madurai', sans-serif; font-size: 15px; font-weight: 800; color: #fff; margin: 2px 0;">ஆர்டர் வெற்றிகரமாக செய்யப்பட்டது!</h3>
-          <p style="font-family: 'Poppins', 'Hind Madurai', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--accent-orange); margin: 0;">Order Placed Successfully! 🏍️</p>
+          <h3 id="success-modal-heading" style="font-family: 'Poppins', 'Hind Madurai', sans-serif; font-size: 15px; font-weight: 800; color: #fff; margin: 2px 0;">🎉 ஆர்டர் கன்ஃபார்ம் ஆயிடுச்சு!</h3>
+          <p id="success-modal-subheading" style="font-family: 'Poppins', 'Hind Madurai', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--accent-orange); margin: 0;">Order Confirmed! 🏍️</p>
+        </div>
+
+        <!-- Payment Status Confirmation Badge -->
+        <div id="success-modal-payment-badge" style="background: rgba(16, 185, 129, 0.12); border: 1.5px solid #10b981; border-radius: 12px; padding: 7px 10px; font-size: 12px; font-weight: 700; color: #10b981; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <span>✅</span>
+          <span id="success-modal-payment-text">கட்டணம் பெறப்பட்டது! ஆர்டர் கன்ஃபார்ம் ஆயிடுச்சு!</span>
         </div>
 
         <div style="background: #161618; border: 1px solid #222; border-radius: 16px; padding: 14px; margin: 4px 0; text-align: left;">
@@ -2212,12 +2218,15 @@
           </div>
         </div>
 
-        <p style="font-size: 11.5px; color: var(--text-secondary); line-height: 1.45; margin: 0 10px;">
-          உங்கள் ஆடர் ஏற்கப்பட்டு விட்டது! தற்போது ஆர்டர் ட்ராக் பக்கத்தில் உங்கள் ஆர்டர் நிலையைத் துல்லியமாக அறியலாம். (Your order is submitted! You can now track its active dispatch updates on the tracker dashboard live.)
+        <p id="success-modal-instructions" style="font-size: 11.5px; color: var(--text-secondary); line-height: 1.45; margin: 0 10px;">
+          உங்கள் ஆர்டர் கன்ஃபார்ம் செய்யப்பட்டு கடைக்கு அனுப்பப்பட்டுள்ளது. கடைக்கு நேரடியாக அழைத்து உங்கள் ஆர்டரை உறுதி செய்யலாம் அல்லது கூடுதல் விபரங்களைக் கூறலாம்.
         </p>
 
         <!-- Dynamic Action Buttons -->
         <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+          <a id="success-modal-call-btn" href="tel:8778148899" class="btn" style="background: #1e293b; border: 1.5px solid #38bdf8; color: #38bdf8; font-size: 13px; font-weight: 750; padding: 11px; border-radius: 14px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(56,189,248,0.2);">
+            📞 கடையை அழைக்க / Call Shop (8778148899)
+          </a>
           <button id="success-modal-btn-track" class="btn btn-primary" style="background: var(--accent-orange); border: none; font-size: 13.5px; font-weight: 700; padding: 13px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="closeSuccessAndTrack()">
             🚚 Track Live / ஆர்டரை ட்ராக் செய்க
           </button>
@@ -2917,7 +2926,7 @@
         </button>
 
         <!-- Card 2: Saved Addresses -->
-        <button type="button" onclick="openCartSavedAddressesSelector()" style="height: 52px; width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);" onmouseover="this.style.background='rgba(255, 255, 255, 0.06)'; this.style.borderColor='rgba(255, 255, 255, 0.15)';" onmouseout="this.style.background='rgba(255, 255, 255, 0.02)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='none'">
+        <button type="button" onclick="openSimpleAddressEditor()" style="height: 52px; width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);" onmouseover="this.style.background='rgba(255, 255, 255, 0.06)'; this.style.borderColor='rgba(255, 255, 255, 0.15)';" onmouseout="this.style.background='rgba(255, 255, 255, 0.02)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='none'">
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="font-size: 18px; color: var(--accent-orange); width: 24px; text-align: center;">📍</span>
             <span>Saved Addresses</span>
@@ -4804,6 +4813,10 @@ async function initializeApplicationStartup() {
     } else if (typeof bootstrapApplication === 'function') {
       bootstrapApplication();
     }
+    if (typeof AndroidStorage !== 'undefined') {
+      if (typeof AndroidStorage.onJsAppLoaded === 'function') AndroidStorage.onJsAppLoaded();
+      if (typeof AndroidStorage.notifyAppLoaded === 'function') AndroidStorage.notifyAppLoaded();
+    }
   } catch (e) {
     console.error("[STARTUP] Application bootstrap execution error:", e);
   }
@@ -4875,30 +4888,6 @@ let _searchDebounceTimers = {};
 function _debounceHelper(key, fn, delay = 300) {
   if (_searchDebounceTimers[key]) clearTimeout(_searchDebounceTimers[key]);
   _searchDebounceTimers[key] = setTimeout(fn, delay);
-}
-
-function debouncedSearchTracker() {
-  _debounceHelper('tracker', () => {
-    if (typeof renderTrackerOrders === 'function') renderTrackerOrders();
-  });
-}
-
-function debouncedSearchAdminOrders() {
-  _debounceHelper('adminOrders', () => {
-    if (typeof renderAdminOrders === 'function') renderAdminOrders();
-  });
-}
-
-function debouncedSearchProducts() {
-  _debounceHelper('adminProducts', () => {
-    if (typeof renderAdminProducts === 'function') renderAdminProducts();
-  });
-}
-
-function debouncedSearchCustomers() {
-  _debounceHelper('adminCustomers', () => {
-    if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
-  });
 }
 
 function debouncedSearchReviews() {
@@ -5026,70 +5015,6 @@ function exportOrdersToCSV() {
 function printAnalyticsReport() {
   if (typeof renderAdminAnalytics === 'function') renderAdminAnalytics();
   window.print();
-}
-
-function printCustomerInvoice(orderId) {
-  const orders = window.adminOrders || window.ordersHistory || [];
-  const order = orders.find(o => o.id === orderId || o.orderId === orderId);
-  if (!order) {
-    if (typeof showToast === 'function') showToast("ஆர்டர் விவரங்கள் கிடைக்கவில்லை", "error");
-    return;
-  }
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    window.print();
-    return;
-  }
-  const itemsHtml = (order.items || []).map(i => `
-    <tr>
-      <td style="padding:6px; border-bottom:1px solid #ddd;">${i.tamilName || i.englishName || 'பொருள்'}</td>
-      <td style="padding:6px; border-bottom:1px solid #ddd; text-align:center;">${i.requestedDesc || i.quantity || 1}</td>
-      <td style="padding:6px; border-bottom:1px solid #ddd; text-align:right;">₹${i.totalPrice || i.price || 0}</td>
-    </tr>
-  `).join('');
-
-  printWindow.document.write(`
-    \x3Chtml>
-      \x3Chead>
-        \x3Ctitle>Invoice - ${order.id}\x3C/title>
-        \x3Cstyle>
-          body { font-family: sans-serif; padding: 20px; color: #111; }
-          h2 { margin-bottom: 4px; color: #10b981; }
-          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-          th { background: #f3f4f6; text-align: left; padding: 8px; border-bottom: 2px solid #ccc; }
-          .total-row { font-weight: bold; font-size: 16px; text-align: right; margin-top: 15px; }
-        \x3C/style>
-      \x3C/head>
-      \x3Cbody>
-        \x3Ch2>எடப்பாடி கடை / Edappadi Kadai\x3C/h2>
-        \x3Cp>\x3Cstrong>Order ID:\x3C/strong> ${order.id}\x3C/p>
-        \x3Cp>\x3Cstrong>Customer:\x3C/strong> ${order.customerName || 'வாடிக்கையாளர்'} (${order.customerPhone || ''})\x3C/p>
-        \x3Cp>\x3Cstrong>Address:\x3C/strong> ${order.address || 'நடைபெறும் முகவரி'}\x3C/p>
-        \x3Chr/>
-        \x3Ctable>
-          \x3Cthead>
-            \x3Ctr>\x3Cth>Item\x3C/th>\x3Cth style="text-align:center;">Qty\x3C/th>\x3Cth style="text-align:right;">Price\x3C/th>\x3C/tr>
-          \x3C/thead>
-          \x3Ctbody>
-            ${itemsHtml}
-          \x3C/tbody>
-        \x3C/table>
-        \x3Cdiv class="total-row">
-          \x3Cp>Subtotal: ₹${order.subtotal || 0}\x3C/p>
-          \x3Cp>Delivery Fee: ₹${order.deliveryFee || 0}\x3C/p>
-          \x3Cp style="color:#10b981; font-size:18px;">Total: ₹${order.total || 0}\x3C/p>
-        \x3C/div>
-        \x3Cscript>
-          window.onload = function() { window.print(); };
-        <\/script>
-      \x3C/body>
-    \x3C/html>
-  `);
-  printWindow.document.close();
-}
-
-function printKOTTicket(orderId) {
-  printCustomerInvoice(orderId);
 }
 
 function updateAdminUpiQrPreview() {
@@ -5235,6 +5160,11 @@ function saveAdminUpiSettings(showToastNotify = true) {
     saveData('ek_settings', newSettings);
   }
 
+  if (typeof invalidateDataCache === 'function') {
+    invalidateDataCache('ek_settings');
+  }
+  window.dispatchEvent(new CustomEvent('ek-settings-updated', { detail: newSettings }));
+
   window.adminSettings = newSettings;
   localStorage.setItem("edappadi_admin_settings", JSON.stringify(newSettings));
 
@@ -5268,113 +5198,10 @@ function saveAdminUpiSettings(showToastNotify = true) {
   }
 }
 
-function saveAdminSettings() {
-  const shopOpenEl = document.getElementById("setting-shop-open");
-  const leaveModeEl = document.getElementById("setting-leave-mode");
-  const leaveNoticeEl = document.getElementById("setting-leave-notice");
-  const deliveryChargeEl = document.getElementById("setting-delivery-charge");
-  const dynDelEl = document.getElementById("setting-dynamic-delivery");
-  const basePriceEl = document.getElementById("setting-delivery-base-price");
-  const kmMultEl = document.getElementById("setting-delivery-km-multiplier");
-  const rainModeEl = document.getElementById("setting-rain-mode");
-  const rainChargeEl = document.getElementById("setting-rain-charge");
-  const minWeightEl = document.getElementById("setting-min-weight");
-  const minAmountEl = document.getElementById("setting-min-amount");
-  const minVerEl = document.getElementById("setting-min-app-version");
-  const recVerEl = document.getElementById("setting-recommended-app-version");
-  const playStoreUrlEl = document.getElementById("setting-playstore-url");
-  const privacyPolicyUrlEl = document.getElementById("setting-privacy-policy-url") || document.getElementById("setting-privacypolicy-url");
-
-  if (document.getElementById("upi-acc-primary-upi-id")) {
-    saveAdminUpiSettings(false);
-  }
-
-  const currentSettings = typeof getData === 'function' ? getData('ek_settings', {}) : {};
-  const cleanData = typeof cleanFirestoreData === 'function' ? cleanFirestoreData : (d => d);
-
-  const newSettings = {
-    ...currentSettings,
-    updatedAt: new Date().toISOString(),
-    _isAdminModified: true,
-    shopOpen: shopOpenEl ? shopOpenEl.checked : true,
-    leaveMode: leaveModeEl ? leaveModeEl.checked : false,
-    leaveNotice: leaveNoticeEl ? leaveNoticeEl.value.trim() : '',
-    deliveryCharge: deliveryChargeEl && deliveryChargeEl.value !== '' && !isNaN(Number(deliveryChargeEl.value)) ? Math.max(0, parseFloat(deliveryChargeEl.value)) : 40,
-    useDynamicDistancePricing: dynDelEl ? dynDelEl.checked : true,
-    deliveryBasePrice: basePriceEl ? parseInt(basePriceEl.value) || 20 : 20,
-    deliveryKmMultiplier: kmMultEl ? parseInt(kmMultEl.value) || 12 : 12,
-    rainMode: rainModeEl ? rainModeEl.checked : false,
-    rainSurchargeEnabled: rainModeEl ? rainModeEl.checked : false,
-    rainCharge: rainChargeEl ? parseInt(rainChargeEl.value) || 20 : 20,
-    minOrderWeight: minWeightEl ? parseInt(minWeightEl.value) || 50 : 50,
-    minOrderAmount: minAmountEl ? parseInt(minAmountEl.value) || 0 : 0,
-    minAppVersion: minVerEl ? minVerEl.value.trim() : (currentSettings.minAppVersion || "8.0.0"),
-    recommendedVersion: recVerEl ? recVerEl.value.trim() : (currentSettings.recommendedVersion || "8.0.0"),
-    playStoreUrl: playStoreUrlEl ? playStoreUrlEl.value.trim() : (currentSettings.playStoreUrl || "https://play.google.com/store/apps/details?id=com.edappadikadai.app"),
-    privacyPolicyUrl: (document.getElementById('setting-privacy-policy-url')?.value?.trim() || privacyPolicyUrlEl?.value?.trim() || currentSettings.privacyPolicyUrl || '')
-  };
-
-  if (typeof saveData === 'function') {
-    saveData('ek_settings', newSettings);
-  }
-
-  window.adminSettings = newSettings;
-  localStorage.setItem("edappadi_admin_settings", JSON.stringify(newSettings));
-
-  if (typeof db !== 'undefined' && db) {
-    try {
-      const sanitized = cleanData(newSettings);
-      Promise.all([
-        db.collection('ek_settings').doc('global_config').set(sanitized, { merge: true }),
-        db.collection('ek_settings').doc('global').set(sanitized, { merge: true })
-      ]).catch(e => console.warn("Firestore settings sync error:", e));
-    } catch(e) {
-      console.warn("Firestore settings sync error:", e);
-    }
-  }
-
-  updateAdminUpiQrPreview();
-  if (typeof showToast === 'function') showToast("நிர்வாக அமைப்புகள் வெற்றிகரமாக சேமிக்கப்பட்டன ⚙️", "success");
-}
-
-function toggleDeliveryMode() {
-  const modeEl = document.getElementById("setting-dynamic-delivery");
-  if (modeEl) {
-    modeEl.checked = !modeEl.checked;
-    saveAdminSettings();
-  }
-}
-
-function presetDeliveryFee(fee) {
-  const chargeInput = document.getElementById("setting-delivery-charge");
-  if (chargeInput) {
-    chargeInput.value = fee;
-    saveAdminSettings();
-  }
-}
-
-function applyDeliveryZoneTemplate(templateName) {
-  if (typeof window.applyDeliveryZoneTemplate === 'function' && window.applyDeliveryZoneTemplate !== applyDeliveryZoneTemplate) {
-    return window.applyDeliveryZoneTemplate(templateName);
-  }
-}
-
-function initAdminZonesMap(resetCenter = false) {
-  if (typeof window.initAdminZonesMap === 'function' && window.initAdminZonesMap !== initAdminZonesMap) {
-    return window.initAdminZonesMap(resetCenter);
-  }
-}
-
-function handleAddDeliveryZone(e) {
-  if (typeof window.handleAddDeliveryZone === 'function' && window.handleAddDeliveryZone !== handleAddDeliveryZone) {
-    return window.handleAddDeliveryZone(e);
-  }
-}
-
 // --- 6. Banner Photo Management Handlers ---
 // Handled directly by products.js (compressAndCacheBannerImage, updateAdminBannerUrlPreview, deleteSelectedBannerPhoto, addNewSlidingBanner, editSlidingBanner, cancelEditSlidingBanner, deleteSlidingBanner)
 
-// --- 7. Order History & Accordion Handlers ---
+// --- 7. Order History Handlers ---
 function handleClearOrderHistory() {
   if (confirm("உங்கள் ஆர்டர் வரலாற்றை நிச்சயமாக அழிக்க விரும்புகிறீர்களா?")) {
     window.ordersHistory = [];
@@ -5383,15 +5210,6 @@ function handleClearOrderHistory() {
     if (typeof showToast === 'function') showToast("ஆர்டர் வரலாறு அழிக்கப்பட்டது", "info");
   }
 }
-
-function toggleOrderDetails(orderId) {
-  const detailsEl = document.getElementById(`order-details-${orderId}`) || document.getElementById(`order-expand-${orderId}`);
-  if (detailsEl) {
-    const isHidden = detailsEl.style.display === "none" || !detailsEl.style.display;
-    detailsEl.style.display = isHidden ? "block" : "none";
-  }
-}
-
 
 </script>
 </body>

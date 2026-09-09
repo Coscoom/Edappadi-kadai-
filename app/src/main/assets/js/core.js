@@ -37,7 +37,8 @@ window.compareSemver = compareSemver;
 
 window.openPlayStoreUpdate = function() {
   try {
-    const settings = (typeof getDataCached === 'function' ? getDataCached('ek_settings', DEFAULT_SETTINGS) : null) || (typeof getData === 'function' ? getData('ek_settings', DEFAULT_SETTINGS) : DEFAULT_SETTINGS) || {};
+    const defSettings = typeof DEFAULT_SETTINGS !== 'undefined' ? DEFAULT_SETTINGS : (window.DEFAULT_SETTINGS || {});
+    const settings = (typeof getDataCached === 'function' ? getDataCached('ek_settings', defSettings) : null) || (typeof getData === 'function' ? getData('ek_settings', defSettings) : defSettings) || {};
     const url = (settings && settings.playStoreUrl && settings.playStoreUrl.trim()) ? settings.playStoreUrl.trim() : 'https://play.google.com/store/apps/details?id=com.edappadikadai.app';
     if (typeof Android !== 'undefined' && Android && typeof Android.openUrl === 'function') {
       Android.openUrl(url);
@@ -54,7 +55,8 @@ window.dismissRecommendedBanner = function() {
   if (banner) {
     banner.style.display = 'none';
   }
-  const settings = (typeof getDataCached === 'function' ? getDataCached('ek_settings', DEFAULT_SETTINGS) : null) || (typeof getData === 'function' ? getData('ek_settings', DEFAULT_SETTINGS) : DEFAULT_SETTINGS) || {};
+  const defSettings = typeof DEFAULT_SETTINGS !== 'undefined' ? DEFAULT_SETTINGS : (window.DEFAULT_SETTINGS || {});
+  const settings = (typeof getDataCached === 'function' ? getDataCached('ek_settings', defSettings) : null) || (typeof getData === 'function' ? getData('ek_settings', defSettings) : defSettings) || {};
   const recVer = settings && settings.recommendedVersion ? settings.recommendedVersion : '';
   try {
     sessionStorage.setItem('dismissed_recommended_update_' + recVer, 'true');
@@ -63,7 +65,8 @@ window.dismissRecommendedBanner = function() {
 
 window.checkAppVersion = function(passedSettings) {
   try {
-    const settings = passedSettings || (typeof getDataCached === 'function' ? getDataCached('ek_settings', DEFAULT_SETTINGS) : null) || (typeof getData === 'function' ? getData('ek_settings', DEFAULT_SETTINGS) : DEFAULT_SETTINGS) || {};
+    const defSettings = typeof DEFAULT_SETTINGS !== 'undefined' ? DEFAULT_SETTINGS : (window.DEFAULT_SETTINGS || {});
+    const settings = passedSettings || (typeof getDataCached === 'function' ? getDataCached('ek_settings', defSettings) : null) || (typeof getData === 'function' ? getData('ek_settings', defSettings) : defSettings) || {};
     const minVer = settings.minAppVersion || '8.0.0';
     const recVer = settings.recommendedVersion || '8.0.0';
     const isTa = typeof currentLang !== 'undefined' && currentLang === 'ta';
@@ -2246,6 +2249,49 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
       return defaultVal;
     }
 
+    function isProductOutOfStock(p) {
+      if (!p) return false;
+      if (p.forceOutOfStock) return true;
+      if (p.stockKg !== undefined && p.stockKg <= 0) return true;
+
+      const start = p.availabilityStart || p.scheduleStart || '';
+      const end = p.availabilityEnd || p.scheduleEnd || '';
+      const isScheduled = p.isScheduled !== false && Boolean(start && end);
+
+      if (isScheduled) {
+        const now = new Date();
+        const currentHours = String(now.getHours()).padStart(2, '0');
+        const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+        const currentTimeStr = `${currentHours}:${currentMinutes}`;
+
+        const normStart = normalizeTimeStr(start, "00:00");
+        const normEnd = normalizeTimeStr(end, "23:59");
+
+        if (normStart <= normEnd) {
+          if (currentTimeStr < normStart || currentTimeStr > normEnd) {
+            return true;
+          }
+        } else {
+          if (currentTimeStr < normStart && currentTimeStr > normEnd) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    window.isProductOutOfStock = isProductOutOfStock;
+
+    function updateProductAvailability(p) {
+      if (!p) return;
+      if (p.isOutOfStock && !p.forceOutOfStock && !(p.isScheduled && (p.availabilityStart || p.scheduleStart))) {
+        p.isOutOfStock = false;
+      }
+      const outOfStock = isProductOutOfStock(p);
+      p.isOutOfStock = outOfStock;
+      p.isAvailable = !outOfStock;
+    }
+    window.updateProductAvailability = updateProductAvailability;
+
     function areProductFieldsEqual(p1, p2) {
       if (!p1 || !p2) return false;
       return p1.id === p2.id &&
@@ -2379,6 +2425,80 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
       return true;
     }
 
+    function isUserTombstoned(u, deletedUserIds) {
+      if (!u || !deletedUserIds || !deletedUserIds.length) return false;
+      const uId = String(u.id || '').trim();
+      const uPhone = String(u.phone || '').trim();
+      const cleanPhone = uPhone.replace(/\D/g, '');
+      const phone10 = cleanPhone.length >= 10 ? cleanPhone.slice(-10) : cleanPhone;
+      return deletedUserIds.some(delId => {
+        if (!delId) return false;
+        const d = String(delId).trim();
+        if (uId && uId === d) return true;
+        if (uPhone && uPhone === d) return true;
+        const cleanD = d.replace(/\D/g, '');
+        const d10 = cleanD.length >= 10 ? cleanD.slice(-10) : cleanD;
+        if (phone10 && d10 && phone10 === d10) return true;
+        if (phone10 && (d === `cust_${phone10}` || d === `+91${phone10}` || d === `91${phone10}`)) return true;
+        return false;
+      });
+    }
+    window.isUserTombstoned = isUserTombstoned;
+
+    function filterDeletedEntities(key, parsed) {
+      if (!parsed || !Array.isArray(parsed)) return parsed;
+
+      if (key === 'ek_orders') {
+        const deletedIds = typeof getDeletedOrderIds === 'function' ? getDeletedOrderIds() : [];
+        parsed = parsed.filter(o => {
+          if (!o || !o.id) return false;
+          if (o.hiddenByAdmin === true) return false;
+          if (deletedIds && deletedIds.length > 0 && deletedIds.includes(o.id)) return false;
+          return true;
+        });
+      } else if (key === 'ek_products') {
+        const deletedProductIds = typeof getDeletedProductIds === 'function' ? getDeletedProductIds() : [];
+        if (deletedProductIds && deletedProductIds.length > 0) {
+          parsed = parsed.filter(p => p && p.id && !deletedProductIds.includes(p.id));
+        }
+      } else if (key === 'ek_users') {
+        const deletedUserIds = typeof getDeletedUserIds === 'function' ? getDeletedUserIds() : [];
+        if (deletedUserIds && deletedUserIds.length > 0) {
+          parsed = parsed.filter(u => !isUserTombstoned(u, deletedUserIds));
+        }
+        const uniqueMap = new Map();
+        parsed.forEach(u => {
+          if (!u) return;
+          const uKey = u.phone || u.id;
+          if (!uKey) return;
+          const existing = uniqueMap.get(uKey);
+          if (!existing) {
+            uniqueMap.set(uKey, u);
+          } else {
+            const timeExisting = existing.updatedAt ? new Date(existing.updatedAt).getTime() : (existing.joinedAt ? new Date(existing.joinedAt).getTime() : 0);
+            const timeU = u.updatedAt ? new Date(u.updatedAt).getTime() : (u.joinedAt ? new Date(u.joinedAt).getTime() : 0);
+            if (timeU > timeExisting) {
+              uniqueMap.set(uKey, u);
+            }
+          }
+        });
+        parsed = Array.from(uniqueMap.values());
+      } else if (key === 'ek_delivery_persons') {
+        const deletedRiderIds = typeof getDeletedRiderIds === 'function' ? getDeletedRiderIds() : [];
+        if (deletedRiderIds && deletedRiderIds.length > 0) {
+          parsed = parsed.filter(r => r && r.id && !deletedRiderIds.includes(r.id));
+        }
+      } else if (key === 'ek_admin_accounts') {
+        const deletedAdminIds = typeof getDeletedAdminIds === 'function' ? getDeletedAdminIds() : [];
+        if (deletedAdminIds && deletedAdminIds.length > 0) {
+          parsed = parsed.filter(a => a && !deletedAdminIds.includes(a.id) && !deletedAdminIds.includes(a.phone));
+        }
+      }
+
+      return parsed;
+    }
+    window.filterDeletedEntities = filterDeletedEntities;
+
     function getData(key, defaultVal = []) {
       try {
         const now = Date.now();
@@ -2398,47 +2518,7 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
         if (parsed === null || parsed === undefined) {
           parsed = defaultVal;
         }
-        if (key === 'ek_orders' && Array.isArray(parsed)) {
-          let deletedIds = [];
-          try {
-            let delVal = null;
-            if (typeof AndroidStorage !== 'undefined') {
-              delVal = AndroidStorage.getData('ek_deleted_order_ids', "");
-            }
-            if (!delVal) {
-              delVal = localStorage.getItem('ek_deleted_order_ids');
-            }
-            deletedIds = delVal ? JSON.parse(delVal) : [];
-          } catch(err) {
-            deletedIds = [];
-          }
-          if (deletedIds && Array.isArray(deletedIds) && deletedIds.length > 0) {
-            parsed = parsed.filter(o => {
-              if (o && o.id && deletedIds.includes(o.id)) {
-                const status = (o.status || '').toLowerCase().trim();
-                return ['completed', 'delivered', 'cancelled', 'archived'].includes(status);
-              }
-              return true;
-            });
-          }
-        }
-        if (key === 'ek_users' && Array.isArray(parsed)) {
-          const uniqueMap = new Map();
-          parsed.forEach(u => {
-            if (!u || !u.phone) return;
-            const existing = uniqueMap.get(u.phone);
-            if (!existing) {
-              uniqueMap.set(u.phone, u);
-            } else {
-              const timeExisting = existing.updatedAt ? new Date(existing.updatedAt).getTime() : (existing.joinedAt ? new Date(existing.joinedAt).getTime() : 0);
-              const timeU = u.updatedAt ? new Date(u.updatedAt).getTime() : (u.joinedAt ? new Date(u.joinedAt).getTime() : 0);
-              if (timeU > timeExisting) {
-                uniqueMap.set(u.phone, u);
-              }
-            }
-          });
-          parsed = Array.from(uniqueMap.values());
-        }
+        parsed = filterDeletedEntities(key, parsed);
         _dataCache.set(key, parsed);
         return parsed;
       } catch (e) {
@@ -2448,47 +2528,7 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
           if (parsed === null || parsed === undefined) {
             parsed = defaultVal;
           }
-          if (key === 'ek_orders' && Array.isArray(parsed)) {
-            let deletedIds = [];
-            try {
-              let delVal = null;
-              if (typeof AndroidStorage !== 'undefined') {
-                delVal = AndroidStorage.getData('ek_deleted_order_ids', "");
-              }
-              if (!delVal) {
-                delVal = localStorage.getItem('ek_deleted_order_ids');
-              }
-              deletedIds = delVal ? JSON.parse(delVal) : [];
-            } catch(err) {
-              deletedIds = [];
-            }
-            if (deletedIds && Array.isArray(deletedIds) && deletedIds.length > 0) {
-              parsed = parsed.filter(o => {
-                if (o && o.id && deletedIds.includes(o.id)) {
-                  const status = (o.status || '').toLowerCase().trim();
-                  return ['completed', 'delivered', 'cancelled', 'archived'].includes(status);
-                }
-                return true;
-              });
-            }
-          }
-          if (key === 'ek_users' && Array.isArray(parsed)) {
-            const uniqueMap = new Map();
-            parsed.forEach(u => {
-              if (!u || !u.phone) return;
-              const existing = uniqueMap.get(u.phone);
-              if (!existing) {
-                uniqueMap.set(u.phone, u);
-              } else {
-                const timeExisting = existing.updatedAt ? new Date(existing.updatedAt).getTime() : (existing.joinedAt ? new Date(existing.joinedAt).getTime() : 0);
-                const timeU = u.updatedAt ? new Date(u.updatedAt).getTime() : (u.joinedAt ? new Date(u.joinedAt).getTime() : 0);
-                if (timeU > timeExisting) {
-                  uniqueMap.set(u.phone, u);
-                }
-              }
-            });
-            parsed = Array.from(uniqueMap.values());
-          }
+          parsed = filterDeletedEntities(key, parsed);
           _dataCache.set(key, parsed);
           return parsed;
         } catch (err) {
@@ -2650,7 +2690,8 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
     }
 
     function getSettings() {
-      return getDataCached('ek_settings', DEFAULT_SETTINGS);
+      const def = typeof DEFAULT_SETTINGS !== 'undefined' ? DEFAULT_SETTINGS : (window.DEFAULT_SETTINGS || {});
+      return getDataCached('ek_settings', def);
     }
 
     function getDeletedOrderIds() {
@@ -2669,12 +2710,19 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
       }
     }
     function markOrderAsDeleted(orderId) {
+      if (!orderId) return;
       const list = getDeletedOrderIds();
       if (!list.includes(orderId)) {
         list.push(orderId);
         saveData('ek_deleted_order_ids', list);
       }
       pruneLocalDeletedOrders();
+      if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection('ek_tombstones').doc('ek_deleted_order_ids').set({
+          ids: firebase.firestore.FieldValue.arrayUnion(orderId),
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch(() => null);
+      }
     }
     function getCustomerHiddenOrderIds() {
       let val = null;
@@ -2727,6 +2775,7 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
       }
     }
     function markProductAsDeleted(productId) {
+      if (!productId) return;
       let list = getDeletedProductIds();
       if (!list.includes(productId)) {
         list.push(productId);
@@ -2736,6 +2785,12 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
         saveData('ek_deleted_product_ids', list);
       }
       pruneLocalDeletedProducts();
+      if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection('ek_tombstones').doc('ek_deleted_product_ids').set({
+          ids: firebase.firestore.FieldValue.arrayUnion(productId),
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch(() => null);
+      }
     }
     function unmarkProductAsDeleted(productId) {
       if (!productId) return;
@@ -2744,7 +2799,7 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
         list = list.filter(id => id !== productId);
         saveData('ek_deleted_product_ids', list);
       }
-      if (typeof db !== 'undefined' && db) {
+      if (typeof db !== 'undefined' && db && db.collection) {
         db.collection('ek_tombstones').doc('ek_deleted_product_ids').set({
           ids: firebase.firestore.FieldValue.arrayRemove(productId),
           updatedAt: new Date().toISOString()
@@ -2759,21 +2814,28 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
     }
     function pruneLocalDeletedUsers() {
       const deletedUserIds = getDeletedUserIds();
-      if (deletedUserIds.length === 0) return;
+      if (!deletedUserIds || deletedUserIds.length === 0) return;
       const users = getData('ek_users', []);
-      const filtered = users.filter(u => !deletedUserIds.includes(u.id) && !deletedUserIds.includes(u.phone));
+      const filtered = users.filter(u => !isUserTombstoned(u, deletedUserIds));
       if (users.length !== filtered.length) {
         saveData('ek_users', filtered);
         debugLog(`[Safeguard] Pruned ${users.length - filtered.length} deleted users from local cache.`);
       }
     }
     function markUserAsDeleted(userId) {
+      if (!userId) return;
       const list = getDeletedUserIds();
       if (!list.includes(userId)) {
         list.push(userId);
         saveData('ek_deleted_user_ids', list);
       }
       pruneLocalDeletedUsers();
+      if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection('ek_tombstones').doc('ek_deleted_user_ids').set({
+          ids: firebase.firestore.FieldValue.arrayUnion(userId),
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch(() => null);
+      }
     }
     function unmarkUserAsDeleted(userIdOrPhone) {
       if (!userIdOrPhone) return;
@@ -2823,51 +2885,85 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
       }
     }
     function markRiderAsDeleted(riderId) {
+      if (!riderId) return;
       const list = getDeletedRiderIds();
       if (!list.includes(riderId)) {
         list.push(riderId);
         saveData('ek_deleted_rider_ids', list);
       }
       pruneLocalDeletedRiders();
+      if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection('ek_tombstones').doc('ek_deleted_rider_ids').set({
+          ids: firebase.firestore.FieldValue.arrayUnion(riderId),
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch(() => null);
+      }
     }
     function unmarkRiderAsDeleted(riderId) {
+      if (!riderId) return;
       let list = getDeletedRiderIds();
       list = list.filter(id => id !== riderId);
       saveData('ek_deleted_rider_ids', list);
+      if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection('ek_tombstones').doc('ek_deleted_rider_ids').set({
+          ids: firebase.firestore.FieldValue.arrayRemove(riderId),
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch(() => null);
+      }
     }
 
     function getDeletedAdminIds() {
       return getData('ek_deleted_admin_ids', []);
     }
     function markAdminAsDeleted(adminIdOrPhone) {
+      if (!adminIdOrPhone) return;
       const list = getDeletedAdminIds();
       if (!list.includes(adminIdOrPhone)) {
         list.push(adminIdOrPhone);
         saveData('ek_deleted_admin_ids', list);
       }
+      if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection('ek_tombstones').doc('ek_deleted_admin_ids').set({
+          ids: firebase.firestore.FieldValue.arrayUnion(adminIdOrPhone),
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch(() => null);
+      }
     }
     function unmarkAdminAsDeleted(adminIdOrPhone) {
+      if (!adminIdOrPhone) return;
       let list = getDeletedAdminIds();
       list = list.filter(id => id !== adminIdOrPhone);
       saveData('ek_deleted_admin_ids', list);
+      if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection('ek_tombstones').doc('ek_deleted_admin_ids').set({
+          ids: firebase.firestore.FieldValue.arrayRemove(adminIdOrPhone),
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch(() => null);
+      }
     }
+
+    window.getDeletedOrderIds = getDeletedOrderIds;
+    window.markOrderAsDeleted = markOrderAsDeleted;
+    window.getCustomerHiddenOrderIds = getCustomerHiddenOrderIds;
+    window.markOrderAsHiddenByCustomer = markOrderAsHiddenByCustomer;
+    window.getDeletedProductIds = getDeletedProductIds;
+    window.markProductAsDeleted = markProductAsDeleted;
+    window.getDeletedUserIds = getDeletedUserIds;
+    window.markUserAsDeleted = markUserAsDeleted;
+    window.unmarkUserAsDeleted = unmarkUserAsDeleted;
+    window.getDeletedRiderIds = getDeletedRiderIds;
+    window.markRiderAsDeleted = markRiderAsDeleted;
+    window.unmarkRiderAsDeleted = unmarkRiderAsDeleted;
+    window.getDeletedAdminIds = getDeletedAdminIds;
+    window.markAdminAsDeleted = markAdminAsDeleted;
+    window.unmarkAdminAsDeleted = unmarkAdminAsDeleted;
 
     function saveData(key, data) {
       try {
         invalidateDataCache(key); // Invalidate cache first so subsequent reads fetch fresh data
 
-        if (key === 'ek_orders' && Array.isArray(data)) {
-          const deletedOrderIds = getDeletedOrderIds();
-          data = data.filter(o => o && !deletedOrderIds.includes(o.id) && o.hiddenByAdmin !== true);
-        } else if (key === 'ek_products' && Array.isArray(data)) {
-          const deletedProductIds = typeof getDeletedProductIds === 'function' ? getDeletedProductIds() : [];
-          data = data.filter(p => !deletedProductIds.includes(p.id));
-        } else if (key === 'ek_users' && Array.isArray(data)) {
-          const deletedUserIds = typeof getDeletedUserIds === 'function' ? getDeletedUserIds() : [];
-          data = data.filter(u => !deletedUserIds.includes(u.id || u.phone));
-        } else if (key === 'ek_delivery_persons' && Array.isArray(data)) {
-          const deletedRiderIds = typeof getDeletedRiderIds === 'function' ? getDeletedRiderIds() : [];
-          data = data.filter(r => !deletedRiderIds.includes(r.id));
+        if (Array.isArray(data)) {
+          data = filterDeletedEntities(key, data);
         }
 
         if (key === 'ek_settings' && typeof data === 'object' && data !== null) {

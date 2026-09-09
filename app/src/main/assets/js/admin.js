@@ -2124,28 +2124,6 @@ ${o.items.map((it, idx) => {
       }
     }
 
-    function getOrderAssignedExecutive(order) {
-      if (!order) return null;
-      if (order.assignedTo && typeof order.assignedTo === 'object' && (order.assignedTo.id || order.assignedTo.uid)) {
-        const rId = order.assignedTo.id || order.assignedTo.uid;
-        return {
-          id: rId,
-          uid: rId,
-          name: order.assignedTo.name || 'Delivery Partner',
-          phone: order.assignedTo.phone || '',
-          role: order.assignedTo.role || 'rider',
-          assignedAt: order.assignedTo.assignedAt || order.updatedAt || order.createdAt || null,
-          status: order.assignedTo.status || 'assigned'
-        };
-      }
-      const uid = (typeof order.assignedTo === 'string' && order.assignedTo) || order.assignedDeliveryPartnerUid || order.riderUid || order.riderId || order.deliveryPartnerUid || order.assignedExecutiveId || order.deliveryExecutiveId || null;
-      if (!uid) return null;
-      const name = order.assignedDeliveryPartnerName || order.assignedRiderName || order.assignedExecutiveName || order.deliveryExecutiveName || 'Delivery Partner';
-      const phone = order.assignedExecutivePhone || order.deliveryExecutivePhone || '';
-      return { id: uid, uid: uid, name, phone, role: 'rider', assignedAt: order.updatedAt || order.createdAt || null, status: 'assigned' };
-    }
-    window.getOrderAssignedExecutive = getOrderAssignedExecutive;
-
     function proceedWithAssignDeliveryPartner(orderId, executiveId) {
       window.locallyModifiedOrders = window.locallyModifiedOrders || {};
       window.locallyModifiedOrders[orderId] = Date.now() + 8000;
@@ -2895,6 +2873,56 @@ ${o.items.map((it, idx) => {
             "🎉 வெற்றிகரமாக உருவாக்கப்பட்டது!",
             `புதிய தயாரிப்பு <strong>${tamilName} (${englishName})</strong> வெற்றிகரமாக உருவாக்கப்பட்டு உங்கள் கடையில் இணைக்கப்பட்டது.<br><br><span style="font-size:11.5px;color:var(--text-muted);">Successfully Created! The new product has been added.</span>`
           );
+
+          // Realtime notification to Customer Notification Center (Bell 🔔)
+          try {
+            if (typeof window.addNotification === 'function') {
+              window.addNotification(
+                `🥩 புதிய தயாரிப்பு: ${tamilName}`,
+                `🥩 New Arrival: ${englishName}`,
+                `${tamilName} (${englishName}) இப்போது உங்கள் எடப்பாடி கடையில் கிடைக்கிறது. இன்றே ஆர்டர் செய்யுங்கள்! விலை: ₹${targetProduct.price}`,
+                `${englishName} is now available at Edappadi Kadai. Order today at ₹${targetProduct.price}!`,
+                '🥩'
+              );
+            } else if (typeof addNotification === 'function') {
+              addNotification(
+                `🥩 புதிய தயாரிப்பு: ${tamilName}`,
+                `🥩 New Arrival: ${englishName}`,
+                `${tamilName} (${englishName}) இப்போது உங்கள் எடப்பாடி கடையில் கிடைக்கிறது. இன்றே ஆர்டர் செய்யுங்கள்! விலை: ₹${targetProduct.price}`,
+                `${englishName} is now available at Edappadi Kadai. Order today at ₹${targetProduct.price}!`,
+                '🥩'
+              );
+            }
+          } catch(notifErr) {
+            console.warn("Failed to dispatch local product notification:", notifErr);
+          }
+
+          // Broadcast announcement to all customer devices in Firestore
+          if (typeof db !== 'undefined' && db) {
+            db.collection('ek_topic_broadcast_requests').add({
+              type: 'new_product',
+              productId: targetProduct.id,
+              title: `🥩 புதிய தயாரிப்பு: ${tamilName}`,
+              titleTa: `🥩 புதிய தயாரிப்பு: ${tamilName}`,
+              titleEn: `🥩 New Arrival: ${englishName}`,
+              body: `${tamilName} (${englishName}) இப்போது கிடைக்கிறது! விலை: ₹${targetProduct.price}`,
+              bodyTa: `${tamilName} இப்போது உங்கள் எடப்பாடி கடையில் கிடைக்கிறது! இன்றே ஆர்டர் செய்யுங்கள்! விலை: ₹${targetProduct.price}`,
+              bodyEn: `${englishName} is now available at Edappadi Kadai! Order today at ₹${targetProduct.price}!`,
+              createdAt: new Date().toISOString()
+            }).then(() => {
+              debugLog("✓ Broadcast notification dispatched for new product:", targetProduct.id);
+            }).catch(err => console.warn("Broadcast request failed:", err));
+          }
+
+          // Android Native Status Bar Push
+          if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.showNativeNotification === 'function') {
+            try {
+              AndroidStorage.showNativeNotification(
+                `🥩 புதிய தயாரிப்பு: ${tamilName}`,
+                `${tamilName} இப்போது உங்கள் எடப்பாடி கடையில் கிடைக்கிறது! இன்றே ஆர்டர் செய்யுங்கள்!`
+              );
+            } catch(nativeErr) {}
+          }
         }
 
         if (typeof unmarkProductAsDeleted === 'function') {
@@ -2908,6 +2936,11 @@ ${o.items.map((it, idx) => {
         if (typeof renderHomeScreenProducts === 'function') {
           renderHomeScreenProducts(true);
         }
+
+        try {
+          window.dispatchEvent(new CustomEvent('ek-products-updated', { detail: { action: isEdit ? 'update' : 'create', product: targetProduct } }));
+          window.dispatchEvent(new CustomEvent('refresh-customer-catalog'));
+        } catch(e) {}
 
         if (oldImageUrl && oldImageUrl !== finalImg) {
           deleteStorageImageByUrl(oldImageUrl);
@@ -3291,6 +3324,14 @@ ${o.items.map((it, idx) => {
         if (typeof renderHomeScreenProducts === 'function') {
           renderHomeScreenProducts(true);
         }
+
+        try {
+          window.dispatchEvent(new CustomEvent('ek-products-updated', { detail: { action: 'update', product: targetProduct } }));
+          window.dispatchEvent(new CustomEvent('refresh-customer-catalog'));
+          if (typeof window.refreshActiveProductModalIfOpen === 'function') {
+            window.refreshActiveProductModalIfOpen();
+          }
+        } catch(e) {}
 
         if (oldImageUrl && oldImageUrl !== finalImg) {
           deleteStorageImageByUrl(oldImageUrl);
@@ -4198,13 +4239,94 @@ ${o.items.map((it, idx) => {
     }
     window.renderAdminUpiSettings = renderAdminUpiSettings;
 
-    function saveAdminSettings() {
+    async function saveAdminSettings() {
       try {
+        const settings = typeof getSettings === 'function' ? getSettings() : (getData('ek_settings', typeof DEFAULT_SETTINGS !== 'undefined' ? DEFAULT_SETTINGS : {}) || {});
+
+        const elShopOpen = document.getElementById('setting-shop-open');
+        if (elShopOpen) settings.shopOpen = elShopOpen.checked;
+
+        const elLeaveMode = document.getElementById('setting-leave-mode');
+        if (elLeaveMode) settings.leaveMode = elLeaveMode.checked;
+
+        const elLeaveNotice = document.getElementById('setting-leave-notice');
+        if (elLeaveNotice) settings.leaveNotice = elLeaveNotice.value.trim();
+
+        const elDelCharge = document.getElementById('setting-delivery-charge');
+        if (elDelCharge && elDelCharge.value !== '') settings.deliveryCharge = parseFloat(elDelCharge.value) || 0;
+
+        const elDynDel = document.getElementById('setting-dynamic-delivery');
+        if (elDynDel) settings.useDynamicDistancePricing = elDynDel.checked;
+
+        const elDelBase = document.getElementById('setting-delivery-base-price');
+        if (elDelBase && elDelBase.value !== '') settings.deliveryBasePrice = parseFloat(elDelBase.value) || 0;
+
+        const elDelKm = document.getElementById('setting-delivery-km-multiplier');
+        if (elDelKm && elDelKm.value !== '') settings.deliveryKmMultiplier = parseFloat(elDelKm.value) || 0;
+
+        const elRainMode = document.getElementById('setting-rain-mode');
+        if (elRainMode) {
+          settings.rainMode = elRainMode.checked;
+          settings.rainSurchargeEnabled = elRainMode.checked;
+        }
+
+        const elRainCharge = document.getElementById('setting-rain-charge');
+        if (elRainCharge && elRainCharge.value !== '') {
+          const rc = parseFloat(elRainCharge.value) || 0;
+          settings.rainCharge = rc;
+          settings.rainSurchargeFee = rc;
+        }
+
+        const elMinWt = document.getElementById('setting-min-weight');
+        if (elMinWt && elMinWt.value !== '') settings.minOrderWeight = parseFloat(elMinWt.value) || 0;
+
+        const elMinAmt = document.getElementById('setting-min-amount');
+        if (elMinAmt && elMinAmt.value !== '') settings.minOrderAmount = parseFloat(elMinAmt.value) || 0;
+
+        const elMinAppVer = document.getElementById('setting-min-app-version');
+        if (elMinAppVer && elMinAppVer.value) settings.minAppVersion = elMinAppVer.value.trim();
+
+        const elRecAppVer = document.getElementById('setting-recommended-app-version');
+        if (elRecAppVer && elRecAppVer.value) settings.recommendedVersion = elRecAppVer.value.trim();
+
+        const elPlayUrl = document.getElementById('setting-playstore-url');
+        if (elPlayUrl && elPlayUrl.value) settings.playStoreUrl = elPlayUrl.value.trim();
+
+        const elPrivacyUrl = document.getElementById('setting-privacy-policy-url');
+        if (elPrivacyUrl && elPrivacyUrl.value) settings.privacyPolicyUrl = elPrivacyUrl.value.trim();
+
+        settings.updatedAt = new Date().toISOString();
+        settings._isAdminModified = true;
+
+        saveData('ek_settings', settings);
+
+        if (typeof db !== 'undefined' && db) {
+          const cleanObj = typeof cleanFirestoreData === 'function' ? cleanFirestoreData(settings) : settings;
+          await db.collection('ek_settings').doc('global_config').set(cleanObj, { merge: true }).catch(err => console.warn("Firestore settings global_config notice:", err));
+          await db.collection('ek_settings').doc('global').set(cleanObj, { merge: true }).catch(err => console.warn("Firestore settings global notice:", err));
+        }
+
         if (typeof saveAdminEmailOtpConfig === 'function') saveAdminEmailOtpConfig();
+
+        if (typeof showToast === 'function') {
+          showToast(currentLang === 'ta' ? "அமைப்புகள் வெற்றிகரமாகச் சேமிக்கப்பட்டன! ✨" : "Settings saved successfully! ✨", "success");
+        }
       } catch(e) {
         console.warn("saveAdminSettings error:", e);
       }
     }
+    window.saveAdminSettings = saveAdminSettings;
+
+    window.presetDeliveryFee = function(val) {
+      const el = document.getElementById('setting-delivery-charge');
+      if (el) {
+        el.value = val;
+        saveAdminSettings();
+        if (typeof showToast === 'function') {
+          showToast(currentLang === 'ta' ? `டெலிவரி கட்டணம் ₹${val} ஆக நிர்ணயிக்கப்பட்டது! ✓` : `Delivery fee set to ₹${val}! ✓`, 'success');
+        }
+      }
+    };
 
     function promptEditOrderDeliveryOrEta(orderId) {
       const orders = getDataCached('ek_orders', []);
@@ -4749,6 +4871,48 @@ ${o.items.map((it, idx) => {
     }
     window.changeAdminZonesMapLayer = changeAdminZonesMapLayer;
 
+    function renderAdminZonesMapLayers(mapInstance) {
+      const map = mapInstance || window._adminZonesMapInstance;
+      if (!map || typeof L === 'undefined') return;
+
+      const storeLat = 11.5815;
+      const storeLng = 77.8488;
+
+      if (!window._adminZonesCirclesGroup) {
+        window._adminZonesCirclesGroup = L.featureGroup().addTo(map);
+      } else {
+        try { window._adminZonesCirclesGroup.clearLayers(); } catch(e) {}
+      }
+
+      const getZonesFn = typeof getDeliveryZones === 'function' ? getDeliveryZones : function() { return getData('ek_delivery_zones', []); };
+      const zones = getZonesFn();
+      const sortedZones = Array.isArray(zones) ? [...zones].filter(z => z && !isNaN(parseFloat(z.maxKm)) && parseFloat(z.maxKm) > 0).sort((a, b) => parseFloat(b.maxKm) - parseFloat(a.maxKm)) : [];
+      const colors = ['#ec4899', '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6'];
+
+      sortedZones.forEach((z, i) => {
+        const radiusMeters = parseFloat(z.maxKm) * 1000;
+        const color = colors[i % colors.length];
+        const circle = L.circle([storeLat, storeLng], {
+          radius: radiusMeters,
+          color: color,
+          fillColor: color,
+          fillOpacity: 0.18,
+          weight: 2.5
+        }).bindPopup(`<b style="color:${color}; font-size:13px;">📍 ${escapeHtml(z.nameTa || z.nameEn || 'Zone')}</b><br><span style="color:#fff; font-size:11px;">வரம்பு: <b>${z.maxKm} Km</b> | கட்டணம்: <b>₹${z.charge}</b>${z.pincodes && z.pincodes.length ? `<br>அஞ்சல் குறியீடு: <b>${Array.isArray(z.pincodes) ? z.pincodes.join(', ') : z.pincodes}</b>` : ''}</span>`);
+        window._adminZonesCirclesGroup.addLayer(circle);
+      });
+
+      if (sortedZones.length > 0 && window._adminZonesCirclesGroup.getLayers().length > 0) {
+        try {
+          const bounds = window._adminZonesCirclesGroup.getBounds();
+          if (bounds && bounds.isValid()) {
+            map.fitBounds(bounds.pad(0.15));
+          }
+        } catch(e) {}
+      }
+    }
+    window.renderAdminZonesMapLayers = renderAdminZonesMapLayers;
+
     function initAdminZonesMap(resetCenter = false) {
       const mapContainer = document.getElementById('admin-zones-leaflet-map');
       if (!mapContainer) return;
@@ -4766,14 +4930,8 @@ ${o.items.map((it, idx) => {
 
         if (window._adminZonesMapInstance && !resetCenter) {
           try {
-            window._adminZonesMapInstance.invalidateSize();
-            setTimeout(() => {
-              try {
-                if (window._adminZonesMapInstance && typeof window._adminZonesMapInstance.invalidateSize === 'function') {
-                  window._adminZonesMapInstance.invalidateSize();
-                }
-              } catch(e) {}
-            }, 250);
+            renderAdminZonesMapLayers(window._adminZonesMapInstance);
+            refreshAdminZonesMapSize();
             if (containerVisible) {
               window._adminZonesMapInstance.setView([storeLat, storeLng], window._adminZonesMapInstance.getZoom() || 12);
             }
@@ -4813,22 +4971,8 @@ ${o.items.map((it, idx) => {
         L.marker([storeLat, storeLng], { icon: storeIcon }).addTo(map)
           .bindPopup('<b style="color:#f59e0b; font-size:13px;">🏪 எடப்பாடி கடை மையக் கிளை</b><br><span style="color:#fff; font-size:11px;">Central Store Hub | Lat: 11.5815, Lng: 77.8488</span>');
 
-        const getZonesFn = typeof getDeliveryZones === 'function' ? getDeliveryZones : function() { return getData('ek_delivery_zones', []); };
-        const zones = getZonesFn();
-        const sortedZones = Array.isArray(zones) ? [...zones].filter(z => z && !isNaN(parseFloat(z.maxKm)) && parseFloat(z.maxKm) > 0).sort((a, b) => parseFloat(b.maxKm) - parseFloat(a.maxKm)) : [];
-        const colors = ['#ec4899', '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6'];
-
-        sortedZones.forEach((z, i) => {
-          const radiusMeters = parseFloat(z.maxKm) * 1000;
-          const color = colors[i % colors.length];
-          L.circle([storeLat, storeLng], {
-            radius: radiusMeters,
-            color: color,
-            fillColor: color,
-            fillOpacity: 0.18,
-            weight: 2.5
-          }).addTo(map).bindPopup(`<b style="color:${color}; font-size:13px;">${z.nameTa || z.nameEn}</b><br><span style="color:#fff; font-size:11px;">வரம்பு: <b>${z.maxKm} Km</b> | கட்டணம்: <b>₹${z.charge}</b></span>`);
-        });
+        window._adminZonesCirclesGroup = L.featureGroup().addTo(map);
+        renderAdminZonesMapLayers(map);
 
         const triggerInvalidate = () => {
           try {

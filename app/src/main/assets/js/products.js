@@ -404,6 +404,10 @@
           if (typeof populateProductCategoryOptions === 'function') {
             populateProductCategoryOptions();
           }
+          try {
+            window.dispatchEvent(new CustomEvent('ek-categories-updated', { detail: { action: 'update', category: matched } }));
+            window.dispatchEvent(new CustomEvent('refresh-customer-catalog'));
+          } catch(e) {}
         }
       } finally {
         if (btn && typeof setButtonLoading === 'function') setButtonLoading(btn, false);
@@ -456,6 +460,10 @@
           if (typeof populateProductCategoryOptions === 'function') {
             populateProductCategoryOptions();
           }
+          try {
+            window.dispatchEvent(new CustomEvent('ek-categories-updated', { detail: { action: 'delete', categoryId: id } }));
+            window.dispatchEvent(new CustomEvent('refresh-customer-catalog'));
+          } catch(e) {}
         }
       } finally {
         if (btn && typeof setButtonLoading === 'function') setButtonLoading(btn, false);
@@ -646,12 +654,70 @@
         `புதிய பிரிவு (Category) <strong>${ta} (${en})</strong> வெற்றிகரமாக உருவாக்கப்பட்டு உங்கள் கடையில் இணைக்கப்பட்டது.<br><br><span style="font-size:11.5px;color:var(--text-muted);">Successfully Created! The new category has been added.</span>`
       );
 
+      // Realtime notification to Customer Notification Center (Bell 🔔)
+      try {
+        if (typeof window.addNotification === 'function') {
+          window.addNotification(
+            `📦 புதிய பிரிவு: ${icon} ${ta}`,
+            `📦 New Category: ${icon} ${en}`,
+            `எடப்பாடி கடையில் புதிய ${ta} பிரிவு சேர்க்கப்பட்டுள்ளது! பொருட்களைப் பார்வையிடவும்.`,
+            `New category ${en} has been added to Edappadi Kadai! Check out our selection.`,
+            icon || '📦'
+          );
+        } else if (typeof addNotification === 'function') {
+          addNotification(
+            `📦 புதிய பிரிவு: ${icon} ${ta}`,
+            `📦 New Category: ${icon} ${en}`,
+            `எடப்பாடி கடையில் புதிய ${ta} பிரிவு சேர்க்கப்பட்டுள்ளது! பொருட்களைப் பார்வையிடவும்.`,
+            `New category ${en} has been added to Edappadi Kadai! Check out our selection.`,
+            icon || '📦'
+          );
+        }
+      } catch(notifErr) {
+        console.warn("Category notification error:", notifErr);
+      }
+
+      // Broadcast announcement to all customer devices in Firestore
+      if (typeof db !== 'undefined' && db) {
+        db.collection('ek_topic_broadcast_requests').add({
+          type: 'new_category',
+          categoryId: newId,
+          title: `📦 புதிய பிரிவு: ${icon} ${ta}`,
+          titleTa: `📦 புதிய பிரிவு: ${icon} ${ta}`,
+          titleEn: `📦 New Category: ${icon} ${en}`,
+          body: `எடப்பாடி கடையில் புதிய ${ta} (${en}) பிரிவு சேர்க்கப்பட்டுள்ளது!`,
+          bodyTa: `எடப்பாடி கடையில் புதிய ${ta} பிரிவு சேர்க்கப்பட்டுள்ளது! பொருட்களைப் பார்வையிடவும்.`,
+          bodyEn: `New category ${en} has been added to Edappadi Kadai! Explore products now.`,
+          createdAt: new Date().toISOString()
+        }).catch(() => {});
+      }
+
+      // Android Native Status Bar Push
+      if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.showNativeNotification === 'function') {
+        try {
+          AndroidStorage.showNativeNotification(
+            `📦 புதிய பிரிவு: ${icon} ${ta}`,
+            `எடப்பாடி கடையில் புதிய பிரிவு சேர்க்கப்பட்டுள்ளது!`
+          );
+        } catch(nativeErr) {}
+      }
+
       if (typeof populateProductCategoryOptions === 'function') {
         populateProductCategoryOptions();
       }
 
       renderAdminDashboard();
+      if (typeof renderAdminCategoriesList === 'function') {
+        renderAdminCategoriesList(true);
+      }
       renderCategoryPills();
+      if (typeof renderHomeScreenProducts === 'function') {
+        renderHomeScreenProducts(true);
+      }
+      try {
+        window.dispatchEvent(new CustomEvent('ek-categories-updated', { detail: { action: 'create', category: newCat } }));
+        window.dispatchEvent(new CustomEvent('refresh-customer-catalog'));
+      } catch(e) {}
     }
 
     function hideHomeSuggestions() {
@@ -730,7 +796,8 @@
 
       let html = '';
       matches.forEach(p => {
-        updateProductAvailability(p); const isOutOfStock = p.isOutOfStock || p.stockKg <= 0 || (p.isScheduled && p.isAvailable === false);
+        if (typeof updateProductAvailability === 'function') { updateProductAvailability(p); }
+        const isOutOfStock = p.isOutOfStock || p.stockKg <= 0 || (p.isScheduled && p.isAvailable === false);
         const nameText = currentLang === 'ta' ? p.tamilName : cleanProductName(p.englishName);
         const subText = currentLang === 'ta' ? cleanProductName(p.englishName) : p.tamilName;
         const priceText = getProductPriceText(p, currentLang);
@@ -1834,7 +1901,7 @@ function renderHomeScreen(forceReRender = false) {
       }
       try {
         let products = (rawLocalProducts || []).filter(p => p && p.id && !deletedProdIds.includes(p.id));
-        if (Array.isArray(products)) { products.forEach(p => { if (p) updateProductAvailability(p); }); }
+        if (Array.isArray(products)) { products.forEach(p => { if (p && typeof updateProductAvailability === 'function') updateProductAvailability(p); }); }
         const catList = getCategoriesList() || [];
         const grid = document.getElementById('home-product-grid');
 
@@ -2221,9 +2288,8 @@ function renderHomeScreen(forceReRender = false) {
 
             const weightHtml = `<span style="font-size: 10px; color: var(--text-muted); font-weight: 600; background: rgba(0,0,0,0.04); padding: 2px 6px; border-radius: 6px; display: inline-block; white-space: nowrap;">${weightText}</span>`;
 
-            const cardDelay = Math.min((i - startIdx) * 35, 280);
             const cardHtml = `
-              <div class="product-grid-card product-grid-card-entrance" id="card-prod-${pidStr}" data-image-url="${imgUrl}" style="--card-cat-color: ${categoryConfig.color}; animation-delay: ${cardDelay}ms;" onclick="openProductModalDetail('${pidStr}')">
+              <div class="product-grid-card" id="card-prod-${pidStr}" data-image-url="${imgUrl}" style="--card-cat-color: ${categoryConfig.color};" onclick="openProductModalDetail('${pidStr}')">
                 ${overlayHtml}
                 ${imgHtml}
                 <div class="product-card-details" style="display: flex !important; flex-direction: column !important; justify-content: center !important; gap: 2px !important; flex-grow: 1 !important; min-width: 0 !important; min-height: 90px !important; height: auto !important; padding: 0 !important;">
@@ -2972,16 +3038,18 @@ function renderHomeScreen(forceReRender = false) {
       const addressText = document.getElementById('picker-address-text');
       const addressVal = addressText ? addressText.innerText : `${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}`;
 
-      if (typeof syncPrimaryUserAddress === 'function') {
+      const targetInput = document.getElementById(targetId);
+      if (targetInput) {
+        targetInput.setAttribute('data-lat', pos.lat);
+        targetInput.setAttribute('data-lng', pos.lng);
+        targetInput.value = addressVal;
+        targetInput.setAttribute('value', addressVal);
+        targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+        targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      if (targetId !== 'reg-address' && targetId !== 'editor-map-dummy-target' && typeof syncPrimaryUserAddress === 'function') {
         syncPrimaryUserAddress(addressVal, pos.lat, pos.lng);
-      } else {
-        const targetInput = document.getElementById(targetId);
-        if (targetInput) {
-          targetInput.setAttribute('data-lat', pos.lat);
-          targetInput.setAttribute('data-lng', pos.lng);
-          targetInput.value = addressVal;
-          targetInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
       }
 
       closeMapAddressPicker();

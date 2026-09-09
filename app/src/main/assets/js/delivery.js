@@ -1,419 +1,6 @@
-
-    function isLyoPieceUnit(unit) {
-      if (!unit) return false;
-      const u = unit.toLowerCase();
-      return (u === "piece" || u === "unit" || u === "pcs" || u === "packet" || u === "bunch" || u === "bundle" || u === "bottle" || u === "box" || u === "cup" || u === "கட்டு" || u === "பீஸ்" || u === "லிட்டர்" || u === "பாக்கெட்" || u === "பக்கெட்");
-    }
-
-    function getLyoAiAvatarHtml(size = 28) {
-      return `
-        <div style="width: ${size}px; height: ${size}px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; font-size: ${Math.round(size * 0.55)}px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(16,185,129,0.3); border: 1.5px solid rgba(255,255,255,0.2);">
-          🤖
-        </div>
-      `;
-    }
-
-    function autoGrowLyoInput(textarea) {
-      if (!textarea) return;
-      textarea.style.height = "24px";
-      const scrollH = textarea.scrollHeight;
-      textarea.style.height = Math.min(Math.max(24, scrollH), 160) + "px";
-      if (scrollH > 160) {
-        textarea.style.overflowY = "auto";
-      } else {
-        textarea.style.overflowY = "hidden";
-      }
-    }
-
-    function formatLyoMsgTime(date) {
-      return new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    }
-
-    function toggleLyoAiLang() {
-      currentLang = (currentLang === "ta") ? "en" : "ta";
-      const label = document.getElementById("lyo-ai-lang-label");
-      if (label) {
-        label.innerText = currentLang === "ta" ? "தமிழ் / EN" : "English / தமிழ்";
-      }
-      if (typeof applyTranslations === "function") {
-        applyTranslations();
-      }
-      renderLyoAiMessages();
-    }
-
-    function updateLyoDraftCartBar() {
-      if (typeof window.updateLyoDraftCartBar === 'function' && window.updateLyoDraftCartBar !== updateLyoDraftCartBar) {
-        window.updateLyoDraftCartBar();
-      }
-    }
-
-    function clearLyoAiCart() {
-      if (typeof window.clearLyoAiCart === 'function' && window.clearLyoAiCart !== clearLyoAiCart) {
-        window.clearLyoAiCart();
-      } else {
-        if (typeof cart !== 'undefined') {
-          cart = [];
-          saveData('ek_cart', cart);
-        }
-        if (typeof updateCartBadge === 'function') updateCartBadge();
-        if (typeof updateCartUI === 'function') updateCartUI();
-        if (typeof showToast === 'function') {
-          showToast(currentLang === 'ta' ? 'கூடை காலியாக்கப்பட்டது! 🛒' : 'Cart cleared! 🛒', 'info');
-        }
-      }
-    }
-
-    function checkoutLyoAiOrder() {
-      if (typeof window.checkoutLyoAiOrder === 'function' && window.checkoutLyoAiOrder !== checkoutLyoAiOrder) {
-        return window.checkoutLyoAiOrder();
-      }
-      window.isLyoAiCheckout = true;
-      selectedPaymentMethod = 'Cash on Delivery';
-      const items = (typeof cart !== 'undefined' && Array.isArray(cart)) ? cart : [];
-      if (items.length === 0) {
-        showToast(
-          currentLang === 'ta' ? 'கூடை காலியாக உள்ளது! 🛒' : 'Your cart is empty! 🛒',
-          'warning'
-        );
-        return;
-      }
-      if (typeof showTab === 'function') {
-        showTab('tab-cart');
-      } else if (typeof showScreen === 'function') {
-        showScreen('screen-cart');
-      }
-      if (typeof renderCartScreen === 'function') {
-        renderCartScreen();
-      }
-    }
-
-    function renderLyoAiMessages() {
-      const container = document.getElementById("lyo-ai-messages");
-      if (!container) return;
-
-      if (lyoAiChatHistory.length === 0) {
-        container.innerHTML = `
-          <div style="text-align: center; color: var(--text-muted); padding: 30px 16px;">
-            <div style="font-size: 42px; margin-bottom: 12px; filter: drop-shadow(0 4px 8px rgba(16,185,129,0.3));">⚡</div>
-            <p style="font-weight: 800; font-size: 14px; color: #fff; margin-bottom: 6px;">
-              ${currentLang === "ta" ? "எடப்பாடி கடை AI வணிக என்ஜின்" : "Edappadi Kadai AI Commerce Engine"}
-            </p>
-            <p style="font-size: 11.5px; color: #cbd5e1; line-height: 1.5; max-width: 300px; margin: 0 auto 16px auto;">
-              ${currentLang === "ta" 
-                ? "வாட்ஸ்ஆப் பட்டியல், தமிழ், இங்கிலீஷ் அல்லது தங்க்லீஷில் உள்ளிடவும். AI தானாகவே கார்ட்டை தயாரித்து கணக்கிடும்!" 
-                : "Paste your WhatsApp shopping list, Tamil, English, or Tanglish text. AI auto-builds your cart instantly!"}
-            </p>
-            <div style="display: flex; flex-direction: column; gap: 8px; max-width: 280px; margin: 0 auto;">
-              <button onclick="sendQuickLyoQuery('500g mutton, half litre milk, 30 eggs, ₹20 tomato')" class="btn" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #34d399; padding: 8px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; text-align: left;">
-                📋 500g Mutton, Half litre milk, 30 eggs, ₹20 tomato
-              </button>
-              <button onclick="sendQuickLyoQuery('அரை கிலோ ஆட்டுக்கறி, 1 கிலோ தக்காளி, 30 முட்டை')" class="btn" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; padding: 8px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; text-align: left;">
-                🍗 அரை கிலோ ஆட்டுக்கறி, 1 கிலோ தக்காளி, 30 முட்டை
-              </button>
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      let html = "";
-      lyoAiChatHistory.forEach(msg => {
-        const isUser = msg.sender === "user";
-        html += `
-          <div style="display: flex; gap: 8px; justify-content: ${isUser ? "flex-end" : "flex-start"}; align-items: flex-end; margin-bottom: 8px;">
-            ${!isUser ? getLyoAiAvatarHtml(24) : ""}
-            <div style="max-width: 88%; padding: 10px 14px; border-radius: ${isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px"}; background: ${isUser ? "linear-gradient(135deg, var(--accent-orange) 0%, #059669 100%)" : "rgba(22, 27, 34, 0.95)"}; color: #fff; border: 1px solid ${isUser ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.12)"}; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
-              <div style="margin: 0; font-size: 12px; line-height: 1.5; white-space: pre-wrap;">${msg.text}</div>
-              <div style="font-size: 9px; color: rgba(255,255,255,0.5); text-align: right; margin-top: 4px;">${msg.time}</div>
-            </div>
-          </div>
-        `;
-      });
-
-      container.innerHTML = html;
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function onLyoSendBtnClick() {
-      const input = document.getElementById("lyo-ai-input");
-      if (!input) return;
-      const text = input.value.trim();
-      if (!text) return;
-
-      lyoAiChatHistory.push({
-        id: Date.now(),
-        sender: "user",
-        text: text,
-        time: formatLyoMsgTime(new Date())
-      });
-      renderLyoAiMessages();
-      input.value = "";
-      input.style.height = "auto";
-      sendLyoAiMessage(text);
-    }
-
-    function sendQuickLyoQuery(queryText) {
-      if (!queryText) return;
-      if (queryText === 'Clear cart' || queryText === 'கூடை காலியாக்கு' || queryText === 'கூடை காலி செய்') {
-        clearLyoAiCart();
-        return;
-      }
-      const input = document.getElementById("lyo-ai-input");
-      if (input) input.value = queryText;
-      onLyoSendBtnClick();
-    }
-
-    async function sendLyoAiMessage(text) {
-      if (lyoIsReplying) return;
-      lyoIsReplying = true;
-      const typingId = "typing_" + Date.now();
-      lyoAiChatHistory.push({
-        id: typingId,
-        sender: "assistant",
-        text: currentLang === "ta" ? "AI வணிக பகுப்பாய்வு செய்கிறது... ⚡" : "AI Processing Commerce Intelligence... ⚡",
-        time: formatLyoMsgTime(new Date()),
-        isTyping: true
-      });
-      renderLyoAiMessages();
-
-      try {
-        let aiReply = "";
-        aiReply = await generateAiResponse(text);
-
-        lyoAiChatHistory = lyoAiChatHistory.filter(msg => msg.id !== typingId);
-        lyoAiChatHistory.push({
-          id: Date.now(),
-          sender: "assistant",
-          text: aiReply,
-          time: formatLyoMsgTime(new Date())
-        });
-      } catch (err) {
-        console.error("sendLyoAiMessage error:", err);
-        lyoAiChatHistory = lyoAiChatHistory.filter(msg => msg.id !== typingId);
-        lyoAiChatHistory.push({
-          id: Date.now(),
-          sender: "assistant",
-          text: currentLang === "ta" ? "மன்னிக்கவும்! ஒரு பிழை ஏற்பட்டது." : "Sorry! An error occurred while processing your shopping list.",
-          time: formatLyoMsgTime(new Date())
-        });
-      } finally {
-        lyoIsReplying = false;
-        renderLyoAiMessages();
-        updateLyoDraftCartBar();
-      }
-    }
-
-    function findClosestAlternativeProduct(unavailableProduct, activeProducts) {
-      if (!unavailableProduct || !activeProducts || activeProducts.length === 0) return null;
-
-      const targetCategory = (unavailableProduct.category || "").toLowerCase();
-
-      const availableInCat = activeProducts.filter(p => {
-        if (p.id === unavailableProduct.id) return false;
-        const isOutOfStock = p.isOutOfStock || (p.stockKg !== undefined && p.stockKg <= 0) || p.isAvailable === false;
-        if (isOutOfStock) return false;
-        return (p.category || "").toLowerCase() === targetCategory;
-      });
-
-      if (availableInCat.length > 0) {
-        return availableInCat[0];
-      }
-
-      const anyAvailable = activeProducts.filter(p => {
-        if (p.id === unavailableProduct.id) return false;
-        return !(p.isOutOfStock || (p.stockKg !== undefined && p.stockKg <= 0) || p.isAvailable === false);
-      });
-
-      return anyAvailable.length > 0 ? anyAvailable[0] : null;
-    }
-
-    function selectDisambiguatedProduct(productId, rawVal, amountType) {
-      const allProducts = (typeof getDataCached === 'function')
-        ? getDataCached('ek_products', [])
-        : ((typeof getData === 'function') ? getData('ek_products', []) : []);
-      const product = allProducts.find(p => p.id === productId);
-      if (!product) return;
-
-      const qtyData = LyoAiEngine.UnitQuantityConversionEngine.convertQuantity(rawVal, amountType, product);
-      const cartItem = LyoAiEngine.CartBuilderEngine.buildCartItem(product, qtyData, {});
-
-      if (typeof cart !== 'undefined') {
-        LyoAiEngine.CartBuilderEngine.mergeIntoCart(cart, [cartItem]);
-        saveData('ek_cart', cart);
-        if (typeof updateCartBadge === 'function') updateCartBadge();
-        if (typeof updateCartUI === 'function') updateCartUI();
-        if (typeof updateLyoDraftCartBar === 'function') updateLyoDraftCartBar();
-      }
-
-      showToast(
-        currentLang === 'ta' ? `கார்ட்டில் சேர்க்கப்பட்டது: ${product.tamilName}` : `Added to cart: ${product.englishName}`,
-        'success'
-      );
-    }
-
-    async function generateAiResponse(inputText) {
-      const allProducts = (typeof getDataCached === 'function')
-        ? getDataCached('ek_products', [])
-        : ((typeof getData === 'function') ? getData('ek_products', []) : []);
-
-      const activeProducts = allProducts.filter(p => p.isActive !== false);
-
-      if (!activeProducts || activeProducts.length === 0) {
-        return currentLang === 'ta'
-          ? "மன்னிக்கவும்! கடையில் பொருட்கள் எதுவும் தற்பொழுது கிடைக்கவில்லை."
-          : "Sorry, no active products are currently available in the store catalog.";
-      }
-
-      // Step 1: Gemini AI Orchestrator extracts intent
-      const parsedItems = await LyoAiEngine.GeminiAiOrchestrator.orchestrateParse(inputText, activeProducts);
-
-      if (!parsedItems || parsedItems.length === 0) {
-        return currentLang === 'ta'
-          ? "மன்னிக்கவும்! உங்கள் பட்டியலில் உள்ள பொருட்களை என்னால் அடையாளம் காண முடியவில்லை. உதாரணம்: '500g Mutton, ₹20 Tomato, Half litre milk, 30 eggs'."
-          : "Could not identify items in your list. Try typing items like: '500g Mutton, ₹20 Tomato, Half litre milk, 30 eggs, 1kg Chicken'.";
-      }
-
-      // Step 2: Error Recovery & Validation Engine resolves matching, stock, and disambiguation
-      const { resolvedCartItems, unavailableNotes, disambiguationPrompts } = LyoAiEngine.ErrorRecoveryValidationEngine.validateAndRecover(parsedItems, activeProducts);
-
-      // Handle Disambiguation UI if low confidence items exist
-      let disambiguationHtml = "";
-      if (disambiguationPrompts.length > 0) {
-        disambiguationPrompts.forEach(dp => {
-          disambiguationHtml += `
-            <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 10px; margin-bottom: 8px;">
-              <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; color: #fbbf24;">
-                🤔 ${currentLang === 'ta' ? `"${dp.queryName}" - எந்த பொருளைத் தேர்வு செய்ய வேண்டும்?` : `Which product did you mean for "${dp.queryName}"?`}
-              </p>
-              <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;">
-                ${dp.candidates.map(c => `
-                  <button onclick="selectDisambiguatedProduct('${c.id}', ${dp.rawVal}, '${dp.amountType}')" class="btn" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; white-space: nowrap;">
-                    ${c.englishName} (₹${c.pricePerKg}/${c.unit||'kg'})
-                  </button>
-                `).join('')}
-              </div>
-            </div>
-          `;
-        });
-      }
-
-      if (resolvedCartItems.length === 0 && disambiguationPrompts.length === 0) {
-        return currentLang === 'ta'
-          ? "மன்னிக்கவும்! நீங்கள் கேட்ட பொருட்கள் தற்பொழுது ஸ்டாக்கில் இல்லை."
-          : "Sorry! None of the requested items are currently available in stock.";
-      }
-
-      // Step 3: Cart Builder Engine merges resolved items into active cart
-      if (resolvedCartItems.length > 0 && typeof cart !== 'undefined') {
-        LyoAiEngine.CartBuilderEngine.mergeIntoCart(cart, resolvedCartItems);
-        saveData('ek_cart', cart);
-        if (typeof updateCartBadge === 'function') updateCartBadge();
-        if (typeof updateCartUI === 'function') updateCartUI();
-        if (typeof updateLyoDraftCartBar === 'function') updateLyoDraftCartBar();
-      }
-
-      // Step 4: Pricing, Offers & Delivery Charge Engine
-      const settings = (typeof getData === 'function') ? getData('ek_settings', DEFAULT_SETTINGS) : DEFAULT_SETTINGS;
-      const subtotal = resolvedCartItems.reduce((sum, item) => sum + item.totalPrice, 0);
-
-      const pricing = LyoAiEngine.PricingOfferEngine.calculatePricing(subtotal, settings);
-
-      let html = `
-        <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 14px; padding: 12px; margin-top: 4px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 10px;">
-            <span style="font-weight: 800; font-size: 12.5px; color: #10b981; display: flex; align-items: center; gap: 6px;">
-              ⚡ ${currentLang === 'ta' ? 'AI வணிக மேலாண்மை கார்ட் தயாரிக்கப்பட்டது' : 'AI Commerce Cart Generated'}
-            </span>
-            <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #34d399; padding: 2px 8px; border-radius: 10px; font-weight: 700;">
-              ${resolvedCartItems.length} ${currentLang === 'ta' ? 'பொருட்கள்' : 'Items'}
-            </span>
-          </div>
-
-          ${disambiguationHtml}
-
-          <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
-      `;
-
-      resolvedCartItems.forEach(item => {
-        const isW = isUnitWeight ? isUnitWeight(item.unit) : true;
-        const displayQty = isW
-          ? (item.weightGrams >= 1000 ? `${(item.weightGrams/1000).toFixed(2)} kg` : `${item.weightGrams}g`)
-          : `${item.quantity} ${item.unit || 'pcs'}`;
-
-        html += `
-          <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.25); border-radius: 10px; padding: 8px 10px; border: 1px solid rgba(255,255,255,0.06);">
-            <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
-              ${item.imageUrl ? `<img src="${item.imageUrl}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);" />` : `<div style="width:32px; height:32px; border-radius:6px; background:#1c1c1e; display:flex; align-items:center; justify-content:center; font-size:14px;">🛍️</div>`}
-              <div style="overflow: hidden;">
-                <div style="font-weight: 700; font-size: 11.5px; color: #fff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                  ${item.englishName} <span style="font-size: 10px; color: var(--text-muted);">(${item.tamilName})</span>
-                </div>
-                <div style="font-size: 10px; color: #34d399; margin-top: 1px;">
-                  ${displayQty} • <span style="color: var(--text-muted);">₹${item.pricePerKg}/${item.unit}</span>
-                  ${item.isSubstituted ? `<span style="display:inline-block; margin-left:4px; font-size:9px; background:rgba(245,158,11,0.2); color:#fbbf24; padding:1px 4px; border-radius:4px;">⚠️ ${currentLang === 'ta' ? 'மாற்றுப் பொருள்' : 'Substituted'}</span>` : ''}
-                </div>
-              </div>
-            </div>
-            <div style="font-weight: 800; font-size: 12px; color: #fff; flex-shrink: 0; margin-left: 6px;">
-              ₹${item.totalPrice}
-            </div>
-          </div>
-        `;
-      });
-
-      html += `</div>`;
-
-      if (unavailableNotes.length > 0) {
-        html += `
-          <div style="font-size: 10px; color: #f87171; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; padding: 6px 10px; margin-bottom: 8px;">
-            ⚠️ ${currentLang === 'ta' ? 'கிடைக்காதவை' : 'Not available'}: ${unavailableNotes.join(', ')}
-          </div>
-        `;
-      }
-
-      html += `
-        <div style="background: rgba(0,0,0,0.35); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #ccc; display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.08);">
-          <div style="display: flex; justify-content: space-between;">
-            <span>${currentLang === 'ta' ? 'பொருட்கள் தொகை' : 'Items Subtotal'}</span>
-            <span style="font-weight: 700; color: #fff;">₹${pricing.subtotal}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span>${currentLang === 'ta' ? 'டெலிவரி கட்டணம்' : 'Delivery Charge'}</span>
-            <span style="font-weight: 700; color: #fff;">
-              ₹${pricing.deliveryCharge}
-            </span>
-          </div>
-          ${pricing.discount > 0 ? `
-          <div style="display: flex; justify-content: space-between; color: #34d399;">
-            <span>${currentLang === 'ta' ? 'தள்ளுபடி' : 'Discount Applied'}</span>
-            <span style="font-weight: 700;">-₹${pricing.discount}</span>
-          </div>
-          ` : ''}
-          <div style="border-top: 1px dashed rgba(255,255,255,0.15); margin-top: 2px; padding-top: 4px; display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: #fff;">
-            <span>${currentLang === 'ta' ? 'மொத்தம் செலுத்த வேண்டிய தொகை' : 'Final Payable Amount'}</span>
-            <span style="color: #10b981;">₹${pricing.finalPayable}</span>
-          </div>
-        </div>
-      `;
-
-      if (!pricing.meetsMinOrder) {
-        const diff = pricing.minOrderAmount - pricing.subtotal;
-        html += `
-          <div style="font-size: 10.5px; color: #fbbf24; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.25); border-radius: 8px; padding: 6px; text-align: center; margin-bottom: 8px;">
-            ⚠️ ${currentLang === 'ta' ? `குறைந்தபட்ச ஆர்டர் தொகையை எட்ட மேலும் ₹${diff} சேர்க்கவும்.` : `Add ₹${diff} more to meet minimum order requirement of ₹${pricing.minOrderAmount}.`}
-          </div>
-        `;
-      }
-
-      html += `
-        <button onclick="checkoutLyoAiOrder()" class="btn btn-success" style="width: 100%; padding: 12px; font-size: 13px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; border: 1px solid rgba(255,255,255,0.2) !important; box-shadow: 0 4px 15px rgba(16,185,129,0.3) !important; color: #fff; cursor: pointer;">
-          ⚡ ${currentLang === 'ta' ? `ஒரு கிளிக் ஆர்டர் செய்க (₹${pricing.finalPayable})` : `Proceed to 1-Click Checkout (₹${pricing.finalPayable})`}
-        </button>
-      </div>
-      `;
-
-      return html;
-    }
+// ==========================================
+// RIDER & DELIVERY MANAGEMENT SYSTEM
+// ==========================================
 
 function updateRiderLiveLocation() {
       const session = getData('ek_delivery_session', null);
@@ -2411,8 +1998,18 @@ function updateRiderLiveLocation() {
     }
 
     function getDynamicDeliveryCharge(subtotal, user) {
-      const settings = getData('ek_settings', DEFAULT_SETTINGS);
+      const settings = typeof getData === 'function' ? getData('ek_settings', typeof DEFAULT_SETTINGS !== 'undefined' ? DEFAULT_SETTINGS : {}) : {};
       const rainAdd = (settings.rainMode || settings.rainSurchargeEnabled) ? (parseFloat(settings.rainCharge) || parseFloat(settings.rainSurchargeFee) || 20) : 0;
+
+      // If Admin disabled dynamic distance pricing, strictly return flat delivery fee
+      if (settings.useDynamicDistancePricing === false) {
+        const flatCharge = (settings.deliveryCharge !== undefined && settings.deliveryCharge !== '' && !isNaN(Number(settings.deliveryCharge))) ? Number(settings.deliveryCharge) : 40;
+        return {
+          charge: flatCharge + rainAdd,
+          distance: null,
+          zoneName: 'Flat Rate' + (rainAdd > 0 ? ' 🌧️' : '')
+        };
+      }
 
       const textAddress = document.getElementById('cart-delivery-address');
       let custLat = textAddress ? parseFloat(textAddress.getAttribute('data-lat')) : null;
@@ -2421,6 +2018,15 @@ function updateRiderLiveLocation() {
       if ((!custLat || isNaN(custLat)) && user) {
         custLat = parseFloat(user.latitude) || null;
         custLng = parseFloat(user.longitude) || null;
+      }
+
+      // Check saved addresses if user has saved primary address with lat/lng
+      if ((!custLat || isNaN(custLat)) && user && Array.isArray(user.savedAddresses) && user.savedAddresses.length > 0) {
+        const primarySaved = user.savedAddresses.find(a => a.address === user.address) || user.savedAddresses[0];
+        if (primarySaved && primarySaved.latitude && primarySaved.longitude) {
+          custLat = parseFloat(primarySaved.latitude);
+          custLng = parseFloat(primarySaved.longitude);
+        }
       }
 
       // Check stored custom delivery pin or coordinates
@@ -2522,13 +2128,23 @@ function updateRiderLiveLocation() {
         } else if (sortedZones.length > 0) {
           const lastZone = sortedZones[sortedZones.length - 1];
           const basePrice = parseFloat(lastZone.charge) || (parseFloat(settings.deliveryBasePrice) || 20);
-          const extraKm = dist - parseFloat(lastZone.maxKm);
+          const extraKm = Math.max(0, dist - parseFloat(lastZone.maxKm));
           const mult = parseFloat(settings.deliveryKmMultiplier) || 12;
           const computed = Math.round(basePrice + (extraKm * mult)) + rainAdd;
           return {
             charge: computed,
             distance: dist,
             zoneName: 'Outer Limits' + (rainAdd > 0 ? ' 🌧️ (Rain Surge)' : '')
+          };
+        } else {
+          // Fallback if no zones configured in ek_delivery_zones: Base Price + (dist * Rate per KM)
+          const basePrice = parseFloat(settings.deliveryBasePrice) || 20;
+          const mult = parseFloat(settings.deliveryKmMultiplier) || 12;
+          const computed = Math.round(basePrice + (dist * mult)) + rainAdd;
+          return {
+            charge: computed,
+            distance: dist,
+            zoneName: `${dist.toFixed(1)} km (₹${mult}/km)` + (rainAdd > 0 ? ' 🌧️' : '')
           };
         }
       }
@@ -2735,6 +2351,56 @@ function updateRiderLiveLocation() {
         deliveryTileLayer.addTo(deliveryLeafletMap);
       }
     }
+
+    function updateRiderLiveMarkerOnMap(simLat, simLng, accuracy) {
+      if (!deliveryLeafletMap || isNaN(simLat) || isNaN(simLng) || typeof L === 'undefined') return;
+      const riderPos = [parseFloat(simLat), parseFloat(simLng)];
+
+      const riderIcon = L.divIcon({
+        html: `
+          <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;">
+            <div class="map-pin-rider" style="background:#10b981; color:#fff; font-size:16px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,0.5); z-index:9999;">🏍️</div>
+          </div>
+        `,
+        className: 'custom-map-icon',
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
+      });
+
+      if (deliveryRiderMarker) {
+        deliveryRiderMarker.setLatLng(riderPos);
+      } else {
+        deliveryRiderMarker = L.marker(riderPos, { icon: riderIcon }).addTo(deliveryLeafletMap)
+          .bindPopup(currentLang === 'ta' ? "<strong>உங்களது தற்போதைய இடம்</strong> 🏍️" : "<strong>Your Current Position</strong> 🏍️");
+      }
+
+      if (accuracy && accuracy > 0) {
+        if (window._riderAccuracyCircle) {
+          window._riderAccuracyCircle.setLatLng(riderPos);
+          window._riderAccuracyCircle.setRadius(accuracy);
+        } else {
+          window._riderAccuracyCircle = L.circle(riderPos, {
+            radius: accuracy,
+            color: '#10b981',
+            fillColor: '#10b981',
+            fillOpacity: 0.15,
+            weight: 1.5,
+            dashArray: '3, 6'
+          }).addTo(deliveryLeafletMap);
+        }
+      }
+
+      if (deliveryCustomerMarker) {
+        const custLatLng = deliveryCustomerMarker.getLatLng();
+        const remainingKm = calculateDistanceKm(simLat, simLng, custLatLng.lat, custLatLng.lng);
+        const targetEl = document.getElementById('delivery-map-target');
+        if (targetEl && remainingKm !== null) {
+          const etaMin = Math.max(1, Math.round(remainingKm * 3));
+          targetEl.innerHTML = `📍 Customer: ${remainingKm.toFixed(2)} km away (~${etaMin} mins) ⏱️`;
+        }
+      }
+    }
+    window.updateRiderLiveMarkerOnMap = updateRiderLiveMarkerOnMap;
 
     function initDeliveryRiderMap(order) {
       const mapContainer = document.getElementById('delivery-live-map-container');
@@ -3141,9 +2807,7 @@ function updateRiderLiveLocation() {
           saveData('ek_orders', allOrders);
         }
 
-        if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-delivery') {
-          if (typeof renderDeliveryScreen === 'function') renderDeliveryScreen();
-        }
+        updateRiderLiveMarkerOnMap(simLat, simLng, 10);
 
         if (!window.hasShownSimFixToast) {
           window.hasShownSimFixToast = true;
@@ -3343,9 +3007,7 @@ function updateRiderLiveLocation() {
             saveData('ek_orders', allOrders);
           }
 
-          if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-delivery') {
-            if (typeof renderDeliveryScreen === 'function') renderDeliveryScreen();
-          }
+          updateRiderLiveMarkerOnMap(simLat, simLng, accuracy);
 
           if (!window.hasShownGpsFixToast) {
             window.hasShownGpsFixToast = true;

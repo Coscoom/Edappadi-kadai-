@@ -3193,6 +3193,13 @@
           address,
           latitude: regLat || null,
           longitude: regLng || null,
+          savedAddresses: address ? [{
+            id: 'addr_' + Date.now(),
+            label: 'Home 🏠',
+            address: address,
+            latitude: regLat || 11.5815,
+            longitude: regLng || 77.8488
+          }] : [],
           loyaltyPoints: 10,
           tier: 'bronze',
           joinedAt: new Date().toISOString(),

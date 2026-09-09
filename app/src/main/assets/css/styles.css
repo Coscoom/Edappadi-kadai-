@@ -47,14 +47,20 @@
       --control-h-lg: 44px;
     }
 
-    /* High performance touch & interaction rules */
-    button, .btn, [role="button"], .nav-item, select, option, .clickable {
+    /* High performance touch, interaction & 120fps hardware acceleration */
+    html, body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeSpeed;
+      touch-action: manipulation;
+    }
+    button, .btn, [role="button"], .nav-item, .nav-tab, .nav-tab-special, .pill, .clickable, .product-grid-card, .special-card, .category-pill-btn, .category-item-card, select, option {
       touch-action: manipulation !important;
       -webkit-tap-highlight-color: transparent !important;
       cursor: pointer;
     }
-    button:active, .btn:active, [role="button"]:active, .nav-item:active {
-      opacity: 0.82 !important;
+    button:active, .btn:active, [role="button"]:active, .nav-item:active, .nav-tab:active, .pill:active {
+      opacity: 0.88 !important;
       transform: scale(0.97) !important;
     }
     input, textarea, select {
@@ -734,16 +740,13 @@
       box-sizing: border-box;
       -webkit-overflow-scrolling: touch;
 
-      /* ★ NEW: touch gesture optimization — removes visual touch response delay */
-      touch-action: auto;
-
-      /* ★ NEW: scroll-behavior and overscroll containment */
-      scroll-behavior: smooth;
+      /* Direct 1:1 touch response for fast fling scrolling like Amazon & Meesho */
+      touch-action: pan-y;
+      scroll-behavior: auto;
       overscroll-behavior-y: contain;
 
-      /* Optimized, lightweight hardware-accelerated transitions to prevent CPU lag and screen tearing */
+      /* Hardware-accelerated presentation */
       opacity: 1;
-      transition: opacity 0.12s ease-out;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
     }
@@ -753,7 +756,7 @@
     }
 
     .screen.active.screen-transitioning {
-      opacity: 0 !important;
+      opacity: 1 !important;
     }
 
     .screen > * {
@@ -813,13 +816,13 @@
       border-color: var(--accent-orange) !important;
     }
 
-    /* Handcrafted premium interactive glare sweep styles for 3D glassmorphism */
-    .card, .special-card, .product-grid-card {
+    /* High performance cards with zero compositor overhead */
+    .card {
       position: relative !important;
       overflow: hidden !important;
     }
 
-    .card::after, .special-card::after, .product-grid-card::after {
+    .card::after {
       content: '' !important;
       position: absolute !important;
       top: -120% !important;
@@ -841,7 +844,7 @@
       transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
-    .card:active::after, .special-card:active::after, .product-grid-card:active::after,
+    .card:active::after,
     .card-interactive:active::after {
       transform: translate(50%, 50%) !important;
     }
@@ -1301,7 +1304,7 @@
       margin-top: 14px;
     }
 
-    /* Bottom Navigation Tab Bar - Ultra Premium Glassmorphic Navigation with perfect Mobile Safe Area */
+    /* Bottom Navigation Tab Bar - Ultra Fast & Smooth Hardware Layer with Mobile Safe Area */
     #app-bottom-nav,
     .bottom-nav {
       position: fixed !important;
@@ -1314,9 +1317,7 @@
       height: 58px !important;
       min-height: 54px !important;
       box-sizing: border-box !important;
-      background: rgba(13, 17, 24, 0.94) !important;
-      backdrop-filter: blur(20px) saturate(180%) !important;
-      -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+      background: #0d1118 !important;
       border: 1px solid rgba(255, 255, 255, 0.12) !important;
       border-radius: 20px !important;
       display: none; /* Controlled dynamically via display: flex */
@@ -1324,9 +1325,10 @@
       align-items: center !important;
       padding: 4px 4px !important;
       z-index: 900 !important;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.12) !important;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.12) !important;
       margin: 0 !important;
       pointer-events: auto !important;
+      contain: layout style paint;
     }
     .nav-tab,
     .nav-tab-special {
@@ -2147,13 +2149,11 @@
       opacity: 1;
     }
 
-    /* Floating premium 3D header bar glass */
+    /* Floating premium header bar - Zero GPU compositor drag */
     header, .header-glass-premium {
-      background: rgba(14, 20, 30, 0.75) !important;
-      backdrop-filter: blur(10px) saturate(130%) !important;
-      -webkit-backdrop-filter: blur(10px) saturate(130%) !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+      background: #0e141e !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45) !important;
     }
 
     /* Enhanced form inputs with explicit solid high-contrast dark background and white text */
@@ -2465,14 +2465,13 @@
       flex-direction: column;
       align-items: stretch;
       justify-content: flex-start;
-      background: rgba(15, 23, 42, 0.45);
+      background: #111827 !important;
       border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
       border-radius: 16px;
       padding: 16px;
       gap: 12px;
       margin-bottom: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.25) !important;
-      backdrop-filter: blur(12px);
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
     }
@@ -2889,7 +2888,7 @@
       contain: layout style;
     }
 
-    /* Today's Specials cards - Subtle category aura & 60fps */
+    /* Today's Specials cards - Subtle category aura & 120fps */
     #screen-home .special-card {
       background: linear-gradient(150deg, color-mix(in srgb, var(--card-cat-color, var(--category-accent-color, #10b981)) 6%, #171924) 0%, #10121a 100%) !important;
       border: 1px solid color-mix(in srgb, var(--card-cat-color, var(--category-accent-color, #10b981)) 20%, rgba(255, 255, 255, 0.08)) !important;
@@ -2900,6 +2899,8 @@
       overflow: hidden !important;
       will-change: transform;
       contain: content;
+      content-visibility: auto;
+      contain-intrinsic-size: 142px 182px;
       transition: transform 0.12s ease !important;
     }
     #screen-home .special-card:active {
@@ -2935,6 +2936,8 @@
       position: relative !important;
       overflow: hidden !important;
       contain: layout style paint;
+      content-visibility: auto;
+      contain-intrinsic-size: auto 88px;
       will-change: transform;
       transition: transform 0.12s ease !important;
     }
@@ -3195,9 +3198,7 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      background: rgba(15, 23, 42, 0.96);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      background: #0f172a;
       border: 1.5px solid rgba(59, 130, 246, 0.4);
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65), 0 0 16px rgba(59, 130, 246, 0.2);
       border-radius: 999px;
@@ -3344,6 +3345,14 @@
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
       contain: layout style;
+    }
+    .order-card {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 120px;
+    }
+    .cart-item {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 70px;
     }
 
     /* Smooth image decoding and rendering */

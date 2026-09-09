@@ -1,10 +1,10 @@
 
-    function escapeHtml(text) {
+    var escapeHtml = window.escapeHtml || function(text) {
       if (!text) return '';
       const div = document.createElement('div');
       div.textContent = String(text);
       return div.innerHTML;
-    }
+    };
 
     async function deleteExecutive(id) {
       const orders = getData('ek_orders', []) || [];

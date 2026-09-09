@@ -54,28 +54,6 @@
       debugLog("[Remember Me Startup Check] Session persistence active. Local sessions will remain logged in across app restarts until explicit Logout.");
     }
 
-    function getOrderAssignedExecutive(order) {
-      if (!order) return null;
-      if (order.assignedTo && typeof order.assignedTo === 'object' && (order.assignedTo.id || order.assignedTo.uid)) {
-        const rId = order.assignedTo.id || order.assignedTo.uid;
-        return {
-          id: rId,
-          uid: rId,
-          name: order.assignedTo.name || 'Delivery Partner',
-          phone: order.assignedTo.phone || '',
-          role: order.assignedTo.role || 'rider',
-          assignedAt: order.assignedTo.assignedAt || order.updatedAt || order.createdAt || null,
-          status: order.assignedTo.status || 'assigned'
-        };
-      }
-      const uid = (typeof order.assignedTo === 'string' && order.assignedTo) || order.assignedDeliveryPartnerUid || order.riderUid || order.riderId || order.deliveryPartnerUid || order.assignedExecutiveId || order.deliveryExecutiveId || null;
-      if (!uid) return null;
-      const name = order.assignedDeliveryPartnerName || order.assignedRiderName || order.assignedExecutiveName || order.deliveryExecutiveName || 'Delivery Partner';
-      const phone = order.assignedExecutivePhone || order.deliveryExecutivePhone || '';
-      return { id: uid, uid: uid, name, phone, role: 'rider', assignedAt: order.updatedAt || order.createdAt || null, status: 'assigned' };
-    }
-    window.getOrderAssignedExecutive = getOrderAssignedExecutive;
-
     const prefillLoginCredentials = () => {
       try {
         const idInput = document.getElementById('login-identifier');
@@ -254,6 +232,36 @@
       return null;
     }
     window.getActiveUpiAccount = getActiveUpiAccount;
+
+    function getLiveUpiAccount(overrideSettings) {
+      const settings = overrideSettings || (typeof getData === 'function' ? getData('ek_settings', null) : null) || (typeof getSettings === 'function' ? getSettings() : null) || DEFAULT_SETTINGS;
+      let acc = getActiveUpiAccount(settings);
+      const topLevelUpiId = (settings.merchantUpiId || '').trim();
+
+      if (topLevelUpiId && (!acc || !acc.upiId)) {
+        acc = {
+          id: 'primary',
+          upiId: topLevelUpiId,
+          merchantName: settings.merchantName || 'Edappadi Kadai',
+          displayName: 'Primary Merchant UPI',
+          note: 'Order {id} - Edappadi Kadai',
+          isActive: settings.upiEnabled !== false
+        };
+      } else if (acc && topLevelUpiId && acc.id === 'primary' && acc.upiId !== topLevelUpiId) {
+        // Keep primary in sync with top-level if edited directly
+        acc.upiId = topLevelUpiId;
+      }
+
+      return acc || {
+        id: 'primary',
+        upiId: topLevelUpiId || '8778148899@ptyes',
+        merchantName: (settings && settings.merchantName) || 'Edappadi Kadai',
+        displayName: 'Edappadi Kadai',
+        note: 'Order {id} - Edappadi Kadai',
+        isActive: true
+      };
+    }
+    window.getLiveUpiAccount = getLiveUpiAccount;
 
     function initializeOrFixUpiSettings() {
       const settings = getData('ek_settings', null) || { ...DEFAULT_SETTINGS };
@@ -1332,15 +1340,16 @@
     function validateSelectedFile(file) {
       if (!file) return { valid: false, error: "தயவுசெய்து ஒரு படத்தை தேர்ந்தெடுக்கவும் / Please select a file." };
 
-      const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+      const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif', 'avif', 'jfif', 'bmp', 'gif'];
       const fileName = (file.name || '').toLowerCase();
       const dotIndex = fileName.lastIndexOf('.');
       const fileExt = dotIndex !== -1 ? fileName.substring(dotIndex + 1) : '';
 
       const isSupportedExt = allowedExts.includes(fileExt);
-      const isSupportedMime = file.type && ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type.toLowerCase());
+      const isSupportedMime = file.type && file.type.toLowerCase().startsWith('image/');
 
-      if (!isSupportedExt && !isSupportedMime) {
+      // If MIME is an image or extension is a recognized image type, accept it.
+      if (!isSupportedExt && !isSupportedMime && file.name && dotIndex !== -1) {
         return { valid: false, error: "தேர்வு செய்யப்படாத வடிவம்! JPG, JPEG, PNG அல்லது WEBP படங்களை மட்டுமே பயன்படுத்த முடியும். / Selected image format is not supported. Please use JPG, JPEG, PNG, or WEBP." };
       }
 
@@ -1348,13 +1357,17 @@
     }
 
     function getSafeFileName(fileName) {
-      if (!fileName) return "image.jpg";
+      if (!fileName) return "product_image.jpg";
       const dotIndex = fileName.lastIndexOf('.');
       const namePart = dotIndex !== -1 ? fileName.substring(0, dotIndex) : fileName;
       const extPart = dotIndex !== -1 ? fileName.substring(dotIndex) : ".jpg";
 
-      const safeName = namePart.replace(/[^a-zA-Z0-9-_]/g, "_");
-      return safeName + extPart;
+      let safeName = namePart.replace(/[^a-zA-Z0-9-_]/g, "_");
+      if (!safeName.replace(/_/g, '')) {
+        safeName = "product_" + Date.now();
+      }
+      const cleanExt = (['.jpg', '.jpeg', '.png', '.webp'].includes(extPart.toLowerCase())) ? extPart.toLowerCase() : '.jpg';
+      return safeName + cleanExt;
     }
 
     function getStoragePath(vendorId, productId, originalFileName) {
@@ -1378,14 +1391,14 @@
 
       try {
         if (typeof storage.setMaxUploadRetryTime === 'function') {
-          storage.setMaxUploadRetryTime(10000); // 10s max upload retry for fast failover
+          storage.setMaxUploadRetryTime(15000); // 15s max upload retry for fast failover
         } else {
-          storage.maxUploadRetryTime = 10000;
+          storage.maxUploadRetryTime = 15000;
         }
         if (typeof storage.setMaxOperationRetryTime === 'function') {
-          storage.setMaxOperationRetryTime(10000); // 10s max operation retry
+          storage.setMaxOperationRetryTime(15000); // 15s max operation retry
         } else {
-          storage.maxOperationRetryTime = 10000;
+          storage.maxOperationRetryTime = 15000;
         }
       } catch (timeoutConfErr) {
         console.warn("[Storage Debug] Failed to set native retry limits, using default:", timeoutConfErr);
@@ -1424,24 +1437,24 @@
 
           progressTimer = setTimeout(() => {
             if (!progressStarted) {
-              console.warn("[Storage Debug] Upload progress did not start (stuck at 0% for 3 seconds). Canceling and falling back...");
+              console.warn("[Storage Debug] Upload progress did not start (stuck at 0% for 5 seconds). Canceling and falling back to offline base64...");
               if (activeUploadTask) {
                 try { activeUploadTask.cancel(); } catch (e) {}
                 activeUploadTask = null;
               }
               reject(new Error("UPLOAD_STUCK_AT_0"));
             }
-          }, 3000); // 3-second quick failover if stuck at 0%
+          }, 5000); // 5-second resilient failover if initial byte upload is stuck
 
           uploadTimeout = setTimeout(() => {
-            console.warn("[Storage Debug] Upload timed out after 10s. Canceling and falling back...");
+            console.warn("[Storage Debug] Upload timed out after 15s. Canceling and falling back to offline base64...");
             if (activeUploadTask) {
               try { activeUploadTask.cancel(); } catch (e) {}
               activeUploadTask = null;
             }
             if (progressTimer) clearTimeout(progressTimer);
             reject(new Error("UPLOAD_TIMEOUT"));
-          }, 10000); // 10-second overall failover
+          }, 15000); // 15-second overall failover
 
           uploadTask.on('state_changed',
             (snapshot) => {
@@ -2061,12 +2074,11 @@
           if (appContainer) appContainer.scrollLeft = 0;
           if (document.body) document.body.scrollLeft = 0;
           if (document.documentElement) document.documentElement.scrollLeft = 0;
-          target.classList.add('active', 'screen-transitioning');
+          target.classList.add('active');
           currentScreen = screenId;
 
-          setTimeout(() => {
-            target.classList.remove('screen-transitioning');
-            // Trigger automatic map resize invalidations once screen animation completes
+          // Instant zero-lag transition: trigger map resize on next frame without blocking UI
+          requestAnimationFrame(() => {
             try {
               if (screenId === 'screen-track' && typeof trackerLeafletMap !== 'undefined' && trackerLeafletMap) {
                 trackerLeafletMap.invalidateSize();
@@ -2076,7 +2088,7 @@
                 refreshAdminZonesMapSize();
               }
             } catch(e) {}
-          }, 280);
+          });
         } else {
           console.error(`[showScreen] Target screen "${screenId}" not found in DOM!`);
         }

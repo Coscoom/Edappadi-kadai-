@@ -395,32 +395,32 @@
       syncPrimaryUserAddress(found.address, found.latitude, found.longitude);
       renderAllAddressCards();
 
-      const fields = parseAddressStringToFields(found.address);
-      const h = document.getElementById('addr-field-house');
-      if (h) h.value = fields.houseNo || '';
-      const p = document.getElementById('addr-field-pincode');
-      if (p) p.value = fields.pincode || '';
-      const s = document.getElementById('addr-field-street');
-      if (s) s.value = fields.street || '';
-      const l = document.getElementById('addr-field-landmark');
-      if (l) l.value = fields.landmark || '';
-      const a = document.getElementById('addr-field-area');
-      if (a) a.value = fields.area || '';
-      const c = document.getElementById('addr-field-city');
-      if (c) c.value = fields.city || '';
-
       const modal = document.getElementById('simple-address-editor-modal');
       if (modal) {
-        openSimpleAddressEditor();
+        openSimpleAddressEditor(addrId);
       }
 
       showToast(currentLang === 'ta' ? "முகவரி மாற்றப்பட்டது! 🎯" : "Address switched! 🎯", "success");
     };
 
-    function openSimpleAddressEditor() {
+    function openSimpleAddressEditor(addressIdToEdit = null, mode = 'edit') {
       const user = getActiveUser() || {};
-      const currentAddress = user.address || '';
+      const saved = user.savedAddresses || [];
+
+      let targetItem = null;
+      if (mode === 'new') {
+        window._activeEditingAddressId = null;
+      } else if (addressIdToEdit) {
+        targetItem = saved.find(a => a.id === addressIdToEdit);
+        window._activeEditingAddressId = addressIdToEdit;
+      } else {
+        targetItem = saved.find(a => a.address === user.address) || (saved.length > 0 ? saved[0] : null);
+        window._activeEditingAddressId = targetItem ? targetItem.id : null;
+      }
+
+      const currentAddress = (targetItem && mode !== 'new') ? targetItem.address : (mode === 'new' ? '' : (user.address || ''));
       const fields = parseAddressStringToFields(currentAddress);
+      const targetLabel = (targetItem && mode !== 'new') ? (targetItem.label || 'Home 🏠') : 'Home 🏠';
 
       const oldModal = document.getElementById('simple-address-editor-modal');
       if (oldModal) oldModal.remove();
@@ -432,32 +432,48 @@
       modal.style.display = 'flex';
       modal.style.justifyContent = 'center';
       modal.style.alignItems = 'center';
-      modal.style.padding = '16px';
+      modal.style.padding = '14px 10px';
 
-      const saved = user.savedAddresses || [];
+      // Saved Addresses list
       let savedAddressesListHtml = '';
-      if (saved.length >= 2) {
+      if (saved.length > 0) {
         savedAddressesListHtml = `
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 14px; width: 100%; box-sizing: border-box;">
-            <label style="font-size: 11px; font-weight: 700; color: var(--accent-orange); display: block; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Select a Saved Address / சேமித்த முகவரி</label>
-            <div style="display: flex; flex-direction: column; gap: 8px; max-height: 140px; overflow-y: auto; padding-right: 4px; width: 100%; box-sizing: border-box;">
+          <div style="display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px; width: 100%; box-sizing: border-box;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <span style="font-size: 11px; font-weight: 800; color: var(--accent-orange); text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif;">
+                ${currentLang === 'ta' ? 'சேமித்த முகவரிகள்' : 'Saved Addresses'} (${saved.length})
+              </span>
+              <button type="button" onclick="openSimpleAddressEditor(null, 'new')" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 8px; color: #10b981; font-size: 11px; font-weight: 800; padding: 4px 10px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                <span>➕</span> <span>${currentLang === 'ta' ? 'புதிய முகவரி' : 'Add New'}</span>
+              </button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; max-height: 140px; overflow-y: auto; padding-right: 2px; width: 100%; box-sizing: border-box;">
         `;
         saved.forEach(item => {
-          const isSelected = (currentAddress === item.address);
-          const borderStyle = isSelected ? 'border: 1.5px solid var(--accent-orange); background: rgba(249, 115, 22, 0.06);' : 'border: 1.2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02);';
-          const indicatorHtml = isSelected ? '<span style="font-size: 14px; color: var(--accent-orange);">🟢</span>' : '<span style="width: 10px; height: 10px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); display: inline-block;"></span>';
+          const isSelected = (window._activeEditingAddressId === item.id);
+          const isPrimary = (user.address === item.address);
+          const borderStyle = isSelected ? 'border: 1.5px solid var(--accent-orange); background: rgba(249, 115, 22, 0.08);' : 'border: 1.2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02);';
+          const indicatorHtml = isPrimary ? '<span style="font-size: 11px; background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 2px 6px; border-radius: 6px; font-weight: 800; white-space: nowrap;">Primary 🏠</span>' : '';
 
           const postalFields = parseAddressStringToFields(item.address);
           let postalStr = `${postalFields.houseNo ? postalFields.houseNo + ', ' : ''}${postalFields.street}, ${postalFields.area}, ${postalFields.city} – ${postalFields.pincode}`;
 
           savedAddressesListHtml += `
-            <div onclick="selectAddressInEditor('${item.id}')" style="padding: 10px 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; transition: all 0.2s; cursor: pointer; box-sizing: border-box; width: 100%; text-align: left; ${borderStyle}">
-              <div style="flex-shrink: 0; display: flex; align-items: center;">
-                ${indicatorHtml}
-              </div>
+            <div onclick="openSimpleAddressEditor('${item.id}')" style="padding: 10px 12px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; transition: all 0.2s; cursor: pointer; box-sizing: border-box; width: 100%; text-align: left; ${borderStyle}">
               <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
-                <span style="font-size: 12px; font-weight: 800; color: #ffffff; font-family: 'Poppins', sans-serif;">${item.label}</span>
-                <span style="font-size: 10.5px; color: #9ca3af; font-weight: 500; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${postalStr}</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 12px; font-weight: 800; color: #ffffff; font-family: 'Poppins', sans-serif;">${item.label}</span>
+                  ${indicatorHtml}
+                </div>
+                <span style="font-size: 11px; color: #9ca3af; font-weight: 500; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${postalStr}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;" onclick="event.stopPropagation();">
+                <button type="button" onclick="selectAddressInEditor('${item.id}')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #ffffff; font-size: 10.5px; font-weight: 700; padding: 4px 8px; cursor: pointer;" title="Make Primary">
+                  ${isPrimary ? 'Active ✓' : 'Use'}
+                </button>
+                ${saved.length > 1 ? `
+                  <button type="button" onclick="deleteSavedAddress('${item.id}'); openSimpleAddressEditor();" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; color: #ef4444; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer;" title="Delete">🗑️</button>
+                ` : ''}
               </div>
             </div>
           `;
@@ -468,93 +484,137 @@
         `;
       }
 
-      modal.innerHTML = `
-        <div class="bottom-sheet" style="width: 100%; max-width: 440px; border-radius: 24px; border: 1.5px solid rgba(255,255,255,0.08); background: #0c0d12; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transform: translateY(100px); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; gap: 16px; box-sizing: border-box; text-align: left;">
+      const isEditingExisting = !!(window._activeEditingAddressId && mode !== 'new');
+      const modeHeader = isEditingExisting ? `✏️ ${currentLang === 'ta' ? 'முகவரியை மாற்றுதல்' : 'Editing'}: ${targetLabel}` : `➕ ${currentLang === 'ta' ? 'புதிய முகவரி சேர்த்தல்' : 'Add New Address'}`;
 
-          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px;">
+      modal.innerHTML = `
+        <div class="bottom-sheet" style="width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; border-radius: 24px; border: 1.5px solid rgba(255,255,255,0.08); background: #0c0d12; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.85); transform: translateY(100px); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; text-align: left;">
+
+          <!-- Top Header -->
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 20px;">📍</span>
-              <h3 style="color: #ffffff; font-size: 15px; font-weight: 800; margin: 0; font-family: 'Poppins', 'Hind Madurai', sans-serif; letter-spacing: 0.3px;">
+              <h3 style="color: #ffffff; font-size: 14.5px; font-weight: 800; margin: 0; font-family: 'Poppins', 'Hind Madurai', sans-serif; letter-spacing: 0.3px;">
                 ${currentLang === 'ta' ? 'தொடர்பு & விநியோக முகவரி' : 'CONTACT & DELIVERY DETAILS'}
               </h3>
             </div>
             <button onclick="closeSimpleAddressEditor()" style="background: transparent; border: none; color: #9ca3af; font-size: 18px; cursor: pointer; padding: 4px;">✕</button>
           </div>
 
-          <!-- Customer Contact Name & Phone Row -->
-          <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; background: rgba(255,255,255,0.02); border: 1.2px solid rgba(255,255,255,0.08); border-radius: 16px;">
+          <!-- Customer Contact Details (clean, dedicated full-width rows) -->
+          <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; background: rgba(255,255,255,0.02); border: 1.2px solid rgba(255,255,255,0.08); border-radius: 16px; width: 100%; box-sizing: border-box;">
             <div style="font-size: 11px; font-weight: 800; color: var(--accent-orange); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
               <span>👤</span> <span>${currentLang === 'ta' ? 'வாடிக்கையாளர் தொடர்பு விவரங்கள்' : 'Customer Contact Details'}</span>
             </div>
-            <div style="display: flex; gap: 10px;">
-              <div style="flex: 1.2;">
-                <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">
-                  ${currentLang === 'ta' ? 'பெயர் (Name) *' : 'Full Name *'}
-                </label>
-                <input type="text" id="addr-field-name" value="${escapeHtml(user.name || '')}" placeholder="e.g. Rajenthiran" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
-              </div>
-              <div style="flex: 1.2;">
-                <label style="font-size: 11px; font-weight: 700; color: #10b981; margin-bottom: 4px; display: block;">
-                  ${currentLang === 'ta' ? 'மொபைல் எண் *' : 'Mobile Number *'}
-                </label>
-                <div style="display: flex; align-items: center; background: rgba(255,255,255,0.03); border: 1.2px solid ${!user.phone || user.phone.length < 10 ? 'rgba(245,158,11,0.6)' : 'rgba(255,255,255,0.08)'}; border-radius: 12px; padding: 0 8px; box-sizing: border-box;">
-                  <span style="font-size: 12px; font-weight: 700; color: #9ca3af; margin-right: 4px;">+91</span>
-                  <input type="tel" id="addr-field-phone" value="${(user.phone || '').replace(/\D/g, '').slice(-10)}" placeholder="8778148899" maxlength="10" style="flex: 1; height: 42px; background: transparent; border: none; color: #ffffff; font-size: 13px; font-weight: 700; outline: none;" onfocus="this.parentElement.style.borderColor='var(--accent-orange)'" onblur="this.parentElement.style.borderColor='rgba(255,255,255,0.08)'" />
-                </div>
+
+            <!-- Full Name (Full Width) -->
+            <div style="display: flex; flex-direction: column; gap: 4px; width: 100%; box-sizing: border-box;">
+              <label style="font-size: 11.5px; font-weight: 700; color: #9ca3af;">
+                ${currentLang === 'ta' ? 'பெயர் (Full Name) *' : 'Full Name *'}
+              </label>
+              <input type="text" id="addr-field-name" value="${escapeHtml(user.name || '')}" placeholder="${currentLang === 'ta' ? 'உங்கள் பெயரை உள்ளிடவும்' : 'e.g. Rajenthiran'}" style="width: 100%; height: 44px; background: rgba(255,255,255,0.04); border: 1.2px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 0 14px; color: #ffffff; font-size: 13.5px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'" />
+            </div>
+
+            <!-- Mobile Number (Full Width with +91) -->
+            <div style="display: flex; flex-direction: column; gap: 4px; width: 100%; box-sizing: border-box;">
+              <label style="font-size: 11.5px; font-weight: 700; color: #10b981;">
+                ${currentLang === 'ta' ? 'மொபைல் எண் (Mobile Number) *' : 'Mobile Number *'}
+              </label>
+              <div style="display: flex; align-items: center; width: 100%; height: 44px; background: rgba(255,255,255,0.04); border: 1.2px solid ${!user.phone || user.phone.length < 10 ? 'rgba(245,158,11,0.6)' : 'rgba(255,255,255,0.12)'}; border-radius: 12px; padding: 0 12px; box-sizing: border-box;">
+                <span style="font-size: 13px; font-weight: 700; color: #9ca3af; margin-right: 8px; user-select: none;">+91</span>
+                <input type="tel" id="addr-field-phone" value="${(user.phone || '').replace(/\D/g, '').slice(-10)}" placeholder="8778148899" maxlength="10" style="flex: 1; min-width: 0; height: 100%; background: transparent; border: none; color: #ffffff; font-size: 14px; font-weight: 700; outline: none; padding: 0;" onfocus="this.parentElement.style.borderColor='var(--accent-orange)'" onblur="this.parentElement.style.borderColor='rgba(255,255,255,0.12)'" />
               </div>
             </div>
           </div>
 
           ${savedAddressesListHtml}
 
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div style="display: flex; gap: 10px;">
-              <div style="flex: 1;">
-                <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">House No</label>
-                <input type="text" id="addr-field-house" value="${fields.houseNo}" placeholder="e.g. 12" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
+          <!-- Address Form Header & Tag Selector -->
+          <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <span style="font-size: 11.5px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif;">
+                ${modeHeader}
+              </span>
+              <input type="hidden" id="addr-field-label" value="${targetLabel}" />
+            </div>
+
+            <!-- Address Label Pills: Home, Work, Other -->
+            <div style="display: flex; gap: 8px; width: 100%; box-sizing: border-box;">
+              ${['Home 🏠', 'Work 🏢', 'Other 📍'].map(lbl => {
+                const isSelected = (targetLabel.startsWith(lbl.split(' ')[0]));
+                const bg = isSelected ? 'rgba(249, 115, 22, 0.2)' : 'rgba(255,255,255,0.03)';
+                const bColor = isSelected ? 'var(--accent-orange)' : 'rgba(255,255,255,0.1)';
+                const tColor = isSelected ? 'var(--accent-orange)' : '#9ca3af';
+                return `
+                  <button type="button" onclick="document.getElementById('addr-field-label').value='${lbl}'; document.querySelectorAll('.addr-tag-pill').forEach(b => { b.style.background='rgba(255,255,255,0.03)'; b.style.borderColor='rgba(255,255,255,0.1)'; b.style.color='#9ca3af'; }); this.style.background='rgba(249, 115, 22, 0.2)'; this.style.borderColor='var(--accent-orange)'; this.style.color='var(--accent-orange)';" class="addr-tag-pill" style="flex: 1; height: 34px; border-radius: 10px; background: ${bg}; border: 1.2px solid ${bColor}; color: ${tColor}; font-size: 11.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-sizing: border-box;">
+                    ${lbl}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Structured Address Fields (proper flex box-sizing) -->
+          <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
+            <!-- Row: House No & PIN Code -->
+            <div style="display: flex; gap: 10px; width: 100%; box-sizing: border-box;">
+              <div style="flex: 1; min-width: 0; box-sizing: border-box;">
+                <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">House / Door No *</label>
+                <input type="text" id="addr-field-house" value="${fields.houseNo}" placeholder="e.g. 12/4B" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
               </div>
-              <div style="flex: 1.2;">
-                <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">PIN Code</label>
-                <input type="tel" id="addr-field-pincode" value="${fields.pincode}" placeholder="e.g. 637105" maxlength="6" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
+              <div style="flex: 1; min-width: 0; box-sizing: border-box;">
+                <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">PIN Code *</label>
+                <input type="tel" id="addr-field-pincode" value="${fields.pincode}" placeholder="e.g. 637101" maxlength="6" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
               </div>
             </div>
 
-            <div>
-              <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">Street</label>
-              <input type="text" id="addr-field-street" value="${fields.street}" placeholder="e.g. Gandhi Street" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
+            <!-- Row: Street / Road Name -->
+            <div style="width: 100%; box-sizing: border-box;">
+              <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">Street / Road Name *</label>
+              <input type="text" id="addr-field-street" value="${fields.street}" placeholder="e.g. Gandhi Road / Main Road" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
             </div>
 
-            <div>
+            <!-- Row: Landmark (Optional) -->
+            <div style="width: 100%; box-sizing: border-box;">
               <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">Landmark (optional)</label>
-              <input type="text" id="addr-field-landmark" value="${fields.landmark}" placeholder="e.g. Near Bus Stand" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
+              <input type="text" id="addr-field-landmark" value="${fields.landmark}" placeholder="e.g. Near Bus Stand / Water Tank" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
             </div>
 
-            <div style="display: flex; gap: 10px;">
-              <div style="flex: 1.2;">
-                <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">Area</label>
-                <input type="text" id="addr-field-area" value="${fields.area || 'Edappadi'}" placeholder="e.g. Edappadi" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
+            <!-- Row: Area / Locality & City -->
+            <div style="display: flex; gap: 10px; width: 100%; box-sizing: border-box;">
+              <div style="flex: 1; min-width: 0; box-sizing: border-box;">
+                <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">Area / Locality *</label>
+                <input type="text" id="addr-field-area" value="${fields.area || 'Edappadi'}" placeholder="e.g. Kavandampatti" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
               </div>
-              <div style="flex: 1;">
-                <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">City</label>
-                <input type="text" id="addr-field-city" value="${fields.city || 'Salem'}" placeholder="e.g. Salem" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
+              <div style="flex: 1; min-width: 0; box-sizing: border-box;">
+                <label style="font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 4px; display: block;">City / Town *</label>
+                <input type="text" id="addr-field-city" value="${fields.city || 'Edappadi'}" placeholder="e.g. Edappadi / Salem" style="width: 100%; height: 42px; background: rgba(255,255,255,0.03); border: 1.2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0 12px; color: #ffffff; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
               </div>
             </div>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-            <div style="display: flex; gap: 8px;">
-              <button type="button" class="btn" onclick="triggerEditorGPS()" style="flex: 1; min-height: 44px; height: auto; padding: 10px 14px; font-size: 12px; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.25) !important; color: #10b981 !important; background: rgba(16, 185, 129, 0.05) !important; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 14px; box-sizing: border-box; cursor: pointer; transition: all 0.2s;">
-                <span>🛰️</span> <span>Use Current Location</span>
-              </button>
-
-              <button type="button" class="btn" onclick="triggerEditorMap()" style="flex: 1; min-height: 44px; height: auto; padding: 10px 14px; font-size: 12px; font-weight: 700; border: 1px solid rgba(249, 115, 22, 0.25) !important; color: var(--accent-orange) !important; background: rgba(249, 115, 22, 0.05) !important; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 14px; box-sizing: border-box; cursor: pointer; transition: all 0.2s;">
-                <span>🗺️</span> <span>Pick From Map</span>
-              </button>
-            </div>
-
-            <button type="button" class="btn" onclick="saveSimpleAddressFields()" style="min-height: 48px; height: auto; padding: 12px 18px; font-size: 14px; font-weight: 700; border: none !important; background: linear-gradient(135deg, #059669 0%, #064e3b 100%) !important; color: #ffffff !important; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 16px; box-sizing: border-box; cursor: pointer; margin-top: 4px; transition: all 0.2s; box-shadow: 0 4px 14px rgba(16,185,129,0.25);">
-              <span>💾</span> <span style="font-family: 'Poppins', sans-serif;">SAVE</span>
+          <!-- GPS and Map Action Buttons -->
+          <div style="display: flex; gap: 8px; width: 100%; box-sizing: border-box; margin-top: 4px;">
+            <button type="button" class="btn" onclick="triggerEditorGPS()" style="flex: 1; min-width: 0; min-height: 42px; padding: 8px 10px; font-size: 11.5px; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3) !important; color: #10b981 !important; background: rgba(16, 185, 129, 0.08) !important; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; box-sizing: border-box; cursor: pointer; transition: all 0.2s;">
+              <span>🛰️</span> <span>${currentLang === 'ta' ? 'ஜிபிஎஸ் மூலம் எடு' : 'Auto GPS'}</span>
             </button>
+
+            <button type="button" class="btn" onclick="triggerEditorMap()" style="flex: 1; min-width: 0; min-height: 42px; padding: 8px 10px; font-size: 11.5px; font-weight: 700; border: 1px solid rgba(249, 115, 22, 0.3) !important; color: var(--accent-orange) !important; background: rgba(249, 115, 22, 0.08) !important; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; box-sizing: border-box; cursor: pointer; transition: all 0.2s;">
+              <span>🗺️</span> <span>${currentLang === 'ta' ? 'வரைபடம் / Map' : 'Pick Map'}</span>
+            </button>
+          </div>
+
+          <!-- Action Save Buttons -->
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px; width: 100%; box-sizing: border-box;">
+            <button type="button" class="btn" onclick="saveSimpleAddressFields(false)" style="width: 100%; min-height: 48px; height: auto; padding: 12px 18px; font-size: 14px; font-weight: 800; border: none !important; background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important; color: #ffffff !important; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 14px; box-sizing: border-box; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(16,185,129,0.3);">
+              <span>💾</span> <span>${currentLang === 'ta' ? 'முகவரியைச் சேமி / SAVE ADDRESS' : 'SAVE ADDRESS'}</span>
+            </button>
+
+            ${isEditingExisting ? `
+              <button type="button" class="btn" onclick="saveSimpleAddressFields(true)" style="width: 100%; min-height: 40px; padding: 8px 14px; font-size: 12px; font-weight: 700; border: 1.2px dashed rgba(249, 115, 22, 0.5) !important; color: var(--accent-orange) !important; background: rgba(249, 115, 22, 0.06) !important; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; box-sizing: border-box; cursor: pointer; transition: all 0.2s;">
+                <span>➕</span> <span>${currentLang === 'ta' ? 'புதிய முகவரியாகச் சேமி (+ Save as New)' : '+ Save as New Address'}</span>
+              </button>
+            ` : ''}
           </div>
 
         </div>
@@ -562,10 +622,10 @@
 
       document.body.appendChild(modal);
 
-      if (user.latitude && user.longitude) {
-        modal.setAttribute('data-lat', user.latitude);
-        modal.setAttribute('data-lng', user.longitude);
-      }
+      const itemLat = (targetItem && targetItem.latitude) ? targetItem.latitude : (user.latitude || 11.5815);
+      const itemLng = (targetItem && targetItem.longitude) ? targetItem.longitude : (user.longitude || 77.8488);
+      modal.setAttribute('data-lat', itemLat);
+      modal.setAttribute('data-lng', itemLng);
 
       setTimeout(() => {
         modal.classList.add('active');
@@ -734,7 +794,7 @@
       observer.observe(dummy, { attributes: true });
     }
 
-    function saveSimpleAddressFields() {
+    function saveSimpleAddressFields(forceSaveAsNew = false) {
       const nameInput = document.getElementById('addr-field-name');
       const phoneInput = document.getElementById('addr-field-phone');
       const name = nameInput ? nameInput.value.trim() : '';
@@ -742,65 +802,43 @@
 
       if (nameInput && !name) {
         showToast(currentLang === 'ta' ? "தயவுசெய்து உங்கள் பெயரை உள்ளிடவும்!" : "Please enter your name!", "error");
+        if (nameInput) nameInput.focus();
         return;
       }
       if (phoneInput && (!phone || phone.length !== 10)) {
         showToast(currentLang === 'ta' ? "தயவுசெய்து 10 இலக்க மொபைல் எண்ணை உள்ளிடவும்!" : "Please enter a valid 10-digit mobile number!", "error");
+        if (phoneInput) phoneInput.focus();
         return;
       }
 
-      const houseNo = document.getElementById('addr-field-house').value.trim();
-      const street = document.getElementById('addr-field-street').value.trim();
-      const area = document.getElementById('addr-field-area').value.trim();
-      const landmark = document.getElementById('addr-field-landmark').value.trim();
-      const city = document.getElementById('addr-field-city').value.trim();
-      const pincode = document.getElementById('addr-field-pincode').value.trim();
+      const houseNo = (document.getElementById('addr-field-house') ? document.getElementById('addr-field-house').value : '').trim();
+      const street = (document.getElementById('addr-field-street') ? document.getElementById('addr-field-street').value : '').trim();
+      const area = (document.getElementById('addr-field-area') ? document.getElementById('addr-field-area').value : '').trim();
+      const landmark = (document.getElementById('addr-field-landmark') ? document.getElementById('addr-field-landmark').value : '').trim();
+      const city = (document.getElementById('addr-field-city') ? document.getElementById('addr-field-city').value : '').trim();
+      const pincode = (document.getElementById('addr-field-pincode') ? document.getElementById('addr-field-pincode').value : '').trim();
+      const labelInput = document.getElementById('addr-field-label');
+      const label = labelInput ? labelInput.value.trim() : 'Home 🏠';
 
       if (!houseNo) {
-        showToast("House No is required!", "error");
+        showToast(currentLang === 'ta' ? "வீட்டு எண் உள்ளிடவும்! (House No required)" : "House No is required!", "error");
         return;
       }
       if (!street) {
-        showToast("Street name is required!", "error");
+        showToast(currentLang === 'ta' ? "தெரு பெயர் உள்ளிடவும்! (Street name required)" : "Street name is required!", "error");
         return;
       }
       if (!area) {
-        showToast("Area is required!", "error");
+        showToast(currentLang === 'ta' ? "பகுதி உள்ளிடவும்! (Area required)" : "Area is required!", "error");
         return;
       }
       if (!city) {
-        showToast("City is required!", "error");
+        showToast(currentLang === 'ta' ? "ஊர் உள்ளிடவும்! (City required)" : "City is required!", "error");
         return;
       }
       if (!pincode || pincode.length !== 6 || isNaN(pincode)) {
-        showToast("Please enter a valid 6-digit PIN Code!", "error");
+        showToast(currentLang === 'ta' ? "சரியான 6 இலக்க பின்கோடு உள்ளிடவும்!" : "Please enter a valid 6-digit PIN Code!", "error");
         return;
-      }
-
-      // Update user details
-      const user = getActiveUser() || {};
-      if (name) user.name = name;
-      if (phone) user.phone = phone;
-
-      const users = getData('ek_users', []) || [];
-      const uIdx = users.findIndex(u => u && u.id === user.id);
-      if (uIdx !== -1) {
-        if (name) users[uIdx].name = name;
-        if (phone) users[uIdx].phone = phone;
-        saveData('ek_users', users);
-      }
-
-      const session = getActiveSession() || {};
-      if (name) session.name = name;
-      if (phone) session.phone = phone;
-      saveData('ek_customer_session', session);
-
-      if (typeof db !== 'undefined' && db && user.id) {
-        db.collection('ek_users').doc(user.id).update({
-          name: user.name,
-          phone: user.phone,
-          updatedAt: new Date().toISOString()
-        }).catch(() => null);
       }
 
       const fields = { houseNo, street, area, landmark, city, pincode };
@@ -810,18 +848,93 @@
       const lat = modal && modal.getAttribute('data-lat') ? parseFloat(modal.getAttribute('data-lat')) : 11.5815;
       const lng = modal && modal.getAttribute('data-lng') ? parseFloat(modal.getAttribute('data-lng')) : 77.8488;
 
+      // Update active user state
+      const user = getActiveUser() || {};
+      if (name) user.name = name;
+      if (phone) user.phone = phone;
+
+      let saved = user.savedAddresses || [];
+      const editingId = (!forceSaveAsNew && window._activeEditingAddressId) ? window._activeEditingAddressId : null;
+
+      if (editingId && saved.some(a => a.id === editingId)) {
+        saved = saved.map(a => {
+          if (a.id === editingId) {
+            return {
+              ...a,
+              label: label || a.label || 'Home 🏠',
+              address: fullAddress,
+              latitude: lat,
+              longitude: lng
+            };
+          }
+          return a;
+        });
+      } else {
+        const newAddrObj = {
+          id: 'addr_' + Date.now(),
+          label: label || 'Home 🏠',
+          address: fullAddress,
+          latitude: lat,
+          longitude: lng
+        };
+        saved.push(newAddrObj);
+      }
+      user.savedAddresses = saved;
+
+      // Update in ek_users local storage
+      const users = getData('ek_users', []) || [];
+      const uIdx = users.findIndex(u => u && (u.id === user.id || (user.phone && u.phone === user.phone)));
+      if (uIdx !== -1) {
+        if (name) users[uIdx].name = name;
+        if (phone) users[uIdx].phone = phone;
+        users[uIdx].savedAddresses = saved;
+        users[uIdx].address = fullAddress;
+        users[uIdx].latitude = lat;
+        users[uIdx].longitude = lng;
+        users[uIdx].updatedAt = new Date().toISOString();
+        saveData('ek_users', users);
+      }
+
+      // Update active session
+      const session = getActiveSession() || {};
+      if (name) session.name = name;
+      if (phone) session.phone = phone;
+      saveData('ek_customer_session', session);
+
+      // Cloud Firestore sync
+      if (typeof db !== 'undefined' && db && user.id) {
+        db.collection('ek_users').doc(user.id).set({
+          name: user.name,
+          phone: user.phone,
+          address: fullAddress,
+          latitude: lat,
+          longitude: lng,
+          savedAddresses: saved,
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch(err => console.warn("Firestore user sync error:", err));
+      }
+
+      // Set as primary address and sync all views
       syncPrimaryUserAddress(fullAddress, lat, lng);
       renderAllAddressCards();
+      renderSavedAddressesList();
+      populateCartSavedAddresses();
       renderCartCustomerContactCard();
 
       // Update quick order review if visible
       const quickPhone = document.getElementById('quick-order-review-phone');
-      if (quickPhone && phone) quickPhone.innerText = phone;
+      if (quickPhone && phone) quickPhone.innerText = `+91 ${phone.slice(-10)}`;
       const quickAddr = document.getElementById('quick-order-review-address');
-      if (quickAddr) quickAddr.innerText = fullAddress;
+      if (quickAddr) {
+        if (typeof formatAddressStringToPostal === 'function') {
+          quickAddr.innerHTML = formatAddressStringToPostal(fullAddress);
+        } else {
+          quickAddr.innerText = fullAddress;
+        }
+      }
 
       closeSimpleAddressEditor();
-      showToast(currentLang === 'ta' ? "விவரங்கள் வெற்றிகரமாக சேமிக்கப்பட்டன! ✅" : "Details saved successfully! ✅", "success");
+      showToast(currentLang === 'ta' ? "முகவரி விவரங்கள் வெற்றிகரமாக சேமிக்கப்பட்டன! ✅" : "Address details saved successfully! ✅", "success");
 
       if (window._pendingOrderAfterContactSave) {
         window._pendingOrderAfterContactSave = false;
@@ -921,7 +1034,70 @@
 
       const profContainer = document.getElementById('profile-address-card-container');
       if (profContainer) {
-        profContainer.innerHTML = cardHtml;
+        if (!currentAddress || currentAddress === 'Salem, Tamil Nadu' || (currentAddress.includes("Selected Delivery Location") && currentAddress.split(',').length <= 2)) {
+          profContainer.innerHTML = cardHtml;
+        } else {
+          const saved = user.savedAddresses || [];
+          let savedListHtml = '';
+          if (saved.length > 0) {
+            savedListHtml = `
+              <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; text-align: left; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif;">
+                    ${currentLang === 'ta' ? 'சேமித்த முகவரிகள்' : 'Saved Addresses'} (${saved.length})
+                  </span>
+                  <button type="button" onclick="openSimpleAddressEditor(null, 'new')" style="background: transparent; border: none; color: var(--accent-orange); font-size: 11.5px; font-weight: 800; cursor: pointer; padding: 2px 4px; display: flex; align-items: center; gap: 4px;">
+                    <span>➕</span> <span>${currentLang === 'ta' ? 'புதிய முகவரி' : 'Add New'}</span>
+                  </button>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
+            `;
+            saved.forEach(item => {
+              const isSelected = (currentAddress === item.address);
+              const borderStyle = isSelected ? 'border: 1.5px solid var(--accent-orange); background: rgba(249, 115, 22, 0.06);' : 'border: 1.2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02);';
+              const indicatorHtml = isSelected
+                ? '<span style="font-size: 11px; color: var(--accent-orange); font-weight: 800;">✓ Active</span>'
+                : `<button type="button" onclick="selectAddressInEditor('${item.id}')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #ffffff; font-size: 10.5px; font-weight: 700; padding: 4px 10px; cursor: pointer;">${currentLang === 'ta' ? 'பயன்படுத்து' : 'Use'}</button>`;
+              const postalFields = parseAddressStringToFields(item.address);
+              let postalStr = `${postalFields.houseNo ? postalFields.houseNo + ', ' : ''}${postalFields.street}, ${postalFields.area}, ${postalFields.city} – ${postalFields.pincode}`;
+
+              savedListHtml += `
+                <div style="padding: 10px 12px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; box-sizing: border-box; width: 100%; text-align: left; ${borderStyle}">
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 12px; font-weight: 800; color: #ffffff; font-family: 'Poppins', sans-serif;">${item.label}</span>
+                    <span style="font-size: 11px; color: #9ca3af; font-weight: 500; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${postalStr}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    ${indicatorHtml}
+                    <button type="button" onclick="openSimpleAddressEditor('${item.id}')" style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 8px; color: var(--accent-orange); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 11.5px; cursor: pointer;" title="Edit">✏️</button>
+                    ${saved.length > 1 ? `
+                      <button type="button" onclick="deleteSavedAddress('${item.id}')" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 11.5px; cursor: pointer;" title="Delete">🗑️</button>
+                    ` : ''}
+                  </div>
+                </div>
+              `;
+            });
+            savedListHtml += `
+                </div>
+              </div>
+            `;
+          }
+
+          profContainer.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
+              ${cardHtml}
+              <div style="display: flex; gap: 8px; width: 100%; box-sizing: border-box;">
+                <button type="button" onclick="openSimpleAddressEditor()" style="flex: 1; min-height: 38px; padding: 8px 12px; border-radius: 12px; background: rgba(249, 115, 22, 0.08); border: 1.2px solid rgba(249, 115, 22, 0.4); color: var(--accent-orange); font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Poppins', sans-serif;">
+                  <span>✏️</span> <span>${currentLang === 'ta' ? 'முகவரியை மாற்று' : 'Edit Address'}</span>
+                </button>
+                <button type="button" onclick="openSimpleAddressEditor(null, 'new')" style="flex: 1; min-height: 38px; padding: 8px 12px; border-radius: 12px; background: rgba(16, 185, 129, 0.08); border: 1.2px solid rgba(16, 185, 129, 0.4); color: #10b981; font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Poppins', sans-serif;">
+                  <span>➕</span> <span>${currentLang === 'ta' ? 'புதிய முகவரி சேர்' : 'Add New'}</span>
+                </button>
+              </div>
+              ${savedListHtml}
+            </div>
+          `;
+        }
       }
 
       const cartContainer = document.getElementById('cart-address-card-container');
@@ -932,9 +1108,12 @@
           const saved = user.savedAddresses || [];
 
           const actionRowHtml = `
-            <div style="display: flex; align-items: center; justify-content: center; width: 100%; box-sizing: border-box; margin-top: 8px;">
-              <button type="button" onclick="openSimpleAddressEditor()" style="width: 100%; min-height: 38px; height: auto; padding: 8px 16px; border-radius: 19px; background: rgba(249, 115, 22, 0.05); border: 1px solid rgba(249, 115, 22, 0.4); color: var(--accent-orange); font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s;" onmouseover="this.style.background='rgba(249, 115, 22, 0.15)'; this.style.borderColor='var(--accent-orange)'" onmouseout="this.style.background='rgba(249, 115, 22, 0.05)'; this.style.borderColor='rgba(249, 115, 22, 0.4)'">
-                <span>✏️</span> <span>Edit Address</span>
+            <div style="display: flex; gap: 8px; width: 100%; box-sizing: border-box; margin-top: 4px;">
+              <button type="button" onclick="openSimpleAddressEditor()" style="flex: 1; min-height: 38px; padding: 8px 12px; border-radius: 14px; background: rgba(249, 115, 22, 0.08); border: 1.2px solid rgba(249, 115, 22, 0.4); color: var(--accent-orange); font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Poppins', sans-serif;">
+                <span>✏️</span> <span>${currentLang === 'ta' ? 'முகவரியை மாற்று' : 'Edit Address'}</span>
+              </button>
+              <button type="button" onclick="openSimpleAddressEditor(null, 'new')" style="flex: 1; min-height: 38px; padding: 8px 12px; border-radius: 14px; background: rgba(16, 185, 129, 0.08); border: 1.2px solid rgba(16, 185, 129, 0.4); color: #10b981; font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Poppins', sans-serif;">
+                <span>➕</span> <span>${currentLang === 'ta' ? 'புதிய முகவரி' : 'Add New'}</span>
               </button>
             </div>
           `;
@@ -942,23 +1121,23 @@
           let savedSelectorHtml = '';
           if (saved.length >= 2) {
             savedSelectorHtml = `
-              <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; text-align: left; width: 100%;">
-                <span style="font-size: 10.5px; font-weight: 800; color: #71717a; text-transform: uppercase; letter-spacing: 0.8px; font-family: 'Poppins', sans-serif; padding-left: 2px;">Quick Switch Saved:</span>
-                <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; width: 100%; box-sizing: border-box; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none;">
+              <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; text-align: left; width: 100%;">
+                <span style="font-size: 10.5px; font-weight: 800; color: #71717a; text-transform: uppercase; letter-spacing: 0.8px; font-family: 'Poppins', sans-serif; padding-left: 2px;">
+                  ${currentLang === 'ta' ? 'சேமித்த முகவரிகள் (விரைவுத் தேர்வு):' : 'Saved Addresses (Quick Switch):'}
+                </span>
+                <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; width: 100%; box-sizing: border-box; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none;">
             `;
             saved.forEach(item => {
               const isSelected = (currentAddress === item.address);
-              const chipBg = isSelected ? 'linear-gradient(135deg, rgba(249, 115, 22, 0.16) 0%, rgba(249, 115, 22, 0.06) 100%)' : 'rgba(255, 255, 255, 0.02)';
-              const chipBorder = isSelected ? '1.5px solid var(--accent-orange)' : '1px solid rgba(255, 255, 255, 0.08)';
+              const chipBg = isSelected ? 'linear-gradient(135deg, rgba(249, 115, 22, 0.16) 0%, rgba(249, 115, 22, 0.06) 100%)' : 'rgba(255, 255, 255, 0.03)';
+              const chipBorder = isSelected ? '1.5px solid var(--accent-orange)' : '1px solid rgba(255, 255, 255, 0.1)';
               const chipColor = isSelected ? 'var(--accent-orange)' : '#a1a1aa';
               const chipFontWeight = isSelected ? '800' : '600';
 
-              let icon = '📍';
-
               savedSelectorHtml += `
-                <div onclick="selectCartSavedAddress('${item.id}'); renderAllAddressCards();" style="flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: ${chipBg}; border: ${chipBorder}; border-radius: 20px; color: ${chipColor}; font-size: 11px; font-weight: ${chipFontWeight}; cursor: pointer; transition: all 0.2s ease; box-sizing: border-box; font-family: 'Poppins', sans-serif;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.color='var(--accent-orange)'" onmouseout="this.style.borderColor='${isSelected ? 'var(--accent-orange)' : 'rgba(255, 255, 255, 0.08)'}'; this.style.color='${isSelected ? 'var(--accent-orange)' : '#a1a1aa'}'">
-                  <span>${icon}</span>
-                  <span>${item.label.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '').replace(/^[^a-zA-Z0-9\s]+/g, '').trim()}</span>
+                <div onclick="selectCartSavedAddress('${item.id}'); renderAllAddressCards();" style="flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: ${chipBg}; border: ${chipBorder}; border-radius: 20px; color: ${chipColor}; font-size: 11px; font-weight: ${chipFontWeight}; cursor: pointer; transition: all 0.2s ease; box-sizing: border-box; font-family: 'Poppins', sans-serif;">
+                  <span>📍</span>
+                  <span>${item.label}</span>
                 </div>
               `;
             });
@@ -976,127 +1155,6 @@
             </div>
           `;
         }
-      }
-    }
-
-    function openCartSavedAddressesSelector() {
-      const user = getActiveUser();
-      if (!user) {
-        showToast("Please log in first!", "error");
-        return;
-      }
-
-      const saved = user.savedAddresses || [];
-
-      const oldModal = document.getElementById('cart-address-selector-modal');
-      if (oldModal) oldModal.remove();
-
-      const modal = document.createElement('div');
-      modal.id = 'cart-address-selector-modal';
-      modal.className = 'modal-backdrop';
-      modal.style.zIndex = '99999';
-      modal.style.display = 'flex';
-      modal.style.justifyContent = 'center';
-      modal.style.alignItems = 'center';
-      modal.style.padding = '16px';
-
-      let addressListHtml = '';
-      if (saved.length === 0) {
-        addressListHtml = `
-          <div style="text-align: center; padding: 24px 12px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.12); border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; box-sizing: border-box;">
-            <span style="font-size: 24px;">📍</span>
-            <p style="font-size: 12px; color: #9ca3af; font-weight: 600; margin: 0; line-height: 1.4;">No saved addresses found.</p>
-          </div>
-        `;
-      } else {
-        saved.forEach(item => {
-          const isSelected = (user.address === item.address);
-          const borderStyle = isSelected ? 'border: 1.5px solid var(--accent-orange); background: rgba(249, 115, 22, 0.06);' : 'border: 1.2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02);';
-          const indicatorHtml = isSelected ? '<span style="font-size: 16px; color: var(--accent-orange);">🟢</span>' : '<span style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); display: inline-block;"></span>';
-
-          const postalFields = parseAddressStringToFields(item.address);
-          let postalStr = `${postalFields.houseNo ? postalFields.houseNo + ', ' : ''}${postalFields.street}, ${postalFields.area}, ${postalFields.city} – ${postalFields.pincode}`;
-          if (postalFields.landmark) {
-            postalStr += ` (Near: ${postalFields.landmark})`;
-          }
-
-          addressListHtml += `
-            <div onclick="selectCartAddressFromModal('${item.id}')" style="padding: 14px; border-radius: 16px; display: flex; align-items: flex-start; gap: 12px; transition: all 0.2s; cursor: pointer; box-sizing: border-box; width: 100%; text-align: left; ${borderStyle}" onmouseover="this.style.borderColor='var(--accent-orange)';" onmouseout="this.style.borderColor='${isSelected ? 'var(--accent-orange)' : 'rgba(255,255,255,0.08)'}';">
-              <div style="margin-top: 2px; flex-shrink: 0;">
-                ${indicatorHtml}
-              </div>
-              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
-                <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; font-family: 'Poppins', sans-serif;">${item.label}</span>
-                <span style="font-size: 12px; color: #9ca3af; font-weight: 500; line-height: 1.45; word-break: break-word;">${postalStr}</span>
-              </div>
-              <button type="button" onclick="event.stopPropagation(); deleteCartAddressFromModal('${item.id}')" style="background: rgba(239, 68, 68, 0.08); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; margin-left: 8px; flex-shrink: 0;" title="Delete address">🗑️</button>
-            </div>
-          `;
-        });
-      }
-
-      modal.innerHTML = `
-        <div class="bottom-sheet" style="width: 100%; max-width: 440px; border-radius: 24px; border: 1.5px solid rgba(255,255,255,0.08); background: #0c0d12; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transform: translateY(100px); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; gap: 16px; box-sizing: border-box; text-align: left;">
-
-          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 20px;">🗺️</span>
-              <h3 style="color: #ffffff; font-size: 15px; font-weight: 800; margin: 0; font-family: 'Poppins', sans-serif; letter-spacing: 0.3px; text-transform: uppercase;">SELECT ADDRESS</h3>
-            </div>
-            <button onclick="closeCartAddressSelectorModal()" style="background: transparent; border: none; color: #9ca3af; font-size: 18px; cursor: pointer; padding: 4px;">✕</button>
-          </div>
-
-          <div style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding-right: 4px;">
-            ${addressListHtml}
-          </div>
-
-          <button type="button" class="btn" onclick="triggerAddNewAddressFromModal()" style="min-height: 46px; height: auto; padding: 10px 16px; font-size: 12.5px; font-weight: 700; border: none !important; background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; color: #ffffff !important; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 14px; box-sizing: border-box; cursor: pointer; margin-top: 4px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.2);">
-            <span>➕</span> <span style="font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 0.3px;">Add New Address</span>
-          </button>
-        </div>
-      `;
-
-      document.body.appendChild(modal);
-
-      setTimeout(() => {
-        modal.classList.add('active');
-        const sheet = modal.querySelector('.bottom-sheet');
-        if (sheet) sheet.style.transform = 'translateY(0)';
-      }, 10);
-    }
-
-    function closeCartAddressSelectorModal() {
-      const modal = document.getElementById('cart-address-selector-modal');
-      if (modal) {
-        const sheet = modal.querySelector('.bottom-sheet');
-        if (sheet) sheet.style.transform = 'translateY(100px)';
-        modal.classList.remove('active');
-        setTimeout(() => {
-          modal.remove();
-        }, 200);
-      }
-    }
-
-    function selectCartAddressFromModal(addrId) {
-      if (typeof selectCartSavedAddress === 'function') {
-        selectCartSavedAddress(addrId);
-      }
-      closeCartAddressSelectorModal();
-    }
-
-    function triggerAddNewAddressFromModal() {
-      closeCartAddressSelectorModal();
-      setTimeout(() => {
-        openSimpleAddressEditor();
-      }, 250);
-    }
-
-    function deleteCartAddressFromModal(addrId) {
-      if (typeof deleteSavedAddress === 'function') {
-        deleteSavedAddress(addrId);
-        setTimeout(() => {
-          openCartSavedAddressesSelector();
-        }, 100);
       }
     }
 
@@ -1335,8 +1393,13 @@
       if (!user) return;
 
       let saved = user.savedAddresses || [];
+      const itemToDelete = saved.find(item => item.id === id);
       saved = saved.filter(item => item.id !== id);
       user.savedAddresses = saved;
+
+      if (itemToDelete && user.address === itemToDelete.address && saved.length > 0) {
+        syncPrimaryUserAddress(saved[0].address, saved[0].latitude, saved[0].longitude);
+      }
 
       const users = getData('ek_users', []);
       const userIdx = users.findIndex(u => u.id === user.id);
@@ -1345,15 +1408,19 @@
         saveData('ek_users', users);
 
         if (typeof db !== 'undefined' && db) {
-          db.collection('ek_users').doc(user.id).set(users[userIdx], { merge: true })
-            .catch(e => console.warn("Saved addresses sync error:", e));
+          db.collection('ek_users').doc(user.id).set({
+            savedAddresses: saved,
+            updatedAt: new Date().toISOString()
+          }, { merge: true }).catch(e => console.warn("Saved addresses sync error:", e));
         }
       }
 
       showToast(currentLang === 'ta' ? "முகவரி நீக்கப்பட்டது." : "Saved address removed.", "success");
+      renderAllAddressCards();
       renderSavedAddressesList();
       populateCartSavedAddresses();
     }
+    window.deleteSavedAddress = deleteSavedAddress;
 
     function populateCartSavedAddresses() {
       const groupEl = document.getElementById('cart-saved-addresses-group');
@@ -1394,6 +1461,7 @@
       if (!found) return;
 
       syncPrimaryUserAddress(found.address, found.latitude, found.longitude);
+      renderAllAddressCards();
       showToast(currentLang === 'ta' ? "விநியோக முகவரி புதுப்பிக்கப்பட்டது! 🎯" : "Delivery address updated successfully! 🎯", "success");
     }
 

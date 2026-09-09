@@ -786,15 +786,21 @@
 
       // Tamil number words to digits
       const numMap = [
-        [/இருபது|irupathu/gi, '20'],
+        [/இருபது|இருவது|irupathu|iruvathu/gi, '20'],
+        [/முப்பது|muppathu/gi, '30'],
+        [/நாற்பது|நாப்பது|narpathu|naappathu/gi, '40'],
         [/ஐம்பது|aimpathu/gi, '50'],
+        [/அறுபது|arubathu/gi, '60'],
+        [/எழுபது|ezhubathu/gi, '70'],
+        [/எண்பது|enbathu/gi, '80'],
+        [/தொண்ணூறு|thonnooru/gi, '90'],
         [/நூறு|nooru/gi, '100'],
         [/இருநூறு/gi, '200'],
         [/ஐந்நூறு/gi, '500'],
         [/ஆயிரம்/gi, '1000'],
         [/பத்து|pathu/gi, '10'],
         [/இரண்டு|ரெண்டு|ரண்டு|rendu|randu/gi, '2'],
-        [/ஒன்று|ஒன்னு|onru|onnu/gi, '1'],
+        [/ஒன்று|ஒன்னு|ஒரு|onru|onnu|oru/gi, '1'],
         [/மூன்று|மூனு|moonru|moonu/gi, '3'],
         [/நான்கு|நாலு|naangu|naalu/gi, '4'],
         [/ஐந்து|அஞ்சு|ainthu|anju/gi, '5'],
@@ -915,6 +921,16 @@
 
       t = t.replace(/[,.:;!?]/g, '').replace(/^க்கு\s*/i, '').replace(/பீஸ்|பீசு|pieces|piece|pcs/gi, '').trim();
 
+      // Deduplicate consecutive repeated words (e.g. "முட்டை முட்டை" -> "முட்டை")
+      const words = t.split(/\s+/).filter(Boolean);
+      const dedupedWords = [];
+      for (let i = 0; i < words.length; i++) {
+        if (i === 0 || words[i] !== words[i - 1]) {
+          dedupedWords.push(words[i]);
+        }
+      }
+      t = dedupedWords.join(' ');
+
       return {
         productSearchTerm: t || itemText,
         rawQtyVal: rawQtyVal,
@@ -924,19 +940,151 @@
       };
     }
 
-    // 6. Split Multi-line / WhatsApp Shopping Lists
+    // Helper: Normalize spoken Tamil number words to digits
+    function normalizeSpokenTamilNumbers(str) {
+      if (!str) return '';
+      let s = str;
+      const numMap = [
+        [/இருபது|இருவது|irupathu|iruvathu/gi, '20'],
+        [/முப்பது|muppathu/gi, '30'],
+        [/நாற்பது|நாப்பது|narpathu|naappathu/gi, '40'],
+        [/ஐம்பது|aimpathu/gi, '50'],
+        [/அறுபது|arubathu/gi, '60'],
+        [/எழுபது|ezhubathu/gi, '70'],
+        [/எண்பது|enbathu/gi, '80'],
+        [/தொண்ணூறு|thonnooru/gi, '90'],
+        [/நூறு|nooru/gi, '100'],
+        [/இருநூறு/gi, '200'],
+        [/ஐந்நூறு/gi, '500'],
+        [/ஆயிரம்/gi, '1000'],
+        [/பத்து|pathu/gi, '10'],
+        [/இரண்டு|ரெண்டு|ரண்டு|rendu|randu/gi, '2'],
+        [/ஒன்று|ஒன்னு|ஒரு|onru|onnu|oru/gi, '1'],
+        [/மூன்று|மூனு|moonru|moonu/gi, '3'],
+        [/நான்கு|நாலு|naangu|naalu/gi, '4'],
+        [/ஐந்து|அஞ்சு|ainthu|anju/gi, '5'],
+        [/ஆறு|aaru/gi, '6'],
+        [/ஏழு|aelu/gi, '7'],
+        [/எட்டு|ettu/gi, '8'],
+        [/ஒன்பது|onbathu/gi, '9']
+      ];
+      numMap.forEach(([rgx, val]) => {
+        s = s.replace(rgx, ' ' + val + ' ');
+      });
+      return s.replace(/\s+/g, ' ').trim();
+    }
+
+    // 6. Split Multi-line / WhatsApp / Spoken Continuous Shopping Lists
     function parseLyoCommerceQuery(queryText) {
-      if (!queryText) return [];
-      const rawLines = (queryText || '').replace(/\r/g, '').split('\n');
-      const items = [];
-      rawLines.forEach(line => {
-        const commaParts = line.split(',');
-        commaParts.forEach(part => {
-          const parsed = parseSingleItemText(part);
-          if (parsed && parsed.productSearchTerm) {
-            items.push(parsed);
+      if (!queryText || !queryText.trim()) return [];
+
+      let cleanQuery = normalizeSpokenTamilNumbers(queryText.trim());
+      // Replace conversational joiners with comma delimiters
+      cleanQuery = cleanQuery.replace(/\s+(?:மற்றும்|அப்புறம்|கூட|மேலும்|and|&|\+)\s+/gi, ', ');
+
+      // If text contains newlines or commas, do initial line/comma split
+      const rawChunks = cleanQuery.replace(/\r/g, '').split(/[\n,]+/);
+      const segmentedChunks = [];
+
+      // Gather product keywords dynamically from dictionary
+      const activeDict = (typeof getActiveNluDictionary === 'function')
+        ? getActiveNluDictionary()
+        : ((typeof EK_BASE_SYNONYMS !== 'undefined') ? EK_BASE_SYNONYMS : {});
+
+      const productKeywords = new Set();
+      for (const key in activeDict) {
+        if (Array.isArray(activeDict[key])) {
+          activeDict[key].forEach(w => {
+            const cleanW = String(w || '').trim().toLowerCase();
+            if (cleanW.length >= 2) productKeywords.add(cleanW);
+          });
+        }
+      }
+
+      // Add common staples/vegetables to set
+      ['தக்காளி', 'முட்டை', 'பால்', 'முருங்கைக்காய்', 'முருங்கக்கா', 'வெங்காயம்', 'ஆட்டுக்கறி', 'சிக்கன்', 'மட்டன்'].forEach(k => productKeywords.add(k));
+
+      // Sort longer phrases first to match compound phrases first
+      const sortedKeywords = Array.from(productKeywords).sort((a, b) => b.length - a.length);
+      const kwRegex = new RegExp('(?:^|[\\s,;!?])(' + sortedKeywords.map(k => k.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')).join('|') + ')(?=[\\s,;!?]|$)', 'gi');
+
+      const qtyPattern = /(?:(?:₹|rs\.?|ரூபாய்|ரூபா)\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?\s*(?:கிலோ|kg|கிராம்|g|gm|லிட்டர்|litre|l|மி\.லி|ml|ரூபாய்|ரூபாய்க்கு|ரூபா|rs|₹|பீஸ்|பீசு|பீஸ்கள்|pcs|piece|pieces|பாக்கெட்|டஜன்|முட்டை)?|\b(?:அரை|கால்|முக்கால்|ஒன்றரை|half|quarter)\b\s*(?:கிலோ|kg|கிராம்|g|gm|லிட்டர்|litre|l|மி\.லி|ml|ரூபாய்|பீஸ்|பீசு|pieces)?)/gi;
+
+      rawChunks.forEach(chunk => {
+        let text = chunk.trim();
+        if (!text) return;
+
+        // Locate product token occurrences
+        const prodSpans = [];
+        let m;
+        const scanKwRegex = new RegExp(kwRegex.source, 'gi');
+        while ((m = scanKwRegex.exec(text)) !== null) {
+          const kw = m[1];
+          const idx = m.index + m[0].indexOf(kw);
+          prodSpans.push({ name: kw, start: idx, end: idx + kw.length });
+        }
+
+        // Deduplicate consecutive product words like "முட்டை 20 முட்டை"
+        const uniqueProds = [];
+        for (let i = 0; i < prodSpans.length; i++) {
+          const cur = prodSpans[i];
+          if (uniqueProds.length > 0) {
+            const prev = uniqueProds[uniqueProds.length - 1];
+            if (prev.name.toLowerCase() === cur.name.toLowerCase() && (cur.start - prev.end) < 25) {
+              continue;
+            }
           }
-        });
+          uniqueProds.push(cur);
+        }
+
+        if (uniqueProds.length <= 1) {
+          segmentedChunks.push(text);
+          return;
+        }
+
+        // Multi-product segmenting with quantity detachment
+        let pendingPrefix = '';
+        for (let i = 0; i < uniqueProds.length; i++) {
+          const cur = uniqueProds[i];
+          const next = uniqueProds[i + 1];
+
+          let rawSlice = next ? text.substring(cur.start, next.start) : text.substring(cur.start);
+          rawSlice = (pendingPrefix + ' ' + rawSlice).trim();
+          pendingPrefix = '';
+
+          if (next) {
+            const qtys = [];
+            let qm;
+            const qScanner = new RegExp(qtyPattern.source, 'gi');
+            while ((qm = qScanner.exec(rawSlice)) !== null) {
+              qtys.push({ text: qm[0].trim(), start: qm.index, end: qm.index + qm[0].length });
+            }
+
+            if (qtys.length >= 2) {
+              const lastQty = qtys[qtys.length - 1];
+              if (rawSlice.length - lastQty.end <= 10) {
+                pendingPrefix = lastQty.text;
+                rawSlice = rawSlice.substring(0, lastQty.start).trim();
+              }
+            }
+          }
+
+          if (rawSlice) {
+            segmentedChunks.push(rawSlice);
+          }
+        }
+
+        if (pendingPrefix && segmentedChunks.length > 0) {
+          segmentedChunks[segmentedChunks.length - 1] = (pendingPrefix + ' ' + segmentedChunks[segmentedChunks.length - 1]).trim();
+        }
+      });
+
+      const items = [];
+      segmentedChunks.forEach(seg => {
+        const parsed = parseSingleItemText(seg);
+        if (parsed && parsed.productSearchTerm) {
+          items.push(parsed);
+        }
       });
       return items;
     }
@@ -954,8 +1102,10 @@
 
       const userTextHasExplicitUnit = Boolean(parsedItem?.hasExplicitUserUnit) || ['g', 'gm', 'gram', 'grams', 'kg', 'kilo', 'kilos', 'l', 'litre', 'liter', 'litres', 'ml', 'rs', 'rupees', 'rupee', '₹'].includes(String(parsedItem?.unit || '').toLowerCase().trim());
 
-      // Database product unit is the MANDATORY truth for AI Commerce Engine
-      if (p) {
+      // RUPEES amount type takes highest precedence
+      if (parsedItem?.amountType === 'RUPEES' || parsedItem?.amountType === 'AMOUNT_RS') {
+        effectiveAmountType = 'RUPEES';
+      } else if (p) {
         if (isPieceProduct) {
           effectiveAmountType = 'COUNT_PIECES';
           effectiveUnit = dbSellingUnit || 'piece';
@@ -992,10 +1142,15 @@
       let itemTotal = unitPrice;
 
       const isTaLang = (typeof currentLang !== 'undefined' && currentLang === 'ta');
+      const safeUnitDisplay = (u, isTa, qty) => {
+        if (typeof getUnitDisplay === 'function') return getUnitDisplay(u, isTa, qty);
+        if (typeof window !== 'undefined' && typeof window.getUnitDisplay === 'function') return window.getUnitDisplay(u, isTa, qty);
+        return u;
+      };
 
       if (isPieceProduct || effectiveAmountType === 'COUNT_PIECES') {
         rawQty = Math.max(1, Math.round(parsedItem?.rawQtyVal || 1));
-        const uLabel = getUnitDisplay(dbSellingUnit || baseUnit, isTaLang, rawQty);
+        const uLabel = safeUnitDisplay(dbSellingUnit || baseUnit, isTaLang, rawQty);
         displayQty = `${rawQty} ${uLabel}`;
         selectorQty = `${rawQty} ${dbSellingUnit || baseUnit}`;
         itemTotal = Math.round(rawQty * unitPrice);
@@ -1026,7 +1181,7 @@
         } else {
           const count = Math.max(1, Math.round(rupeeAmount / unitPrice));
           rawQty = count;
-          const uLabel = getUnitDisplay(dbSellingUnit || baseUnit, isTaLang, count);
+          const uLabel = safeUnitDisplay(dbSellingUnit || baseUnit, isTaLang, count);
           displayQty = `${count} ${uLabel}`;
           selectorQty = `${count} ${dbSellingUnit || baseUnit}`;
         }
@@ -1690,9 +1845,12 @@ function getActiveLyoProposalMsg() {
         weightGrams = Math.round(weightGrams);
       }
       
-      const totalPrice = isWeight
+      const calculatedPrice = isWeight
         ? Math.round((unitPrice / 1000) * weightGrams)
         : Math.round(unitPrice * weightGrams);
+      const totalPrice = (it.itemTotal && !isNaN(it.itemTotal) && Number(it.itemTotal) > 0)
+        ? Number(it.itemTotal)
+        : calculatedPrice;
 
       const resolvedImg = prod ? (prod.imageUrl || '') : (it.img || it.imageUrl || '');
       
@@ -2057,27 +2215,27 @@ function getActiveLyoProposalMsg() {
                 <!-- Delivery Charge Section -->
                 <div style="margin-top: 10px; font-size: 11.5px; font-weight: 700; color: #10b981; display: flex; align-items: center; gap: 4px;">
                   <span>📍</span>
-                  <span>Delivery fee: ₹${delFee} (${financials.zoneName || 'Edappadi Core'})</span>
+                  <span>${(typeof currentLang !== 'undefined' && currentLang === 'ta') ? 'டெலிவரி கட்டணம்' : 'Delivery fee'}: ₹${delFee} (${financials.zoneName || 'Edappadi Core'})</span>
                 </div>
                 <!-- Minimum Order Requirement Card -->
                 <div style="margin-top: 8px; background: ${minReqMet ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)'}; border: 1px dashed ${minReqMet ? '#10b981' : '#ef4444'}; border-radius: 10px; padding: 8px 10px;">
                   <div style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: #ffffff;">
                     <span>${minReqMet ? '✅' : '⚠️'}</span>
-                    <span>${minReqMet ? `Minimum order requirement met! (₹${itemsSubtotal} / ₹${minReq})` : `Add ₹${minReq - itemsSubtotal} more for minimum order (₹${minReq})`}</span>
+                    <span>${minReqMet ? ((typeof currentLang !== 'undefined' && currentLang === 'ta') ? `குறைந்தபட்ச ஆர்டர் அளவு எட்டப்பட்டது! (₹${itemsSubtotal} / ₹${minReq})` : `Minimum order requirement met! (₹${itemsSubtotal} / ₹${minReq})`) : ((typeof currentLang !== 'undefined' && currentLang === 'ta') ? `குறைந்தபட்ச ஆர்டருக்கு மேலும் ₹${minReq - itemsSubtotal} சேர்க்கவும் (₹${minReq})` : `Add ₹${minReq - itemsSubtotal} more for minimum order (₹${minReq})`)}</span>
                   </div>
                   <div style="margin-top: 5px; height: 3px; background: ${minReqMet ? '#10b981' : '#ef4444'}; border-radius: 2px; width: 100%;"></div>
                 </div>
-                <!-- Order Now Button -->
+                <!-- Order Now / View Cart Button -->
                 <button type="button" onclick="placeLyoProposalOrder('${msg.proposalId}')" style="width: 100%; min-height: 46px; height: auto; padding: 10px 14px; margin-top: 10px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b 0%, #10b981 100%); border: none; color: #ffffff; font-weight: 800; font-size: 13px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: 0 4px 14px rgba(16,185,129,0.25); display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; line-height: 1.3;">
-                  🛍️ Order Now (₹${itemsSubtotal} items + ₹${delFee} del = ₹${grandTotal})
+                  🛍️ ${(typeof currentLang !== 'undefined' && currentLang === 'ta') ? `கார்ட்டை பார்க்க & ஆர்டர் செய்ய (பொருட்கள்: ₹${itemsSubtotal} + டெலிவரி: ₹${delFee} = ₹${grandTotal})` : `View Cart & Order Now (₹${itemsSubtotal} items + ₹${delFee} del = ₹${grandTotal})`}
                 </button>
                 <!-- Add All and Discard Buttons Row -->
                 <div style="display: flex; gap: 8px; margin-top: 8px;">
                   <button type="button" onclick="addAllLyoProposalToCart('${msg.proposalId}')" style="flex: 1; min-height: 42px; height: auto; padding: 8px 12px; border-radius: 12px; background: #10b981; border: none; color: #ffffff; font-weight: 800; font-size: 12.5px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; box-shadow: 0 3px 10px rgba(16,185,129,0.25); line-height: 1.3;">
-                    🛒 Add All To Cart
+                    🛒 ${(typeof currentLang !== 'undefined' && currentLang === 'ta') ? 'கார்ட்டில் சேர்க்க' : 'Add All To Cart'}
                   </button>
                   <button type="button" onclick="discardLyoProposal('${msg.proposalId}')" style="flex: 1; min-height: 42px; height: auto; padding: 8px 12px; border-radius: 12px; background: #ef4444; border: none; color: #ffffff; font-weight: 800; font-size: 12.5px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; box-shadow: 0 3px 10px rgba(239,68,68,0.25); line-height: 1.3;">
-                    🗑️ Discard
+                    🗑️ ${(typeof currentLang !== 'undefined' && currentLang === 'ta') ? 'ரத்து செய்க' : 'Discard'}
                   </button>
                 </div>
                 <!-- Footer Timestamp & Audio Button -->
@@ -3088,7 +3246,7 @@ async function onLyoSendBtnClick() {
           let effectiveAmountType = parsed.amount_type || parsed.amountType || 'WEIGHT_KG';
           let effectiveUnit = matchedProd.sellingUnit || matchedProd.unit || parsed.unit || 'kg';
 
-          if (isPieceProduct) {
+          if (isPieceProduct && effectiveAmountType !== 'RUPEES' && effectiveAmountType !== 'AMOUNT_RS') {
             parsed.amount_type = 'COUNT_PIECES';
             parsed.amountType = 'COUNT_PIECES';
             parsed.unit = matchedProd.sellingUnit || matchedProd.unit || 'piece';

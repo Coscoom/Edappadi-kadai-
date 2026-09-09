@@ -27,6 +27,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.key
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -59,10 +60,42 @@ class MainActivity : ComponentActivity() {
     companion object {
         var isActivityInForeground = false
         var currentInstance: MainActivity? = null
+
+        fun purgeStaleFcmRegistrations(context: Context, onComplete: (() -> Unit)? = null) {
+            android.util.Log.w("FCM_INIT", "Purging stale FCM registrations and installations to resolve TOO_MANY_REGISTRATIONS...")
+            try {
+                val sharedPrefs = context.getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
+                sharedPrefs.edit()
+                    .remove("fcm_topics_subscribed_v2")
+                    .remove("fcm_token")
+                    .remove("real_fcm_token")
+                    .apply()
+
+                com.google.firebase.messaging.FirebaseMessaging.getInstance().deleteToken()
+                    .addOnCompleteListener {
+                        try {
+                            com.google.firebase.installations.FirebaseInstallations.getInstance().delete()
+                                .addOnCompleteListener {
+                                    android.util.Log.i("FCM_INIT", "Stale FCM registration & installations purged successfully.")
+                                    onComplete?.invoke()
+                                }
+                        } catch (delInstEx: Exception) {
+                            android.util.Log.w("FCM_INIT", "Firebase installations delete exception: ${delInstEx.message}")
+                            onComplete?.invoke()
+                        }
+                    }
+            } catch (e: Exception) {
+                android.util.Log.w("FCM_INIT", "Error deleting stale FCM token: ${e.message}")
+                onComplete?.invoke()
+            }
+        }
     }
 
     val isAppLoadedState = androidx.compose.runtime.mutableStateOf(false)
     val hasLoadFailedState = androidx.compose.runtime.mutableStateOf(false)
+    val webViewRecreateKey = androidx.compose.runtime.mutableStateOf(0)
+    val isSoftwareRenderingFallback = androidx.compose.runtime.mutableStateOf(false)
+    private var renderCrashCount = 0
     private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var integrityCheckRunnable: Runnable? = null
 
@@ -220,7 +253,8 @@ class MainActivity : ComponentActivity() {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data = result.data
-            val uris = WebChromeClient.FileChooserParams.parseResult(result.resultCode, data)
+            val parsedUris = WebChromeClient.FileChooserParams.parseResult(result.resultCode, data)
+            val uris = parsedUris ?: (data?.data?.let { arrayOf(it) })
             filePathCallback?.onReceiveValue(uris)
         } else {
             filePathCallback?.onReceiveValue(null)
@@ -502,55 +536,7 @@ class MainActivity : ComponentActivity() {
                 android.util.Log.e("CRASHLYTICS", "Failed to configure Firebase Crashlytics: ${crashEx.message}", crashEx)
             }
 
-            try {
-                val gmsAvailability = com.google.android.gms.common.GoogleApiAvailability.getInstance()
-                val gmsResult = gmsAvailability.isGooglePlayServicesAvailable(this)
-                if (gmsResult == com.google.android.gms.common.ConnectionResult.SUCCESS) {
-                    try {
-                        com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("all_customers")
-                        com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("announcements")
-                    } catch (tEx: Exception) {
-                        android.util.Log.i("FCM_INIT", "Topic subscription skipped: ${tEx.message}")
-                    }
-                    com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val token = task.result
-                            if (!token.isNullOrEmpty()) {
-                                android.util.Log.d("FCM_INIT", "FCM Registration Token: $token")
-                                runOnUiThread {
-                                    webView?.evaluateJavascript(
-                                        "javascript:(function() { " +
-                                        "  if (typeof onAndroidFcmTokenReceived === 'function') { " +
-                                        "    onAndroidFcmTokenReceived('$token'); " +
-                                        "  } " +
-                                        "})()", null
-                                    )
-                                }
-                                val sharedPrefs = getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
-                                sharedPrefs.edit()
-                                    .putString("fcm_token", token)
-                                    .putString("real_fcm_token", token)
-                                    .apply()
-                            }
-                        } else {
-                            val ex = task.exception
-                            android.util.Log.i("FCM_INIT", "FCM token registration deferred: ${ex?.message}")
-                            val sharedPrefs = getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
-                            if (sharedPrefs.getString("fcm_token", "").isNullOrEmpty()) {
-                                val fallbackToken = "fcm_fallback_" + java.util.UUID.randomUUID().toString().take(12)
-                                sharedPrefs.edit()
-                                    .putString("fcm_token", fallbackToken)
-                                    .putString("real_fcm_token", fallbackToken)
-                                    .apply()
-                            }
-                        }
-                    }
-                } else {
-                    android.util.Log.i("FCM_INIT", "Google Play Services not available (code $gmsResult). FCM token fetch deferred gracefully.")
-                }
-            } catch (e: Exception) {
-                android.util.Log.i("FCM_INIT", "Firebase Messaging initialization skipped or deferred gracefully: ${e.message}")
-            }
+            setupFcmAndTopics()
         } catch (e: Exception) {
             android.util.Log.i("FCM_INIT", "Firebase Messaging initialization skipped or deferred gracefully: ${e.message}")
         }
@@ -614,7 +600,9 @@ class MainActivity : ComponentActivity() {
                                 onClick = {
                                     hasLoadFailedState.value = false
                                     isAppLoadedState.value = false
-                                    webView?.loadUrl("file:///android_asset/index.html")
+                                    renderCrashCount = 0
+                                    isSoftwareRenderingFallback.value = true
+                                    webViewRecreateKey.value++
                                     scheduleIntegrityCheck()
                                 },
                                 colors = ButtonDefaults.buttonColors(
@@ -625,77 +613,108 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     } else {
-                        AndroidView(
-                            modifier = Modifier.fillMaxSize(),
-                            factory = { context ->
-                                WebView(context).apply {
-                                    this@MainActivity.webView = this
-                                    layoutParams = android.view.ViewGroup.LayoutParams(
-                                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                                        android.view.ViewGroup.LayoutParams.MATCH_PARENT
-                                    )
-                                    
-                                    // Disable native scrollbars and overscroll effect to deliver premium app look
-                                    isVerticalScrollBarEnabled = false
-                                    isHorizontalScrollBarEnabled = false
-                                    overScrollMode = android.view.View.OVER_SCROLL_NEVER
-                                    
+                        key(webViewRecreateKey.value) {
+                            AndroidView(
+                                modifier = Modifier.fillMaxSize(),
+                                factory = { context ->
+                                    WebView(context).apply {
+                                        this@MainActivity.webView = this
+                                        layoutParams = android.view.ViewGroup.LayoutParams(
+                                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                                        )
+                                        
+                                        // Disable native scrollbars and overscroll effect to deliver premium app look
+                                        isVerticalScrollBarEnabled = false
+                                        isHorizontalScrollBarEnabled = false
+                                        overScrollMode = android.view.View.OVER_SCROLL_NEVER
+                                        isDrawingCacheEnabled = false
+                                        setBackgroundColor(android.graphics.Color.parseColor("#0a0a0a"))
 
-                                    settings.apply {
-                                        javaScriptEnabled = true
-                                        domStorageEnabled = true
-                                        @Suppress("DEPRECATION")
-                                        databaseEnabled = true
-                                        setGeolocationEnabled(true)
-                                        allowFileAccess = true
-                                        allowContentAccess = true
-                                        mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
-                                        useWideViewPort = true
-                                        loadWithOverviewMode = true
-                                        cacheMode = WebSettings.LOAD_DEFAULT
-                                        loadsImagesAutomatically = true
-                                        setSupportZoom(false)
-                                        builtInZoomControls = false
-                                        displayZoomControls = false
-                                    }
+                                        // Gracefully fallback to software rendering layer if hardware driver/mesa encounters issues
+                                        if (isSoftwareRenderingFallback.value) {
+                                            setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
+                                        } else {
+                                            setLayerType(android.view.View.LAYER_TYPE_NONE, null)
+                                        }
 
-                                    // Handle native intent actions (tel, whatsapp, intents, maps)
-                                    webViewClient = object : WebViewClient() {
-                                        override fun onRenderProcessGone(
-                                            view: WebView?,
-                                            detail: android.webkit.RenderProcessGoneDetail?
-                                        ): Boolean {
-                                            android.util.Log.e("WebView", "Render process gone. Did crash: ${detail?.didCrash()}")
-                                            try {
-                                                val container = view?.parent as? android.view.ViewGroup
-                                                container?.removeView(view)
-                                                view?.destroy()
-                                            } catch (e: Exception) {
-                                                android.util.Log.e("WebView", "Error cleaning up destroyed webView: ${e.message}")
+                                        settings.apply {
+                                            javaScriptEnabled = true
+                                            domStorageEnabled = true
+                                            @Suppress("DEPRECATION")
+                                            databaseEnabled = true
+                                            setGeolocationEnabled(true)
+                                            allowFileAccess = true
+                                            allowContentAccess = true
+                                            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+                                            useWideViewPort = true
+                                            loadWithOverviewMode = true
+                                            cacheMode = WebSettings.LOAD_NO_CACHE
+                                            loadsImagesAutomatically = true
+                                            setSupportZoom(false)
+                                            builtInZoomControls = false
+                                            displayZoomControls = false
+                                            defaultTextEncodingName = "UTF-8"
+                                            textZoom = 100
+                                        }
+
+                                        // Handle native intent actions (tel, whatsapp, intents, maps)
+                                        webViewClient = object : WebViewClient() {
+                                            override fun onRenderProcessGone(
+                                                view: WebView?,
+                                                detail: android.webkit.RenderProcessGoneDetail?
+                                            ): Boolean {
+                                                val didCrash = detail?.didCrash() == true
+                                                android.util.Log.e("WebView", "Render process gone. Did crash: $didCrash")
+                                                renderCrashCount++
+                                                try {
+                                                    val container = view?.parent as? android.view.ViewGroup
+                                                    container?.removeView(view)
+                                                    view?.destroy()
+                                                } catch (e: Exception) {
+                                                    android.util.Log.e("WebView", "Error cleaning up destroyed webView: ${e.message}")
+                                                }
+                                                this@MainActivity.webView = null
+                                                runOnUiThread {
+                                                    if (renderCrashCount <= 2) {
+                                                        // Automatically recreate WebView with software rendering to bypass graphics driver / render node failure
+                                                        isSoftwareRenderingFallback.value = true
+                                                        hasLoadFailedState.value = false
+                                                        webViewRecreateKey.value++
+                                                        scheduleIntegrityCheck()
+                                                    } else {
+                                                        if (!isAppLoadedState.value) {
+                                                            hasLoadFailedState.value = true
+                                                        }
+                                                    }
+                                                }
+                                                return true // Prevent host application termination
                                             }
-                                            runOnUiThread {
-                                                if (!isAppLoadedState.value) {
-                                                    hasLoadFailedState.value = true
+
+                                            override fun onPageFinished(view: WebView?, url: String?) {
+                                                super.onPageFinished(view, url)
+                                                val sharedPrefs = getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
+                                                val token = sharedPrefs.getString("real_fcm_token", "") ?: ""
+                                                if (token.isNotEmpty()) {
+                                                    view?.evaluateJavascript(
+                                                        "javascript:(function() { " +
+                                                        "  if (typeof onAndroidFcmTokenReceived === 'function') { " +
+                                                        "    onAndroidFcmTokenReceived('$token'); " +
+                                                        "  } " +
+                                                        "})()", null
+                                                    )
+                                                }
+                                                // Verify DOM readiness immediately
+                                                view?.evaluateJavascript(
+                                                    "javascript:(function() { return !!(document && document.body && document.body.innerHTML && document.body.innerHTML.length > 50); })()"
+                                                ) { result ->
+                                                    if (result == "true") {
+                                                        onJsAppLoaded()
+                                                    } else {
+                                                        scheduleIntegrityCheck()
+                                                    }
                                                 }
                                             }
-                                            return true // Prevent host application termination
-                                        }
-
-                                        override fun onPageFinished(view: WebView?, url: String?) {
-                                            super.onPageFinished(view, url)
-                                            val sharedPrefs = getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
-                                            val token = sharedPrefs.getString("real_fcm_token", "") ?: ""
-                                            if (token.isNotEmpty()) {
-                                                view?.evaluateJavascript(
-                                                    "javascript:(function() { " +
-                                                    "  if (typeof onAndroidFcmTokenReceived === 'function') { " +
-                                                    "    onAndroidFcmTokenReceived('$token'); " +
-                                                    "  } " +
-                                                    "})()", null
-                                                )
-                                            }
-                                            scheduleIntegrityCheck()
-                                        }
 
                                         override fun onReceivedError(
                                             view: WebView?,
@@ -822,9 +841,18 @@ class MainActivity : ComponentActivity() {
                                                 }
                                                 return true
                                             } catch (e: Exception) {
-                                                this@MainActivity.filePathCallback?.onReceiveValue(null)
-                                                this@MainActivity.filePathCallback = null
-                                                return false
+                                                try {
+                                                    val fallbackIntent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                                                        type = "image/*"
+                                                        addCategory(Intent.CATEGORY_OPENABLE)
+                                                    }
+                                                    fileChooserLauncher.launch(fallbackIntent)
+                                                    return true
+                                                } catch (fallbackEx: Exception) {
+                                                    this@MainActivity.filePathCallback?.onReceiveValue(null)
+                                                    this@MainActivity.filePathCallback = null
+                                                    return false
+                                                }
                                             }
                                         }
                                     }
@@ -835,11 +863,13 @@ class MainActivity : ComponentActivity() {
 
                                     addJavascriptInterface(WebAppInterface(context), "AndroidStorage")
 
+                                    clearCache(true)
                                     loadUrl("file:///android_asset/index.html")
                                     scheduleIntegrityCheck()
                                 }
                             }
                         )
+                        }
                     }
                 }
             }
@@ -1006,6 +1036,102 @@ class MainActivity : ComponentActivity() {
             }
         } catch (e: Exception) {
             android.util.Log.e("FCM_INTENT", "Error handling FCM intent: ${e.message}")
+        }
+    }
+
+    private fun setupFcmAndTopics() {
+        try {
+            val gmsAvailability = com.google.android.gms.common.GoogleApiAvailability.getInstance()
+            val gmsResult = gmsAvailability.isGooglePlayServicesAvailable(this)
+            if (gmsResult != com.google.android.gms.common.ConnectionResult.SUCCESS) {
+                android.util.Log.i("FCM_INIT", "Google Play Services not available (code $gmsResult). FCM token fetch deferred gracefully.")
+                return
+            }
+
+            val sharedPrefs = getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)
+
+            fun subscribeTopicsSafely() {
+                val topicsSubscribed = sharedPrefs.getBoolean("fcm_topics_subscribed_v2", false)
+                if (!topicsSubscribed) {
+                    try {
+                        com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("all_customers")
+                            .addOnSuccessListener {
+                                sharedPrefs.edit().putBoolean("fcm_topics_subscribed_v2", true).apply()
+                                android.util.Log.d("FCM_INIT", "Successfully subscribed to all_customers topic.")
+                            }
+                            .addOnFailureListener { tEx ->
+                                android.util.Log.w("FCM_INIT", "Topic all_customers subscription deferred: ${tEx.message}")
+                                if (tEx.message?.contains("TOO_MANY_REGISTRATIONS", ignoreCase = true) == true) {
+                                    purgeStaleFcmRegistrations(this@MainActivity)
+                                }
+                            }
+
+                        com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("announcements")
+                            .addOnFailureListener { tEx ->
+                                android.util.Log.w("FCM_INIT", "Topic announcements subscription deferred: ${tEx.message}")
+                                if (tEx.message?.contains("TOO_MANY_REGISTRATIONS", ignoreCase = true) == true) {
+                                    purgeStaleFcmRegistrations(this@MainActivity)
+                                }
+                            }
+                    } catch (e: Exception) {
+                        android.util.Log.w("FCM_INIT", "Safe topic subscription skipped: ${e.message}")
+                    }
+                }
+            }
+
+            fun fetchToken(retryCount: Int = 0) {
+                try {
+                    com.google.firebase.messaging.FirebaseMessaging.getInstance().token
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val token = task.result
+                                if (!token.isNullOrEmpty()) {
+                                    android.util.Log.d("FCM_INIT", "FCM Registration Token: $token")
+                                    runOnUiThread {
+                                        webView?.evaluateJavascript(
+                                            "javascript:(function() { " +
+                                            "  if (typeof onAndroidFcmTokenReceived === 'function') { " +
+                                            "    onAndroidFcmTokenReceived('$token'); " +
+                                            "  } " +
+                                            "})()", null
+                                        )
+                                    }
+                                    sharedPrefs.edit()
+                                        .putString("fcm_token", token)
+                                        .putString("real_fcm_token", token)
+                                        .apply()
+
+                                    // Only subscribe to topics when token is valid and active
+                                    subscribeTopicsSafely()
+                                }
+                            } else {
+                                val ex = task.exception
+                                android.util.Log.w("FCM_INIT", "FCM token registration deferred: ${ex?.message}")
+                                if (ex?.message?.contains("TOO_MANY_REGISTRATIONS", ignoreCase = true) == true) {
+                                    if (retryCount < 1) {
+                                        purgeStaleFcmRegistrations(this@MainActivity) {
+                                            fetchToken(retryCount + 1)
+                                        }
+                                        return@addOnCompleteListener
+                                    }
+                                }
+                                if (sharedPrefs.getString("fcm_token", "").isNullOrEmpty()) {
+                                    val fallbackToken = "fcm_fallback_" + java.util.UUID.randomUUID().toString().take(12)
+                                    sharedPrefs.edit()
+                                        .putString("fcm_token", fallbackToken)
+                                        .putString("real_fcm_token", fallbackToken)
+                                        .apply()
+                                }
+                            }
+                        }
+                } catch (e: Exception) {
+                    android.util.Log.w("FCM_INIT", "Error initiating token fetch: ${e.message}")
+                }
+            }
+
+            fetchToken(0)
+        } catch (e: Exception) {
+            android.util.Log.i("FCM_INIT", "Firebase Messaging initialization skipped or deferred gracefully: ${e.message}")
         }
     }
 
@@ -1529,9 +1655,7 @@ class MainActivity : ComponentActivity() {
                         .addOnFailureListener { e ->
                             android.util.Log.d("FCM", "Async token fetch status: ${e.message}")
                             if (e.message?.contains("TOO_MANY_REGISTRATIONS", ignoreCase = true) == true) {
-                                try {
-                                    com.google.firebase.messaging.FirebaseMessaging.getInstance().deleteToken()
-                                } catch (delEx: Exception) {}
+                                purgeStaleFcmRegistrations(context)
                             }
                         }
                 }
