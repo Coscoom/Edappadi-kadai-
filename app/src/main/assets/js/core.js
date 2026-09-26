@@ -1,5 +1,7 @@
 
-const CURRENT_APP_VERSION = '8.0.0';
+const CURRENT_APP_VERSION = (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.getAppVersionName === 'function')
+  ? (AndroidStorage.getAppVersionName() || '9.0.0')
+  : '9.0.0';
 window.CURRENT_APP_VERSION = CURRENT_APP_VERSION;
 
 // Safe Haptic Vibration Helper that silently handles browser frame gesture policies
@@ -67,8 +69,8 @@ window.checkAppVersion = function(passedSettings) {
   try {
     const defSettings = typeof DEFAULT_SETTINGS !== 'undefined' ? DEFAULT_SETTINGS : (window.DEFAULT_SETTINGS || {});
     const settings = passedSettings || (typeof getDataCached === 'function' ? getDataCached('ek_settings', defSettings) : null) || (typeof getData === 'function' ? getData('ek_settings', defSettings) : defSettings) || {};
-    const minVer = settings.minAppVersion || '8.0.0';
-    const recVer = settings.recommendedVersion || '8.0.0';
+    const minVer = settings.minAppVersion || '9.0.0';
+    const recVer = settings.recommendedVersion || '9.0.0';
     const isTa = typeof currentLang !== 'undefined' && currentLang === 'ta';
 
     const isBelowMin = compareSemver(minVer, CURRENT_APP_VERSION) > 0;
@@ -175,12 +177,21 @@ window.checkAppVersion = function(passedSettings) {
 
 // Safe window fallbacks for cross-module or async functions
 window.selectedTrackOrderId = window.selectedTrackOrderId || null;
-window.showTab = window.showTab || function(tabName) {
+window.showTab = function(tabName) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   if (tabName === 'tab-home') {
     const homeBtn = document.getElementById('nav-btn-home') || document.querySelector('.nav-tab:nth-child(1)');
     if (homeBtn) homeBtn.classList.add('active');
-    if (typeof showScreen === 'function') showScreen('screen-home');
+    if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-home') {
+      const homeScreen = document.getElementById('screen-home');
+      if (homeScreen) homeScreen.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (typeof filterCategory === 'function') {
+        try { filterCategory('all'); } catch(e) {}
+      }
+    } else {
+      if (typeof showScreen === 'function') showScreen('screen-home');
+    }
   } else if (tabName === 'tab-cart') {
     const cartBtn = document.getElementById('nav-btn-cart') || document.querySelector('.nav-tab:nth-child(2)');
     if (cartBtn) cartBtn.classList.add('active');
@@ -189,25 +200,18 @@ window.showTab = window.showTab || function(tabName) {
     const lyoBtn = document.getElementById('lyo-ai-nav-btn');
     if (lyoBtn) lyoBtn.classList.add('active');
     if (typeof showScreen === 'function') showScreen('screen-lyo-ai');
-    if (typeof updateLyoDeliveryBanner === 'function') updateLyoDeliveryBanner();
-    if (typeof initLyoAiChat === 'function') initLyoAiChat();
-    if (typeof updateLyoDraftCartBar === 'function') updateLyoDraftCartBar();
-  } else if (tabName === 'tab-track') {
-    const hasTrackOrder = typeof selectedTrackOrderId !== 'undefined' ? selectedTrackOrderId : window.selectedTrackOrderId;
-    if (typeof getActiveSession === 'function' && !getActiveSession() && !hasTrackOrder) {
-      if (typeof showToast === 'function') showToast(typeof currentLang !== 'undefined' && currentLang === 'ta' ? "முன்னோட்டமிட முதலில் உள்நுழையவும்! 🔐" : "Please login or register first to track orders! 🔐", "warning");
-      if (typeof showScreen === 'function') showScreen('screen-login');
-      return;
+    try {
+      if (typeof updateLyoDeliveryBanner === 'function') updateLyoDeliveryBanner();
+      if (typeof initLyoAiChat === 'function') initLyoAiChat();
+      if (typeof updateLyoDraftCartBar === 'function') updateLyoDraftCartBar();
+    } catch(lyoErr) {
+      console.warn("[showTab] Lyo AI activation error:", lyoErr);
     }
+  } else if (tabName === 'tab-track') {
     const trackBtn = document.getElementById('nav-btn-track') || document.querySelector('.nav-tab:nth-child(4)');
     if (trackBtn) trackBtn.classList.add('active');
     if (typeof showScreen === 'function') showScreen('screen-track');
   } else if (tabName === 'tab-profile') {
-    if (typeof getActiveSession === 'function' && !getActiveSession()) {
-      if (typeof showToast === 'function') showToast(typeof currentLang !== 'undefined' && currentLang === 'ta' ? "உள்நுழையவும் அல்லது புதிய அக்கவுண்ட் உருவாக்கவும்! 🔐" : "Please login or register first to manage your profile! 🔐", "warning");
-      if (typeof showScreen === 'function') showScreen('screen-login');
-      return;
-    }
     const profileBtn = document.getElementById('nav-btn-profile') || document.querySelector('.nav-tab:nth-child(5)');
     if (profileBtn) profileBtn.classList.add('active');
     if (typeof showScreen === 'function') showScreen('screen-profile');
@@ -553,6 +557,9 @@ window.setupCloudRealtimeListeners2 = function() {
             saveData('ek_products', list);
           }
           if (typeof invalidateDataCache === 'function') invalidateDataCache('ek_products');
+          if (typeof syncAiKnowledgeBase === 'function') {
+            syncAiKnowledgeBase(list);
+          }
 
           if (hasProductsChanged) {
             window._lastDataSnapshotHash = '';
@@ -1183,8 +1190,9 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
     /* jshint esversion: 8 */
     const DEBUG_MODE = false;
     function debugLog(...args) {
-      if (DEBUG_MODE) console.log(...args);
+      if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) console.log(...args);
     }
+    window.debugLog = debugLog;
     function scrollToCenterHorizontal(element, container) {
       if (!element) return;
       const targetContainer = container || element.parentElement;
@@ -1310,16 +1318,25 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
       measurementId: "G-Q0CL1WC8E8"
     };
 
-    function sanitizeDataSecure(data) {
+    function sanitizeDataSecure(data, seen = new WeakSet()) {
       if (typeof data === 'object' && data !== null) {
-        if (Array.isArray(data)) {
-          return data.map(item => sanitizeDataSecure(item));
+        if (seen.has(data)) {
+          return null;
         }
-        const copy = { ...data };
-        delete copy.password;
-        for (const k in copy) {
-          if (typeof copy[k] === 'object' && copy[k] !== null) {
-            copy[k] = sanitizeDataSecure(copy[k]);
+        seen.add(data);
+        if (Array.isArray(data)) {
+          return data.map(item => sanitizeDataSecure(item, seen));
+        }
+        const copy = {};
+        for (const k in data) {
+          if (k === 'password') continue;
+          if (Object.prototype.hasOwnProperty.call(data, k)) {
+            const val = data[k];
+            if (typeof val === 'object' && val !== null) {
+              copy[k] = sanitizeDataSecure(val, seen);
+            } else {
+              copy[k] = val;
+            }
           }
         }
         return copy;
@@ -1328,24 +1345,36 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
     }
 
     try {
+      let isInterceptingLocal = false;
       const originalSetItem = localStorage.setItem;
       localStorage.setItem = function(key, value) {
+        if (isInterceptingLocal) return originalSetItem.call(this, key, value);
         if (typeof value === 'string' && value.includes('"password"')) {
           try {
+            isInterceptingLocal = true;
             const parsed = JSON.parse(value);
             value = JSON.stringify(sanitizeDataSecure(parsed));
-          } catch (e) {}
+          } catch (e) {
+          } finally {
+            isInterceptingLocal = false;
+          }
         }
         return originalSetItem.call(this, key, value);
       };
 
+      let isInterceptingSession = false;
       const originalSessionSetItem = sessionStorage.setItem;
       sessionStorage.setItem = function(key, value) {
+        if (isInterceptingSession) return originalSessionSetItem.call(this, key, value);
         if (typeof value === 'string' && value.includes('"password"')) {
           try {
+            isInterceptingSession = true;
             const parsed = JSON.parse(value);
             value = JSON.stringify(sanitizeDataSecure(parsed));
-          } catch (e) {}
+          } catch (e) {
+          } finally {
+            isInterceptingSession = false;
+          }
         }
         return originalSessionSetItem.call(this, key, value);
       };
@@ -1353,9 +1382,9 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
       console.error("[Security] Interceptor initialization failed:", e);
     }
 
-    let fbApp = null;
-    let fbAnalytics = null;
-    let db = null;
+    var fbApp = window.fbApp = null;
+    var fbAnalytics = window.fbAnalytics = null;
+    var db = window.db = null;
 
     try {
       window.locallyModifiedOrders = new Proxy({}, {
@@ -1612,6 +1641,7 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
         fbApp = firebase.initializeApp(firebaseConfig);
         debugLog('[Diagnostic Step 1] firebase.initializeApp SUCCEEDED! ProjectId:', firebaseConfig ? firebaseConfig.projectId : 'N/A');
         db = firebase.firestore();
+        window.db = db;
         try {
           db.settings({
             experimentalAutoDetectLongPolling: true,
@@ -1640,7 +1670,7 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
         if (typeof setupCloudRealtimeListeners2 === 'function') {
           try { setupCloudRealtimeListeners2(); } catch (e) {}
         }
-        if (firebase.firestore) {
+        if (firebase.firestore && firebase.firestore.DocumentReference && firebase.firestore.DocumentReference.prototype) {
           try {
             const originalSet = firebase.firestore.DocumentReference.prototype.set;
             firebase.firestore.DocumentReference.prototype.set = function(data, options) {
@@ -1713,9 +1743,11 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
             }
           };
 
-          firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-            .then(() => debugLog("[Auth] Persistence configured to LOCAL successfully"))
-            .catch(pe => console.warn("[Auth] Persistence configuration failed:", pe));
+          if (firebase.auth && firebase.auth.Auth && firebase.auth.Auth.Persistence) {
+            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+              .then(() => debugLog("[Auth] Persistence configured to LOCAL successfully"))
+              .catch(pe => console.warn("[Auth] Persistence configuration failed:", pe));
+          }
 
           firebase.auth().onAuthStateChanged(async user => {
             if (checkIsExplicitLogoutInProgress() || window.isManualLoginInProgress || (typeof getData === 'function' && getData('ek_explicit_logged_out') === true)) {
@@ -1750,18 +1782,33 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
                 if (hasAdminSession) {
                   debugLog("[Auth State Changed] Active Admin session detected. Performing authorization check...");
                   try {
-                    const docSnap = await db.collection('ek_admin_accounts').doc(user.uid).get();
-                    if (docSnap.exists) {
+                    let docSnap = await db.collection('ek_admin_accounts').doc(user.uid).get();
+                    if (!docSnap.exists && user.email) {
+                      const emailQ = await db.collection('ek_admin_accounts').where('email', '==', user.email).limit(1).get().catch(() => null);
+                      if (emailQ && !emailQ.empty) {
+                        docSnap = emailQ.docs[0];
+                      }
+                    }
+                    if (docSnap && docSnap.exists) {
                       const adminData = docSnap.data();
                       debugLog("[Auth State Changed] Admin document data:", JSON.stringify(adminData));
                       if (adminData && (adminData.role === 'admin' || adminData.role === 'superadmin') && adminData.active !== false) {
                         debugLog("[Auth State Changed] Admin authorization GRANTED ✓");
+                        window._verifiedAdminUids = window._verifiedAdminUids || new Set();
+                        window._verifiedAdminUids.add(user.uid);
                       } else {
                         console.error("[Auth State Changed] Admin document found but role is not admin/superadmin or active is false! Access DENIED ❌");
-                        showToast("உரிமம் மறுக்கப்பட்டது! / Admin authorization denied.", "error");
+                        removeData('ek_admin_session');
+                        await firebase.auth().signOut().catch(() => {});
+                        showToast(currentLang === 'ta' ? "நிர்வாகி கணக்கு முடக்கப்பட்டுள்ளது அல்லது அனுமதி இல்லை ❌" : "Admin account is deactivated or unauthorized ❌", "error");
+                        if (typeof showScreen === 'function') showScreen('screen-login');
                       }
                     } else {
                       console.warn(`[Auth State Changed] Admin document not found at ek_admin_accounts/${user.uid}!`);
+                      removeData('ek_admin_session');
+                      await firebase.auth().signOut().catch(() => {});
+                      showToast(currentLang === 'ta' ? "நிர்வாக கணக்கு காணவில்லை. தயவுசெய்து சூப்பர் அட்மின-ஐ தொடர்பு கொள்ளவும்." : "Admin account not found in database. Please contact the superadmin to create your admin account.", "error");
+                      if (typeof showScreen === 'function') showScreen('screen-login');
                     }
                   } catch (e) {
                     console.error("[Auth State Changed] Error retrieving admin document:", e);
@@ -1775,59 +1822,79 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
                   debugLog("[Auth State Changed] Active Delivery session loaded. Splash sequence will handle routing.");
                 } else {
                   let isAdminAccount = false;
-                  if (user.email && user.email.toLowerCase().startsWith('admin_') && user.email.toLowerCase().endsWith('@app.com')) {
-                    isAdminAccount = true;
-                  } else {
-                    try {
-                      const adminDoc = await db.collection('ek_admin_accounts').doc(user.uid).get();
-                      if (adminDoc.exists) {
-                        const adData = adminDoc.data();
-                        if (adData && (adData.role === 'admin' || adData.role === 'superadmin')) {
+                  let verifiedAdminData = null;
+                  try {
+                    const adminDoc = await db.collection('ek_admin_accounts').doc(user.uid).get();
+                    if (adminDoc.exists) {
+                      const adData = adminDoc.data();
+                      if (adData && (adData.role === 'admin' || adData.role === 'superadmin') && adData.active !== false) {
+                        isAdminAccount = true;
+                        verifiedAdminData = adData;
+                      }
+                    } else if (user.email) {
+                      const emailQ = await db.collection('ek_admin_accounts').where('email', '==', user.email).limit(1).get().catch(() => null);
+                      if (emailQ && !emailQ.empty) {
+                        const adData = emailQ.docs[0].data();
+                        if (adData && (adData.role === 'admin' || adData.role === 'superadmin') && adData.active !== false) {
                           isAdminAccount = true;
+                          verifiedAdminData = adData;
                         }
                       }
-                    } catch (e) {
-                      console.warn("[Auth State Changed] Error checking ek_admin_accounts for orphaned auth:", e);
                     }
+                  } catch (e) {
+                    console.warn("[Auth State Changed] Error checking ek_admin_accounts for orphaned auth:", e);
                   }
 
                   let isDeliveryAccount = false;
-                  if (user.email && (user.email.toLowerCase().includes('rider') || user.email.toLowerCase().endsWith('@lyo.delivery'))) {
-                    isDeliveryAccount = true;
-                  } else {
-                    try {
-                      const delivDoc = await db.collection('ek_delivery_persons').doc(user.uid).get();
-                      if (delivDoc.exists) {
+                  let verifiedDeliveryData = null;
+                  try {
+                    const delivDoc = await db.collection('ek_delivery_persons').doc(user.uid).get();
+                    if (delivDoc.exists) {
+                      const dData = delivDoc.data();
+                      if (dData && dData.active !== false && dData.isActive !== false && dData.isActiveRider !== false) {
                         isDeliveryAccount = true;
-                      } else {
-                        const userDoc = await db.collection('users').doc(user.uid).get();
-                        if (userDoc.exists) {
-                          const uData = userDoc.data();
-                          if (uData && (uData.role === 'RIDER' || uData.role === 'rider' || uData.role === 'delivery')) {
-                            isDeliveryAccount = true;
-                          }
+                        verifiedDeliveryData = dData;
+                      }
+                    } else {
+                      const userDoc = await db.collection('users').doc(user.uid).get();
+                      if (userDoc.exists) {
+                        const uData = userDoc.data();
+                        if (uData && (uData.role === 'RIDER' || uData.role === 'rider' || uData.role === 'delivery') && uData.active !== false && uData.isActive !== false) {
+                          isDeliveryAccount = true;
+                          verifiedDeliveryData = uData;
                         }
                       }
-                    } catch (e) {
-                      console.warn("[Auth State Changed] Error checking delivery account collections for orphaned auth:", e);
                     }
+                  } catch (e) {
+                    console.warn("[Auth State Changed] Error checking delivery account collections for orphaned auth:", e);
                   }
 
-                  if (isAdminAccount) {
-                    debugLog("[Auth State Changed] Restoring Admin session from Firebase Auth...");
+                  if (isAdminAccount && verifiedAdminData) {
+                    debugLog("[Auth State Changed] Restoring verified Admin session from Firebase Auth...");
                     window._verifiedAdminUids = window._verifiedAdminUids || new Set();
                     window._verifiedAdminUids.add(user.uid);
                     removeData('ek_customer_session');
                     removeData('ek_delivery_session');
-                    saveData('ek_admin_session', { loggedIn: true, role: 'admin', name: 'Admin', phone: user.email ? user.email.replace('admin_', '').split('@')[0] : 'Admin' });
+                    saveData('ek_admin_session', {
+                      loggedIn: true,
+                      role: verifiedAdminData.role || 'admin',
+                      name: verifiedAdminData.name || 'Admin',
+                      phone: verifiedAdminData.phone || (user.email ? user.email.replace('admin_', '').split('@')[0] : 'Admin'),
+                      uid: user.uid
+                    });
                     if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-login') {
                       showScreen('screen-admin');
                     }
-                  } else if (isDeliveryAccount) {
-                    debugLog("[Auth State Changed] Restoring Delivery session from Firebase Auth...");
+                  } else if (isDeliveryAccount && verifiedDeliveryData) {
+                    debugLog("[Auth State Changed] Restoring verified Delivery session from Firebase Auth...");
                     removeData('ek_customer_session');
                     removeData('ek_admin_session');
-                    saveData('ek_delivery_session', { loggedIn: true, id: user.uid, name: 'Delivery Partner', phone: user.phoneNumber || '' });
+                    saveData('ek_delivery_session', {
+                      loggedIn: true,
+                      id: user.uid,
+                      name: verifiedDeliveryData.name || 'Delivery Partner',
+                      phone: verifiedDeliveryData.phone || user.phoneNumber || ''
+                    });
                     if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-login') {
                       showScreen('screen-delivery');
                     }
@@ -1874,17 +1941,19 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
           });
 
           // Handle Firebase Auth token refresh — prevents silent auth failures after 1 hour
-          firebase.auth().onIdTokenChanged(async user => {
-            if (user) {
-              try {
-                // Force token refresh to ensure Firestore operations work
-                await user.getIdToken(true);
-                debugLog('[Auth] ID token refreshed successfully.');
-              } catch (tokenErr) {
-                console.warn('[Auth] Token refresh failed:', tokenErr);
+          if (typeof firebase.auth().onIdTokenChanged === 'function') {
+            firebase.auth().onIdTokenChanged(async user => {
+              if (user) {
+                try {
+                  // Force token refresh to ensure Firestore operations work
+                  await user.getIdToken(true);
+                  debugLog('[Auth] ID token refreshed successfully.');
+                } catch (tokenErr) {
+                  console.warn('[Auth] Token refresh failed:', tokenErr);
+                }
               }
-            }
-          });
+            });
+          }
         } else {
           updateCloudStatus('connected', 'Cloud Database Connected ✓');
           setupCloudRealtimeListeners2();
@@ -2110,16 +2179,22 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
       return res;
     }
 
-    function cleanFirestoreData(obj) {
+    function cleanFirestoreData(obj, seen = new WeakSet(), depth = 0) {
       if (obj === null || obj === undefined) return null;
+      if (depth > 12) return null;
       if (typeof obj === 'number') {
         if (isNaN(obj) || !isFinite(obj)) return null;
         return obj;
       }
       if (typeof obj === 'function' || typeof obj === 'symbol') return null;
       if (typeof obj !== 'object') return obj;
+      if (typeof Node !== 'undefined' && obj instanceof Node) return null;
+      if (typeof Window !== 'undefined' && obj instanceof Window) return null;
+      if (obj.nodeType || obj.window === obj) return null;
+      if (seen.has(obj)) return null;
+      seen.add(obj);
       if (Array.isArray(obj)) {
-        return obj.map(cleanFirestoreData);
+        return obj.map(item => cleanFirestoreData(item, seen, depth + 1));
       }
       const res = {};
       for (const key in obj) {
@@ -2128,7 +2203,7 @@ window.runTimeScheduler = window.runTimeScheduler || function() {};
           if (val === undefined || typeof val === 'function' || typeof val === 'symbol') {
             res[key] = null;
           } else {
-            res[key] = cleanFirestoreData(val);
+            res[key] = cleanFirestoreData(val, seen, depth + 1);
           }
         }
       }
@@ -2429,17 +2504,22 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
       if (!u || !deletedUserIds || !deletedUserIds.length) return false;
       const uId = String(u.id || '').trim();
       const uPhone = String(u.phone || '').trim();
+      const uEmail = String(u.email || '').trim().toLowerCase();
       const cleanPhone = uPhone.replace(/\D/g, '');
-      const phone10 = cleanPhone.length >= 10 ? cleanPhone.slice(-10) : cleanPhone;
+      const phone10 = cleanPhone.length >= 10 ? cleanPhone.slice(-10) : '';
       return deletedUserIds.some(delId => {
         if (!delId) return false;
         const d = String(delId).trim();
+        const dLower = d.toLowerCase();
         if (uId && uId === d) return true;
         if (uPhone && uPhone === d) return true;
-        const cleanD = d.replace(/\D/g, '');
-        const d10 = cleanD.length >= 10 ? cleanD.slice(-10) : cleanD;
-        if (phone10 && d10 && phone10 === d10) return true;
-        if (phone10 && (d === `cust_${phone10}` || d === `+91${phone10}` || d === `91${phone10}`)) return true;
+        if (uEmail && uEmail === dLower) return true;
+        if (phone10) {
+          const cleanD = d.replace(/\D/g, '');
+          const d10 = cleanD.length >= 10 ? cleanD.slice(-10) : '';
+          if (d10 && phone10 === d10) return true;
+          if (d === `cust_${phone10}` || d === `+91${phone10}` || d === `91${phone10}`) return true;
+        }
         return false;
       });
     }
@@ -2493,6 +2573,11 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
         if (deletedAdminIds && deletedAdminIds.length > 0) {
           parsed = parsed.filter(a => a && !deletedAdminIds.includes(a.id) && !deletedAdminIds.includes(a.phone));
         }
+      } else if (key === 'ek_coupons') {
+        const deletedCouponIds = typeof getDeletedCouponIds === 'function' ? getDeletedCouponIds() : [];
+        if (deletedCouponIds && deletedCouponIds.length > 0) {
+          parsed = parsed.filter(c => c && c.id && !deletedCouponIds.includes(c.id) && !deletedCouponIds.includes(c.code));
+        }
       }
 
       return parsed;
@@ -2519,7 +2604,10 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
           parsed = defaultVal;
         }
         parsed = filterDeletedEntities(key, parsed);
-        _dataCache.set(key, parsed);
+        if (typeof _dataCache !== 'undefined' && _dataCache && typeof _cacheTimestamps !== 'undefined' && _cacheTimestamps) {
+          _dataCache.set(key, parsed);
+          _cacheTimestamps.set(key, now);
+        }
         return parsed;
       } catch (e) {
         try {
@@ -2529,13 +2617,17 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
             parsed = defaultVal;
           }
           parsed = filterDeletedEntities(key, parsed);
-          _dataCache.set(key, parsed);
+          if (typeof _dataCache !== 'undefined' && _dataCache && typeof _cacheTimestamps !== 'undefined' && _cacheTimestamps) {
+            _dataCache.set(key, parsed);
+            _cacheTimestamps.set(key, Date.now());
+          }
           return parsed;
         } catch (err) {
           return defaultVal;
         }
       }
     }
+    window.getData = getData;
 
     function isUnitWeight(unit) {
       if (!unit) return true;
@@ -2689,10 +2781,16 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
         : `Current Stock (${unitPluralEn}) *`;
     }
 
+    window.isUnitWeight = isUnitWeight;
+    window.getUnitDisplay = getUnitDisplay;
+    window.getFormattedItemQty = getFormattedItemQty;
+    window.onProductUnitChanged = onProductUnitChanged;
+
     function getSettings() {
       const def = typeof DEFAULT_SETTINGS !== 'undefined' ? DEFAULT_SETTINGS : (window.DEFAULT_SETTINGS || {});
       return getDataCached('ek_settings', def);
     }
+    window.getSettings = getSettings;
 
     function getDeletedOrderIds() {
       let list = getData('ek_deleted_order_ids', []);
@@ -2839,21 +2937,23 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
     }
     function unmarkUserAsDeleted(userIdOrPhone) {
       if (!userIdOrPhone) return;
-      const cleanDigits = String(userIdOrPhone).replace(/\D/g, '');
-      const phone10 = cleanDigits.length >= 10 ? cleanDigits.slice(-10) : cleanDigits;
+      const targetStr = String(userIdOrPhone).trim();
+      const targetLower = targetStr.toLowerCase();
+      const isEmail = targetStr.includes('@');
+      const cleanDigits = !isEmail ? targetStr.replace(/\D/g, '') : '';
+      const phone10 = cleanDigits.length >= 10 ? cleanDigits.slice(-10) : '';
 
       let list = getDeletedUserIds();
       list = list.filter(id => {
         if (!id) return false;
-        if (id === userIdOrPhone) return false;
+        const sId = String(id).trim();
+        const sIdLower = sId.toLowerCase();
+        if (sId === targetStr || sIdLower === targetLower) return false;
         if (phone10) {
-          const idDigits = String(id).replace(/\D/g, '');
-          if (idDigits && (idDigits === phone10 || idDigits.endsWith(phone10) || phone10.endsWith(idDigits))) {
-            return false;
-          }
-          if (id === `cust_${phone10}` || id === `+91${phone10}` || id === `91${phone10}`) {
-            return false;
-          }
+          const idDigits = sId.replace(/\D/g, '');
+          const id10 = idDigits.length >= 10 ? idDigits.slice(-10) : '';
+          if (id10 && id10 === phone10) return false;
+          if (sId === `cust_${phone10}` || sId === `+91${phone10}` || sId === `91${phone10}`) return false;
         }
         return true;
       });
@@ -2942,6 +3042,72 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
       }
     }
 
+    function getDeletedCouponIds() {
+      let list = [];
+      try {
+        if (typeof AndroidStorage !== 'undefined') {
+          const val = AndroidStorage.getData('ek_deleted_coupon_ids', "");
+          if (val) list = JSON.parse(val);
+        }
+        if (!list || list.length === 0) {
+          const val = localStorage.getItem('ek_deleted_coupon_ids');
+          if (val) list = JSON.parse(val);
+        }
+      } catch (e) {}
+      return Array.isArray(list) ? list : [];
+    }
+
+    function pruneLocalDeletedCoupons() {
+      const deletedCouponIds = getDeletedCouponIds();
+      if (deletedCouponIds.length === 0) return;
+      let rawList = [];
+      try {
+        if (typeof AndroidStorage !== 'undefined') {
+          const val = AndroidStorage.getData('ek_coupons', "");
+          if (val) rawList = JSON.parse(val);
+        }
+        if (!rawList || rawList.length === 0) {
+          const val = localStorage.getItem('ek_coupons');
+          if (val) rawList = JSON.parse(val);
+        }
+      } catch (e) {}
+      if (!Array.isArray(rawList)) rawList = [];
+      const filtered = rawList.filter(c => c && c.id && !deletedCouponIds.includes(c.id) && !deletedCouponIds.includes(c.code));
+      if (rawList.length !== filtered.length) {
+        saveData('ek_coupons', filtered);
+        debugLog(`[Safeguard] Pruned ${rawList.length - filtered.length} deleted coupons from local cache.`);
+      }
+    }
+
+    function markCouponAsDeleted(couponIdOrCode) {
+      if (!couponIdOrCode) return;
+      const list = getDeletedCouponIds();
+      if (!list.includes(couponIdOrCode)) {
+        list.push(couponIdOrCode);
+        saveData('ek_deleted_coupon_ids', list);
+      }
+      pruneLocalDeletedCoupons();
+      if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection('ek_tombstones').doc('ek_deleted_coupon_ids').set({
+          ids: firebase.firestore.FieldValue.arrayUnion(couponIdOrCode),
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch(() => null);
+      }
+    }
+
+    function unmarkCouponAsDeleted(couponIdOrCode) {
+      if (!couponIdOrCode) return;
+      let list = getDeletedCouponIds();
+      list = list.filter(id => id !== couponIdOrCode);
+      saveData('ek_deleted_coupon_ids', list);
+      if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection('ek_tombstones').doc('ek_deleted_coupon_ids').set({
+          ids: firebase.firestore.FieldValue.arrayRemove(couponIdOrCode),
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch(() => null);
+      }
+    }
+
     window.getDeletedOrderIds = getDeletedOrderIds;
     window.markOrderAsDeleted = markOrderAsDeleted;
     window.getCustomerHiddenOrderIds = getCustomerHiddenOrderIds;
@@ -2957,6 +3123,10 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
     window.getDeletedAdminIds = getDeletedAdminIds;
     window.markAdminAsDeleted = markAdminAsDeleted;
     window.unmarkAdminAsDeleted = unmarkAdminAsDeleted;
+    window.getDeletedCouponIds = getDeletedCouponIds;
+    window.pruneLocalDeletedCoupons = pruneLocalDeletedCoupons;
+    window.markCouponAsDeleted = markCouponAsDeleted;
+    window.unmarkCouponAsDeleted = unmarkCouponAsDeleted;
 
     function saveData(key, data) {
       try {
@@ -2976,7 +3146,20 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
           data = sanitizeDataSecure(data);
         }
 
-        const jsonStr = JSON.stringify(data);
+        let jsonStr;
+        try {
+          jsonStr = JSON.stringify(data);
+        } catch (stringifyErr) {
+          console.warn("[Storage] JSON.stringify circular fallback for key:", key, stringifyErr);
+          const seen = new WeakSet();
+          jsonStr = JSON.stringify(data, (k, val) => {
+            if (typeof val === 'object' && val !== null) {
+              if (seen.has(val)) return undefined;
+              seen.add(val);
+            }
+            return val;
+          });
+        }
         if (typeof _dataCache !== 'undefined' && _dataCache && typeof _cacheTimestamps !== 'undefined' && _cacheTimestamps) {
           _dataCache.set(key, data);
           _cacheTimestamps.set(key, Date.now());
@@ -3006,7 +3189,7 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
           _lastDataSnapshotHash = '';
         }
 
-        if (['ek_products', 'ek_settings', 'ek_orders', 'ek_users', 'ek_delivery_persons', 'ek_admin_accounts', 'ek_remembered_credentials', 'ek_categories'].includes(key)) {
+        if (['ek_products', 'ek_settings', 'ek_orders', 'ek_users', 'ek_delivery_persons', 'ek_admin_accounts', 'ek_remembered_credentials', 'ek_categories', 'ek_reviews'].includes(key)) {
           const timeStr = Date.now().toString();
           localStorage.setItem('ek_last_update', timeStr);
           if (typeof clientLastSyncTime !== 'undefined') {
@@ -3034,7 +3217,7 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
                   .then(() => debugLog(`[Tombstone Sync] Sync successful for ${key}`))
                   .catch(err => debugLog(`[Tombstone Sync] Sync fail for ${key}:`, err));
                 }
-              } else if (['ek_users', 'ek_orders', 'ek_products', 'ek_delivery_persons', 'ek_admin_accounts', 'ek_categories'].includes(key) && Array.isArray(data)) {
+              } else if (['ek_users', 'ek_orders', 'ek_products', 'ek_delivery_persons', 'ek_admin_accounts', 'ek_categories', 'ek_reviews'].includes(key) && Array.isArray(data)) {
                 // Restricted collections: only Admin is allowed to write ek_categories, ek_products, ek_admin_accounts
                 if (['ek_categories', 'ek_products', 'ek_admin_accounts'].includes(key) && !isAdmin) {
                   return;
@@ -3101,6 +3284,7 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
         console.error("Storage write error", e);
       }
     }
+    window.saveData = saveData;
 
     function removeData(key) {
       try {
@@ -3113,6 +3297,7 @@ function getImageUrlWithCacheBuster(url, updatedAt) {
         console.error("Storage remove error", e);
       }
     }
+    window.removeData = removeData;
 
     function syncAndroidStorageToLocalStorageWithRetry(attempt = 1) {
       if (typeof AndroidStorage !== 'undefined') {

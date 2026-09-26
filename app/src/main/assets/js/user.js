@@ -20,9 +20,12 @@
         saveData('ek_customer_session', currentSession);
 
         if (typeof db !== 'undefined' && db) {
-          db.collection('ek_users').doc(cloudUser.id).update({
-            activeSessionToken: uniqueSessionToken
-          }).catch(err => console.error("Error setting initial session token in Firestore:", err));
+          const authUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
+          if (authUser && !authUser.isAnonymous) {
+            db.collection('ek_users').doc(cloudUser.id).update({
+              activeSessionToken: uniqueSessionToken
+            }).catch(err => console.warn("Notice: Session token cloud update skipped:", err?.message || err));
+          }
         }
         return;
       }
@@ -40,10 +43,8 @@
         showScreen('screen-login');
 
         showCustomAlert(
-          lang === 'ta' ? "⚠️ மற்ற சாதனத்தில் லாகின்" : "⚠️ Logged in on another device",
-          lang === 'ta'
-            ? "உங்கள் கணக்கு மற்றொரு மொபைலில் உள்நுழையப்பட்டுள்ளது. எனவே இந்த மொபைலில் இருந்து தானாக லாக் அவுட் செய்யப்பட்டுள்ளது."
-            : "Your account was logged in on another device. You have been automatically logged out from this device."
+          "⚠️ Logged in on another device",
+          "Your account was logged in on another device. You have been automatically logged out from this device."
         );
       }
     }
@@ -84,7 +85,7 @@
         }
         user = {
           id: session.userId || 'cust_' + Math.floor(100000 + Math.random() * 900000),
-          name: session.name || "Customer / வாடிக்கையாளர்",
+          name: session.name || "Customer",
           phone: session.phone || "",
           email: "",
           loyaltyPoints: 10,
@@ -97,7 +98,12 @@
         users.push(user);
         saveData('ek_users', users);
         if (typeof db !== 'undefined' && db) {
-          db.collection('ek_users').doc(user.id).set(user).catch(err => console.error(err));
+          const authUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
+          if (authUser && !authUser.isAnonymous && (authUser.uid === user.id || authUser.phoneNumber)) {
+            db.collection('ek_users').doc(user.id).set(user, { merge: true }).catch(err => {
+              console.warn("[getActiveUser] Non-critical cloud sync skipped:", err?.message || err);
+            });
+          }
         }
       }
 
@@ -115,16 +121,19 @@
             }
 
             if (typeof db !== 'undefined' && db) {
-              db.collection('ek_users').doc(user.id).update({
-                fcmToken: currentFcmToken,
-                updatedAt: user.updatedAt
-              }).then(() => {
-                debugLog(`[FCM Sync] User's Firebase registration token registered in Cloud: ${currentFcmToken}`);
-              }).catch(err => {
-                db.collection('ek_users').doc(user.id).set(user, { merge: true })
-                  .then(() => debugLog("[FCM Sync] User token merged in Cloud collections successfully"))
-                  .catch(e => console.warn("[FCM Sync] Firestore merge failed:", e));
-              });
+              const authUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
+              if (authUser && !authUser.isAnonymous && (authUser.uid === user.id || authUser.phoneNumber)) {
+                db.collection('ek_users').doc(user.id).update({
+                  fcmToken: currentFcmToken,
+                  updatedAt: user.updatedAt
+                }).then(() => {
+                  debugLog(`[FCM Sync] User's Firebase registration token registered in Cloud: ${currentFcmToken}`);
+                }).catch(err => {
+                  db.collection('ek_users').doc(user.id).set(user, { merge: true })
+                    .then(() => debugLog("[FCM Sync] User token merged in Cloud collections successfully"))
+                    .catch(e => console.warn("[FCM Sync] Firestore merge failed:", e));
+                });
+              }
             }
           }
         }
@@ -333,7 +342,7 @@
         lines.push(streetLine);
       }
 
-      let areaLine = fields.area || 'Kavandampatti';
+      let areaLine = fields.area || '';
       if (areaLine) {
         areaLine = areaLine.replace(/,$/, '') + ',';
         lines.push(areaLine);
@@ -385,6 +394,14 @@
     }
 
     window.selectAddressInEditor = function(addrId) {
+      const session = typeof getActiveSession === 'function' ? getActiveSession() : null;
+      if (!session || !session.loggedIn) {
+        if (typeof showToast === 'function') {
+          showToast(typeof currentLang !== 'undefined' && currentLang === 'ta' ? "முகவரியை தேர்ந்தெடுக்க முதலில் உள்நுழையவும்!" : "Please login to select address!", "warning");
+        }
+        if (typeof showScreen === 'function') showScreen('screen-login');
+        return;
+      }
       if (!addrId) return;
       const user = getActiveUser();
       if (!user) return;
@@ -400,10 +417,23 @@
         openSimpleAddressEditor(addrId);
       }
 
-      showToast(currentLang === 'ta' ? "முகவரி மாற்றப்பட்டது! 🎯" : "Address switched! 🎯", "success");
+      showToast("Address switched! 🎯", "success");
     };
 
     function openSimpleAddressEditor(addressIdToEdit = null, mode = 'edit') {
+      const session = typeof getActiveSession === 'function' ? getActiveSession() : null;
+      if (!session || !session.loggedIn) {
+        if (typeof showToast === 'function') {
+          showToast(
+            typeof currentLang !== 'undefined' && currentLang === 'ta'
+              ? "முகவரியை சேர்க்க அல்லது திருத்த முதலில் உள்நுழையவும்!"
+              : "Please login to add or edit delivery address!",
+            "warning"
+          );
+        }
+        if (typeof showScreen === 'function') showScreen('screen-login');
+        return;
+      }
       const user = getActiveUser() || {};
       const saved = user.savedAddresses || [];
 
@@ -441,10 +471,10 @@
           <div style="display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px; width: 100%; box-sizing: border-box;">
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
               <span style="font-size: 11px; font-weight: 800; color: var(--accent-orange); text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif;">
-                ${currentLang === 'ta' ? 'சேமித்த முகவரிகள்' : 'Saved Addresses'} (${saved.length})
+                Saved Addresses (${saved.length})
               </span>
               <button type="button" onclick="openSimpleAddressEditor(null, 'new')" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 8px; color: #10b981; font-size: 11px; font-weight: 800; padding: 4px 10px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                <span>➕</span> <span>${currentLang === 'ta' ? 'புதிய முகவரி' : 'Add New'}</span>
+                <span>➕</span> <span>Add New</span>
               </button>
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px; max-height: 140px; overflow-y: auto; padding-right: 2px; width: 100%; box-sizing: border-box;">
@@ -485,7 +515,7 @@
       }
 
       const isEditingExisting = !!(window._activeEditingAddressId && mode !== 'new');
-      const modeHeader = isEditingExisting ? `✏️ ${currentLang === 'ta' ? 'முகவரியை மாற்றுதல்' : 'Editing'}: ${targetLabel}` : `➕ ${currentLang === 'ta' ? 'புதிய முகவரி சேர்த்தல்' : 'Add New Address'}`;
+      const modeHeader = isEditingExisting ? `✏️ Editing: ${targetLabel}` : `➕ Add New Address`;
 
       modal.innerHTML = `
         <div class="bottom-sheet" style="width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; border-radius: 24px; border: 1.5px solid rgba(255,255,255,0.08); background: #0c0d12; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.85); transform: translateY(100px); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; text-align: left;">
@@ -494,31 +524,31 @@
           <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 20px;">📍</span>
-              <h3 style="color: #ffffff; font-size: 14.5px; font-weight: 800; margin: 0; font-family: 'Poppins', 'Hind Madurai', sans-serif; letter-spacing: 0.3px;">
-                ${currentLang === 'ta' ? 'தொடர்பு & விநியோக முகவரி' : 'CONTACT & DELIVERY DETAILS'}
+              <h3 style="color: #ffffff; font-size: 14.5px; font-weight: 800; margin: 0; font-family: 'Poppins', sans-serif; letter-spacing: 0.3px;">
+                CONTACT & DELIVERY DETAILS
               </h3>
             </div>
             <button onclick="closeSimpleAddressEditor()" style="background: transparent; border: none; color: #9ca3af; font-size: 18px; cursor: pointer; padding: 4px;">✕</button>
           </div>
 
-          <!-- Customer Contact Details (clean, dedicated full-width rows) -->
+          <!-- Customer Contact Details -->
           <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; background: rgba(255,255,255,0.02); border: 1.2px solid rgba(255,255,255,0.08); border-radius: 16px; width: 100%; box-sizing: border-box;">
             <div style="font-size: 11px; font-weight: 800; color: var(--accent-orange); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-              <span>👤</span> <span>${currentLang === 'ta' ? 'வாடிக்கையாளர் தொடர்பு விவரங்கள்' : 'Customer Contact Details'}</span>
+              <span>👤</span> <span>Customer Contact Details</span>
             </div>
 
             <!-- Full Name (Full Width) -->
             <div style="display: flex; flex-direction: column; gap: 4px; width: 100%; box-sizing: border-box;">
               <label style="font-size: 11.5px; font-weight: 700; color: #9ca3af;">
-                ${currentLang === 'ta' ? 'பெயர் (Full Name) *' : 'Full Name *'}
+                Full Name *
               </label>
-              <input type="text" id="addr-field-name" value="${escapeHtml(user.name || '')}" placeholder="${currentLang === 'ta' ? 'உங்கள் பெயரை உள்ளிடவும்' : 'e.g. Rajenthiran'}" style="width: 100%; height: 44px; background: rgba(255,255,255,0.04); border: 1.2px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 0 14px; color: #ffffff; font-size: 13.5px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'" />
+              <input type="text" id="addr-field-name" value="${escapeHtml(user.name || '')}" placeholder="e.g. Rajenthiran" style="width: 100%; height: 44px; background: rgba(255,255,255,0.04); border: 1.2px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 0 14px; color: #ffffff; font-size: 13.5px; font-weight: 600; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'" />
             </div>
 
             <!-- Mobile Number (Full Width with +91) -->
             <div style="display: flex; flex-direction: column; gap: 4px; width: 100%; box-sizing: border-box;">
               <label style="font-size: 11.5px; font-weight: 700; color: #10b981;">
-                ${currentLang === 'ta' ? 'மொபைல் எண் (Mobile Number) *' : 'Mobile Number *'}
+                Mobile Number *
               </label>
               <div style="display: flex; align-items: center; width: 100%; height: 44px; background: rgba(255,255,255,0.04); border: 1.2px solid ${!user.phone || user.phone.length < 10 ? 'rgba(245,158,11,0.6)' : 'rgba(255,255,255,0.12)'}; border-radius: 12px; padding: 0 12px; box-sizing: border-box;">
                 <span style="font-size: 13px; font-weight: 700; color: #9ca3af; margin-right: 8px; user-select: none;">+91</span>
@@ -596,23 +626,23 @@
           <!-- GPS and Map Action Buttons -->
           <div style="display: flex; gap: 8px; width: 100%; box-sizing: border-box; margin-top: 4px;">
             <button type="button" class="btn" onclick="triggerEditorGPS()" style="flex: 1; min-width: 0; min-height: 42px; padding: 8px 10px; font-size: 11.5px; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3) !important; color: #10b981 !important; background: rgba(16, 185, 129, 0.08) !important; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; box-sizing: border-box; cursor: pointer; transition: all 0.2s;">
-              <span>🛰️</span> <span>${currentLang === 'ta' ? 'ஜிபிஎஸ் மூலம் எடு' : 'Auto GPS'}</span>
+              <span>🛰️</span> <span>Auto GPS</span>
             </button>
 
             <button type="button" class="btn" onclick="triggerEditorMap()" style="flex: 1; min-width: 0; min-height: 42px; padding: 8px 10px; font-size: 11.5px; font-weight: 700; border: 1px solid rgba(249, 115, 22, 0.3) !important; color: var(--accent-orange) !important; background: rgba(249, 115, 22, 0.08) !important; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; box-sizing: border-box; cursor: pointer; transition: all 0.2s;">
-              <span>🗺️</span> <span>${currentLang === 'ta' ? 'வரைபடம் / Map' : 'Pick Map'}</span>
+              <span>🗺️</span> <span>Pick Map</span>
             </button>
           </div>
 
           <!-- Action Save Buttons -->
           <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px; width: 100%; box-sizing: border-box;">
             <button type="button" class="btn" onclick="saveSimpleAddressFields(false)" style="width: 100%; min-height: 48px; height: auto; padding: 12px 18px; font-size: 14px; font-weight: 800; border: none !important; background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important; color: #ffffff !important; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 14px; box-sizing: border-box; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(16,185,129,0.3);">
-              <span>💾</span> <span>${currentLang === 'ta' ? 'முகவரியைச் சேமி / SAVE ADDRESS' : 'SAVE ADDRESS'}</span>
+              <span>💾</span> <span>SAVE ADDRESS</span>
             </button>
 
             ${isEditingExisting ? `
               <button type="button" class="btn" onclick="saveSimpleAddressFields(true)" style="width: 100%; min-height: 40px; padding: 8px 14px; font-size: 12px; font-weight: 700; border: 1.2px dashed rgba(249, 115, 22, 0.5) !important; color: var(--accent-orange) !important; background: rgba(249, 115, 22, 0.06) !important; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; box-sizing: border-box; cursor: pointer; transition: all 0.2s;">
-                <span>➕</span> <span>${currentLang === 'ta' ? 'புதிய முகவரியாகச் சேமி (+ Save as New)' : '+ Save as New Address'}</span>
+                <span>➕</span> <span>+ Save as New Address</span>
               </button>
             ` : ''}
           </div>
@@ -655,7 +685,7 @@
           if (!AndroidStorage.hasLocationPermission()) {
             debugLog("[Contextual GPS] No location permission. Requesting contextually...");
             AndroidStorage.requestLocationPermission();
-            showToast("இருப்பிட அனுமதி தேவை. அனுமதித்த பின் மீண்டும் முயற்சிக்கவும்! (Location permission requested. Please grant it and retry!)", "info");
+            showToast("Location permission requested. Please grant it and retry!", "info");
             return;
           }
         } catch (e) {
@@ -758,40 +788,29 @@
         }
       }
 
+      window._onMapAddressConfirmed = function(data) {
+        if (modal) {
+          modal.setAttribute('data-lat', data.lat);
+          modal.setAttribute('data-lng', data.lng);
+        }
+
+        const parsed = parseAddressStringToFields(data.address);
+        const streetInput = document.getElementById('addr-field-street');
+        const areaInput = document.getElementById('addr-field-area');
+        const landmarkInput = document.getElementById('addr-field-landmark');
+        const cityInput = document.getElementById('addr-field-city');
+        const pincodeInput = document.getElementById('addr-field-pincode');
+
+        if (parsed.pincode && pincodeInput) pincodeInput.value = parsed.pincode;
+        if (parsed.city && cityInput) cityInput.value = parsed.city;
+        if (parsed.area && areaInput) areaInput.value = parsed.area;
+        if (parsed.landmark && landmarkInput && !landmarkInput.value) landmarkInput.value = parsed.landmark;
+        if (parsed.street && streetInput && !streetInput.value) streetInput.value = parsed.street;
+
+        showToast("Location picked from map! Confirm fields.", "success");
+      };
+
       openMapAddressPicker('editor-map-dummy-target');
-
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          if (mutation.type === 'attributes' && (mutation.attributeName === 'data-lat' || mutation.attributeName === 'value')) {
-            const lat = dummy.getAttribute('data-lat');
-            const lng = dummy.getAttribute('data-lng');
-            const addrVal = dummy.value;
-
-            if (modal) {
-              modal.setAttribute('data-lat', lat);
-              modal.setAttribute('data-lng', lng);
-            }
-
-            const parsed = parseAddressStringToFields(addrVal);
-            const streetInput = document.getElementById('addr-field-street');
-            const areaInput = document.getElementById('addr-field-area');
-            const landmarkInput = document.getElementById('addr-field-landmark');
-            const cityInput = document.getElementById('addr-field-city');
-            const pincodeInput = document.getElementById('addr-field-pincode');
-
-            if (parsed.pincode && pincodeInput) pincodeInput.value = parsed.pincode;
-            if (parsed.city && cityInput) cityInput.value = parsed.city;
-            if (parsed.area && areaInput) areaInput.value = parsed.area;
-            if (parsed.landmark && landmarkInput && !landmarkInput.value) landmarkInput.value = parsed.landmark;
-            if (parsed.street && streetInput && !streetInput.value) streetInput.value = parsed.street;
-
-            showToast("Location picked from map! Confirm fields.", "success");
-            observer.disconnect();
-          }
-        });
-      });
-
-      observer.observe(dummy, { attributes: true });
     }
 
     function saveSimpleAddressFields(forceSaveAsNew = false) {
@@ -801,12 +820,12 @@
       const phone = phoneInput ? phoneInput.value.replace(/\D/g, '').slice(-10) : '';
 
       if (nameInput && !name) {
-        showToast(currentLang === 'ta' ? "தயவுசெய்து உங்கள் பெயரை உள்ளிடவும்!" : "Please enter your name!", "error");
+        showToast("Please enter your name!", "error");
         if (nameInput) nameInput.focus();
         return;
       }
       if (phoneInput && (!phone || phone.length !== 10)) {
-        showToast(currentLang === 'ta' ? "தயவுசெய்து 10 இலக்க மொபைல் எண்ணை உள்ளிடவும்!" : "Please enter a valid 10-digit mobile number!", "error");
+        showToast("Please enter a valid 10-digit mobile number!", "error");
         if (phoneInput) phoneInput.focus();
         return;
       }
@@ -820,24 +839,16 @@
       const labelInput = document.getElementById('addr-field-label');
       const label = labelInput ? labelInput.value.trim() : 'Home 🏠';
 
-      if (!houseNo) {
-        showToast(currentLang === 'ta' ? "வீட்டு எண் உள்ளிடவும்! (House No required)" : "House No is required!", "error");
-        return;
-      }
-      if (!street) {
-        showToast(currentLang === 'ta' ? "தெரு பெயர் உள்ளிடவும்! (Street name required)" : "Street name is required!", "error");
-        return;
-      }
-      if (!area) {
-        showToast(currentLang === 'ta' ? "பகுதி உள்ளிடவும்! (Area required)" : "Area is required!", "error");
+      if (!street && !area) {
+        showToast("Street or Area name is required!", "error");
         return;
       }
       if (!city) {
-        showToast(currentLang === 'ta' ? "ஊர் உள்ளிடவும்! (City required)" : "City is required!", "error");
+        showToast("City is required!", "error");
         return;
       }
       if (!pincode || pincode.length !== 6 || isNaN(pincode)) {
-        showToast(currentLang === 'ta' ? "சரியான 6 இலக்க பின்கோடு உள்ளிடவும்!" : "Please enter a valid 6-digit PIN Code!", "error");
+        showToast("Please enter a valid 6-digit PIN Code!", "error");
         return;
       }
 
@@ -934,7 +945,7 @@
       }
 
       closeSimpleAddressEditor();
-      showToast(currentLang === 'ta' ? "முகவரி விவரங்கள் வெற்றிகரமாக சேமிக்கப்பட்டன! ✅" : "Address details saved successfully! ✅", "success");
+      showToast("Address details saved successfully! ✅", "success");
 
       if (window._pendingOrderAfterContactSave) {
         window._pendingOrderAfterContactSave = false;
@@ -949,6 +960,26 @@
     function renderCartCustomerContactCard() {
       const container = document.getElementById('cart-customer-contact-card');
       if (!container) return;
+      const session = getActiveSession();
+      if (!session || !session.loggedIn) {
+        container.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; background: rgba(249, 115, 22, 0.08); border: 1.5px dashed rgba(249, 115, 22, 0.4); border-radius: 14px; padding: 12px 14px;">
+            <div style="min-width: 0;">
+              <div style="font-size: 13px; font-weight: 800; color: #ffffff;">
+                ${typeof currentLang !== 'undefined' && currentLang === 'ta' ? 'உள்நுழையவும் / புதிய கணக்கு' : 'Login / Create Account'}
+              </div>
+              <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">
+                ${typeof currentLang !== 'undefined' && currentLang === 'ta' ? 'ஆர்டர் செய்ய முதலில் லாகின் செய்யவும்' : 'Login required to place order'}
+              </div>
+            </div>
+            <button type="button" onclick="showScreen('screen-login')" class="btn btn-primary" style="padding: 7px 14px; font-size: 12px; font-weight: 800; border-radius: 10px; width: auto; margin: 0; white-space: nowrap;">
+              ${typeof currentLang !== 'undefined' && currentLang === 'ta' ? 'உள்நுழைக ➔' : 'Login ➔'}
+            </button>
+          </div>
+        `;
+        container.style.display = 'block';
+        return;
+      }
       const user = getActiveUser();
       if (!user) {
         container.innerHTML = '';
@@ -964,7 +995,7 @@
 
       const phoneBadge = hasPhone
         ? `<span style="color: #10b981; font-weight: 700; font-size: 12.5px; display: inline-flex; align-items: center; gap: 4px;">📞 +91 ${phone.slice(-10)}</span>`
-        : `<span style="color: #f59e0b; font-weight: 700; font-size: 11px; background: rgba(245, 158, 11, 0.12); padding: 3px 8px; border-radius: 8px; border: 1px dashed rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px;">⚠️ ${currentLang === 'ta' ? 'மொபைல் எண் சேர்க்கவும்' : 'Add Mobile Number'}</span>`;
+        : `<span style="color: #f59e0b; font-weight: 700; font-size: 11px; background: rgba(245, 158, 11, 0.12); padding: 3px 8px; border-radius: 8px; border: 1px dashed rgba(245, 158, 11, 0.4); display: inline-flex; align-items: center; gap: 4px;">⚠️ Add Mobile Number</span>`;
 
       container.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
@@ -973,7 +1004,7 @@
               ${photo ? `<img src="${photo}" style="width: 100%; height: 100%; object-fit: cover;" alt="User">` : '👤'}
             </div>
             <div style="min-width: 0;">
-              <div style="font-size: 13px; font-weight: 800; color: #ffffff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Poppins', 'Hind Madurai', sans-serif;">
+              <div style="font-size: 13px; font-weight: 800; color: #ffffff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Poppins', sans-serif;">
                 ${escapeHtml(name)}
               </div>
               <div style="margin-top: 2px;">
@@ -981,8 +1012,8 @@
               </div>
             </div>
           </div>
-          <button type="button" onclick="openSimpleAddressEditor()" style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.35); color: var(--accent-orange); border-radius: 10px; padding: 6px 12px; font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', 'Hind Madurai', sans-serif; transition: all 0.2s;" onmouseover="this.style.background='rgba(249,115,22,0.2)'" onmouseout="this.style.background='rgba(249,115,22,0.1)'">
-            <span>✏️</span> <span>${currentLang === 'ta' ? 'விவரங்களை திருத்து' : 'Edit Details'}</span>
+          <button type="button" onclick="openSimpleAddressEditor()" style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.35); color: var(--accent-orange); border-radius: 10px; padding: 6px 12px; font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; transition: all 0.2s;" onmouseover="this.style.background='rgba(249,115,22,0.2)'" onmouseout="this.style.background='rgba(249,115,22,0.1)'">
+            <span>✏️</span> <span>Edit Details</span>
           </button>
         </div>
       `;
@@ -992,16 +1023,40 @@
 
     function renderAllAddressCards() {
       renderCartCustomerContactCard();
+      const session = getActiveSession();
+      const cartContainer = document.getElementById('cart-address-card-container');
+      const profContainer = document.getElementById('profile-address-card-container');
+
+      if (!session || !session.loggedIn) {
+        if (cartContainer) {
+          cartContainer.innerHTML = `
+            <div style="background: rgba(255, 255, 255, 0.02); border: 1.5px dashed rgba(249, 115, 22, 0.35); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; box-sizing: border-box; width: 100%;">
+              <span style="font-size: 22px;">📍</span>
+              <div style="font-size: 12px; color: #e2e8f0; font-weight: 600;">
+                ${typeof currentLang !== 'undefined' && currentLang === 'ta' ? 'விநியோக முகவரியை சேர்க்க முதலில் உள்நுழைக' : 'Please login to set delivery address'}
+              </div>
+              <button type="button" onclick="showScreen('screen-login')" class="btn" style="background: var(--accent-orange); color: #000; border: none; font-size: 12px; font-weight: 800; padding: 10px 18px; border-radius: 12px; cursor: pointer; width: 100%; max-width: 260px; font-family: 'Poppins', sans-serif;">
+                ${typeof currentLang !== 'undefined' && currentLang === 'ta' ? 'உள்நுழைய செல்லவும் ➔' : 'Go to Login ➔'}
+              </button>
+            </div>
+          `;
+        }
+        if (profContainer) {
+          profContainer.innerHTML = '';
+        }
+        return;
+      }
+
       const user = getActiveUser() || {};
       const currentAddress = user.address || '';
 
       let cardHtml = '';
       if (!currentAddress || currentAddress === 'Salem, Tamil Nadu' || (currentAddress.includes("Selected Delivery Location") && currentAddress.split(',').length <= 2)) {
-        const noAddressText = currentLang === 'ta' ? "முகவரி இன்னும் சேர்க்கப்படவில்லை. + Add Address" : "No delivery address added yet. + Add Address";
+        const noAddressText = "No delivery address added yet. + Add Address";
         cardHtml = `
           <div style="background: rgba(255, 255, 255, 0.02); border: 1.5px dashed rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; box-sizing: border-box; width: 100%;">
             <span style="font-size: 24px;">📍</span>
-            <button type="button" onclick="openSimpleAddressEditor()" class="btn" style="background: var(--accent-orange); color: #000; border: none; font-size: 12px; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer; transition: transform 0.1s; width: 100%; max-width: 320px; font-family: 'Poppins', 'Hind Madurai', sans-serif; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(249,115,22,0.25);" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='none'">
+            <button type="button" onclick="openSimpleAddressEditor()" class="btn" style="background: var(--accent-orange); color: #000; border: none; font-size: 12px; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer; transition: transform 0.1s; width: 100%; max-width: 320px; font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(249,115,22,0.25);" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='none'">
               ${noAddressText}
             </button>
           </div>
@@ -1032,7 +1087,7 @@
         `;
       }
 
-      const profContainer = document.getElementById('profile-address-card-container');
+      // profContainer was retrieved at start of renderAllAddressCards
       if (profContainer) {
         if (!currentAddress || currentAddress === 'Salem, Tamil Nadu' || (currentAddress.includes("Selected Delivery Location") && currentAddress.split(',').length <= 2)) {
           profContainer.innerHTML = cardHtml;
@@ -1044,10 +1099,10 @@
               <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; text-align: left; width: 100%; box-sizing: border-box;">
                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                   <span style="font-size: 11px; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif;">
-                    ${currentLang === 'ta' ? 'சேமித்த முகவரிகள்' : 'Saved Addresses'} (${saved.length})
+                    Saved Addresses (${saved.length})
                   </span>
                   <button type="button" onclick="openSimpleAddressEditor(null, 'new')" style="background: transparent; border: none; color: var(--accent-orange); font-size: 11.5px; font-weight: 800; cursor: pointer; padding: 2px 4px; display: flex; align-items: center; gap: 4px;">
-                    <span>➕</span> <span>${currentLang === 'ta' ? 'புதிய முகவரி' : 'Add New'}</span>
+                    <span>➕</span> <span>Add New</span>
                   </button>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
@@ -1057,7 +1112,7 @@
               const borderStyle = isSelected ? 'border: 1.5px solid var(--accent-orange); background: rgba(249, 115, 22, 0.06);' : 'border: 1.2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02);';
               const indicatorHtml = isSelected
                 ? '<span style="font-size: 11px; color: var(--accent-orange); font-weight: 800;">✓ Active</span>'
-                : `<button type="button" onclick="selectAddressInEditor('${item.id}')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #ffffff; font-size: 10.5px; font-weight: 700; padding: 4px 10px; cursor: pointer;">${currentLang === 'ta' ? 'பயன்படுத்து' : 'Use'}</button>`;
+                : `<button type="button" onclick="selectAddressInEditor('${item.id}')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #ffffff; font-size: 10.5px; font-weight: 700; padding: 4px 10px; cursor: pointer;">Use</button>`;
               const postalFields = parseAddressStringToFields(item.address);
               let postalStr = `${postalFields.houseNo ? postalFields.houseNo + ', ' : ''}${postalFields.street}, ${postalFields.area}, ${postalFields.city} – ${postalFields.pincode}`;
 
@@ -1088,10 +1143,10 @@
               ${cardHtml}
               <div style="display: flex; gap: 8px; width: 100%; box-sizing: border-box;">
                 <button type="button" onclick="openSimpleAddressEditor()" style="flex: 1; min-height: 38px; padding: 8px 12px; border-radius: 12px; background: rgba(249, 115, 22, 0.08); border: 1.2px solid rgba(249, 115, 22, 0.4); color: var(--accent-orange); font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Poppins', sans-serif;">
-                  <span>✏️</span> <span>${currentLang === 'ta' ? 'முகவரியை மாற்று' : 'Edit Address'}</span>
+                  <span>✏️</span> <span>Edit Address</span>
                 </button>
                 <button type="button" onclick="openSimpleAddressEditor(null, 'new')" style="flex: 1; min-height: 38px; padding: 8px 12px; border-radius: 12px; background: rgba(16, 185, 129, 0.08); border: 1.2px solid rgba(16, 185, 129, 0.4); color: #10b981; font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Poppins', sans-serif;">
-                  <span>➕</span> <span>${currentLang === 'ta' ? 'புதிய முகவரி சேர்' : 'Add New'}</span>
+                  <span>➕</span> <span>Add New</span>
                 </button>
               </div>
               ${savedListHtml}
@@ -1100,7 +1155,7 @@
         }
       }
 
-      const cartContainer = document.getElementById('cart-address-card-container');
+      // cartContainer was retrieved at start of renderAllAddressCards
       if (cartContainer) {
         if (!currentAddress || (currentAddress.includes("Selected Delivery Location") && currentAddress.split(',').length <= 2)) {
           cartContainer.innerHTML = cardHtml;
@@ -1110,10 +1165,10 @@
           const actionRowHtml = `
             <div style="display: flex; gap: 8px; width: 100%; box-sizing: border-box; margin-top: 4px;">
               <button type="button" onclick="openSimpleAddressEditor()" style="flex: 1; min-height: 38px; padding: 8px 12px; border-radius: 14px; background: rgba(249, 115, 22, 0.08); border: 1.2px solid rgba(249, 115, 22, 0.4); color: var(--accent-orange); font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Poppins', sans-serif;">
-                <span>✏️</span> <span>${currentLang === 'ta' ? 'முகவரியை மாற்று' : 'Edit Address'}</span>
+                <span>✏️</span> <span>Edit Address</span>
               </button>
               <button type="button" onclick="openSimpleAddressEditor(null, 'new')" style="flex: 1; min-height: 38px; padding: 8px 12px; border-radius: 14px; background: rgba(16, 185, 129, 0.08); border: 1.2px solid rgba(16, 185, 129, 0.4); color: #10b981; font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Poppins', sans-serif;">
-                <span>➕</span> <span>${currentLang === 'ta' ? 'புதிய முகவரி' : 'Add New'}</span>
+                <span>➕</span> <span>Add New</span>
               </button>
             </div>
           `;
@@ -1123,7 +1178,7 @@
             savedSelectorHtml = `
               <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; text-align: left; width: 100%;">
                 <span style="font-size: 10.5px; font-weight: 800; color: #71717a; text-transform: uppercase; letter-spacing: 0.8px; font-family: 'Poppins', sans-serif; padding-left: 2px;">
-                  ${currentLang === 'ta' ? 'சேமித்த முகவரிகள் (விரைவுத் தேர்வு):' : 'Saved Addresses (Quick Switch):'}
+                  Saved Addresses (Quick Switch):
                 </span>
                 <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; width: 100%; box-sizing: border-box; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none;">
             `;
@@ -1168,7 +1223,7 @@
 
       window.isProgrammaticAddressSync = true;
       try {
-        const targetIds = ['reg-address', 'cart-delivery-address', 'prof-address-edit', 'new-address-text'];
+        const targetIds = ['cart-delivery-address', 'prof-address-edit', 'new-address-text'];
         targetIds.forEach(id => {
           const el = document.getElementById(id);
           if (el) {
@@ -1249,7 +1304,7 @@
 
       const user = getActiveUser();
       if (!user) {
-        listDiv.innerHTML = `<p style="font-size:11.5px; color:#9ca3af; margin:0;">உள்நுழைக முகவரிகளை மேனேஜ் செய்ய / Please log in to manage saved addresses.</p>`;
+        listDiv.innerHTML = `<p style="font-size:11.5px; color:#9ca3af; margin:0;">Please log in to manage saved addresses.</p>`;
         return;
       }
 
@@ -1257,7 +1312,7 @@
       if (saved.length === 0) {
         listDiv.innerHTML = `
           <div style="text-align:center; padding:12px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.12); border-radius:12px;">
-            <p style="font-size:11px; color:#6b7280; margin:0;">இன்னும் முகவரிகள் சேமிக்கப்படவில்லை / No saved addresses yet.</p>
+            <p style="font-size:11px; color:#6b7280; margin:0;">No saved addresses yet.</p>
           </div>
         `;
         return;
@@ -1268,7 +1323,7 @@
         const isPrimary = (user.address === item.address);
         const borderStyle = isPrimary ? 'border:1.5px solid #10b981; background:rgba(16,185,129,0.12);' : 'border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.02);';
         const badgeStyle = isPrimary ? 'background:#10b981; color:#ffffff; cursor:default; border:none;' : 'background:rgba(255,255,255,0.08); color:#ffffff; border:1.2px solid rgba(255,255,255,0.12); cursor:pointer;';
-        const badgeText = isPrimary ? (currentLang === 'ta' ? 'முதன்மை 🏠' : 'PRIMARY 🏠') : (currentLang === 'ta' ? 'பயன்படுத்து ➔' : 'Use ➔');
+        const badgeText = isPrimary ? 'PRIMARY 🏠' : 'Use ➔';
 
         html += `
           <div class="saved-address-item" style="padding:12px; border-radius:12px; display:flex; flex-direction:column; gap:8px; transition:all 0.2s; box-sizing:border-box; width:100%; ${borderStyle}">
@@ -1307,7 +1362,7 @@
       if (!found) return;
 
       syncPrimaryUserAddress(found.address, found.latitude, found.longitude);
-      showToast(currentLang === 'ta' ? "முதன்மை முகவரி மாற்றப்பட்டது! 🏠" : "Primary address updated successfully! 🏠", "success");
+      showToast("Primary address updated successfully! 🏠", "success");
 
       renderSavedAddressesList();
       populateCartSavedAddresses();
@@ -1327,7 +1382,7 @@
       const label = labelSelect.value;
       const address = textInput.value.trim();
       if (!address) {
-        showToast(currentLang === 'ta' ? "முகவரி காலியாக இருக்கக்கூடாது!" : "Please enter or select an address first!", "error");
+        showToast("Please enter or select an address first!", "error");
         return;
       }
 
@@ -1341,7 +1396,7 @@
 
       const saved = user.savedAddresses || [];
       if (saved.length >= 10) {
-        showToast(currentLang === 'ta' ? "அதிகபட்சமாக 10 முகவரிகளை மட்டுமே சேமிக்க முடியும்!" : "You can save up to 10 addresses only!", "warning");
+        showToast("You can save up to 10 addresses only!", "warning");
         return;
       }
 
@@ -1382,7 +1437,7 @@
       textInput.removeAttribute('data-lat');
       textInput.removeAttribute('data-lng');
 
-      showToast(currentLang === 'ta' ? "முகவரி வெற்றிகரமாக சேமிக்கப்பட்டது! 🎉" : "Address saved to list successfully! 🎉", "success");
+      showToast("Address saved to list successfully! 🎉", "success");
 
       renderSavedAddressesList();
       populateCartSavedAddresses();
@@ -1415,7 +1470,7 @@
         }
       }
 
-      showToast(currentLang === 'ta' ? "முகவரி நீக்கப்பட்டது." : "Saved address removed.", "success");
+      showToast("Saved address removed.", "success");
       renderAllAddressCards();
       renderSavedAddressesList();
       populateCartSavedAddresses();
@@ -1441,7 +1496,7 @@
 
       groupEl.style.setProperty('display', 'block', 'important');
 
-      let optionsHtml = `<option value="">-- தேர்ந்தெடுக்கவும் / Choose Saved Address --</option>`;
+      let optionsHtml = `<option value="">-- Choose Saved Address --</option>`;
       saved.forEach(item => {
         const isSelected = (user.address === item.address) ? 'selected' : '';
         const cleanLabel = item.label.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '').replace(/^[^a-zA-Z0-9\s]+/g, '').trim();
@@ -1462,7 +1517,7 @@
 
       syncPrimaryUserAddress(found.address, found.latitude, found.longitude);
       renderAllAddressCards();
-      showToast(currentLang === 'ta' ? "விநியோக முகவரி புதுப்பிக்கப்பட்டது! 🎯" : "Delivery address updated successfully! 🎯", "success");
+      showToast("Delivery address updated successfully! 🎯", "success");
     }
 
     async function registerRealFcmToken() {
@@ -1670,7 +1725,7 @@
         loader.innerHTML = `
           <span class="spinner" style="display:inline-block; width:32px; height:32px; border:3px solid var(--accent-orange); border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px;"></span>
           <p style="font-size:13px; font-weight:700; font-family:'Poppins', sans-serif;">
-            ${currentLang === 'ta' ? 'வெளியேறுகிறது... / Logging out...' : 'Logging out...'}
+            Logging out...
           </p>
         `;
         document.body.appendChild(loader);
@@ -1784,11 +1839,10 @@
         if (btn) btn.disabled = false;
       };
 
-      const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
-      const title = isTa ? "வெளியேறு / Logout" : "Admin Logout";
-      const msg = isTa ? "நிர்வாகி பேனலில் இருந்து வெளியேற விரும்புகிறீர்களா?" : "Are you sure you want to logout from admin panel?";
-      const okText = isTa ? "வெளியேறு" : "Logout";
-      const cancelText = isTa ? "ரத்து" : "Cancel";
+      const title = "Admin Logout";
+      const msg = "Are you sure you want to logout from admin panel?";
+      const okText = "Logout";
+      const cancelText = "Cancel";
 
       let handled = false;
 
@@ -1857,7 +1911,7 @@
             try { enterAdminLogin(); } catch (e) {}
           }
 
-          showToast(isTa ? "அட்மின் கணக்கிலிருந்து வெளியேறப்பட்டது 🚪" : "Admin logged out successfully 🚪", "info");
+          showToast("Admin logged out successfully 🚪", "info");
 
           if (typeof showScreen === 'function') {
             showScreen('screen-login');
@@ -1949,13 +2003,10 @@
         if (btn) btn.disabled = false;
       };
 
-      const title = (typeof currentLang !== 'undefined' && currentLang === 'ta') ? "வெளியேறு" : "Logout";
-      const msg = (typeof currentLang !== 'undefined' && currentLang === 'ta')
-        ? "நீங்கள் வெளியேற விரும்புகிறீர்களா?"
-        : "Are you sure you want to logout?";
-
-      const okText = (typeof currentLang !== 'undefined' && currentLang === 'ta') ? "வெளியேறு" : "Logout";
-      const cancelText = (typeof currentLang !== 'undefined' && currentLang === 'ta') ? "ரத்துசெய்" : "Cancel";
+      const title = "Logout";
+      const msg = "Are you sure you want to logout?";
+      const okText = "Logout";
+      const cancelText = "Cancel";
 
       let handled = false;
       const runLogout = () => {
@@ -2044,8 +2095,7 @@
         const passInput = document.getElementById('login-password');
         if (passInput) passInput.value = '';
 
-        const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
-        showToast(isTa ? "வெற்றிகரமாக வெளியேறப்பட்டது 🚪" : "Logged out successfully 🚪", "info");
+        showToast("Logged out successfully 🚪", "info");
 
         if (typeof enterCustomerLogin === 'function') enterCustomerLogin();
         showScreen('screen-login');
@@ -2061,17 +2111,15 @@
     function handleDeleteAccountClick() {
       const session = getData('ek_customer_session');
       if (!session) {
-        showToast(currentLang === 'ta' ? "இந்த செயல் வாடிக்கையாளர்களுக்கு மட்டுமே கிடைக்கும்." : "This action is only available to registered customers.", "error");
+        showToast("This action is only available to registered customers.", "error");
         return;
       }
 
-      const title = currentLang === 'ta' ? "கணக்கை நீக்கவா?" : "Delete account?";
-      const msg = currentLang === 'ta'
-        ? "உங்கள் வாடிக்கையாளர் கணக்கு, சேமிக்கப்பட்ட முகவரிகள் மற்றும் ஆர்டர் தகவல்கள் அனைத்தும் நிரந்தரமாக நீக்கப்படும். இந்தச் செயல்முறையை மாற்ற முடியாது."
-        : "Are you sure you want to permanently delete your account? All your personal profile, addresses, and statistics will be wiped out.";
+      const title = "Delete account?";
+      const msg = "Are you sure you want to permanently delete your account? All your personal profile, addresses, and statistics will be wiped out.";
 
-      const okText = currentLang === 'ta' ? "நீக்கு" : "Delete";
-      const cancelText = currentLang === 'ta' ? "ரத்துசெய்" : "Cancel";
+      const okText = "Delete";
+      const cancelText = "Cancel";
 
       showCustomConfirm(title, msg, () => {
         executeAccountDeletion();
@@ -2091,24 +2139,22 @@
         modal.innerHTML = `
           <div class="bottom-sheet" style="width: 100%; max-width:340px; border-radius:24px; border:1.5px solid #2d2d2d; background:#121212; padding:24px; box-shadow:0 12px 35px rgba(0,0,0,0.85); transform:scale(0.85); transition:all 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28); margin:auto; display:flex; flex-direction:column;">
             <div style="font-size:36px; margin-bottom:14px; text-align:center;">🔑</div>
-            <h3 style="color:#ffffff; font-size:16px; margin-bottom:8px; font-weight:800; text-align:center; font-family:'Poppins', 'Hind Madurai', sans-serif;">
-              \${currentLang === 'ta' ? "உறுதிப்படுத்த கடவுச்சொல்" : "Confirm Password"}
+            <h3 style="color:#ffffff; font-size:16px; margin-bottom:8px; font-weight:800; text-align:center; font-family:'Poppins', sans-serif;">
+              Confirm Password
             </h3>
-            <p style="color:var(--text-secondary); font-size:12px; margin-bottom:16px; line-height:1.5; text-align:center; font-family:'Poppins', 'Hind Madurai', sans-serif;">
-              \${currentLang === 'ta'
-                ? "கணக்கை நீக்க உங்கள் கடவுச்சொல்லை உள்ளிட்டு உறுதிப்படுத்தவும்."
-                : "Please enter your password to confirm and delete your account."}
+            <p style="color:var(--text-secondary); font-size:12px; margin-bottom:16px; line-height:1.5; text-align:center; font-family:'Poppins', sans-serif;">
+              Please enter your password to confirm and delete your account.
             </p>
             <div style="position: relative; width: 100%; margin-bottom: 20px;">
-              <input type="password" id="reauth-password-input" placeholder="\${currentLang === 'ta' ? "கடவுச்சொல்" : "Password"}" style="width:100%; background:#1c1c1e; border:1px solid #2c2c2e; border-radius:12px; padding:12px 40px 12px 12px; color:#fff; font-size:14px; box-sizing:border-box; outline:none; text-align:center;" />
+              <input type="password" id="reauth-password-input" placeholder="Password" style="width:100%; background:#1c1c1e; border:1px solid #2c2c2e; border-radius:12px; padding:12px 40px 12px 12px; color:#fff; font-size:14px; box-sizing:border-box; outline:none; text-align:center;" />
               <span style="position: absolute; right: 14px; top: 12px; font-size: 16px; cursor: pointer; color: var(--text-muted);" onclick="togglePasswordVisibility('reauth-password-input', this)">👁️</span>
             </div>
             <div style="display:flex; gap:12px; justify-content:center; width:100%;">
               <button class="btn btn-secondary" style="flex:1; padding:10px 14px; font-size:12px; font-weight:bold; border-radius:14px; min-height:42px; height:auto; background:#1c1c1e; color:#aeaea2; border:1px solid #2c2c2e;" id="reauth-cancel-btn">
-                \${currentLang === 'ta' ? "ரத்துசெய்" : "CANCEL"}
+                CANCEL
               </button>
               <button class="btn" style="flex:1; padding:10px 14px; font-size:12px; font-weight:800; border-radius:14px; min-height:42px; height:auto; background:#ef4444; color:#ffffff; border:1.5px solid #ef4444;" id="reauth-confirm-btn">
-                \${currentLang === 'ta' ? "உறுதிசெய்" : "CONFIRM"}
+                CONFIRM
               </button>
             </div>
           </div>
@@ -2137,7 +2183,7 @@
       confirmBtn.onclick = function() {
         const password = pwdInput.value.trim();
         if (!password) {
-          showToast(currentLang === 'ta' ? "தயவுசெய்து கடவுச்சொல்லை உள்ளிடவும்." : "Please enter your password.", "warning");
+          showToast("Please enter your password.", "warning");
           return;
         }
         closeModal();
@@ -2156,22 +2202,22 @@
     async function executeAccountDeletion(password = null) {
       const user = getActiveUser();
       if (!user) {
-        showToast(currentLang === 'ta' ? "வாடிக்கையாளர் கணக்கு எதுவும் கண்டறியப்படவில்லை." : "No customer account found.", "error");
+        showToast("No customer account found.", "error");
         return;
       }
 
       if (typeof firebase === 'undefined' || !firebase.auth) {
-        showToast(currentLang === 'ta' ? "இணைய இணைப்பு அல்லது சேவையில் சிக்கல் உள்ளது." : "Firebase authentication is not available.", "error");
+        showToast("Firebase authentication is not available.", "error");
         return;
       }
 
       const authUser = firebase.auth().currentUser;
       if (!authUser) {
-        showToast(currentLang === 'ta' ? "அக்கவுண்ட் அணுகல் தற்காலிகமாக செயலிழந்தது. மீண்டும் உள்நுழையவும்." : "Authentication session expired. Please log in again.", "error");
+        showToast("Authentication session expired. Please log in again.", "error");
         return;
       }
 
-      showToast(currentLang === 'ta' ? "கணக்கு நீக்கப்பட்டு வருகிறது..." : "Processing account deletion...", "info");
+      showToast("Processing account deletion...", "info");
 
       try {
         if (password) {
@@ -2185,10 +2231,10 @@
           try {
             await db.collection('ek_users').doc(user.id).set({
               id: user.id,
-              name: "Deleted User / நீக்கப்பட்ட நபர்",
+              name: "Deleted User",
               phone: "0000000000",
               email: "deleted@app.com",
-              address: "Anonymized / அநாமதேயப்படுத்தப்பட்டது",
+              address: "Anonymized",
               landmark: "Anonymized",
               pincode: "",
               loyaltyPoints: 0,
@@ -2216,9 +2262,7 @@
         saveData('ek_users', localUsers);
 
         showToast(
-          currentLang === 'ta'
-            ? "உங்கள் கணக்கு வெற்றிகரமாக நீக்கப்பட்டது."
-            : "Your account has been deleted successfully.",
+          "Your account has been deleted successfully.",
           "success"
         );
 
@@ -2235,9 +2279,7 @@
             },
             () => {
               showToast(
-                currentLang === 'ta'
-                  ? "கணக்கு நீக்கம் ரத்து செய்யப்பட்டது."
-                  : "Account deletion cancelled.",
+                "Account deletion cancelled.",
                 "info"
               );
             }
@@ -2245,11 +2287,11 @@
         } else {
           let friendlyError = err.message || err.toString();
           if (err.code === 'auth/wrong-password') {
-            friendlyError = currentLang === 'ta' ? "தவறான கடவுச்சொல். தயவுசெய்து மீண்டும் முயற்சிக்கவும்." : "Incorrect password. Please try again.";
+            friendlyError = "Incorrect password. Please try again.";
           } else if (err.code === 'auth/network-request-failed') {
-            friendlyError = currentLang === 'ta' ? "இணைய இணைப்பு தோல்வியடைந்தது." : "Network connection failed. Please check your internet.";
+            friendlyError = "Network connection failed. Please check your internet.";
           } else if (err.code === 'auth/user-mismatch') {
-            friendlyError = currentLang === 'ta' ? "பயனர் பொருந்தவில்லை." : "User credentials mismatch.";
+            friendlyError = "User credentials mismatch.";
           }
           showToast(friendlyError, "error");
         }
@@ -2322,8 +2364,7 @@
         const passInput = document.getElementById('login-password');
         if (passInput) passInput.value = '';
 
-        const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
-        showToast(isTa ? "டெலிவரி கணக்கிலிருந்து வெளியேறப்பட்டது 🚪" : "Delivery Partner logged out successfully 🚪", "info");
+        showToast("Delivery Partner logged out successfully 🚪", "info");
 
         if (typeof enterDeliveryLogin === 'function') {
           enterDeliveryLogin();
@@ -2352,13 +2393,10 @@
         if (btn) btn.disabled = false;
       };
 
-      const title = currentLang === 'ta' ? "வெளியேறு" : "Logout";
-      const msg = currentLang === 'ta'
-        ? "டெலிவரி கணக்கிலிருந்து வெளியேற விரும்புகிறீர்களா?"
-        : "Log out from Delivery Partner account?";
-
-      const okText = currentLang === 'ta' ? "வெளியேறு" : "Logout";
-      const cancelText = currentLang === 'ta' ? "ரத்துசெய்" : "Cancel";
+      const title = "Logout";
+      const msg = "Log out from Delivery Partner account?";
+      const okText = "Logout";
+      const cancelText = "Cancel";
 
       let handled = false;
 
@@ -2409,7 +2447,7 @@
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 20px;">🔐</span>
               <div>
-                <h4 style="color: #ffffff; font-size: 13px; font-weight: 800; margin: 0; text-transform: uppercase;">CHANGE PASSWORD / கடவுச்சொல் மாற்று</h4>
+                <h4 style="color: #ffffff; font-size: 13px; font-weight: 800; margin: 0; text-transform: uppercase;">CHANGE PASSWORD</h4>
                 <p style="font-size: 10px; color: var(--text-muted); margin: 0;">Set a secure credentials code</p>
               </div>
             </div>
@@ -2417,7 +2455,7 @@
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
-            <label style="color: var(--text-secondary); font-size: 11.5px; font-weight: 700;">NEW SECURE PASSWORD / புதிய கடவுச்சொல்:</label>
+            <label style="color: var(--text-secondary); font-size: 11.5px; font-weight: 700;">NEW SECURE PASSWORD:</label>
             <div style="position: relative;">
               <input type="password" id="rider-new-pass" class="form-control" placeholder="••••••" style="height: 42px; background: #141416; border: 1.5px solid #2d2d2d; border-radius: 12px; padding: 0 40px 0 12px; color: #fff; font-size: 14px; font-family: monospace; box-sizing: border-box; width: 100%;" minlength="4" />
               <span style="position: absolute; right: 14px; top: 11px; font-size: 16px; cursor: pointer; color: var(--text-muted);" onclick="togglePasswordVisibility('rider-new-pass', this)">👁️</span>
@@ -2425,7 +2463,7 @@
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
-            <label style="color: var(--text-secondary); font-size: 11.5px; font-weight: 700;">CONFIRM PASSWORD / கடவுச்சொல்லை உறுதிசெய்:</label>
+            <label style="color: var(--text-secondary); font-size: 11.5px; font-weight: 700;">CONFIRM PASSWORD:</label>
             <div style="position: relative;">
               <input type="password" id="rider-new-pass-confirm" class="form-control" placeholder="••••••" style="height: 42px; background: #141416; border: 1.5px solid #2d2d2d; border-radius: 12px; padding: 0 40px 0 12px; color: #fff; font-size: 14px; font-family: monospace; box-sizing: border-box; width: 100%;" />
               <span style="position: absolute; right: 14px; top: 11px; font-size: 16px; cursor: pointer; color: var(--text-muted);" onclick="togglePasswordVisibility('rider-new-pass-confirm', this)">👁️</span>
@@ -2434,7 +2472,7 @@
 
           <div style="display: flex; gap: 8px; margin-top: 8px;">
             <button onclick="closeRiderPasswordChangeModal()" class="btn btn-secondary" style="flex: 1; min-height: 42px; height: auto; padding: 10px 14px; margin:0;">CANCEL</button>
-            <button onclick="submitRiderPasswordChange()" class="btn" style="flex: 1.5; min-height: 42px; height: auto; padding: 10px 14px; margin:0; background: var(--accent-orange); color: #000; font-weight: 800; border: none; border-radius: 10px;">SAVE / சேமி 💾</button>
+            <button onclick="submitRiderPasswordChange()" class="btn" style="flex: 1.5; min-height: 42px; height: auto; padding: 10px 14px; margin:0; background: var(--accent-orange); color: #000; font-weight: 800; border: none; border-radius: 10px;">SAVE 💾</button>
           </div>
 
         </div>
@@ -2469,15 +2507,15 @@
       const p2 = document.getElementById('rider-new-pass-confirm').value.trim();
 
       if (!p1) {
-        showToast("Password cannot be blank / கடவுச்சொல் காலியாக இருக்கக்கூடாது.", "error");
+        showToast("Password cannot be blank.", "error");
         return;
       }
       if (p1.length < 4) {
-        showToast("Password must be at least 4 chars long / குறைந்தது 4 எழுத்துக்கள் இருக்க வேண்டும்.", "error");
+        showToast("Password must be at least 4 chars long.", "error");
         return;
       }
       if (p1 !== p2) {
-        showToast("Passwords do not match / கடவுச்சொற்கள் பொருந்தவில்லை.", "error");
+        showToast("Passwords do not match.", "error");
         return;
       }
 
@@ -2600,19 +2638,18 @@
     }
 
     function getCategoryName(cat) {
-      const isTa = currentLang === 'ta';
       const catList = getCategoriesList();
       const matched = catList.find(c => c.id === cat);
       if (matched) {
-        return isTa ? (matched.nameTa || matched.ta) : (matched.nameEn || matched.en);
+        return matched.nameEn || matched.en || matched.id;
       }
       const map = {
-        meat: isTa ? 'கறிவகை' : 'Meat',
-        fish: isTa ? 'மீன்வகை' : 'Fish',
-        veg: isTa ? 'காய்கறி' : 'Veg',
-        fruits: isTa ? 'பழங்கள்' : 'Fruits',
-        dairy: isTa ? 'பால் & முட்டை' : 'Dairy & Eggs',
-        groceries: isTa ? 'மளிகை' : 'Groceries'
+        meat: 'Meat',
+        fish: 'Fish',
+        veg: 'Veg',
+        fruits: 'Fruits',
+        dairy: 'Dairy & Eggs',
+        groceries: 'Groceries'
       };
       return map[cat] || cat;
     }
@@ -2624,9 +2661,8 @@
 
       const optionsHtml = catList.map(c => {
         const nameEn = c.nameEn || c.en || c.id || 'Category';
-        const nameTa = c.nameTa || c.ta || nameEn;
         const icon = c.icon || '📦';
-        return `<option value="${c.id}">${nameEn} (${icon} ${nameTa})</option>`;
+        return `<option value="${c.id}">${icon} ${nameEn}</option>`;
       }).join('');
 
       if (selectAdd) {
@@ -2661,20 +2697,18 @@
       if (index === -1) {
         favorites.push(pidStr);
         isNowFav = true;
-        showToast(isTa ? "❤️ விருப்பப்பட்டியலில் சேர்க்கப்பட்டது!" : "❤️ Added to Favourites!", "success");
+        showToast("❤️ Added to Favourites!", "success");
       } else {
         favorites.splice(index, 1);
         isNowFav = false;
-        showToast(isTa ? "🤍 விருப்பப்பட்டியலில் இருந்து நீக்கப்பட்டது!" : "🤍 Removed from Favourites!", "info");
+        showToast("🤍 Removed from Favourites!", "info");
       }
       saveData('ek_customer_favorites', favorites);
 
       const heartBtns = document.querySelectorAll(`.fav-heart-btn[data-id="${pidStr}"]`);
       heartBtns.forEach(heartBtn => {
         heartBtn.innerHTML = isNowFav ? '❤️' : '🤍';
-        heartBtn.setAttribute('title', isNowFav 
-          ? (isTa ? 'விருப்பப்பட்டியலில் இருந்து நீக்கு' : 'Remove from favorites')
-          : (isTa ? 'விருப்பப்பட்டியலில் சேர்' : 'Add to favorites'));
+        heartBtn.setAttribute('title', isNowFav ? 'Remove from favorites' : 'Add to favorites');
       });
 
       _lastCategoryPillsHash = '';
@@ -2778,11 +2812,11 @@
         const favCount = visibleProducts.filter(p => p && isProductFavorite(p.id)).length;
 
         const CATEGORIES = [
-          { id: 'all', name: isTa ? 'அனைத்தும்' : 'All Items', icon: '🍽️' }
+          { id: 'all', name: 'All Items', icon: '🍽️' }
         ];
 
         if (favCount > 0) {
-          CATEGORIES.push({ id: 'favorites', name: isTa ? 'என் விருப்பங்கள்' : 'Favourites', icon: '❤️' });
+          CATEGORIES.push({ id: 'favorites', name: 'Favourites', icon: '❤️' });
         }
 
         let catsToRender = visibleCategories;
@@ -2812,11 +2846,10 @@
           const cid = String(c.id || '');
           if (!cid) return;
           const nameEn = String(c.nameEn || c.en || cid || 'Category');
-          const nameTa = String(c.nameTa || c.ta || nameEn);
           const icon = String(c.icon || '📦');
           CATEGORIES.push({
             id: cid,
-            name: isTa ? nameTa : nameEn,
+            name: nameEn,
             icon: icon
           });
         });
@@ -2881,5 +2914,18 @@
         `;
       } catch (err) {
         console.error("renderCategoryPills exception caught safely:", err);
+      }
+    }
+
+    // Explicit Window Bindings for Robust Global UI Button Invocations
+    if (typeof window !== 'undefined') {
+      window.handleLogout = handleLogout;
+      window.handleDeliveryLogout = handleDeliveryLogout;
+      window.handleDeleteAccountClick = handleDeleteAccountClick;
+      window.openSimpleAddressEditor = openSimpleAddressEditor;
+      window.scrollToEditProfile = scrollToEditProfile;
+      window.renderCategoryPills = renderCategoryPills;
+      if (typeof filterHomeProducts === 'function') {
+        window.filterHomeProducts = filterHomeProducts;
       }
     }

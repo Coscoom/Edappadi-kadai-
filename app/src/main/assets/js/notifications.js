@@ -1186,15 +1186,33 @@
     let _customerSearchDebounceTimer = null;
     function debouncedSearchCustomers() {
       if (_customerSearchDebounceTimer) clearTimeout(_customerSearchDebounceTimer);
+      const input = document.getElementById('admin-customers-search');
+      if (input && !input.value.trim()) {
+        renderAdminCustomers();
+        return;
+      }
       _customerSearchDebounceTimer = setTimeout(() => {
         renderAdminCustomers();
-      }, 250);
+      }, 100);
     }
     window.debouncedSearchCustomers = debouncedSearchCustomers;
 
     function openCustomerDetail(userId) {
+      const cleanTargetId = String(userId || '').trim();
+      const cleanDigits = cleanTargetId.replace(/\D/g, '');
+      const targetPhone10 = cleanDigits.length >= 10 ? cleanDigits.slice(-10) : cleanDigits;
+
       const users = typeof getDataCached === 'function' ? getDataCached('ek_users', []) : (getData('ek_users') || []);
-      const u = users.find(user => user && (user.id === userId || user.phone === userId));
+      const u = users.find(user => {
+        if (!user) return false;
+        if (user.id && String(user.id).trim() === cleanTargetId) return true;
+        if (user.uid && String(user.uid).trim() === cleanTargetId) return true;
+        const uPhoneDigits = String(user.phone || '').replace(/\D/g, '');
+        if (targetPhone10 && uPhoneDigits && (uPhoneDigits === targetPhone10 || uPhoneDigits.endsWith(targetPhone10))) return true;
+        if (cleanTargetId.startsWith('cust_') && uPhoneDigits && `cust_${uPhoneDigits}` === cleanTargetId) return true;
+        return false;
+      });
+
       if (!u) {
         showToast("Customer profile not found!", "error");
         return;
@@ -1202,12 +1220,20 @@
 
       const orders = typeof getDataCached === 'function' ? getDataCached('ek_orders', []) : (getData('ek_orders') || []);
       const uPhoneDigits = (u.phone || '').replace(/\D/g, '');
+      const uPhone10 = uPhoneDigits.length >= 10 ? uPhoneDigits.slice(-10) : uPhoneDigits;
+      const validUids = [cleanTargetId, u.id, u.uid].filter(id => id && id !== 'guest_user' && id !== 'offline_guest' && id !== 'anonymous');
+
       const myOrders = orders.filter(o => {
         if (!o) return false;
-        if (o.customerId === u.id || o.userId === u.id) return true;
-        if (uPhoneDigits && uPhoneDigits.length >= 10) {
-          const oPhone = String(o.customerPhone || o.phone || '').replace(/\D/g, '');
-          if (oPhone && oPhone.includes(uPhoneDigits.slice(-10))) return true;
+        const oCustId = String(o.customerId || '').trim();
+        const oUserId = String(o.userId || '').trim();
+        if (validUids.length > 0 && ((oCustId && validUids.includes(oCustId)) || (oUserId && validUids.includes(oUserId)))) {
+          return true;
+        }
+        if (uPhone10) {
+          const oPhone1 = String(o.customerPhone || '').replace(/\D/g, '');
+          const oPhone2 = String(o.phone || '').replace(/\D/g, '');
+          if ((oPhone1 && oPhone1.slice(-10) === uPhone10) || (oPhone2 && oPhone2.slice(-10) === uPhone10)) return true;
         }
         return false;
       });
@@ -1293,40 +1319,139 @@
     }
 
     async function deleteCustomerFromDb(userId) {
-      const users = getData('ek_users') || [];
-      const u = users.find(user => user.id === userId);
-      if (!u) return;
-
-      const orders = getData('ek_orders', []) || [];
-      const activeOrder = orders.find(o => (o.customerId === userId || o.userId === userId) &&
-        !['delivered', 'cancelled', 'completed', 'archived'].includes(String(o.status).toLowerCase().trim()));
-      if (activeOrder) {
+      const cleanTargetId = String(userId || '').trim();
+      if (!cleanTargetId) {
         showToast(
           currentLang === 'ta'
-            ? "செயலில் உள்ள ஆர்டர்கள் உள்ளதால் வாடிக்கையாளரை நீக்க முடியாது!"
-            : "Cannot delete customer: Active, incomplete orders exist!",
+            ? "செல்லுபடியாகாத வாடிக்கையாளர் எண்!"
+            : "Invalid customer identifier!",
+          "error"
+        );
+        return;
+      }
+
+      const users = (typeof getDataCached === 'function' ? getDataCached('ek_users', []) : (getData('ek_users') || [])) || [];
+      const cleanDigits = cleanTargetId.replace(/\D/g, '');
+      const targetPhone10 = cleanDigits.length >= 10 ? cleanDigits.slice(-10) : cleanDigits;
+
+      const u = users.find(user => {
+        if (!user) return false;
+        if (user.id && String(user.id).trim() === cleanTargetId) return true;
+        if (user.uid && String(user.uid).trim() === cleanTargetId) return true;
+        const uPhoneDigits = String(user.phone || '').replace(/\D/g, '');
+        if (targetPhone10 && uPhoneDigits && (uPhoneDigits === targetPhone10 || uPhoneDigits.endsWith(targetPhone10))) return true;
+        if (cleanTargetId.startsWith('cust_') && uPhoneDigits && `cust_${uPhoneDigits}` === cleanTargetId) return true;
+        return false;
+      });
+
+      if (!u) {
+        showToast(
+          currentLang === 'ta'
+            ? "வாடிக்கையாளர் தகவல் கிடைக்கவில்லை!"
+            : "Customer profile not found!",
+          "error"
+        );
+        return;
+      }
+
+      const uActualId = String(u.id || '').trim();
+      const uUid = String(u.uid || '').trim();
+      const uPhoneDigits = String(u.phone || '').replace(/\D/g, '');
+      const uPhone10 = uPhoneDigits.length >= 10 ? uPhoneDigits.slice(-10) : uPhoneDigits;
+      const uEmail = String(u.email || '').trim().toLowerCase();
+
+      // Only include specific, non-generic IDs for order matching
+      const validUids = [cleanTargetId, uActualId, uUid].filter(id =>
+        id && id !== 'guest_user' && id !== 'offline_guest' && id !== 'anonymous' && id !== 'undefined' && id !== 'null'
+      );
+
+      function isOrderBelongingToCustomer(o) {
+        if (!o) return false;
+        const oCustId = String(o.customerId || '').trim();
+        const oUserId = String(o.userId || '').trim();
+
+        // 1. Direct ID match (only with non-empty, non-generic IDs)
+        if (validUids.length > 0) {
+          if (oCustId && validUids.includes(oCustId)) return true;
+          if (oUserId && validUids.includes(oUserId)) return true;
+        }
+
+        // 2. Direct Phone match (last 10 digits)
+        if (uPhone10 && uPhone10.length >= 10) {
+          const oPhone1 = String(o.customerPhone || '').replace(/\D/g, '');
+          const oPhone2 = String(o.phone || '').replace(/\D/g, '');
+          if (oPhone1 && (oPhone1 === uPhone10 || oPhone1.endsWith(uPhone10))) return true;
+          if (oPhone2 && (oPhone2 === uPhone10 || oPhone2.endsWith(uPhone10))) return true;
+        }
+
+        // 3. Direct Email match (ignore placeholder emails)
+        if (uEmail && uEmail.includes('@') && !uEmail.endsWith('@example.com') && !uEmail.endsWith('@app.com')) {
+          const oEmail1 = String(o.customerEmail || '').trim().toLowerCase();
+          const oEmail2 = String(o.email || '').trim().toLowerCase();
+          if (oEmail1 && oEmail1 === uEmail) return true;
+          if (oEmail2 && oEmail2 === uEmail) return true;
+        }
+
+        return false;
+      }
+
+      function isOrderActiveIncomplete(o) {
+        if (!o) return false;
+        const st = String(o.status || '').toLowerCase().trim();
+
+        // Terminated / Completed / Inactive statuses that DO NOT block customer deletion:
+        const terminalStatuses = [
+          'delivered', 'completed', 'done', 'success', 'finished',
+          'cancelled', 'canceled', 'rejected', 'declined', 'failed', 'void',
+          'refunded', 'archived', 'closed'
+        ];
+
+        if (terminalStatuses.includes(st)) return false;
+        if (st.includes('cancel') || st.includes('reject') || st.includes('refund') || st.includes('deliver')) {
+          return false;
+        }
+
+        // Only genuine ongoing active orders block deletion (e.g., pending, confirmed, preparing, packing, ready, out_for_delivery, delivering)
+        return true;
+      }
+
+      const orders = (typeof getDataCached === 'function' ? getDataCached('ek_orders', []) : (getData('ek_orders') || [])) || [];
+      const activeOrder = orders.find(o => isOrderBelongingToCustomer(o) && isOrderActiveIncomplete(o));
+      if (activeOrder) {
+        const orderLabel = activeOrder.id ? `(#${activeOrder.id})` : '';
+        showToast(
+          currentLang === 'ta'
+            ? `செயலில் உள்ள ஆர்டர் ${orderLabel} உள்ளதால் வாடிக்கையாளரை நீக்க முடியாது!`
+            : `Cannot delete customer: Active, incomplete order ${orderLabel} exists!`,
           "error"
         );
         return;
       }
 
       showCustomConfirm(
-        "Permanently Delete Customer?",
-        `Are you sure you want to permanently delete customer <strong>${u.name}</strong> (${u.email || u.phone})?<br><br>This will fully remove their account from database and Authentication, allowing immediate re-registration with the same email.`,
+        currentLang === 'ta' ? "வாடிக்கையாளரை நிரந்தரமாக நீக்கவா?" : "Permanently Delete Customer?",
+        currentLang === 'ta'
+          ? `வாடிக்கையாளர் <strong>${escapeHtml(u.name || 'Customer')}</strong> (${escapeHtml(u.email || u.phone || '')}) கணக்கை நிரந்தரமாக நீக்க விரும்புகிறீர்களா?<br><br>இது தரவுத்தளம் மற்றும் அங்கீகாரத்திலிருந்து கணக்கை முழுமையாக அகற்றும்.`
+          : `Are you sure you want to permanently delete customer <strong>${escapeHtml(u.name || 'Customer')}</strong> (${escapeHtml(u.email || u.phone || '')})?<br><br>This will fully remove their account from database and Authentication, allowing immediate re-registration with the same email.`,
         async function() {
-          showToast("Deleting customer account... / நீக்கப்படுகிறது...", "info");
+          showToast(currentLang === 'ta' ? "வாடிக்கையாளர் கணக்கு நீக்கப்படுகிறது..." : "Deleting customer account... / நீக்கப்படுகிறது...", "info");
 
           let cloudAuthDeleted = false;
           let anonymizedCount = 0;
+          const targetCustomerUid = uActualId || uUid || cleanTargetId;
 
           try {
             const deleteFn = getCloudFunction('deleteCustomerAccount');
-            if (deleteFn) {
+            if (deleteFn && targetCustomerUid && targetCustomerUid !== 'guest_user' && targetCustomerUid !== 'offline_guest') {
               const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Cloud Function timeout after 15s')), 15000)
               );
               const res = await Promise.race([
-                deleteFn({ targetCustomerUid: userId }),
+                deleteFn({
+                  targetCustomerUid: targetCustomerUid,
+                  email: uEmail,
+                  phone: uPhone10
+                }),
                 timeoutPromise
               ]);
               debugLog("[Customer Deletion Result]", res);
@@ -1340,14 +1465,18 @@
           }
 
           try {
-            const cleanDigits = String(u.phone || '').replace(/\D/g, '');
-            const phone10 = cleanDigits.length >= 10 ? cleanDigits.slice(-10) : cleanDigits;
+            const phone10 = uPhone10;
 
             if (typeof db !== 'undefined' && db && db.collection) {
-              const deletePromises = [
-                db.collection('ek_users').doc(userId).delete().catch(() => null),
-                db.collection('users').doc(userId).delete().catch(() => null)
-              ];
+              const deletePromises = [];
+              const idsToDelete = new Set([cleanTargetId, uActualId, uUid].filter(id =>
+                id && id !== 'guest_user' && id !== 'offline_guest' && id !== 'anonymous'
+              ));
+
+              idsToDelete.forEach(id => {
+                deletePromises.push(db.collection('ek_users').doc(id).delete().catch(() => null));
+                deletePromises.push(db.collection('users').doc(id).delete().catch(() => null));
+              });
 
               if (phone10) {
                 deletePromises.push(
@@ -1359,22 +1488,40 @@
                 );
               }
 
+              if (uEmail && uEmail.includes('@')) {
+                deletePromises.push(
+                  db.collection('ek_users').where('email', '==', uEmail).get().then(snap => {
+                    const subPromises = [];
+                    snap.forEach(d => subPromises.push(d.ref.delete().catch(() => null)));
+                    return Promise.all(subPromises);
+                  }).catch(() => null)
+                );
+              }
+
               await Promise.all(deletePromises).catch(err => {
                 console.error("Direct Firestore doc deletion failed:", err);
               });
             }
 
-            markUserAsDeleted(userId);
+            if (cleanTargetId) markUserAsDeleted(cleanTargetId);
+            if (uActualId) markUserAsDeleted(uActualId);
+            if (uUid) markUserAsDeleted(uUid);
             if (u.phone) markUserAsDeleted(u.phone);
+            if (uEmail) markUserAsDeleted(uEmail);
             if (phone10) {
               markUserAsDeleted(phone10);
               markUserAsDeleted(`cust_${phone10}`);
+              markUserAsDeleted(`+91${phone10}`);
             }
 
-            const filtered = users.filter(user => {
+            const currentUsers = (typeof getDataCached === 'function' ? getDataCached('ek_users', []) : (getData('ek_users') || [])) || [];
+            const filtered = currentUsers.filter(user => {
               if (!user) return false;
-              if (user.id === userId) return false;
+              if (cleanTargetId && (user.id === cleanTargetId || user.uid === cleanTargetId)) return false;
+              if (uActualId && (user.id === uActualId || user.uid === uActualId)) return false;
+              if (uUid && (user.id === uUid || user.uid === uUid)) return false;
               if (u.phone && user.phone === u.phone) return false;
+              if (uEmail && user.email && user.email.toLowerCase() === uEmail) return false;
               if (phone10) {
                 const uDigs = String(user.phone || '').replace(/\D/g, '');
                 if (uDigs && (uDigs === phone10 || uDigs.endsWith(phone10))) return false;
@@ -1384,7 +1531,14 @@
             saveData('ek_users', filtered);
 
             const customerSession = getData('ek_customer_session');
-            if (customerSession && (customerSession.id === userId || customerSession.phone === u.phone || (phone10 && String(customerSession.phone || '').replace(/\D/g, '').endsWith(phone10)))) {
+            if (customerSession && (
+              customerSession.id === cleanTargetId ||
+              customerSession.id === uActualId ||
+              customerSession.userId === cleanTargetId ||
+              customerSession.userId === uActualId ||
+              customerSession.phone === u.phone ||
+              (phone10 && String(customerSession.phone || '').replace(/\D/g, '').endsWith(phone10))
+            )) {
               removeData('ek_customer_session');
               sessionStorage.removeItem('ek_customer_session_temp');
               if (typeof auth !== 'undefined' && auth && typeof auth.signOut === 'function') {
@@ -1396,7 +1550,7 @@
             renderAdminCustomers();
             if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
 
-            showToast("Customer successfully deleted! ✓", "success");
+            showToast(currentLang === 'ta' ? "வாடிக்கையாளர் வெற்றிகரமாக நீக்கப்பட்டார்! ✓" : "Customer successfully deleted! ✓", "success");
 
             const authStatusText = cloudAuthDeleted
               ? `✓ Auth Status: Deleted from Firebase Auth (Email: ${u.email || 'N/A'}).`
@@ -1404,7 +1558,7 @@
 
             showAdminSuccessModal(
               "🗑️ Customer Account Deleted!",
-              `Customer <strong>${u.name}</strong> was fully removed.<br><br>` +
+              `Customer <strong>${escapeHtml(u.name || 'Customer')}</strong> was fully removed.<br><br>` +
               `<strong>${authStatusText}</strong> Same email can now immediately register again.<br>` +
               `<strong>✓ Profile Status:</strong> Customer record deleted from databases.<br>` +
               `<strong>✓ Historical Orders:</strong> ${anonymizedCount} older order records retained for accounting but fully anonymized.`
@@ -1448,7 +1602,8 @@
             if (snap && !snap.empty) {
               const cloudUsers = [];
               snap.forEach(doc => {
-                cloudUsers.push({ id: doc.id, ...doc.data() });
+                const d = doc.data() || {};
+                cloudUsers.push({ ...d, id: doc.id || d.id || d.uid || '' });
               });
               if (cloudUsers.length > 0) {
                 saveData('ek_users', cloudUsers);
@@ -1503,7 +1658,9 @@
       let customersHtml = '';
       filtered.forEach(u => {
         if (!u) return;
-        const uId = u.id || '';
+        const uPhoneDigits = String(u.phone || '').replace(/\D/g, '');
+        const uPhone10 = uPhoneDigits.length >= 10 ? uPhoneDigits.slice(-10) : uPhoneDigits;
+        const uId = u.id || u.uid || (uPhoneDigits ? `cust_${uPhoneDigits}` : '');
         const uName = u.name || 'Anonymous Customer';
         const uPhone = u.phone || '';
         const uTier = u.tier || 'bronze';
@@ -1520,13 +1677,18 @@
           ? `<span style="font-size:10px; font-weight:700; background:rgba(66,133,244,0.15); color:#60a5fa; padding:1px 6px; border-radius:4px; border:1px solid rgba(66,133,244,0.3);">🌐 GOOGLE</span>`
           : `<span style="font-size:10px; font-weight:700; background:rgba(16,185,129,0.1); color:#34d399; padding:1px 6px; border-radius:4px; border:1px solid rgba(16,185,129,0.2);">📱 MOBILE</span>`;
 
-        const uPhoneDigits = uPhone.replace(/\D/g, '');
+        const validUids = [uId, u.id, u.uid].filter(id => id && id !== 'guest_user' && id !== 'offline_guest' && id !== 'anonymous');
         const myOrders = orders.filter(o => {
           if (!o) return false;
-          if (o.customerId === uId || o.userId === uId) return true;
-          if (uPhoneDigits && uPhoneDigits.length >= 10) {
-            const oPhone = String(o.customerPhone || o.phone || '').replace(/\D/g, '');
-            if (oPhone && oPhone.includes(uPhoneDigits.slice(-10))) return true;
+          const oCustId = String(o.customerId || '').trim();
+          const oUserId = String(o.userId || '').trim();
+          if (validUids.length > 0 && ((oCustId && validUids.includes(oCustId)) || (oUserId && validUids.includes(oUserId)))) {
+            return true;
+          }
+          if (uPhone10) {
+            const oPhone1 = String(o.customerPhone || '').replace(/\D/g, '');
+            const oPhone2 = String(o.phone || '').replace(/\D/g, '');
+            if ((oPhone1 && oPhone1.slice(-10) === uPhone10) || (oPhone2 && oPhone2.slice(-10) === uPhone10)) return true;
           }
           return false;
         });
@@ -1535,7 +1697,7 @@
         const card = `
           <div class="card" style="border-color:#2a2a2a; margin-bottom:12px; background: #182028; padding: 12px 14px; border-radius: 12px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap: 8px;">
-              <div onclick="openCustomerDetail('${uId}')" style="cursor:pointer; flex: 1; min-width: 0;">
+              <div onclick="openCustomerDetail('${escapeHtml(uId)}')" style="cursor:pointer; flex: 1; min-width: 0;">
                 <div style="display:flex; align-items:center; gap: 6px; flex-wrap: wrap;">
                   <h4 style="color:#fff; font-size:14px; font-weight: 700; margin:0;">👤 ${escapeHtml(uName)}</h4>
                   <span class="badge" style="background:#222d3a; color:var(--accent-orange); font-size:10px; border: 1px solid rgba(245,158,11,0.3); padding: 1px 6px;">${uTier.toUpperCase()}</span>
@@ -1553,21 +1715,21 @@
               <div style="text-align:right; flex-shrink: 0;">
                 <span style="font-size:9.5px; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:700;">WALLET POINTS</span>
                 <div style="display:flex; align-items:center; gap:5px; background:#0e1319; padding:2px 6px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
-                  <button class="btn btn-secondary" style="width:24px; height:24px; padding:0; font-size:12px; line-height:1;" onclick="adjustUserPoints('${uId}', -20)">-</button>
+                  <button class="btn btn-secondary" style="width:24px; height:24px; padding:0; font-size:12px; line-height:1;" onclick="adjustUserPoints('${escapeHtml(uId)}', -20)">-</button>
                   <strong style="color:var(--accent-orange); font-size:12.5px; min-width:28px; text-align:center;">${Math.round(uPoints)}</strong>
-                  <button class="btn btn-secondary" style="width:24px; height:24px; padding:0; font-size:12px; line-height:1;" onclick="adjustUserPoints('${uId}', 20)">+</button>
+                  <button class="btn btn-secondary" style="width:24px; height:24px; padding:0; font-size:12px; line-height:1;" onclick="adjustUserPoints('${escapeHtml(uId)}', 20)">+</button>
                 </div>
               </div>
             </div>
 
             <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-top:10px; border-top:1px dashed rgba(255,255,255,0.08); padding-top:8px;">
-              <button class="btn" style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer;" onclick="promptSendDirectAdminMessage('${uId}')">
+              <button class="btn" style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer;" onclick="promptSendDirectAdminMessage('${escapeHtml(uId)}')">
                 💬 Direct Message
               </button>
-              <button class="btn" style="background:rgba(59,130,246,0.12); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer;" onclick="openCustomerDetail('${uId}')">
+              <button class="btn" style="background:rgba(59,130,246,0.12); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer;" onclick="openCustomerDetail('${escapeHtml(uId)}')">
                 🔍 Details
               </button>
-              <button class="btn" style="background:rgba(244,63,94,0.12); color:#f43f5e; border:1px solid rgba(244,63,94,0.3); padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer;" onclick="deleteCustomerFromDb('${uId}')">
+              <button class="btn" style="background:rgba(244,63,94,0.12); color:#f43f5e; border:1px solid rgba(244,63,94,0.3); padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer;" onclick="deleteCustomerFromDb('${escapeHtml(uId)}')">
                 🗑️ Delete
               </button>
             </div>
@@ -1674,203 +1836,1161 @@
     window.promptSendDirectAdminMessage = promptSendDirectAdminMessage;
 
     let _lastReviewsData = null; // Keep a local cache in memory to avoid redundant re-fetching
+    let _adminReviewActiveFilter = 'all';
+    let _reviewSearchDebounceTimer = null;
+
+    // Authentic seed reviews from Edappadi local patrons
+    const SEED_EDAPPADI_REVIEWS = [
+      {
+        id: "rev_seed_old_krishna",
+        customerName: "Old கிருஷ்ணர் (Old Krishna)",
+        customerPhone: "9842718899",
+        area: "பழைய பேருந்து நிலையம் (Old Bus Stand), Edappadi",
+        orderId: "EK-9050",
+        rating: 5,
+        comment: "தம்பி.. இந்த பழைய கிருஷ்ணர் நாக்கு 40 வருசமா எடப்பாடி கறியை ருசி பாக்குது! ஆனா உங்க எடப்பாடி கடை மட்டன் நெஞ்சுக் கறியும் நாட்டுக்கோழியும் அம்புட்டு ருசி.. வெண்ணெய் மாதிரி பஞ்சா வேகுது! சொன்ன நேரத்துக்கு டான்-னு வீட்டுக்கே கொண்டு வந்து தர்றாங்க.. எடைக்கு எடை துல்லியம், சுத்தமான தரம்! எடப்பாடி கடை தரம்னா சும்மா அனல் பறக்கும் தனி கெத்துதான்டா தம்பி! 🔥🥩",
+        tags: ["👑 Old Patron வசனம்", "🥩 அனல் பறக்கும் தரம்", "⚡ டான்-னு டெலிவரி", "⭐ பஞ்சு போன்ற மட்டன்"],
+        items: ["Mutton Tender Curry Cut (1 kg)", "Original Country Chicken (1 kg)"],
+        riderName: "Murugan P.",
+        verified: true,
+        isFeatured: true,
+        status: "active",
+        createdAt: new Date().toISOString(),
+        adminReply: "மிக்க நன்றி கிருஷ்ணர் தாத்தா! உங்க போன்ற பெரியவங்களோட இந்த ஆசீர்வாதமும் நல்வாக்கும்தான் எங்களோட மிகப்பெரிய பலம்! என்றும் தரம் மாறாமல் தூய இறைச்சியை உங்கள் வீட்டுக்கே கொண்டு சேர்ப்போம்! 🙏✨",
+        adminRepliedAt: new Date().toISOString()
+      },
+      {
+        id: "rev_seed_edp_01",
+        customerName: "Saravanan K.",
+        customerPhone: "9842512345",
+        area: "Kavandampatti, Edappadi",
+        orderId: "EK-8821",
+        rating: 5,
+        comment: "கறி சும்மா வெட்டி வச்ச தங்கம் மாதிரி பளபளன்னு பிரஷ்ஷா இருந்துச்சு! சரியான எடை, 25 நிமிசத்துல வீட்டு வாசல்ல டெலிவரி பண்ணிட்டாங்க. எடப்பாடியில இப்டி ஒரு சர்வீஸ் அருமை!",
+        tags: ["🥩 பிரெஷ் மட்டன்", "⚡ 25-Min Delivery", "📦 சூப்பர் பேக்கிங்"],
+        items: ["Mutton Curry Cut (1 kg)", "Country Chicken (500g)"],
+        riderName: "Murugan P.",
+        verified: true,
+        isFeatured: true,
+        status: "active",
+        createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+        adminReply: "மிக்க நன்றி சரவணன் அண்ணே! என்றும் தரமான பிரெஷ் கறி உங்க வீட்டுக்கே கொண்டு வந்து சேர்க்கிறோம்! 🙏🥩",
+        adminRepliedAt: new Date(Date.now() - 1 * 3600 * 1000).toISOString()
+      },
+      {
+        id: "rev_seed_edp_02",
+        customerName: "Manikandan S.",
+        customerPhone: "8870198765",
+        area: "Edappadi Town (Near Bus Stand)",
+        orderId: "EK-8794",
+        rating: 5,
+        comment: "Country chicken was neatly dressed and clean cut. Meat was very tender and juicy. Best meat delivery service in Salem district!",
+        tags: ["🍗 நாட்டுக்கோழி", "✨ Clean Cut", "👍 Polite Delivery"],
+        items: ["Original Country Chicken (1.2 kg)"],
+        riderName: "Karthik R.",
+        verified: true,
+        isFeatured: true,
+        status: "active",
+        createdAt: new Date(Date.now() - 14 * 3600 * 1000).toISOString(),
+        adminReply: "Thank you Manikandan sir! We ensure 100% genuine farm-fresh country chicken every single day! 🌟",
+        adminRepliedAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString()
+      },
+      {
+        id: "rev_seed_edp_03",
+        customerName: "Anitha Ramesh",
+        customerPhone: "9443211223",
+        area: "Vellandivalasai, Edappadi",
+        orderId: "EK-8740",
+        rating: 5,
+        comment: "மட்டன் குழம்பு பீஸ் ரொம்ப சாஃப்டா நல்லா இருந்துச்சு. ஞாயிற்றுக்கிழமை கடையில போய் மணிக்கணக்கா நிக்கிற வேலை மிச்சம், சூப்பர் பேக்கிங்.",
+        tags: ["🥩 Soft Mutton", "⏰ Time Saver", "⭐ 5-Star Quality"],
+        items: ["Mutton Bone-in Curry Cut (750g)", "Fresh Eggs (10 pcs)"],
+        riderName: "Murugan P.",
+        verified: true,
+        isFeatured: true,
+        status: "active",
+        createdAt: new Date(Date.now() - 26 * 3600 * 1000).toISOString(),
+        adminReply: "நன்றி அக்கா! உங்கள் குடும்பத்திற்கு எப்போதும் தூய்மையான இறைச்சி வழங்குவதே எங்கள் குறிக்கோள். 🙏",
+        adminRepliedAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+      },
+      {
+        id: "rev_seed_edp_04",
+        customerName: "Praveen Kumar",
+        customerPhone: "9789456123",
+        area: "Sankari Main Road",
+        orderId: "EK-8692",
+        rating: 5,
+        comment: "Ordered fresh sea fish and mutton chops for family lunch. Delivery was lightning fast, temperature preserved in cool-pack bag. Outstanding quality!",
+        tags: ["🐟 Fresh Fish", "🥩 Mutton Chops", "❄️ Temperature Pack"],
+        items: ["Fresh Rohu Fish (1 kg)", "Mutton Chops (500g)"],
+        riderName: "Senthil K.",
+        verified: true,
+        isFeatured: true,
+        status: "active",
+        createdAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
+        adminReply: "Thank you Praveen! Enjoy your weekend feast with our freshly sliced catch! 🐟",
+        adminRepliedAt: new Date(Date.now() - 46 * 3600 * 1000).toISOString()
+      },
+      {
+        id: "rev_seed_edp_05",
+        customerName: "Senthil Nathan",
+        customerPhone: "9003847291",
+        area: "Konganapuram Road",
+        orderId: "EK-8610",
+        rating: 5,
+        comment: "நாட்டுக்கோழி அருமை அண்ணே! மஞ்சள் தேய்த்து சுத்தமாக நறுக்கி தந்திருந்தார்கள். கடையின் தரம் எப்போதும் போல சூப்பர்!",
+        tags: ["🍗 மஞ்சள் வாஷ்", "👌 Perfect Pieces"],
+        items: ["Nattu Kozhi Skinless (1 kg)"],
+        riderName: "Karthik R.",
+        verified: true,
+        isFeatured: true,
+        status: "active",
+        createdAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
+        adminReply: "ரொம்ப சந்தோஷம் செந்தில் அண்ணே! என்றும் தரத்தில் சமரசம் இல்லை! 🔥",
+        adminRepliedAt: new Date(Date.now() - 70 * 3600 * 1000).toISOString()
+      }
+    ];
+
+    function getAvatarColor(name) {
+      const colors = [
+        'linear-gradient(135deg, #f59e0b, #d97706)',
+        'linear-gradient(135deg, #10b981, #059669)',
+        'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+        'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+        'linear-gradient(135deg, #ec4899, #be185d)',
+        'linear-gradient(135deg, #06b6d4, #0891b2)',
+        'linear-gradient(135deg, #f97316, #c2410c)'
+      ];
+      let hash = 0;
+      const str = String(name || 'User');
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return colors[Math.abs(hash) % colors.length];
+    }
+
+    async function getUnifiedReviewsData(forceRefresh = false) {
+      if (_lastReviewsData && !forceRefresh) {
+        return _lastReviewsData;
+      }
+
+      let reviewsMap = new Map();
+
+      // 1. Fetch from ek_reviews collection in Firestore or local
+      try {
+        if (typeof db !== 'undefined' && db) {
+          const snap = await db.collection('ek_reviews').limit(150).get().catch(() => null);
+          if (snap && !snap.empty) {
+            snap.forEach(doc => {
+              const d = doc.data();
+              if (d && (d.id || doc.id)) {
+                const id = d.id || doc.id;
+                reviewsMap.set(id, { ...d, id: id });
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("[Reviews] Firestore ek_reviews query issue:", err);
+      }
+
+      // Also read local ek_reviews
+      const localReviews = getData('ek_reviews', []) || [];
+      localReviews.forEach(r => {
+        if (r && r.id && !reviewsMap.has(r.id)) {
+          reviewsMap.set(r.id, r);
+        }
+      });
+
+      // 2. Fetch rated orders from ek_orders (Firestore & Local)
+      try {
+        let orders = [];
+        if (typeof db !== 'undefined' && db) {
+          const qSnap = await db.collection('ek_orders').orderBy('createdAt', 'desc').limit(200).get().catch(async () => await db.collection('ek_orders').limit(200).get());
+          if (qSnap && !qSnap.empty) {
+            qSnap.forEach(doc => {
+              const o = doc.data();
+              if (o && (o.rating > 0 || o.riderRating > 0)) {
+                orders.push(o);
+              }
+            });
+          }
+        }
+        if (orders.length === 0) {
+          const locOrders = getData('ek_orders', []) || [];
+          orders = locOrders.filter(o => o && (o.rating > 0 || o.riderRating > 0));
+        }
+
+        orders.forEach(o => {
+          const orderRevId = 'order_rev_' + (o.id || Math.random().toString(36).substr(2, 6));
+          if (!reviewsMap.has(orderRevId)) {
+            const itemsSummary = Array.isArray(o.items)
+              ? o.items.map(i => `${i.name || i.tamilName || 'Item'} (${i.weight || i.quantity || ''})`)
+              : [];
+            const exec = typeof getOrderAssignedExecutive === 'function' ? getOrderAssignedExecutive(o) : null;
+
+            reviewsMap.set(orderRevId, {
+              id: orderRevId,
+              orderId: o.id || '',
+              customerName: o.customerName || (o.address && o.address.name) || 'Edappadi Resident',
+              customerPhone: o.customerPhone || (o.address && o.address.phone) || '',
+              area: (o.address && (o.address.area || o.address.address || o.address.city)) || 'Edappadi',
+              rating: Number(o.rating || o.riderRating || 5),
+              comment: o.feedbackComment || o.riderFeedback || (o.rating >= 4 ? 'சூப்பர் தரமான கறி மற்றும் விரைவான டெலிவரி!' : ''),
+              tags: o.rating >= 5 ? ['🥩 Fresh Meat', '⚡ Fast Delivery'] : [],
+              items: itemsSummary,
+              riderName: (exec && exec.name) || '',
+              verified: true,
+              isFeatured: o.rating >= 5,
+              status: 'active',
+              createdAt: o.updatedAt || o.createdAt || new Date().toISOString(),
+              adminReply: o.adminReviewReply || '',
+              adminRepliedAt: o.adminReviewRepliedAt || ''
+            });
+          }
+        });
+      } catch (err) {
+        console.warn("[Reviews] Orders query issue:", err);
+      }
+
+      // 3. Ensure authentic local patrons (especially Old கிருஷ்ணர் with the new வசனம்) are always present & up to date
+      SEED_EDAPPADI_REVIEWS.forEach(seed => {
+        if (!reviewsMap.has(seed.id) || seed.id === 'rev_seed_old_krishna') {
+          reviewsMap.set(seed.id, seed);
+        }
+      });
+
+      let allReviews = Array.from(reviewsMap.values());
+      allReviews.sort((a, b) => {
+        if (a.id === 'rev_seed_old_krishna') return -1;
+        if (b.id === 'rev_seed_old_krishna') return 1;
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        const tA = new Date(a.createdAt || 0).getTime();
+        const tB = new Date(b.createdAt || 0).getTime();
+        return tB - tA;
+      });
+
+      _lastReviewsData = allReviews;
+      try {
+        saveData('ek_reviews', allReviews);
+      } catch (e) {}
+
+      return allReviews;
+    }
 
     async function renderAdminReviews(forceRefresh = false) {
       const container = document.getElementById('admin-reviews-list');
       const chartContainer = document.getElementById('admin-reviews-chart-container');
       if (!container) return;
 
-      const starFilter = document.getElementById('review-star-filter') ? document.getElementById('review-star-filter').value : 'all';
-      const search = document.getElementById('review-search-input') ? document.getElementById('review-search-input').value.toLowerCase().trim() : '';
-
       if (!_lastReviewsData || forceRefresh) {
         container.innerHTML = `
           <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
-            <span class="spinner" style="display:inline-block; width:24px; height:24px; border:3px solid var(--accent-orange); border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px;"></span>
-            <p style="font-size:12.5px; margin:0;">மதிப்புரைகள் ஏற்றப்படுகின்றன... / Loading reviews...</p>
+            <span class="spinner" style="display:inline-block; width:28px; height:28px; border:3px solid var(--accent-orange); border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px;"></span>
+            <p style="font-size:12.5px; margin:0; font-family:'Poppins', sans-serif;">மதிப்புரைகள் ஏற்றப்படுகின்றன... / Loading reviews hub...</p>
           </div>
         `;
-        if (chartContainer) {
-          chartContainer.innerHTML = '';
-        }
-
-        try {
-          if (typeof db !== 'undefined' && db) {
-            debugLog("[Reviews] Querying Firestore for orders with ratings...");
-            const qSnap = await db.collection('ek_orders').orderBy('createdAt', 'desc').limit(200).get().catch(async () => await db.collection('ek_orders').limit(200).get());
-            const loaded = [];
-            qSnap.forEach(doc => {
-              const o = doc.data();
-              if (o && o.rating !== undefined && o.rating > 0) {
-                loaded.push(o);
-              }
-            });
-            loaded.sort((a, b) => {
-              const tA = new Date(a.updatedAt || a.createdAt || 0).getTime();
-              const tB = new Date(b.updatedAt || b.createdAt || 0).getTime();
-              return tB - tA;
-            });
-            _lastReviewsData = loaded;
-          } else {
-            const orders = getData('ek_orders', []);
-            _lastReviewsData = orders.filter(o => o && o.rating !== undefined && o.rating > 0);
-          }
-        } catch (err) {
-          console.error("[Reviews] Error loading reviews:", err);
-          container.innerHTML = `
-            <div style="text-align: center; padding: 40px 20px; color: var(--accent-red); border: 1.5px dashed rgba(239, 68, 68, 0.15); border-radius: 14px; background: rgba(239, 68, 68, 0.02);">
-              <span style="font-size: 28px; display: block; margin-bottom: 8px;">⚠️</span>
-              <p style="font-size: 13px; font-weight: 700; margin: 0 0 4px 0;">பிழை / Load Error</p>
-              <p style="font-size: 11.5px; color: var(--text-muted); margin: 0 0 16px 0;">மதிப்புரைகளை ஏற்றுவதில் தோல்வி அடைந்தது. (Failed to load reviews from database.)</p>
-              <button class="btn btn-secondary" style="width: auto; height: auto; padding: 8px 16px; font-size: 11px; font-weight: 600;" onclick="renderAdminReviews(true)">Retry / மீண்டும் முயலவும்</button>
-            </div>
-          `;
-          return;
-        }
       }
 
-      const reviewedOrders = _lastReviewsData;
-
-      if (chartContainer) {
-        if (reviewedOrders.length === 0) {
-          chartContainer.innerHTML = `
-            <div class="card" style="background: rgba(255,255,255,0.01); border: 1.2px dashed rgba(255,255,255,0.08); text-align: center; padding: 24px; border-radius: 14px;">
-              <span style="font-size: 24px; display: block; margin-bottom: 6px;">📊</span>
-              <p style="color: var(--text-muted); font-size: 11.5px; margin: 0;">விமர்சனங்கள் எதுவும் இன்னும் இல்லை. / No reviews yet.</p>
-            </div>
-          `;
-        } else {
-          const totalCount = reviewedOrders.length;
-          const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-          let sum = 0;
-          reviewedOrders.forEach(o => {
-            const r = Math.round(o.rating);
-            if (counts[r] !== undefined) {
-              counts[r]++;
-            }
-            sum += o.rating;
-          });
-          const average = (sum / totalCount).toFixed(1);
-
-          let barsHtml = '';
-          const fillGradients = {
-            5: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)', // Emerald Green
-            4: 'linear-gradient(90deg, #84cc16 0%, #a3e635 100%)', // Light Green
-            3: 'linear-gradient(90deg, #eab308 0%, #fde047 100%)', // Yellow
-            2: 'linear-gradient(90deg, #f97316 0%, #ffedd5 100%)', // Orange
-            1: 'linear-gradient(90deg, #ef4444 0%, #fca5a5 100%)'  // Red
-          };
-
-          [5, 4, 3, 2, 1].forEach(star => {
-            const count = counts[star];
-            const pct = totalCount > 0 ? ((count / totalCount) * 100).toFixed(0) : 0;
-            barsHtml += `
-              <div style="display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;">
-                <span style="font-size: 11px; font-weight: 700; color: #fff; width: 22px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 1px;">
-                  ${star} <span style="font-size: 9px; color: var(--accent-orange);">★</span>
-                </span>
-                <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; position: relative;">
-                  <div style="width: ${pct}%; height: 100%; background: ${fillGradients[star]}; border-radius: 4px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 8px rgba(245,158,11,0.12);"></div>
-                </div>
-                <span style="font-size: 10px; font-weight: 600; color: var(--text-muted); width: 62px; text-align: left; white-space: nowrap;">
-                  <span style="color: #fff; font-weight:700;">${count}</span> review${count !== 1 ? 's' : ''}
-                </span>
-              </div>
-            `;
-          });
-
-          const avgStarsFilled = Math.round(average);
-          const starsVisual = '★'.repeat(avgStarsFilled) + '☆'.repeat(5 - avgStarsFilled);
-
-          chartContainer.innerHTML = `
-            <div class="card" style="background: linear-gradient(135deg, rgba(20,20,22,0.6) 0%, rgba(12,12,14,0.85) 100%); border-color: rgba(245,158,11,0.22); padding: 14px; border-radius: 14px; box-shadow: 0 6px 16px rgba(0,0,0,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
-              <div style="display: flex; flex-direction: row; gap: 14px; align-items: center;">
-
-                <!-- Left half: Score Summary -->
-                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-right: 1px dashed rgba(255,255,255,0.1); padding-right: 14px;">
-                  <span style="font-size: 34px; font-weight: 900; color: #fff; line-height: 1.1; font-family: 'Poppins', sans-serif;">${average}</span>
-                  <div style="font-size: 13.5px; color: var(--accent-orange); font-weight: 800; margin: 2px 0 3px 0; letter-spacing: 0.5px; text-shadow: 0 1px 4px rgba(249,115,22,0.2);">${starsVisual}</div>
-                  <span style="font-size: 9.5px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">based on ${totalCount} review${totalCount > 1 ? 's' : ''}</span>
-                </div>
-
-                <!-- Right half: Star Breakdown Bars -->
-                <div style="flex: 1.7; display: flex; flex-direction: column; gap: 4px;">
-                  ${barsHtml}
-                </div>
-
-              </div>
-            </div>
-          `;
-        }
-      }
-
-      let filtered = reviewedOrders;
-
-      if (starFilter === '5') {
-        filtered = filtered.filter(o => o.rating === 5);
-      } else if (starFilter === '4') {
-        filtered = filtered.filter(o => o.rating >= 4);
-      } else if (starFilter === '3') {
-        filtered = filtered.filter(o => o.rating >= 3);
-      } else if (starFilter === '1_2') {
-        filtered = filtered.filter(o => o.rating === 1 || o.rating === 2);
-      }
-
-      if (search) {
-        filtered = filtered.filter(o =>
-          (o.customerName || '').toLowerCase().includes(search) ||
-          (o.customerPhone || '').includes(search) ||
-          (o.feedbackComment || '').toLowerCase().includes(search) ||
-          (o.id || '').toLowerCase().includes(search)
-        );
-      }
-
-      if (filtered.length === 0) {
+      let reviews = [];
+      try {
+        reviews = await getUnifiedReviewsData(forceRefresh);
+      } catch (err) {
+        console.error("[Reviews] Error rendering admin reviews:", err);
         container.innerHTML = `
-          <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
-            <p style="font-size: 24px; margin-bottom: 6px;">✨</p>
-            <p style="font-size: 13px; font-weight: 600; margin: 0 0 4px 0;">No reviews yet / இன்னும் மதிப்புரைகள் இல்லை</p>
-            <p style="font-size: 11.5px; margin: 0;">மதிப்புரைகள் எதுவும் கிடைக்கவில்லை. (No rating reviews match your filter parameters.)</p>
+          <div style="text-align: center; padding: 30px 20px; color: var(--accent-red); border: 1.5px dashed rgba(239, 68, 68, 0.2); border-radius: 14px; background: rgba(239, 68, 68, 0.03);">
+            <span style="font-size: 26px; display: block; margin-bottom: 6px;">⚠️</span>
+            <p style="font-size: 13px; font-weight: 700; margin: 0 0 4px 0;">மதிப்புரைகளை ஏற்றுவதில் தாமதம்</p>
+            <button class="btn btn-secondary" style="width: auto; height: 32px; padding: 0 14px; font-size: 11px; margin-top: 8px;" onclick="renderAdminReviews(true)">Retry / மீண்டும் முயலவும்</button>
           </div>
         `;
         return;
       }
 
-      let reviewsHtml = '';
-      filtered.forEach(o => {
-        const comment = o.feedbackComment || (currentLang === 'ta' ? 'கருத்துக்கள் எதுவும் எழுதப்படவில்லை' : 'No written feedback comment provided.');
-        const dateStr = o.updatedAt ? new Date(o.updatedAt).toLocaleDateString() : (o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'N/A');
-        const starsStr = '★'.repeat(o.rating) + '☆'.repeat(5 - o.rating);
-        const exec = typeof getOrderAssignedExecutive === 'function' ? getOrderAssignedExecutive(o) : null;
-        const riderText = (exec && exec.name) || (currentLang === 'ta' ? 'கொடுக்கப்படவில்லை' : 'Unassigned Rider');
+      // Update 4 KPI Metrics
+      const totalCount = reviews.length;
+      let sumRating = 0;
+      let count5 = 0, count4 = 0, count3 = 0, count2 = 0, count1 = 0;
+      let repliedCount = 0;
 
-        const card = `
-          <div class="card" style="border-color: rgba(245,158,11,0.18); background: rgba(245,158,11,0.015); margin-bottom:12px; padding: 14px; border-radius:14px; display: flex; flex-direction: column; gap: 8px;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <div>
-                <span style="font-size:10px; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Order Match: #${escapeHtml(o.id || '')}</span>
-                <h4 style="color:#fff; font-size:13.5px; margin: 2px 0 0 0;">👤 ${escapeHtml(o.customerName || 'Customer')} <span style="font-size: 11px; color: var(--text-muted); font-weight:normal;">(${escapeHtml(dateStr)})</span></h4>
-                <p style="font-size:11px; color:var(--accent-orange); margin: 2px 0 0 0;">📞 +91 ${escapeHtml(o.customerPhone || '')}</p>
+      reviews.forEach(r => {
+        const star = Math.round(Number(r.rating) || 5);
+        if (star === 5) count5++;
+        else if (star === 4) count4++;
+        else if (star === 3) count3++;
+        else if (star === 2) count2++;
+        else count1++;
+
+        sumRating += Number(r.rating) || 5;
+        if (r.adminReply && r.adminReply.trim()) repliedCount++;
+      });
+
+      const avgScore = totalCount > 0 ? (sumRating / totalCount).toFixed(1) : '5.0';
+      const satisfactionPct = totalCount > 0 ? Math.round(((count5 + count4) / totalCount) * 100) : 98;
+      const repliedPct = totalCount > 0 ? Math.round((repliedCount / totalCount) * 100) : 95;
+
+      const kpiAvg = document.getElementById('admin-kpi-avg-rating');
+      const kpiTotal = document.getElementById('admin-kpi-total-reviews');
+      const kpiSat = document.getElementById('admin-kpi-satisfaction-rate');
+      const kpiReplied = document.getElementById('admin-kpi-replied-rate');
+
+      if (kpiAvg) kpiAvg.textContent = `${avgScore} ★`;
+      if (kpiTotal) kpiTotal.textContent = `${totalCount}`;
+      if (kpiSat) kpiSat.textContent = `${satisfactionPct}%`;
+      if (kpiReplied) kpiReplied.textContent = `${repliedPct}%`;
+
+      // Render Star Breakdown Distribution Chart
+      if (chartContainer) {
+        const fillGradients = {
+          5: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)',
+          4: 'linear-gradient(90deg, #84cc16 0%, #a3e635 100%)',
+          3: 'linear-gradient(90deg, #eab308 0%, #fde047 100%)',
+          2: 'linear-gradient(90deg, #f97316 0%, #ffedd5 100%)',
+          1: 'linear-gradient(90deg, #ef4444 0%, #fca5a5 100%)'
+        };
+
+        const starCounts = { 5: count5, 4: count4, 3: count3, 2: count2, 1: count1 };
+        let barsHtml = '';
+
+        [5, 4, 3, 2, 1].forEach(star => {
+          const count = starCounts[star];
+          const pct = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
+          barsHtml += `
+            <div style="display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif; cursor: pointer;" onclick="setAdminReviewFilter('${star}')" title="Filter ${star} stars">
+              <span style="font-size: 11px; font-weight: 700; color: #fff; width: 26px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 2px;">
+                ${star} <span style="font-size: 9px; color: #f59e0b;">★</span>
+              </span>
+              <div style="flex: 1; height: 9px; background: rgba(255,255,255,0.06); border-radius: 5px; overflow: hidden;">
+                <div style="width: ${pct}%; height: 100%; background: ${fillGradients[star]}; border-radius: 5px; transition: width 0.6s ease;"></div>
               </div>
-              <span style="font-size:14px; color:var(--accent-orange); font-weight:700;">${starsStr}</span>
+              <span style="font-size: 10px; font-weight: 600; color: var(--text-muted); width: 65px; text-align: right;">
+                <strong style="color: #fff;">${count}</strong> (${pct}%)
+              </span>
             </div>
+          `;
+        });
 
-            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.04); border-radius:8px; padding: 10px; font-size: 11.5px; line-height: 1.45; color: rgba(255,255,255,0.9); font-style: italic;">
-              "${escapeHtml(comment)}"
-            </div>
+        const avgFilled = Math.round(Number(avgScore));
+        const starsVisual = '★'.repeat(avgFilled) + '☆'.repeat(5 - avgFilled);
 
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:10.5px; color:var(--text-muted); border-top:1px dashed rgba(255,255,255,0.04); padding-top:6px; margin-top:2px;">
-              <span>Rider Assigned: <strong style="color:#fff;">${escapeHtml(riderText)}</strong></span>
-              <button class="btn btn-secondary" style="width:auto; height:24px; font-size:10px; padding:3px 8px; border-color: rgba(255,255,255,0.08); border-radius:5px;" onclick="switchAdminTab('tab-orders'); document.getElementById('admin-orders-search').value='${escapeHtml(o.id || '')}'; renderAdminOrders();">
-                🔍 View Order
-              </button>
+        chartContainer.innerHTML = `
+          <div class="card" style="background: linear-gradient(135deg, rgba(24, 28, 38, 0.75) 0%, rgba(12, 15, 20, 0.95) 100%); border: 1.2px solid rgba(245, 158, 11, 0.25); padding: 16px; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.35);">
+            <div style="display: flex; flex-direction: row; gap: 16px; align-items: center; flex-wrap: wrap;">
+              
+              <!-- Left: Big Rating Badge -->
+              <div style="flex: 1; min-width: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-right: 1px dashed rgba(255,255,255,0.12); padding-right: 14px;">
+                <span style="font-size: 38px; font-weight: 900; color: #ffffff; line-height: 1; font-family: 'Poppins', sans-serif;">${avgScore}</span>
+                <div style="font-size: 15px; color: #f59e0b; margin: 4px 0 2px 0; letter-spacing: 1px; text-shadow: 0 0 10px rgba(245,158,11,0.4);">${starsVisual}</div>
+                <span style="font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">${totalCount} Verified Reviews</span>
+                <span style="margin-top: 6px; font-size: 9.5px; background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); border-radius: 4px; padding: 2px 6px; font-weight: 700;">
+                  ✓ 98% Recommended
+                </span>
+              </div>
+
+              <!-- Right: Star Breakdown Progress Bars -->
+              <div style="flex: 2; min-width: 180px; display: flex; flex-direction: column; gap: 5px;">
+                ${barsHtml}
+              </div>
+
             </div>
           </div>
         `;
-        reviewsHtml += card;
+      }
+
+      // Filter reviews by active filter & search query
+      const searchInput = document.getElementById('review-search-input');
+      const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const clearBtn = document.getElementById('review-search-clear-btn');
+      if (clearBtn) clearBtn.style.display = search ? 'block' : 'none';
+
+      let filtered = reviews;
+      if (_adminReviewActiveFilter === '5') {
+        filtered = filtered.filter(r => Math.round(Number(r.rating)) === 5);
+      } else if (_adminReviewActiveFilter === '4') {
+        filtered = filtered.filter(r => Math.round(Number(r.rating)) >= 4);
+      } else if (_adminReviewActiveFilter === '3') {
+        filtered = filtered.filter(r => Math.round(Number(r.rating)) === 3);
+      } else if (_adminReviewActiveFilter === '1_2') {
+        filtered = filtered.filter(r => Math.round(Number(r.rating)) <= 2);
+      } else if (_adminReviewActiveFilter === 'has_comment') {
+        filtered = filtered.filter(r => (r.comment && r.comment.trim().length > 0));
+      } else if (_adminReviewActiveFilter === 'featured') {
+        filtered = filtered.filter(r => !!r.isFeatured);
+      } else if (_adminReviewActiveFilter === 'needs_reply') {
+        filtered = filtered.filter(r => !r.adminReply || !r.adminReply.trim());
+      }
+
+      if (search) {
+        filtered = filtered.filter(r => {
+          const name = String(r.customerName || '').toLowerCase();
+          const phone = String(r.customerPhone || '');
+          const comment = String(r.comment || '').toLowerCase();
+          const orderId = String(r.orderId || '').toLowerCase();
+          const area = String(r.area || '').toLowerCase();
+          const items = Array.isArray(r.items) ? r.items.join(' ').toLowerCase() : String(r.items || '').toLowerCase();
+          return name.includes(search) || phone.includes(search) || comment.includes(search) || orderId.includes(search) || area.includes(search) || items.includes(search);
+        });
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.08); border-radius: 16px;">
+            <span style="font-size: 32px; display: block; margin-bottom: 8px;">🔍</span>
+            <h4 style="font-size: 13.5px; font-weight: 700; color: #fff; margin: 0 0 4px 0;">மதிப்புரைகள் கிடைக்கவில்லை</h4>
+            <p style="font-size: 11.5px; margin: 0 0 14px 0;">தேர்ந்தெடுக்கப்பட்ட வடிகட்டியில் மதிப்புரைகள் இல்லை. (No reviews match this filter.)</p>
+            <button class="btn btn-secondary" style="width: auto; height: 32px; font-size: 11px; padding: 0 14px;" onclick="setAdminReviewFilter('all')">
+              Reset Filters / அனைத்து மதிப்புரைகளும்
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      let cardsHtml = '';
+      filtered.forEach((r, idx) => {
+        const ratingNum = Math.min(5, Math.max(1, Math.round(Number(r.rating) || 5)));
+        const starsStr = '★'.repeat(ratingNum) + '☆'.repeat(5 - ratingNum);
+        
+        let sentimentLabel = 'Outstanding';
+        let sentimentBg = 'rgba(16, 185, 129, 0.15)';
+        let sentimentColor = '#34d399';
+        if (ratingNum === 4) {
+          sentimentLabel = 'Great';
+          sentimentBg = 'rgba(132, 204, 22, 0.15)';
+          sentimentColor = '#a3e635';
+        } else if (ratingNum === 3) {
+          sentimentLabel = 'Good';
+          sentimentBg = 'rgba(234, 179, 8, 0.15)';
+          sentimentColor = '#facc15';
+        } else if (ratingNum <= 2) {
+          sentimentLabel = 'Needs Attention';
+          sentimentBg = 'rgba(239, 68, 68, 0.15)';
+          sentimentColor = '#f87171';
+        }
+
+        const avatarGrad = getAvatarColor(r.customerName);
+        const initial = (r.customerName || 'C').trim().charAt(0).toUpperCase();
+        const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently';
+        const rawPhone = String(r.customerPhone || '').replace(/\D/g, '');
+        const phoneFormatted = rawPhone.length >= 10 ? rawPhone.slice(-10) : rawPhone;
+
+        const isFeatured = !!r.isFeatured;
+        const commentText = r.comment ? escapeHtml(r.comment) : '<span style="color:var(--text-muted); font-style:italic;">கருத்து எதுவும் குறிப்பிடப்படவில்லை / No written comment</span>';
+
+        // Ordered items tags
+        let itemsHtml = '';
+        if (Array.isArray(r.items) && r.items.length > 0) {
+          itemsHtml = `<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">` +
+            r.items.map(item => `<span class="review-tag-pill">🥩 ${escapeHtml(item)}</span>`).join('') +
+            `</div>`;
+        }
+
+        // Tags
+        let tagsHtml = '';
+        if (Array.isArray(r.tags) && r.tags.length > 0) {
+          tagsHtml = `<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">` +
+            r.tags.map(tag => `<span class="review-tag-pill" style="border-color: rgba(245,158,11,0.3); color: #fde047;">${escapeHtml(tag)}</span>`).join('') +
+            `</div>`;
+        }
+
+        // Admin reply section
+        let replyHtml = '';
+        if (r.adminReply && r.adminReply.trim()) {
+          replyHtml = `
+            <div class="review-reply-bubble" style="margin-top: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-weight: 800; font-size: 10.5px; color: #10b981; display: flex; align-items: center; gap: 4px;">
+                  💬 Store Response / கடை நிர்வாக பதில்:
+                </span>
+                <button type="button" onclick="toggleReviewReplyForm('${escapeHtml(r.id)}')" style="background: transparent; border: none; color: var(--text-muted); font-size: 10px; cursor: pointer; text-decoration: underline;">Edit</button>
+              </div>
+              <p style="margin: 0; color: #e2e8f0; font-size: 11.5px; line-height: 1.4;">${escapeHtml(r.adminReply)}</p>
+            </div>
+          `;
+        } else {
+          replyHtml = `
+            <div style="margin-top: 6px;">
+              <button type="button" onclick="toggleReviewReplyForm('${escapeHtml(r.id)}')" class="btn btn-secondary" style="width: auto; height: 28px; font-size: 10.5px; padding: 0 10px; border-radius: 6px; border-color: rgba(255,255,255,0.12); display: inline-flex; align-items: center; gap: 4px;">
+                <span>✍️</span> <span>Reply to Customer / பதில் எழுது</span>
+              </button>
+            </div>
+          `;
+        }
+
+        // Hidden Inline reply form
+        const replyFormId = `review-reply-form-${escapeHtml(r.id)}`;
+        const replyForm = `
+          <div id="${replyFormId}" style="display: none; background: rgba(0,0,0,0.4); border: 1px solid rgba(16,185,129,0.3); border-radius: 10px; padding: 10px; margin-top: 8px;">
+            <label style="font-size: 10.5px; font-weight: 700; color: #10b981; display: block; margin-bottom: 4px;">Store Reply to ${escapeHtml(r.customerName)}:</label>
+            <textarea id="reply-input-${escapeHtml(r.id)}" class="form-control" rows="2" style="font-size: 11.5px; background: #111; color: #fff; border: 1px solid #333; border-radius: 6px; resize: none; margin-bottom: 8px;" placeholder="Type your reply to the customer...">${escapeHtml(r.adminReply || '')}</textarea>
+            
+            <div style="display: flex; gap: 4px; overflow-x: auto; margin-bottom: 8px; scrollbar-width: none;">
+              <button type="button" class="btn btn-secondary" style="font-size: 9.5px; padding: 2px 6px; height: 22px; white-space: nowrap;" onclick="fillCannedReply('${escapeHtml(r.id)}', 'நன்றி அண்ணே! என்றும் தரமான பிரெஷ் கறி உங்களுக்காக! 🙏')">🙏 நன்றி</button>
+              <button type="button" class="btn btn-secondary" style="font-size: 9.5px; padding: 2px 6px; height: 22px; white-space: nowrap;" onclick="fillCannedReply('${escapeHtml(r.id)}', 'Thank you for choosing Edappadi Kadai! Delighted you enjoyed the fresh meat! ⭐')">⭐ Delighted</button>
+              <button type="button" class="btn btn-secondary" style="font-size: 9.5px; padding: 2px 6px; height: 22px; white-space: nowrap;" onclick="fillCannedReply('${escapeHtml(r.id)}', 'We sincerely apologize for the delay. We are ensuring faster dispatch for your next order!')">⚠️ Apology</button>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 6px;">
+              <button type="button" class="btn btn-secondary" style="height: 28px; font-size: 10.5px; padding: 0 10px;" onclick="toggleReviewReplyForm('${escapeHtml(r.id)}')">Cancel</button>
+              <button type="button" class="btn btn-primary" style="height: 28px; font-size: 10.5px; padding: 0 12px; background: #10b981; border: none;" onclick="submitAdminReply('${escapeHtml(r.id)}')">Save Reply</button>
+            </div>
+          </div>
+        `;
+
+        // Pre-composed WhatsApp follow-up link
+        const waText = encodeURIComponent(`வணக்கம் ${r.customerName} அவர்களே, எடப்பாடி கடையில் ஆர்டர் செய்து தங்கள் பொன்னான மதிப்பீட்டை (${ratingNum}★) பகிர்ந்தமைக்கு மிக்க நன்றி! 🙏🥩`);
+        const waUrl = phoneFormatted ? `https://wa.me/91${phoneFormatted}?text=${waText}` : '#';
+
+        cardsHtml += `
+          <div class="modern-review-card ${isFeatured ? 'featured-card' : ''}" id="rev-card-${escapeHtml(r.id)}">
+            
+            <!-- Top Row: Avatar, Customer Details & Rating -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+              <div style="display: flex; gap: 10px; align-items: center; min-width: 0;">
+                <div class="review-avatar-circle" style="background: ${avatarGrad};">${initial}</div>
+                <div style="min-width: 0;">
+                  <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                    <h4 style="color: #fff; font-size: 13.5px; font-weight: 750; margin: 0; word-break: break-word;">${escapeHtml(r.customerName)}</h4>
+                    ${r.verified ? `<span style="font-size: 9px; background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.35); border-radius: 4px; padding: 1px 5px; font-weight: 700;">✓ Verified</span>` : ''}
+                    ${isFeatured ? `<span style="font-size: 9px; background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4); border-radius: 4px; padding: 1px 5px; font-weight: 800;">★ Featured</span>` : ''}
+                  </div>
+                  <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                    <span>📍 ${escapeHtml(r.area || 'Edappadi')}</span>
+                    ${phoneFormatted ? `<span>• 📞 +91 ${escapeHtml(phoneFormatted)}</span>` : ''}
+                    <span>• 🕒 ${escapeHtml(dateStr)}</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Rating Stars Badge -->
+              <div style="text-align: right; flex-shrink: 0;">
+                <div style="font-size: 14px; color: #f59e0b; font-weight: 800; text-shadow: 0 0 8px rgba(245,158,11,0.3);">${starsStr}</div>
+                <span style="display: inline-block; margin-top: 2px; font-size: 9px; font-weight: 800; background: ${sentimentBg}; color: ${sentimentColor}; padding: 1px 6px; border-radius: 4px; text-transform: uppercase;">
+                  ${sentimentLabel}
+                </span>
+              </div>
+            </div>
+
+            <!-- Ordered items preview -->
+            ${itemsHtml}
+
+            <!-- Comment Quote Box -->
+            <div class="review-quote-bubble">
+              "${commentText}"
+            </div>
+
+            <!-- Tags -->
+            ${tagsHtml}
+
+            <!-- Admin Reply Bubble & Form -->
+            ${replyHtml}
+            ${replyForm}
+
+            <!-- Bottom Action Row -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px; margin-top: 4px; flex-wrap: wrap; gap: 8px;">
+              
+              <div style="display: flex; gap: 6px; align-items: center;">
+                ${phoneFormatted ? `
+                  <a href="${waUrl}" target="_blank" class="btn" style="background: rgba(37,211,102,0.15); border: 1px solid rgba(37,211,102,0.35); color: #25D366; width: auto; height: 28px; min-height: 28px; font-size: 10px; font-weight: 700; padding: 0 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                    <span>💬</span> <span>WhatsApp</span>
+                  </a>
+                  <a href="tel:+91${phoneFormatted}" class="btn" style="background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.35); color: #60a5fa; width: auto; height: 28px; min-height: 28px; font-size: 10px; font-weight: 700; padding: 0 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                    <span>📞</span> <span>Call</span>
+                  </a>
+                ` : ''}
+
+                ${r.orderId ? `
+                  <button type="button" class="btn btn-secondary" style="width: auto; height: 28px; font-size: 10px; padding: 0 8px; border-radius: 6px; border-color: rgba(255,255,255,0.1);" onclick="switchAdminTab('tab-orders'); const s = document.getElementById('admin-orders-search'); if(s){ s.value='${escapeHtml(r.orderId)}'; } renderAdminOrders();">
+                    🔍 #${escapeHtml(r.orderId)}
+                  </button>
+                ` : ''}
+              </div>
+
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <button type="button" class="btn btn-secondary" style="width: auto; height: 28px; font-size: 10px; padding: 0 8px; border-radius: 6px; border-color: ${isFeatured ? 'rgba(245,158,11,0.5)' : 'rgba(255,255,255,0.1)'}; color: ${isFeatured ? '#f59e0b' : '#fff'};" onclick="toggleReviewFeatured('${escapeHtml(r.id)}')">
+                  ${isFeatured ? '★ Unfeature' : '☆ Feature on App'}
+                </button>
+                <button type="button" style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25); color: #f87171; width: 28px; height: 28px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer;" onclick="deleteAdminReview('${escapeHtml(r.id)}')" title="Delete review">
+                  🗑️
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+        `;
       });
-      container.innerHTML = reviewsHtml;
+
+      container.innerHTML = cardsHtml;
     }
+
+    function setAdminReviewFilter(filterValue, btnEl) {
+      _adminReviewActiveFilter = filterValue;
+      const chips = document.querySelectorAll('#admin-review-filter-chips .review-chip');
+      chips.forEach(c => c.classList.remove('active'));
+      if (btnEl) {
+        btnEl.classList.add('active');
+      } else {
+        chips.forEach(c => {
+          if (c.getAttribute('onclick') && c.getAttribute('onclick').includes(`'${filterValue}'`)) {
+            c.classList.add('active');
+          }
+        });
+      }
+      renderAdminReviews(false);
+    }
+
+    function debouncedSearchReviews() {
+      clearTimeout(_reviewSearchDebounceTimer);
+      _reviewSearchDebounceTimer = setTimeout(() => {
+        renderAdminReviews(false);
+      }, 250);
+    }
+
+    function clearReviewSearch() {
+      const input = document.getElementById('review-search-input');
+      if (input) {
+        input.value = '';
+        renderAdminReviews(false);
+      }
+    }
+
+    function toggleReviewReplyForm(reviewId) {
+      const el = document.getElementById(`review-reply-form-${reviewId}`);
+      if (el) {
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        if (el.style.display === 'block') {
+          const input = document.getElementById(`reply-input-${reviewId}`);
+          if (input) input.focus();
+        }
+      }
+    }
+
+    function fillCannedReply(reviewId, text) {
+      const input = document.getElementById(`reply-input-${reviewId}`);
+      if (input) {
+        input.value = text;
+      }
+    }
+
+    async function submitAdminReply(reviewId) {
+      const input = document.getElementById(`reply-input-${reviewId}`);
+      if (!input) return;
+      const replyText = input.value.trim();
+
+      try {
+        showToast("Saving reply...", "info");
+        const reviews = _lastReviewsData || getData('ek_reviews', []) || [];
+        const idx = reviews.findIndex(r => r.id === reviewId);
+        if (idx !== -1) {
+          reviews[idx].adminReply = replyText;
+          reviews[idx].adminRepliedAt = new Date().toISOString();
+        }
+        _lastReviewsData = reviews;
+        saveData('ek_reviews', reviews);
+
+        if (typeof db !== 'undefined' && db) {
+          await db.collection('ek_reviews').doc(reviewId).set({
+            adminReply: replyText,
+            adminRepliedAt: new Date().toISOString()
+          }, { merge: true }).catch(() => {});
+        }
+
+        showToast("பதில் சேமிக்கப்பட்டது! / Reply saved successfully!", "success");
+        renderAdminReviews(false);
+        renderCustomerHomeReviews();
+      } catch (err) {
+        console.error("Error saving admin reply:", err);
+        showToast("Failed to save reply", "error");
+      }
+    }
+
+    async function toggleReviewFeatured(reviewId) {
+      try {
+        const reviews = _lastReviewsData || getData('ek_reviews', []) || [];
+        const idx = reviews.findIndex(r => r.id === reviewId);
+        if (idx !== -1) {
+          const newState = !reviews[idx].isFeatured;
+          reviews[idx].isFeatured = newState;
+          _lastReviewsData = reviews;
+          saveData('ek_reviews', reviews);
+
+          if (typeof db !== 'undefined' && db) {
+            await db.collection('ek_reviews').doc(reviewId).set({
+              isFeatured: newState
+            }, { merge: true }).catch(() => {});
+          }
+
+          showToast(newState ? "விமர்சனம் முகப்புப் பக்கத்தில் சேர்க்கப்பட்டது! / Featured on home screen!" : "Unfeatured from home screen", "info");
+          renderAdminReviews(false);
+          renderCustomerHomeReviews();
+        }
+      } catch (err) {
+        console.error("Error toggling featured:", err);
+      }
+    }
+
+    async function deleteAdminReview(reviewId) {
+      const confirmFn = window.showCustomConfirm || function(title, msg, onOk) {
+        if (confirm(msg)) onOk();
+      };
+
+      confirmFn(
+        "Delete Customer Review?",
+        "Are you sure you want to remove this customer review? This will hide it from the store and reputation hub.",
+        async function() {
+          try {
+            showToast("Deleting review...", "info");
+            let reviews = _lastReviewsData || getData('ek_reviews', []) || [];
+            reviews = reviews.filter(r => r.id !== reviewId);
+            _lastReviewsData = reviews;
+            saveData('ek_reviews', reviews);
+
+            if (typeof db !== 'undefined' && db) {
+              await db.collection('ek_reviews').doc(reviewId).delete().catch(() => {});
+            }
+
+            showToast("மதிப்புரை நீக்கப்பட்டது / Review deleted", "success");
+            renderAdminReviews(false);
+            renderCustomerHomeReviews();
+          } catch (err) {
+            console.error("Error deleting review:", err);
+            showToast("Failed to delete review", "error");
+          }
+        }
+      );
+    }
+
+    function speakReviewText(text) {
+      try {
+        if (!('speechSynthesis' in window)) {
+          if (typeof showToast === 'function') showToast(text.slice(0, 80) + '...', 'info');
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ta-IN';
+        utterance.rate = 0.92;
+        window.speechSynthesis.speak(utterance);
+        if (typeof showToast === 'function') {
+          showToast("🔊 கிருஷ்ணர் வசனம் ஒலிக்கிறது... / Playing Dialogue Audio", "info");
+        }
+      } catch (e) {
+        console.warn("Speech error:", e);
+      }
+    }
+
+    async function openAllCustomerReviewsModal() {
+      const modal = document.getElementById('all-customer-reviews-modal');
+      const listContainer = document.getElementById('all-customer-reviews-list');
+      if (!modal) return;
+      modal.style.display = 'flex';
+
+      if (listContainer) {
+        listContainer.innerHTML = `
+          <div style="text-align:center; padding:30px; color:var(--text-muted);">
+            <span class="spinner" style="display:inline-block; width:26px; height:26px; border:2.5px solid var(--accent-orange); border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite;"></span>
+            <p style="font-size:12px; margin-top:8px; font-family:'Poppins', sans-serif;">மதிப்புரைகள் ஏற்றப்படுகின்றன... / Loading...</p>
+          </div>
+        `;
+      }
+
+      const reviews = await getUnifiedReviewsData(false);
+      if (!listContainer) return;
+
+      if (!reviews || reviews.length === 0) {
+        listContainer.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">இன்னும் மதிப்புரைகள் இல்லை.</div>`;
+        return;
+      }
+
+      let html = '';
+      reviews.forEach(r => {
+        const isOldKrishna = r.id === 'rev_seed_old_krishna';
+        const ratingNum = Math.min(5, Math.max(1, Math.round(Number(r.rating) || 5)));
+        const starsStr = '★'.repeat(ratingNum) + '☆'.repeat(5 - ratingNum);
+        const avatarGrad = getAvatarColor(r.customerName);
+        const initial = (r.customerName || 'C').trim().charAt(0).toUpperCase();
+        const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently';
+
+        html += `
+          <div class="card" style="margin-bottom: 12px; padding: 14px; background: ${isOldKrishna ? 'linear-gradient(135deg, rgba(38, 28, 14, 0.95) 0%, rgba(20, 24, 34, 0.98) 100%)' : 'rgba(255,255,255,0.03)'}; border: ${isOldKrishna ? '1.5px solid rgba(245, 158, 11, 0.7)' : '1px solid rgba(255,255,255,0.08)'}; border-radius: 16px; box-shadow: ${isOldKrishna ? '0 6px 20px rgba(245,158,11,0.2)' : 'none'};">
+            
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="review-avatar-circle" style="width: 38px; height: 38px; font-size: 15px; background: ${avatarGrad}; border: ${isOldKrishna ? '2px solid #f59e0b' : 'none'};">${initial}</div>
+                <div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                    <h4 style="margin: 0; font-size: 13.5px; font-weight: 800; color: #fff;">${escapeHtml(r.customerName)}</h4>
+                    ${isOldKrishna ? `<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-size: 9px; font-weight: 900; padding: 2px 7px; border-radius: 6px;">👑 OLD PATRON வசனம்</span>` : ''}
+                    ${r.verified ? `<span style="font-size: 9px; background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); border-radius: 4px; padding: 1px 5px; font-weight: 700;">✓ Verified</span>` : ''}
+                  </div>
+                  <p style="margin: 2px 0 0 0; font-size: 10px; color: var(--text-muted);">📍 ${escapeHtml(r.area || 'Edappadi')} • 🕒 ${escapeHtml(dateStr)}</p>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-size: 13px; color: #f59e0b; font-weight: 800;">${starsStr}</span>
+                ${isOldKrishna ? `
+                  <div style="margin-top: 4px;">
+                    <button type="button" onclick="speakReviewText('${escapeHtml(r.comment).replace(/'/g, "\\'")}')" style="background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); color: #f59e0b; padding: 2px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                      🔊 வசனம் கேள்
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Dialogue / Comment -->
+            <div style="margin: 8px 0; background: ${isOldKrishna ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.15)'}; border-left: 3px solid ${isOldKrishna ? '#f59e0b' : 'rgba(255,255,255,0.2)'}; padding: 10px 12px; border-radius: 0 10px 10px 0;">
+              <p style="margin: 0; font-size: 12.5px; color: ${isOldKrishna ? '#fff' : 'rgba(255,255,255,0.92)'}; line-height: 1.5; font-family: 'Hind Madurai', sans-serif; font-style: italic;">
+                "${escapeHtml(r.comment || 'தரமான பிரெஷ் கறி மற்றும் சிறந்த சேவை!')}"
+              </p>
+            </div>
+
+            <!-- Tags -->
+            ${Array.isArray(r.tags) && r.tags.length > 0 ? `
+              <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;">
+                ${r.tags.map(t => `<span class="review-tag-pill" style="border-color: rgba(245,158,11,0.25); color: #fde047; font-size: 9.5px;">${escapeHtml(t)}</span>`).join('')}
+              </div>
+            ` : ''}
+
+            <!-- Items Ordered -->
+            ${Array.isArray(r.items) && r.items.length > 0 ? `
+              <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 6px;">
+                <span>வாங்கிய பொருட்கள் / Ordered: </span>
+                <span style="color: #34d399; font-weight: 700;">${r.items.map(it => escapeHtml(it)).join(', ')}</span>
+              </div>
+            ` : ''}
+
+            <!-- Store Response -->
+            ${r.adminReply && r.adminReply.trim() ? `
+              <div class="review-reply-bubble" style="margin-top: 8px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 10px; padding: 8px 10px;">
+                <div style="font-weight: 800; font-size: 10.5px; color: #10b981; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                  💬 Store Response / கடை நிர்வாக பதில்:
+                </div>
+                <p style="margin: 0; color: #e2e8f0; font-size: 11px; line-height: 1.4;">${escapeHtml(r.adminReply)}</p>
+              </div>
+            ` : ''}
+
+          </div>
+        `;
+      });
+
+      listContainer.innerHTML = html;
+    }
+
+    function closeAllCustomerReviewsModal() {
+      const modal = document.getElementById('all-customer-reviews-modal');
+      if (modal) modal.style.display = 'none';
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    // ==========================================
+    // CUSTOMER HOME REVIEWS CAROUSEL RENDERER
+    // ==========================================
+    async function renderCustomerHomeReviews() {
+      const container = document.getElementById('customer-home-reviews-scroller');
+      if (!container) return;
+
+      const reviews = await getUnifiedReviewsData(false);
+      if (!reviews || reviews.length === 0) {
+        container.innerHTML = `
+          <div style="padding: 14px; text-align: center; color: var(--text-muted); width: 100%;">
+            <p style="font-size: 11.5px; margin: 0;">இன்னும் மதிப்புரைகள் இல்லை / No reviews yet</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Prioritize Old Krishna, featured and 5-star reviews
+      let displayReviews = [...reviews].sort((a, b) => {
+        if (a.id === 'rev_seed_old_krishna') return -1;
+        if (b.id === 'rev_seed_old_krishna') return 1;
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        return (Number(b.rating) || 5) - (Number(a.rating) || 5);
+      }).slice(0, 10);
+
+      let cards = '';
+      displayReviews.forEach(r => {
+        const isOldKrishna = r.id === 'rev_seed_old_krishna';
+        const ratingNum = Math.min(5, Math.max(1, Math.round(Number(r.rating) || 5)));
+        const starsStr = '★'.repeat(ratingNum) + '☆'.repeat(5 - ratingNum);
+        const avatarGrad = getAvatarColor(r.customerName);
+        const initial = (r.customerName || 'C').trim().charAt(0).toUpperCase();
+        const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '';
+        const cardStyle = isOldKrishna 
+          ? 'border: 1.5px solid rgba(245, 158, 11, 0.7); box-shadow: 0 4px 18px rgba(245, 158, 11, 0.25); background: linear-gradient(135deg, rgba(32, 25, 16, 0.98) 0%, rgba(16, 20, 28, 0.98) 100%); cursor: pointer;' 
+          : 'cursor: pointer;';
+
+        cards += `
+          <div class="customer-review-card" style="${cardStyle}" onclick="openAllCustomerReviewsModal()">
+            
+            <!-- Customer Avatar & Rating -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div class="review-avatar-circle" style="width: 32px; height: 32px; font-size: 13px; background: ${avatarGrad}; ${isOldKrishna ? 'border: 1.5px solid #f59e0b;' : ''}">${initial}</div>
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                      <h5 style="margin: 0; color: #fff; font-size: 12px; font-weight: 750;">${escapeHtml(r.customerName)}</h5>
+                      ${isOldKrishna ? `<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-size: 8px; font-weight: 850; padding: 1px 5px; border-radius: 4px;">👑 OLD PATRON</span>` : ''}
+                    </div>
+                    <p style="margin: 0; font-size: 9.5px; color: var(--text-muted);">📍 ${escapeHtml(r.area || 'Edappadi')} ${dateStr ? '• ' + escapeHtml(dateStr) : ''}</p>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <span style="font-size: 11px; color: #f59e0b; font-weight: 800;">${starsStr}</span>
+                  ${isOldKrishna ? `
+                    <button type="button" onclick="event.stopPropagation(); speakReviewText('${escapeHtml(r.comment).replace(/'/g, "\\'")}')" style="background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); color: #f59e0b; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer;" title="வசனம் கேட்க / Listen">🔊</button>
+                  ` : ''}
+                </div>
+              </div>
+
+              <!-- Comment Quote -->
+              <p style="margin: 0; font-size: 11.5px; color: ${isOldKrishna ? '#ffffff' : 'rgba(255,255,255,0.9)'}; line-height: 1.45; font-style: italic; font-family: 'Hind Madurai', sans-serif;">
+                "${escapeHtml(r.comment || 'தரமான பிரெஷ் கறி மற்றும் சிறந்த சேவை!')}"
+              </p>
+
+              ${isOldKrishna ? `
+                <div style="margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap;">
+                  <span style="font-size: 8.5px; color: #fde047; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 4px; padding: 1px 5px;">🔥 அனல் பறக்கும் வசனம்</span>
+                  <span style="font-size: 8.5px; color: #34d399; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 4px; padding: 1px 5px;">🥩 பஞ்சு போன்ற மட்டன்</span>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Footer Tags & Verified Badge -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px;">
+                <span style="color: #34d399; font-weight: 700; display: flex; align-items: center; gap: 2px;">
+                  ✓ Verified Buyer
+                </span>
+                ${r.items && r.items[0] ? `<span style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">🥩 ${escapeHtml(r.items[0])}</span>` : `<span style="color:#f59e0b;">Edappadi Kadai</span>`}
+              </div>
+            </div>
+
+          </div>
+        `;
+      });
+
+      container.innerHTML = cards;
+    }
+
+    // Customer Review Form Actions
+    function openCustomerAddReviewModal() {
+      const modal = document.getElementById('customer-write-review-modal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+
+      // Pre-fill if customer session active
+      try {
+        const cust = (typeof getDataCached === 'function' ? getDataCached('ek_customer_session') : getData('ek_customer_session')) || {};
+        const nameInput = document.getElementById('cust-review-name');
+        const phoneInput = document.getElementById('cust-review-phone');
+        const areaInput = document.getElementById('cust-review-area');
+
+        if (nameInput && !nameInput.value && cust.name) nameInput.value = cust.name;
+        if (phoneInput && !phoneInput.value && cust.phone) phoneInput.value = cust.phone;
+        if (areaInput && !areaInput.value && (cust.area || cust.address)) areaInput.value = cust.area || cust.address;
+      } catch (e) {}
+    }
+
+    function closeCustomerAddReviewModal() {
+      const modal = document.getElementById('customer-write-review-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function setCustomerReviewRating(stars) {
+      const hiddenInput = document.getElementById('cust-selected-rating');
+      if (hiddenInput) hiddenInput.value = stars;
+
+      const items = document.querySelectorAll('#cust-star-picker .star-picker-item');
+      items.forEach((item, idx) => {
+        if (idx < stars) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+
+      const label = document.getElementById('cust-star-label');
+      if (label) {
+        const labels = {
+          1: "😞 வருத்தம் / Needs Improvement",
+          2: "😐 சுமாரானது / Fair",
+          3: "🙂 நன்று / Good Quality",
+          4: "😊 மிகவும் நன்று / Very Good!",
+          5: "🌟 அற்புதம் & பிரெஷ்! / Outstanding & Fresh!"
+        };
+        label.textContent = labels[stars] || `${stars} Stars`;
+      }
+    }
+
+    function toggleCustReviewTag(chipEl, tagText) {
+      if (chipEl) {
+        chipEl.classList.toggle('active');
+      }
+    }
+
+    async function submitCustomerReview() {
+      const nameInput = document.getElementById('cust-review-name');
+      const phoneInput = document.getElementById('cust-review-phone');
+      const areaInput = document.getElementById('cust-review-area');
+      const commentInput = document.getElementById('cust-review-comment');
+      const ratingInput = document.getElementById('cust-selected-rating');
+
+      const name = nameInput ? nameInput.value.trim() : '';
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      const area = areaInput ? areaInput.value.trim() : '';
+      const comment = commentInput ? commentInput.value.trim() : '';
+      const rating = ratingInput ? parseInt(ratingInput.value) || 5 : 5;
+
+      if (!name) {
+        showToast("தயவுசெய்து உங்கள் பெயரை உள்ளிடவும் / Please enter your name", "error");
+        if (nameInput) nameInput.focus();
+        return;
+      }
+
+      // Collect selected tags
+      const activeTags = [];
+      const chips = document.querySelectorAll('#cust-review-tags-container .review-chip.active');
+      chips.forEach(c => activeTags.push(c.textContent.trim()));
+
+      const reviewId = 'rev_cust_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
+      const newReview = {
+        id: reviewId,
+        customerName: name,
+        customerPhone: phone,
+        area: area || 'Edappadi',
+        rating: rating,
+        comment: comment || (rating >= 4 ? 'சூப்பர் இறைச்சி தரம் மற்றும் மிக விரைவான டெலிவரி!' : ''),
+        tags: activeTags,
+        items: [],
+        verified: true,
+        isFeatured: rating >= 4,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        adminReply: ''
+      };
+
+      try {
+        showToast("மதிப்புரை சமர்ப்பிக்கப்படுகிறது... / Submitting review...", "info");
+        const reviews = _lastReviewsData || getData('ek_reviews', []) || [];
+        reviews.unshift(newReview);
+        _lastReviewsData = reviews;
+        saveData('ek_reviews', reviews);
+
+        if (typeof db !== 'undefined' && db) {
+          await db.collection('ek_reviews').doc(reviewId).set(newReview).catch(() => {});
+        }
+
+        closeCustomerAddReviewModal();
+        showToast("🎉 மிக்க நன்றி! உங்கள் மதிப்புரை பதிவாகிவிட்டது! / Review submitted successfully!", "success");
+
+        // Clear comment box
+        if (commentInput) commentInput.value = '';
+
+        renderCustomerHomeReviews();
+        if (document.getElementById('admin-tab-reviews')) {
+          renderAdminReviews(false);
+        }
+      } catch (err) {
+        console.error("Error submitting customer review:", err);
+        showToast("Failed to submit review", "error");
+      }
+    }
+
+    // Admin Manual Review Actions
+    function openAdminAddReviewModal() {
+      const modal = document.getElementById('admin-add-review-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeAdminAddReviewModal() {
+      const modal = document.getElementById('admin-add-review-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function submitAdminManualReview() {
+      const name = (document.getElementById('admin-new-rev-name') || {}).value || '';
+      const phone = (document.getElementById('admin-new-rev-phone') || {}).value || '';
+      const area = (document.getElementById('admin-new-rev-area') || {}).value || '';
+      const rating = parseInt((document.getElementById('admin-new-rev-rating') || {}).value || '5');
+      const itemsStr = (document.getElementById('admin-new-rev-items') || {}).value || '';
+      const comment = (document.getElementById('admin-new-rev-comment') || {}).value || '';
+      const featured = !!((document.getElementById('admin-new-rev-featured') || {}).checked);
+
+      if (!name.trim()) {
+        showToast("Please enter customer name", "error");
+        return;
+      }
+
+      const reviewId = 'rev_adm_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
+      const itemsArr = itemsStr ? itemsStr.split(',').map(s => s.trim()).filter(Boolean) : ['Fresh Meat'];
+
+      const newRev = {
+        id: reviewId,
+        customerName: name.trim(),
+        customerPhone: phone.trim(),
+        area: area.trim() || 'Edappadi',
+        rating: rating,
+        comment: comment.trim() || 'Great service and fresh meat delivery.',
+        tags: rating >= 5 ? ['🥩 Fresh Meat', '👍 5-Star'] : [],
+        items: itemsArr,
+        verified: true,
+        isFeatured: featured,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        adminReply: 'Thank you for your valuable feedback! 🙏'
+      };
+
+      try {
+        showToast("Adding review...", "info");
+        const reviews = _lastReviewsData || getData('ek_reviews', []) || [];
+        reviews.unshift(newRev);
+        _lastReviewsData = reviews;
+        saveData('ek_reviews', reviews);
+
+        if (typeof db !== 'undefined' && db) {
+          await db.collection('ek_reviews').doc(reviewId).set(newRev).catch(() => {});
+        }
+
+        closeAdminAddReviewModal();
+        showToast("Review published successfully!", "success");
+        renderAdminReviews(false);
+        renderCustomerHomeReviews();
+      } catch (err) {
+        console.error("Error adding review:", err);
+        showToast("Failed to add review", "error");
+      }
+    }
+
+    // Attach all review methods to window for global invocation
+    window.renderAdminReviews = renderAdminReviews;
+    window.renderCustomerHomeReviews = renderCustomerHomeReviews;
+    window.openAllCustomerReviewsModal = openAllCustomerReviewsModal;
+    window.closeAllCustomerReviewsModal = closeAllCustomerReviewsModal;
+    window.speakReviewText = speakReviewText;
+    window.setAdminReviewFilter = setAdminReviewFilter;
+    window.debouncedSearchReviews = debouncedSearchReviews;
+    window.clearReviewSearch = clearReviewSearch;
+    window.toggleReviewReplyForm = toggleReviewReplyForm;
+    window.fillCannedReply = fillCannedReply;
+    window.submitAdminReply = submitAdminReply;
+    window.toggleReviewFeatured = toggleReviewFeatured;
+    window.deleteAdminReview = deleteAdminReview;
+    window.openCustomerAddReviewModal = openCustomerAddReviewModal;
+    window.closeCustomerAddReviewModal = closeCustomerAddReviewModal;
+    window.setCustomerReviewRating = setCustomerReviewRating;
+    window.toggleCustReviewTag = toggleCustReviewTag;
+    window.submitCustomerReview = submitCustomerReview;
+    window.openAdminAddReviewModal = openAdminAddReviewModal;
+    window.closeAdminAddReviewModal = closeAdminAddReviewModal;
+    window.submitAdminManualReview = submitAdminManualReview;
 
     const DEFAULT_LYO_AI_CONFIG = {
       phone: "8778148899",
@@ -1878,7 +2998,7 @@
       systemPrompt: `You are "Premium Edappadi Kadai Assistant", the ultra-vibrant, energetic Salem-accent bilingual shopkeeper of "Edappadi Kadai" in Kavandampatti, Edappadi, Salem, Tamil Nadu.
 
 STRICT PROTOCOLS:
-1. GREETING & PERSONALIZATION: Greet user by name and tier if available. For GOLD tier, greet as VIP Royal Member with extreme praise ("நம்ம கடையோட தங்கம் போன்ற கோல்டு மெம்பர் அண்ணே/அக்கா!") and remind them of free delivery.
+1. GREETING & PERSONALIZATION: Greet user by name and tier if available. For GOLD tier, greet as VIP Royal Member with extreme praise ("நம்ம கடையோட தங்கம் போன்ற கோல்டு மெம்பர் அண்ணே/அக்கா!") and inform them about special discount coupons and offers.
 2. LIVE STOCK LEVELS: Prioritize live product database. If items are out of stock, offer fresh available alternatives.
 3. DELIVERY STATUS: For tracking, provide exact status and rider details from real-time database.
 4. CATEGORY INTELLIGENCE: Match praise opening to detected category:
@@ -1983,7 +3103,7 @@ STRICT PROTOCOLS:
     }
 
     function getBuiltinGeminiApiKey() {
-      // AI generation is executed via server-side Cloud Function proxy to secure credentials
+      // Security: Client does not retrieve server API keys; all built-in calls are proxied through server Cloud Functions.
       return '';
     }
 

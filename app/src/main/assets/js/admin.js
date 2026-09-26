@@ -224,6 +224,31 @@
     }
 
     function renderAdminDashboard() {
+      const adminSession = typeof getAdminSession === 'function' ? getAdminSession() : (typeof getData === 'function' ? getData('ek_admin_session', null) : null);
+      const currentAdminEmail = (adminSession && adminSession.email) ? adminSession.email.trim().toLowerCase() : '';
+      const storedAdmins = (typeof getData === 'function' ? getData('ek_admin_accounts', []) : []) || [];
+      const isKnownAdmin = storedAdmins.some(a => a && a.active !== false && (
+        (a.email && a.email.toLowerCase() === currentAdminEmail) ||
+        (adminSession && adminSession.uid && (a.id === adminSession.uid || a.uid === adminSession.uid)) ||
+        (adminSession && adminSession.phone && a.phone === adminSession.phone)
+      ));
+
+      const isAuthorizedAdmin = adminSession && adminSession.loggedIn && (
+        currentAdminEmail === 'anantharajeinstein@gmail.com' ||
+        (adminSession.role === 'admin' || adminSession.role === 'superadmin') ||
+        isKnownAdmin
+      );
+
+      if (!isAuthorizedAdmin) {
+        console.warn("[Admin Access Guard] Unauthorized attempt to access admin dashboard:", currentAdminEmail);
+        if (typeof showToast === 'function') showToast("❌ Admin access denied! Please sign in with an authorized admin account.", "error");
+        if (typeof showScreen === 'function') {
+          if (typeof switchAuthRole === 'function') switchAuthRole('admin');
+          showScreen('screen-login');
+        }
+        return;
+      }
+
       if (typeof checkAdminSyncHealth === 'function') {
         checkAdminSyncHealth();
       }
@@ -431,9 +456,9 @@
         if (elMinAmt) elMinAmt.value = settings.minOrderAmount !== undefined ? settings.minOrderAmount : 0;
 
         const elMinAppVer = document.getElementById('setting-min-app-version');
-        if (elMinAppVer) elMinAppVer.value = settings.minAppVersion || '8.0.0';
+        if (elMinAppVer) elMinAppVer.value = settings.minAppVersion || '9.0.0';
         const elRecAppVer = document.getElementById('setting-recommended-app-version');
-        if (elRecAppVer) elRecAppVer.value = settings.recommendedVersion || '8.0.0';
+        if (elRecAppVer) elRecAppVer.value = settings.recommendedVersion || '9.0.0';
         const elPlayUrl = document.getElementById('setting-playstore-url');
         if (elPlayUrl) elPlayUrl.value = settings.playStoreUrl || 'https://play.google.com/store/apps/details?id=com.edappadikadai.app';
         const elPrivacyUrl = document.getElementById('setting-privacy-policy-url');
@@ -769,6 +794,11 @@
             const deletedProductIds = typeof getDeletedProductIds === 'function' ? getDeletedProductIds() : [];
             if (deletedProductIds.length > 0) {
               items = items.filter(p => p && p.id && !deletedProductIds.includes(p.id));
+            }
+          } else if (gate.id === 'coupons') {
+            const deletedCouponIds = typeof getDeletedCouponIds === 'function' ? getDeletedCouponIds() : [];
+            if (deletedCouponIds.length > 0) {
+              items = items.filter(c => c && c.id && !deletedCouponIds.includes(c.id) && !deletedCouponIds.includes(c.code));
             }
           }
 
@@ -1379,11 +1409,58 @@ Your scheduled pre-order (*${o.id}*) is confirmed for delivery:
 
       let listHtml = '';
       paginatedOrders.forEach(o => {
-        const itemRows = (o.items || []).map(i => {
-          const prep = getLocalizedPrepareText(i.cutStyle, i.category);
-          const prepStr = prep ? ` [${prep}]` : '';
-          return `• ${i.tamilName} (${i.englishName}) - <strong>${getFormattedItemQty(i, currentLang)}</strong>${prepStr} ${i.specialNote ? '<i>(Note: '+i.specialNote+')</i>' : ''}`;
-        }).join('<br>');
+        const itemRows = (o.items || []).map((i, idx) => {
+          const prep = (typeof getLocalizedPrepareText === 'function') ? getLocalizedPrepareText(i.cutStyle, i.category) : (i.cutStyle || '');
+          const taName = typeof escapeHtml === 'function' ? escapeHtml(i.tamilName || i.name || '') : (i.tamilName || i.name || '');
+          const enName = typeof escapeHtml === 'function' ? escapeHtml(i.englishName || '') : (i.englishName || '');
+          const itemPriceVal = i.totalPrice || i.itemTotalPrice || ((i.pricePerUnit || i.price || 0) * (i.weightGrams ? (typeof isUnitWeight === 'function' && isUnitWeight(i.sellingUnit || i.unit || 'kg') ? i.weightGrams/1000 : i.weightGrams) : 1));
+          const qtyStr = (typeof getFormattedItemQty === 'function') ? getFormattedItemQty(i, currentLang) : (i.quantity || '1');
+
+          return `
+            <div class="admin-order-item-row">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; min-width:0;">
+                <div style="flex:1 1 auto; min-width:0; word-break:break-word; overflow-wrap:anywhere;">
+                  <div class="admin-order-item-title" style="font-weight:700; color:#ffffff; font-size:13px; line-height:1.35; word-break:break-word; overflow-wrap:anywhere;">
+                    <span style="color:var(--accent-orange); font-size:11px; margin-right:3px;">#${idx + 1}</span>${taName}
+                  </div>
+                  ${enName ? `
+                    <div class="admin-order-item-subtitle" style="font-size:11px; color:#94a3b8; line-height:1.3; margin-top:1px; word-break:break-word; overflow-wrap:anywhere;">
+                      ${enName}
+                    </div>
+                  ` : ''}
+                </div>
+                <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+                  <span class="badge" style="background:rgba(34,197,94,0.15); color:#22c55e; border:1px solid rgba(34,197,94,0.35); font-weight:800; font-size:11px; padding:2px 7px; border-radius:6px; white-space:nowrap;">
+                    ⚖️ ${qtyStr}
+                  </span>
+                  ${itemPriceVal ? `
+                    <span style="font-size:11px; font-weight:700; color:#e2e8f0;">₹${itemPriceVal}</span>
+                  ` : ''}
+                </div>
+              </div>
+              ${(prep || i.specialNote) ? `
+                <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:2px; align-items:center;">
+                  ${prep ? `
+                    <span style="font-size:9.5px; background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); padding:1.5px 6px; border-radius:4px; font-weight:600; display:inline-flex; align-items:center; gap:2px;">
+                      ✂️ ${prep}
+                    </span>
+                  ` : ''}
+                  ${i.specialNote ? `
+                    <span style="font-size:9.5px; background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); padding:1.5px 6px; border-radius:4px; font-style:italic; display:inline-flex; align-items:center; gap:2px; word-break:break-word; overflow-wrap:anywhere;">
+                      📝 ${typeof escapeHtml === 'function' ? escapeHtml(i.specialNote) : i.specialNote}
+                    </span>
+                  ` : ''}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+        const collapsedItemsSummary = (o.items || []).map(i => {
+          const name = i.tamilName || i.englishName || i.name || 'Item';
+          const qty = (typeof getFormattedItemQty === 'function') ? getFormattedItemQty(i, currentLang) : (i.quantity || '1');
+          return `${name} (${qty})`;
+        }).join(', ');
 
         const oCoords = getOrderCoordinates(o);
         const custLat = oCoords.customer[0];
@@ -1493,7 +1570,7 @@ ${o.orderSource === 'AI_ASSISTANT' ? '🤖 _Order placed via Edappadi Kadai AI A
 │  *ITEMS ORDERED*        │
 └─────────────────────────┘
 ${o.items.map((it, idx) => {
-  const prep = getLocalizedPrepareText(it.cutStyle, it.category);
+  const prep = (typeof getLocalizedPrepareText === 'function') ? getLocalizedPrepareText(it.cutStyle, it.category) : (it.cutStyle || '');
   const prepStr = prep ? `\n   ✂️ _${prep}_` : '';
   const itemNote = it.specialNote ? `\n   📝 _${it.specialNote}_` : '';
   const itemPriceVal = it.totalPrice || it.itemTotalPrice || ((it.pricePerUnit || it.price || 0) * (it.weightGrams ? (isUnitWeight(it.sellingUnit || it.unit || 'kg') ? it.weightGrams/1000 : it.weightGrams) : 1));
@@ -1545,7 +1622,7 @@ Your order is now ready and out for delivery!
 ━━━━━━━━━━━━━━━━━━━━━━━
 
 ${o.items.map((it, idx) => {
-  const prep = getLocalizedPrepareText(it.cutStyle, it.category);
+  const prep = (typeof getLocalizedPrepareText === 'function') ? getLocalizedPrepareText(it.cutStyle, it.category) : (it.cutStyle || '');
   const prepStr = prep ? `\n   ✂️ *தயாரிப்பு:* ${prep}` : '';
   const itemNote = it.specialNote ? `\n   📝 *குறிப்பு:* ${it.specialNote}` : '';
   return `🔹 ${idx + 1}. *${it.tamilName}* (${it.englishName})
@@ -1573,28 +1650,28 @@ ${o.items.map((it, idx) => {
           : `<span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1.5px solid rgba(245, 158, 11, 0.4); color: #f59e0b; font-weight: 800; font-size: 10px; padding: 2.5px 6.5px; border-radius: 6px; text-transform: uppercase;">💵 COD (CASH)</span>`;
 
         const card = `
-          <div class="card" style="border-left: 4px solid var(--accent-orange); margin-bottom: 12px; padding: 14px; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; background: var(--bg-card); contain: layout style paint;" onclick="toggleOrderDetails('${o.id}')">
+          <div class="card admin-order-card" onclick="toggleOrderDetails('${o.id}')">
             <!-- Header Section (Always Visible) -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <div>
-                <span style="font-size:10px; color:var(--text-secondary); text-transform:uppercase; font-weight:500;">TICKET</span>
-                <strong style="color:var(--accent-orange); display:block; font-size:14px; font-family:'JetBrains Mono', monospace;">${o.id}</strong>
+            <div class="admin-order-header">
+              <div style="min-width:0; flex:1 1 120px;">
+                <span style="font-size:10px; color:var(--text-secondary); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">TICKET</span>
+                <strong class="admin-order-ticket-id">${o.id}</strong>
               </div>
-              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;" onclick="event.stopPropagation()">
-                <span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1.5px solid rgba(245, 158, 11, 0.4); color: #f59e0b; font-weight: 800; font-size: 10px; padding: 2px 7px; border-radius: 6px; text-transform: uppercase;">🏷️ ${escapeHtml(o.orderCategory || o.category || (o.items && o.items[0] && o.items[0].category) || 'General')}</span>
-                <span class="badge" style="background: rgba(59, 130, 246, 0.15); border: 1.5px solid rgba(59, 130, 246, 0.4); color: #60a5fa; font-weight: 800; font-size: 10px; padding: 2px 7px; border-radius: 6px;">⚙️ ${escapeHtml(o.orderStage || o.stage || 'Received')}</span>
-                <span class="badge ${badgeClass}">${o.status.toUpperCase()}</span>
-                <span style="font-size:16px; color:var(--text-muted); cursor:pointer; font-weight:700; width:24px; text-align:center;" onclick="toggleOrderDetails('${o.id}')">${isExpanded ? '▲' : '▼'}</span>
+              <div class="admin-order-badges" onclick="event.stopPropagation()">
+                <span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1.5px solid rgba(245, 158, 11, 0.4); color: #f59e0b; font-weight: 800; font-size: 9.5px; padding: 2px 6px; border-radius: 6px; text-transform: uppercase;">🏷️ ${escapeHtml(o.orderCategory || o.category || (o.items && o.items[0] && o.items[0].category) || 'General')}</span>
+                <span class="badge" style="background: rgba(59, 130, 246, 0.15); border: 1.5px solid rgba(59, 130, 246, 0.4); color: #60a5fa; font-weight: 800; font-size: 9.5px; padding: 2px 6px; border-radius: 6px;">⚙️ ${escapeHtml(o.orderStage || o.stage || 'Received')}</span>
+                <span class="badge ${badgeClass}" style="font-size:9.5px; padding:2px 6px;">${o.status.toUpperCase()}</span>
+                <span style="font-size:15px; color:var(--text-muted); cursor:pointer; font-weight:700; width:22px; text-align:center;" onclick="toggleOrderDetails('${o.id}')">${isExpanded ? '▲' : '▼'}</span>
               </div>
             </div>
 
             <!-- Primary Customer Info (Always Visible) -->
-            <div style="font-size:13px; margin-bottom:2px; display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <p style="margin: 0; font-weight:700; color:#ffffff; font-size:13.5px;">👤 ${escapeHtml(o.customerName)}</p>
-                <p style="margin: 0; font-size:12px; color:var(--text-secondary);">📞 <a href="tel:${o.customerPhone}" style="color:var(--accent-orange); text-decoration:none; font-weight:600;" onclick="event.stopPropagation()">${o.customerPhone}</a></p>
+            <div class="admin-order-cust-info">
+              <div style="flex:1 1 180px; min-width:0; word-break:break-word; overflow-wrap:anywhere;">
+                <p class="admin-order-cust-name">👤 ${escapeHtml(o.customerName)}</p>
+                <p style="margin: 2px 0 0 0; font-size:12px; color:var(--text-secondary);">📞 <a href="tel:${o.customerPhone}" style="color:var(--accent-orange); text-decoration:none; font-weight:600;" onclick="event.stopPropagation()">${o.customerPhone}</a></p>
               </div>
-              <div style="text-align:right;">
+              <div style="flex-shrink:0; margin-left:auto;">
                 ${paymentBadge}
               </div>
             </div>
@@ -1625,8 +1702,12 @@ ${o.items.map((it, idx) => {
 
             <!-- Quick Expand/Collapse and price Summary Badge (Visible in Collapsed State) -->
             ${!isExpanded ? `
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-top:1px dashed #262626; padding-top:8px; font-size:11.5px; color:var(--text-muted);">
-                <span>💰 Total : <strong style="color:var(--accent-green);">₹${o.totalAmount}</strong> <span style="font-size:9.5px; color:#999; margin-left:4px; font-weight:bold;">(${isUpi ? 'Paid Online' : 'Pay COD'})</span></span>
+              <div style="margin-top:6px; font-size:11.5px; color:#cbd5e1; line-height:1.35; word-break:break-word; overflow-wrap:anywhere;">
+                <span style="color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase;">🛒 ITEMS:</span>
+                <span>${typeof escapeHtml === 'function' ? escapeHtml(collapsedItemsSummary) : collapsedItemsSummary}</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; border-top:1px dashed #262626; padding-top:6px; font-size:11.5px; color:var(--text-muted); flex-wrap:wrap; gap:4px;">
+                <span>💰 Total : <strong style="color:var(--accent-green); font-size:13px;">₹${o.totalAmount}</strong> <span style="font-size:9.5px; color:#999; margin-left:4px; font-weight:bold;">(${isUpi ? 'Paid Online' : 'Pay COD'})</span></span>
                 <span style="color: var(--accent-orange); font-weight:600; font-size:10.5px; display:flex; align-items:center; gap:2px;">${currentLang === 'ta' ? 'விவரம் காண்க ⬇️' : 'View Details ⬇️'}</span>
               </div>
             ` : ''}
@@ -1634,7 +1715,7 @@ ${o.items.map((it, idx) => {
             <!-- Expanded Info Section (Toggleable Details) -->
             <div id="order-details-${o.id}" style="display: ${isExpanded ? 'block' : 'none'}; margin-top: 12px; border-top: 1px solid #262626; padding-top: 12px;" onclick="event.stopPropagation()">
               <div style="font-size:12px; margin-bottom:8px; line-height:1.45;">
-                <p style="color:var(--text-secondary);">📍 <strong>Delivery Address:</strong> ${escapeHtml(o.deliveryAddress)}</p>
+                <p style="color:var(--text-secondary); word-break:break-word; overflow-wrap:anywhere; margin:0 0 4px 0;">📍 <strong>Delivery Address:</strong> ${escapeHtml(o.deliveryAddress)}</p>
                 <p style="color:var(--text-secondary); margin-top:4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                   <span>⏱️ Slot: <strong>${o.deliveryTimeSlot}</strong></span> | 
                   <span>💳 Payment:</span> 
@@ -1645,21 +1726,24 @@ ${o.items.map((it, idx) => {
                 </p>
               </div>
 
-              <div class="card" style="background:#0a0a0a; font-size:12px; padding:10px; border-color:#222; margin-bottom:10px; border-radius:8px;">
-                <span style="font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase;">BASKET ITEMS</span>
-                <p style="margin-top:4px; line-height:1.5; margin-bottom: 0;">${itemRows}</p>
+              <div class="card" style="background:#0a0a0a; font-size:12px; padding:8px; border-color:#222; margin-bottom:10px; border-radius:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding:0 2px;">
+                  <span style="font-size:10px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">BASKET ITEMS (${(o.items || []).length})</span>
+                  <span style="font-size:10px; color:var(--accent-orange); font-weight:600;">Fresh Prep</span>
+                </div>
+                <div>${itemRows}</div>
               </div>
 
-              <div style="margin-bottom:10px; border-top: 1px dashed #262626; padding-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <div>
+              <div class="admin-order-grid-2col" style="margin-bottom:10px; border-top: 1px dashed #262626; padding-top: 8px;">
+                <div style="min-width:0;">
                   <label style="font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; display:block; margin-bottom:4px;">🏷️ ${currentLang === 'ta' ? 'ஆர்டர் வகை (Category)' : 'Order Category'}</label>
-                  <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:12px; padding:6px; border-radius:6px; width:100%; font-weight:bold;" onchange="changeOrderCategory('${o.id}', this.value)" onclick="event.stopPropagation()">
+                  <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:11.5px; padding:6px; border-radius:6px; width:100%; font-weight:bold; text-overflow:ellipsis;" onchange="changeOrderCategory('${o.id}', this.value)" onclick="event.stopPropagation()">
                     ${categoryOptionsHtml}
                   </select>
                 </div>
-                <div>
+                <div style="min-width:0;">
                   <label style="font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; display:block; margin-bottom:4px;">⚙️ ${currentLang === 'ta' ? 'ஆர்டர் நிலை (Stage)' : 'Order Stage'}</label>
-                  <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:12px; padding:6px; border-radius:6px; width:100%; font-weight:bold;" onchange="changeOrderStage('${o.id}', this.value)" onclick="event.stopPropagation()">
+                  <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:11.5px; padding:6px; border-radius:6px; width:100%; font-weight:bold; text-overflow:ellipsis;" onchange="changeOrderStage('${o.id}', this.value)" onclick="event.stopPropagation()">
                     <option value="Received" ${(o.orderStage === 'Received' || o.stage === 'Received' || !o.orderStage) ? 'selected' : ''}>📥 Received / பெறப்பட்டது</option>
                     <option value="Processing & Cut" ${(o.orderStage === 'Processing & Cut' || o.stage === 'Processing & Cut') ? 'selected' : ''}>✂️ Processing / வெட்டப்படுகிறது</option>
                     <option value="Quality Checked" ${(o.orderStage === 'Quality Checked' || o.stage === 'Quality Checked') ? 'selected' : ''}>🔍 Quality Checked / சரிபார்க்கப்பட்டது</option>
@@ -1671,26 +1755,26 @@ ${o.items.map((it, idx) => {
               </div>
 
               <!-- Order Instructions & Notes from Admin -->
-              <div style="background: rgba(255,255,255,0.03); border: 1px dashed #333; padding: 8px 10px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation()">
-                <div style="font-size: 11.5px; line-height: 1.4; flex: 1; padding-right: 8px;">
+              <div style="background: rgba(255,255,255,0.03); border: 1px dashed #333; padding: 8px 10px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; min-width:0;" onclick="event.stopPropagation()">
+                <div style="font-size: 11.5px; line-height: 1.4; flex: 1; padding-right: 8px; min-width:0;">
                   <span style="color: var(--text-muted); font-weight: 700; font-size: 10px; text-transform: uppercase;">📝 ${currentLang === 'ta' ? 'ஆர்டர் குறிப்புகள் (Instructions):' : 'Order Instructions / Notes:'}</span>
-                  <p style="margin: 2px 0 0 0; color: #fff; font-style: ${(o.orderInstructions || o.specialInstructions || o.adminNotes) ? 'normal' : 'italic'};">
+                  <p style="margin: 2px 0 0 0; color: #fff; font-style: ${(o.orderInstructions || o.specialInstructions || o.adminNotes) ? 'normal' : 'italic'}; word-break: break-word; overflow-wrap: anywhere;">
                     ${escapeHtml(o.orderInstructions || o.specialInstructions || o.adminNotes || (currentLang === 'ta' ? 'குறிப்புகள் எதுவும் இல்லை' : 'No custom instructions'))}
                   </p>
                 </div>
-                <button class="btn" style="background: rgba(245,158,11,0.12); color: var(--accent-orange); border: 1px solid rgba(245,158,11,0.3); font-size: 10.5px; padding: 4px 8px; border-radius: 6px; cursor: pointer; white-space: nowrap;" onclick="event.stopPropagation(); promptEditOrderInstructions('${o.id}')">✏️ Edit</button>
+                <button class="btn" style="background: rgba(245,158,11,0.12); color: var(--accent-orange); border: 1px solid rgba(245,158,11,0.3); font-size: 10.5px; padding: 4px 8px; border-radius: 6px; cursor: pointer; white-space: nowrap; flex-shrink:0;" onclick="event.stopPropagation(); promptEditOrderInstructions('${o.id}')">✏️ Edit</button>
               </div>
 
-              <div style="margin-bottom:12px; border-top: 1px dashed #262626; padding-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <div>
+              <div class="admin-order-grid-2col" style="margin-bottom:12px; border-top: 1px dashed #262626; padding-top: 8px;">
+                <div style="min-width:0;">
                   <label style="font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; display:block; margin-bottom:4px;">${currentLang === 'ta' ? 'விநியோக நபர் (Rider)' : 'Delivery Partner'}</label>
-                  <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:12px; padding:6px; border-radius:6px; width:100%; font-weight:bold;" onchange="assignDeliveryPartner('${o.id}', this.value)" onclick="event.stopPropagation()">
+                  <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:11.5px; padding:6px; border-radius:6px; width:100%; font-weight:bold; text-overflow:ellipsis;" onchange="assignDeliveryPartner('${o.id}', this.value)" onclick="event.stopPropagation()">
                     ${deliveryOptionsHtml}
                   </select>
                 </div>
-                <div>
+                <div style="min-width:0;">
                   <label style="font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; display:block; margin-bottom:4px;">${currentLang === 'ta' ? 'ஆர்டர் நிலை (Status)' : 'Order Status'}</label>
-                  <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:12px; padding:6px; border-radius:6px; width:100%; font-weight:bold;" onchange="changeOrderStatusDirectly('${o.id}', this.value)" onclick="event.stopPropagation()">
+                  <select class="form-control" style="background:#111; color:#fff; border:1px solid #333; font-size:11.5px; padding:6px; border-radius:6px; width:100%; font-weight:bold; text-overflow:ellipsis;" onchange="changeOrderStatusDirectly('${o.id}', this.value)" onclick="event.stopPropagation()">
                     <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending ⏳</option>
                     <option value="ready" ${o.status === 'ready' ? 'selected' : ''}>Ready 🥩</option>
                     <option value="delivering" ${o.status === 'delivering' ? 'selected' : ''}>Delivering 🏍️</option>
@@ -1735,18 +1819,18 @@ ${o.items.map((it, idx) => {
               ` : ''}
 
               <!-- Operational Buttons Grid -->
-              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
-                <a href="tel:${o.customerPhone}" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px;">📞 Call Customer</a>
-                <a href="javascript:void(0)" onclick="openWhatsAppDirect('${o.customerPhone}', decodeURIComponent('${waCustomerMsg}'))" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.3); color:#10b981; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px; font-weight:700;">📱 Confirm WA</a>
+              <div class="admin-order-ops-grid">
+                <a href="tel:${o.customerPhone}" class="btn" style="padding:8px 4px; font-size:11px; text-decoration:none; text-align:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px;">📞 Call Customer</a>
+                <a href="javascript:void(0)" onclick="openWhatsAppDirect('${o.customerPhone}', decodeURIComponent('${waCustomerMsg}'))" class="btn" style="padding:8px 4px; font-size:11px; text-decoration:none; text-align:center; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.3); color:#10b981; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px; font-weight:700;">📱 Confirm WA</a>
 
-                <button class="btn" style="padding:8px; font-size:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; cursor:pointer;" onclick="printKOTTicket('${o.id}')">🖨️ ${currentLang === 'ta' ? 'பேக்கிங் சீட்டு' : 'Packing Slip'}</button>
-                <a href="javascript:void(0)" onclick="openWhatsAppShareModal('${o.id}', '${o.customerPhone}', '${(o.customerName || '').replace(/'/g, "\\'")}', '${assignedExecId || ''}', '${kotMsg}')" class="btn" style="padding:8px; font-size:11px; text-decoration:none; text-align:center; background:rgba(34, 197, 94, 0.08); border:1px solid rgba(34, 197, 94, 0.3); color:#22c55e; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px; font-weight:700;">💚 ${currentLang === 'ta' ? 'சீட்டைப் பகிர்' : 'Share Slip'}</a>
+                <button class="btn" style="padding:8px 4px; font-size:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; cursor:pointer;" onclick="printKOTTicket('${o.id}')">🖨️ ${currentLang === 'ta' ? 'பேக்கிங் சீட்டு' : 'Packing Slip'}</button>
+                <a href="javascript:void(0)" onclick="openWhatsAppShareModal('${o.id}', '${o.customerPhone}', '${(o.customerName || '').replace(/'/g, "\\'")}', '${assignedExecId || ''}', '${kotMsg}')" class="btn" style="padding:8px 4px; font-size:11px; text-decoration:none; text-align:center; background:rgba(34, 197, 94, 0.08); border:1px solid rgba(34, 197, 94, 0.3); color:#22c55e; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:3px; font-weight:700;">💚 ${currentLang === 'ta' ? 'சீட்டைப் பகிர்' : 'Share Slip'}</a>
 
-                <button class="btn" style="padding:8px; font-size:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; cursor:pointer;" onclick="printCustomerInvoice('${o.id}')">📄 Print Bill</button>
-                <button class="btn" style="padding:8px; font-size:11px; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); color:#f59e0b; border-radius:8px; cursor:pointer; font-weight:700;" onclick="promptEditOrderDeliveryOrEta('${o.id}')">🚚 Fee / ETA</button>
+                <button class="btn" style="padding:8px 4px; font-size:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:8px; cursor:pointer;" onclick="printCustomerInvoice('${o.id}')">📄 Print Bill</button>
+                <button class="btn" style="padding:8px 4px; font-size:11px; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); color:#f59e0b; border-radius:8px; cursor:pointer; font-weight:700;" onclick="promptEditOrderDeliveryOrEta('${o.id}')">🚚 Fee / ETA</button>
               </div>
 
-              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; border-top: 1px solid var(--border-color); padding-top:8px;">
+              <div class="admin-order-status-actions">
                 ${actions}
               </div>
 
@@ -2184,11 +2268,16 @@ ${o.items.map((it, idx) => {
 
             const currentOrders = getData('ek_orders', []);
             const currentIdx = currentOrders.findIndex(o => o.id === orderId);
-            if (currentIdx !== -1 && currentOrders[currentIdx].status !== expectedStatus) {
-              console.warn(`[Correction] Local status reverted to ${currentOrders[currentIdx].status}. Resetting back to ${expectedStatus}.`);
-              currentOrders[currentIdx].status = expectedStatus;
-              saveData('ek_orders', currentOrders);
-              renderAdminDashboard();
+            if (currentIdx !== -1) {
+              const statusRanks = { pending: 1, confirmed: 2, preparing: 3, ready: 4, delivering: 5, delivered: 6, cancelled: 7, rejected: 7 };
+              const curRank = statusRanks[currentOrders[currentIdx].status] || 0;
+              const expRank = statusRanks[expectedStatus] || 0;
+              if (curRank < expRank) {
+                console.warn(`[Correction] Local status was ${currentOrders[currentIdx].status}. Upgrading to ${expectedStatus}.`);
+                currentOrders[currentIdx].status = expectedStatus;
+                saveData('ek_orders', currentOrders);
+                renderAdminDashboard();
+              }
             }
           })
           .catch(err => {
@@ -2201,15 +2290,19 @@ ${o.items.map((it, idx) => {
       }
 
       if (exec) {
-        showAdminSuccessModal(
-          currentLang === 'ta' ? "🏍️ டெலிவரி நபர் நியமிக்கப்பட்டார்!" : "🏍️ Delivery Partner Assigned!",
-          currentLang === 'ta' ? `ஆர்டர் <strong>${orderId}</strong> வெற்றிகரமாக <strong>${exec.name}</strong>-க்கு ஒதுக்கப்பட்டு சேமிக்கப்பட்டது.` : `Order <strong>${orderId}</strong> has been successfully assigned to <strong>${exec.name}</strong>.`
-        );
+        if (typeof showAdminSuccessModal === 'function') {
+          showAdminSuccessModal(
+            (typeof currentLang !== 'undefined' && currentLang === 'ta') ? "🏍️ டெலிவரி நபர் நியமிக்கப்பட்டார்!" : "🏍️ Delivery Partner Assigned!",
+            (typeof currentLang !== 'undefined' && currentLang === 'ta') ? `ஆர்டர் <strong>${orderId}</strong> வெற்றிகரமாக <strong>${exec.name}</strong>-க்கு ஒதுக்கப்பட்டு சேமிக்கப்பட்டது.` : `Order <strong>${orderId}</strong> has been successfully assigned to <strong>${exec.name}</strong>.`
+          );
+        }
       } else {
-        showAdminSuccessModal(
-          currentLang === 'ta' ? "🏍️ ஒதுக்கீடு நீக்கப்பட்டது!" : "🏍️ Assignment Removed!",
-          currentLang === 'ta' ? `ஆர்டர் <strong>${orderId}</strong>-இன் டெலிவரி ஒதுக்கீடு நீக்கப்பட்டது.` : `The delivery assignment for order <strong>${orderId}</strong> has been removed.`
-        );
+        if (typeof showAdminSuccessModal === 'function') {
+          showAdminSuccessModal(
+            (typeof currentLang !== 'undefined' && currentLang === 'ta') ? "🏍️ ஒதுக்கீடு நீக்கப்பட்டது!" : "🏍️ Assignment Removed!",
+            (typeof currentLang !== 'undefined' && currentLang === 'ta') ? `ஆர்டர் <strong>${orderId}</strong>-இன் டெலிவரி ஒதுக்கீடு நீக்கப்பட்டது.` : `The delivery assignment for order <strong>${orderId}</strong> has been removed.`
+          );
+        }
       }
 
       renderAdminDashboard();
@@ -2590,60 +2683,6 @@ ${o.items.map((it, idx) => {
       });
     }
 
-    function isProductOutOfStock(p) {
-      if (!p) return false;
-
-      // 1. Emergency Force Out of Stock override
-      if (p.forceOutOfStock) return true;
-
-      // 2. Physical Stock <= 0
-      if (p.stockKg !== undefined && p.stockKg <= 0) return true;
-
-      // 3. Time Window check
-      const start = p.availabilityStart || p.scheduleStart || '';
-      const end = p.availabilityEnd || p.scheduleEnd || '';
-      const isScheduled = p.isScheduled !== false && Boolean(start && end);
-
-      if (isScheduled) {
-        const now = new Date();
-        const currentHours = String(now.getHours()).padStart(2, '0');
-        const currentMinutes = String(now.getMinutes()).padStart(2, '0');
-        const currentTimeStr = `${currentHours}:${currentMinutes}`;
-
-        const normStart = normalizeTimeStr(start, "00:00");
-        const normEnd = normalizeTimeStr(end, "23:59");
-
-        if (normStart <= normEnd) {
-          if (currentTimeStr < normStart || currentTimeStr > normEnd) {
-            return true; // Outside timing window -> Out of Stock
-          }
-        } else {
-          // Overnight window (e.g. 22:00 to 04:00)
-          if (currentTimeStr < normStart && currentTimeStr > normEnd) {
-            return true; // Outside timing window -> Out of Stock
-          }
-        }
-      }
-
-      // If no timing set or current time is within window, and forceOutOfStock is false, and stockKg > 0:
-      return false;
-    }
-
-    function updateProductAvailability(p) {
-      if (!p) return;
-
-      // Firestore Data Migration rule:
-      // Legacy products marked manually isOutOfStock without forceOutOfStock or timing window
-      // default to "Always Available" (isOutOfStock = false) unless timing or force-override is active.
-      if (p.isOutOfStock && !p.forceOutOfStock && !(p.isScheduled && (p.availabilityStart || p.scheduleStart))) {
-        p.isOutOfStock = false;
-      }
-
-      const outOfStock = isProductOutOfStock(p);
-      p.isOutOfStock = outOfStock;
-      p.isAvailable = !outOfStock;
-    }
-
     function formatTime12h(timeStr) {
       if (!timeStr) return '';
       const parts = String(timeStr).trim().split(':');
@@ -2931,6 +2970,9 @@ ${o.items.map((it, idx) => {
 
         saveData('ek_products', products);
         invalidateDataCache('ek_products');
+        if (typeof syncAiKnowledgeBase === 'function') {
+          syncAiKnowledgeBase(products);
+        }
         window._lastProductsHash = '';
         if (typeof _lastProductsHash !== 'undefined') _lastProductsHash = '';
         if (typeof renderHomeScreenProducts === 'function') {
@@ -3319,6 +3361,9 @@ ${o.items.map((it, idx) => {
         products[idx] = targetProduct;
         saveData('ek_products', products);
         invalidateDataCache('ek_products');
+        if (typeof syncAiKnowledgeBase === 'function') {
+          syncAiKnowledgeBase(products);
+        }
         window._lastProductsHash = '';
         if (typeof _lastProductsHash !== 'undefined') _lastProductsHash = '';
         if (typeof renderHomeScreenProducts === 'function') {
@@ -3422,6 +3467,9 @@ ${o.items.map((it, idx) => {
 
           saveData('ek_products', filtered);
           invalidateDataCache('ek_products');
+          if (typeof syncAiKnowledgeBase === 'function') {
+            syncAiKnowledgeBase(filtered);
+          }
           if (typeof _lastProductsHash !== 'undefined') _lastProductsHash = '';
           window._lastProductsHash = '';
           if (typeof renderHomeScreenProducts === 'function') {
@@ -3549,30 +3597,35 @@ ${o.items.map((it, idx) => {
         const outStatusHtml = p.isOutOfStock ? `<div style="background:var(--accent-red); font-size:10px; font-weight:800; color:#000; text-align:center; padding:3px;">OUT OF STOCK (${p.forceOutOfStock ? 'EMERGENCY OVERRIDE' : (p.stockKg <= 0 ? 'NO STOCK' : 'OUTSIDE TIMING WINDOW')})</div>` : '';
 
         const item = `
-          <div class="card" style="padding:0; overflow:hidden; border-color:#2c2c2c; margin-bottom:12px; position:relative;">
-            <div style="display:flex; align-items:stretch; padding:8px 10px; gap:10px;">
-              <img src="${getImageUrlWithCacheBuster(getProductThumbnailUrl(p), p.updatedAt)}" width="72" height="72" style="width:72px; height:72px; object-fit:cover; border-radius:10px; border:1px solid #222;" alt="" loading="lazy" decoding="async">
-              <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:space-between; min-width:0;">
-                <div>
-                  <h4 style="font-size:13.5px; font-weight:700; color:#fff; display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin:0; line-height:1.2;">
-                    ${p.tamilName} ${specialBadgeHtml}
+          <div class="card admin-product-card">
+            <div class="admin-product-body">
+              <img src="${getImageUrlWithCacheBuster(getProductThumbnailUrl(p), p.updatedAt)}" class="admin-product-thumb" alt="" loading="lazy" decoding="async">
+              <div class="admin-product-info">
+                <div style="min-width:0; width:100%;">
+                  <h4 class="admin-product-name-primary">
+                    <span>${typeof escapeHtml === 'function' ? escapeHtml(p.tamilName || p.name || '') : (p.tamilName || p.name || '')}</span> ${specialBadgeHtml}
                   </h4>
-                  <p style="font-size:10.5px; color:var(--text-secondary); margin:1px 0 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.englishName} | Category: <strong style="color:var(--accent-orange);">${p.category}</strong></p>
-                  <div style="font-size:10.5px; font-weight:700; color:${p.forceOutOfStock ? '#ff4a4a' : (p.isScheduled && (p.availabilityStart || p.scheduleStart) ? '#eab308' : '#2dd4bf')}; margin-top:3px; display:flex; align-items:center; gap:4px;">
-                    ${availLabel}
+                  <div class="admin-product-name-secondary">
+                    ${typeof escapeHtml === 'function' ? escapeHtml(p.englishName || '') : (p.englishName || '')}
+                  </div>
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:2px;">
+                    <span class="badge" style="font-size:9.5px; padding:1.5px 6px; background:rgba(245,158,11,0.12); color:var(--accent-orange); border:1px solid rgba(245,158,11,0.25); border-radius:4px; text-transform:capitalize; font-weight:600;">🏷️ ${typeof escapeHtml === 'function' ? escapeHtml(p.category || 'General') : (p.category || 'General')}</span>
+                    <span style="font-size:10px; font-weight:700; color:${p.forceOutOfStock ? '#ff4a4a' : (p.isScheduled && (p.availabilityStart || p.scheduleStart) ? '#eab308' : '#2dd4bf')}; display:inline-flex; align-items:center; gap:2px;">
+                      ${availLabel}
+                    </span>
                   </div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; gap:8px; min-width:0;">
-                  <div style="display:flex; align-items:center; gap:8px; white-space:nowrap; overflow-x:auto;">
-                    <strong style="font-size:13px; color:var(--accent-green); white-space:nowrap;">${getProductPriceText(p, 'en')}</strong>
+                <div class="admin-product-meta-row">
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:11.5px;">
+                    <strong style="font-size:13.5px; color:var(--accent-green); white-space:nowrap;">${getProductPriceText(p, 'en')}</strong>
                     <span style="font-size:11px; color:var(--text-secondary);">•</span>
-                    <div style="font-size:10.5px; color:${scColor}; font-weight:700; white-space:nowrap;">Stock: ${getProductStockText(p, 'en')}</div>
+                    <div style="font-size:11px; color:${scColor}; font-weight:700; white-space:nowrap;">Stock: ${getProductStockText(p, 'en')}</div>
                   </div>
 
                   <!-- Emergency Out-of-Stock Override Button -->
-                  <button class="btn" style="padding:4px 8px; font-size:10px; font-weight:800; border-radius:10px; transition:all 0.18s cubic-bezier(0.16, 1, 0.3, 1); background:${p.forceOutOfStock ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.05)'}; color:${p.forceOutOfStock ? '#ff4a4a' : '#9ca3af'}; border:1.5px solid ${p.forceOutOfStock ? '#ff4a4a' : 'rgba(255,255,255,0.15)'}; display:inline-flex; align-items:center; justify-content:center; gap:3px; height:26px; flex-shrink:0;" onclick="toggleForceOutOfStock('${p.id}')">
-                    ${p.forceOutOfStock ? '🚨 Emergency Out: ON' : '🚨 Emergency Out'}
+                  <button class="btn" style="padding:4px 8px; font-size:9.5px; font-weight:800; border-radius:8px; transition:all 0.18s cubic-bezier(0.16, 1, 0.3, 1); background:${p.forceOutOfStock ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.05)'}; color:${p.forceOutOfStock ? '#ff4a4a' : '#9ca3af'}; border:1.5px solid ${p.forceOutOfStock ? '#ff4a4a' : 'rgba(255,255,255,0.15)'}; display:inline-flex; align-items:center; justify-content:center; gap:3px; height:26px; flex-shrink:0; white-space:nowrap;" onclick="toggleForceOutOfStock('${p.id}')">
+                    ${p.forceOutOfStock ? '🚨 Out: ON' : '🚨 Out Override'}
                   </button>
                 </div>
               </div>
@@ -3581,17 +3634,17 @@ ${o.items.map((it, idx) => {
             ${outStatusHtml}
 
             <!-- Cleaned quick adjusters footer layout -->
-            <div style="background:#111; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #1f1f1f; padding:5px 10px; gap:6px;">
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-secondary" style="min-width:36px; min-height:36px; height:36px; padding:0 6px; font-size:11.5px; font-weight:800; border-radius:8px;" onclick="adjustAdminProductStock('${p.id}', -5)">-5</button>
-                <button class="btn btn-secondary" style="min-width:36px; min-height:36px; height:36px; padding:0 6px; font-size:11.5px; font-weight:800; border-radius:8px;" onclick="adjustAdminProductStock('${p.id}', -1)">-1</button>
-                <button class="btn btn-secondary" style="min-width:36px; min-height:36px; height:36px; padding:0 6px; font-size:11.5px; font-weight:800; border-radius:8px;" onclick="adjustAdminProductStock('${p.id}', 1)">+1</button>
-                <button class="btn btn-secondary" style="min-width:36px; min-height:36px; height:36px; padding:0 6px; font-size:11.5px; font-weight:800; border-radius:8px;" onclick="adjustAdminProductStock('${p.id}', 5)">+5</button>
+            <div class="admin-product-footer">
+              <div class="admin-stock-steppers">
+                <button class="btn btn-secondary" onclick="adjustAdminProductStock('${p.id}', -5)">-5</button>
+                <button class="btn btn-secondary" onclick="adjustAdminProductStock('${p.id}', -1)">-1</button>
+                <button class="btn btn-secondary" onclick="adjustAdminProductStock('${p.id}', 1)">+1</button>
+                <button class="btn btn-secondary" onclick="adjustAdminProductStock('${p.id}', 5)">+5</button>
               </div>
 
-              <div style="display:flex; gap:6px; align-items:center;">
-                <button class="btn btn-secondary" style="padding:8px 14px; font-size:12px; font-weight:700; min-height:40px; height:40px; display:inline-flex; align-items:center; gap:6px; border-radius:10px;" onclick="editProductForm('${p.id}')">✏️ Edit</button>
-                <button class="btn btn-secondary" style="padding:8px 12px; font-size:13px; font-weight:700; border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.08); color:#ef4444; min-height:40px; height:40px; min-width:40px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px;" onclick="deleteProductFromDb('${p.id}')">❌</button>
+              <div class="admin-product-actions">
+                <button class="btn btn-secondary" style="padding:6px 12px; font-size:11.5px; font-weight:700; min-height:34px; height:34px; display:inline-flex; align-items:center; gap:4px; border-radius:8px;" onclick="editProductForm('${p.id}')">✏️ Edit</button>
+                <button class="btn btn-secondary" style="padding:6px 10px; font-size:12px; font-weight:700; border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.08); color:#ef4444; min-height:34px; height:34px; min-width:34px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px;" onclick="deleteProductFromDb('${p.id}')" title="Delete Product">❌</button>
               </div>
             </div>
           </div>
@@ -5021,17 +5074,27 @@ ${o.items.map((it, idx) => {
     let _adminOrdersSearchTimer = null;
     function debouncedSearchAdminOrders() {
       if (_adminOrdersSearchTimer) clearTimeout(_adminOrdersSearchTimer);
+      const input = document.getElementById('admin-order-search');
+      if (input && !input.value.trim()) {
+        if (typeof renderAdminOrders === 'function') renderAdminOrders();
+        return;
+      }
       _adminOrdersSearchTimer = setTimeout(() => {
         if (typeof renderAdminOrders === 'function') renderAdminOrders();
-      }, 200);
+      }, 100);
     }
 
     let _adminProductsSearchTimer = null;
     function debouncedSearchProducts() {
       if (_adminProductsSearchTimer) clearTimeout(_adminProductsSearchTimer);
+      const input = document.getElementById('admin-product-search');
+      if (input && !input.value.trim()) {
+        if (typeof renderAdminProducts === 'function') renderAdminProducts();
+        return;
+      }
       _adminProductsSearchTimer = setTimeout(() => {
         if (typeof renderAdminProducts === 'function') renderAdminProducts();
-      }, 200);
+      }, 100);
     }
 
     function renderAdminAnalytics() {

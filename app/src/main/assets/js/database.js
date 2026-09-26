@@ -136,8 +136,8 @@
       upiQrUrl: "",
       rainMode: false,
       rainCharge: 20,
-      minAppVersion: "8.0.0",
-      recommendedVersion: "8.0.0",
+      minAppVersion: "9.0.0",
+      recommendedVersion: "9.0.0",
       playStoreUrl: "https://play.google.com/store/apps/details?id=com.edappadikadai.app",
       privacyPolicyUrl: "privacy_policy.html",
       slidingBanners: [
@@ -495,11 +495,26 @@
     let activeProduct = null;
     let selectedWeight = 500; // default 500g
     let selectedCutStyle = 'Small Pieces';
-    let cart = getData('ek_cart', []);
+    let cart = (typeof getData === 'function') ? getData('ek_cart', []) : (typeof window !== 'undefined' && typeof window.getData === 'function' ? window.getData('ek_cart', []) : []);
     let appliedCouponCode = null;
     let selectedDeliverySlot = 'Now';
     let selectedPaymentMethod = 'Cash on Delivery';
     let currentDeliveryFilter = 'assigned';
+    let currentLoginMode = 'customer';
+
+    // Synchronize onto window for global cross-module accessibility
+    window.currentLang = currentLang;
+    window.currentScreen = currentScreen;
+    window.cart = cart;
+    window.activeCategory = activeCategory;
+    window.activeProduct = activeProduct;
+    window.selectedWeight = selectedWeight;
+    window.selectedCutStyle = selectedCutStyle;
+    window.appliedCouponCode = appliedCouponCode;
+    window.selectedDeliverySlot = selectedDeliverySlot;
+    window.selectedPaymentMethod = selectedPaymentMethod;
+    window.currentDeliveryFilter = currentDeliveryFilter;
+    window.currentLoginMode = currentLoginMode;
 
     const STRINGS = {
       en: {
@@ -695,7 +710,36 @@
         console.warn("[Geocoder] Cloud function geocode fallback triggered:", cfErr.message || cfErr);
       }
 
-      // 3. Third priority: Direct OpenStreetMap Nominatim reverse geocode (has CORS headers)
+      // 3. Third priority: BigDataCloud free client reverse geocode (CORS-free, instant, highly reliable in webviews)
+      try {
+        const bdcRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${numLat}&longitude=${numLng}&localityLanguage=en`);
+        if (bdcRes && bdcRes.ok) {
+          const bdcData = await bdcRes.json();
+          if (bdcData) {
+            const locality = bdcData.locality || bdcData.city || '';
+            const city = bdcData.city || 'Edappadi';
+            const state = bdcData.principalSubdivision || 'Tamil Nadu';
+            const postcode = bdcData.postcode || '637101';
+            const parts = [locality, city, 'Salem', state, postcode].filter((v, i, a) => v && a.indexOf(v) === i);
+            const fullAddr = parts.join(', ');
+            if (fullAddr.length > 5) {
+              return {
+                displayName: fullAddr,
+                street: locality,
+                area: locality || city,
+                city: city,
+                postalCode: postcode,
+                lat: numLat,
+                lng: numLng
+              };
+            }
+          }
+        }
+      } catch (bdcErr) {
+        console.warn("[Geocoder] BigDataCloud reverse geocode attempt error:", bdcErr);
+      }
+
+      // 4. Fourth priority: Direct OpenStreetMap Nominatim reverse geocode (has CORS headers)
       try {
         const osmRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${numLat}&lon=${numLng}&zoom=18&addressdetails=1`, {
           headers: { 'Accept': 'application/json' }
@@ -703,8 +747,13 @@
         if (osmRes && osmRes.ok) {
           const data = await osmRes.json();
           if (data && data.display_name) {
+            const addr = data.address || {};
             return {
               displayName: data.display_name,
+              street: addr.road || addr.suburb || '',
+              area: addr.suburb || addr.neighbourhood || addr.village || addr.town || '',
+              city: addr.city || addr.town || addr.county || 'Edappadi',
+              postalCode: addr.postcode || '637101',
               lat: numLat,
               lng: numLng
             };
@@ -715,7 +764,11 @@
       }
 
       return {
-        displayName: `Selected Delivery Location (${numLat.toFixed(4)}, ${numLng.toFixed(4)}), Edappadi, Salem, Tamil Nadu`,
+        displayName: `Location near Edappadi (${numLat.toFixed(4)}, ${numLng.toFixed(4)}), Salem, Tamil Nadu - 637101`,
+        street: 'Edappadi Main Area',
+        area: 'Edappadi',
+        city: 'Edappadi',
+        postalCode: '637101',
         lat: numLat,
         lng: numLng
       };
@@ -787,7 +840,9 @@
 
     function mapErrorMessage(message) {
       if (!message) return "Something went wrong. Please try again.";
-      debugLog("[Toast Error System] Original error message before mapping:", message);
+      if (typeof debugLog === 'function') {
+        debugLog("[Toast Error System] Original error message before mapping:", message);
+      }
       let lower = String(message).toLowerCase();
 
       if (lower.includes("insufficient permission") ||
@@ -997,7 +1052,7 @@
       if (toastTimeout) clearTimeout(toastTimeout);
       toastTimeout = setTimeout(() => {
         dismissToast();
-      }, 3500);
+      }, currentToast.type === 'error' ? 3000 : 2200);
     }
 
     function dismissToast() {
@@ -1010,7 +1065,7 @@
       setTimeout(() => {
         isToastShowing = false;
         processToastQueue();
-      }, 300);
+      }, 200);
     }
 
     function showCustomConfirm(title, message, onConfirm, onCancel, okText, cancelText) {
@@ -1863,6 +1918,13 @@
           const activeEl = document.getElementById(screenId);
           const otherActive = document.querySelector('.screen.active:not(#' + screenId + ')');
           if (activeEl && activeEl.classList.contains('active') && !otherActive) {
+            if (screenId === 'screen-home') {
+              activeEl.scrollTo({ top: 0, behavior: 'smooth' });
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              if (typeof filterCategory === 'function') {
+                try { filterCategory('all'); } catch(e) {}
+              }
+            }
             return;
           }
         }
@@ -1890,14 +1952,31 @@
         }
 
         if (screenId === 'screen-admin') {
-          debugLog("[Route Guard] Intercepted navigation to screen-admin. Verifying local session...");
-          const adminSession = typeof getAdminSession === 'function' ? getAdminSession() : null;
+          debugLog("[Route Guard] Intercepted navigation to screen-admin. Verifying authorized admin session...");
+          const adminSession = typeof getAdminSession === 'function' ? getAdminSession() : (typeof getData === 'function' ? getData('ek_admin_session', null) : null);
           const hasAdminSession = !!(adminSession && adminSession.loggedIn);
+          const currentAdminEmail = (adminSession && adminSession.email) ? adminSession.email.trim().toLowerCase() : '';
 
-          if (!hasAdminSession) {
-            console.error("[Route Guard] Access DENIED: No active local admin session.");
-            showToast("அனுமதி மறுக்கப்பட்டது! நிர்வாகி உள்நுழையவும் / Access Denied. Please login as admin.", "error");
-            setTimeout(() => showScreen('screen-login'), 50);
+          const storedAdmins = (typeof getData === 'function' ? getData('ek_admin_accounts', []) : []) || [];
+          const isKnownAdmin = storedAdmins.some(a => a && a.active !== false && (
+            (a.email && a.email.toLowerCase() === currentAdminEmail) ||
+            (adminSession && adminSession.uid && (a.id === adminSession.uid || a.uid === adminSession.uid)) ||
+            (adminSession && adminSession.phone && a.phone === adminSession.phone)
+          ));
+
+          const isAuthorizedAdmin = hasAdminSession && (
+            currentAdminEmail === 'anantharajeinstein@gmail.com' ||
+            (adminSession && (adminSession.role === 'admin' || adminSession.role === 'superadmin')) ||
+            isKnownAdmin
+          );
+
+          if (!isAuthorizedAdmin) {
+            console.error("[Route Guard] Access DENIED: Authorized admin session required. Found:", currentAdminEmail);
+            showToast("❌ Admin access denied! Please sign in with an authorized admin account.", "error");
+            setTimeout(() => {
+              if (typeof switchAuthRole === 'function') switchAuthRole('admin');
+              showScreen('screen-login');
+            }, 50);
             return;
           }
 
@@ -1942,26 +2021,13 @@
                     adminData.uid = finalUser.uid;
                     await db.collection('ek_admin_accounts').doc(finalUser.uid).set(adminData);
                     debugLog("[Route Guard Background] Self-healed UID mapping for admin:", finalUser.uid);
-                  } else {
-                    const matchedFallback = DEFAULT_FALLBACK_ADMINS.find(fa => fa.email === adminEmail || fa.phone === phoneStr);
-                    if (matchedFallback) {
-                      adminData = {
-                        ...matchedFallback,
-                        id: finalUser.uid,
-                        uid: finalUser.uid,
-                        active: true,
-                        createdAt: new Date().toISOString()
-                      };
-                      await db.collection('ek_admin_accounts').doc(finalUser.uid).set(adminData);
-                      debugLog("[Route Guard Background] Initialized fallback admin account in Firestore for UID:", finalUser.uid);
-                    }
                   }
                 }
 
                 if (adminData) {
                   if ((adminData.role !== 'admin' && adminData.role !== 'superadmin' && adminData.role !== 'ADMIN' && adminData.role !== 'SUPERADMIN') || adminData.active === false) {
                     console.error("[Route Guard Background] Access DENIED: Admin account inactive or not admin/superadmin.");
-                    showToast("உரிமம் மறுக்கப்பட்டது! / Admin account inactive.", "error");
+                    showToast(currentLang === 'ta' ? "உரிமம் மறுக்கப்பட்டது! / Admin account inactive." : "Access denied! Admin account inactive.", "error");
                     showScreen('screen-login');
                   } else {
                     window._verifiedAdminUids = window._verifiedAdminUids || new Set();
@@ -1986,28 +2052,18 @@
                     debugLog("[Route Guard Background] Succeeded: Zero active admin accounts in Firestore. Checking and showing superadmin setup.");
                     await checkAndShowSuperAdminSetup();
                   } else {
-                    if (hasAdminSession) {
-                      debugLog("[Route Guard Background] Admin doc pending in Firestore but active local admin session exists. Self-healing admin account doc...");
-                      const adminEmail = finalUser.email || `admin_9876543210@app.com`;
-                      const phoneStr = adminEmail.replace('admin_', '').split('@')[0];
-                      const newAdminDoc = {
-                        id: finalUser.uid,
-                        uid: finalUser.uid,
-                        email: adminEmail,
-                        phone: phoneStr,
-                        name: (adminSession && adminSession.name) ? adminSession.name : 'Admin',
-                        role: 'admin',
-                        active: true,
-                        createdAt: new Date().toISOString()
-                      };
-                      window._verifiedAdminUids = window._verifiedAdminUids || new Set();
-                      window._verifiedAdminUids.add(finalUser.uid);
-                      db.collection('ek_admin_accounts').doc(finalUser.uid).set(newAdminDoc).catch(e => console.warn(e));
-                    } else {
-                      console.error(`[Route Guard Background] Access DENIED: No doc in 'ek_admin_accounts' for UID: ${finalUser.uid}`);
-                      showToast("அங்கீகாரம் இல்லாத கணக்கு! / Admin UID not in database.", "error");
-                      showScreen('screen-login');
-                    }
+                    console.error(`[Route Guard Background] Access DENIED: Admin account not found in 'ek_admin_accounts' for UID: ${finalUser.uid}`);
+                    try {
+                      sessionStorage.removeItem('ek_admin_session');
+                      sessionStorage.removeItem('adminLoggedIn');
+                    } catch (e) {}
+                    showToast(
+                      currentLang === 'ta'
+                        ? "நிர்வாக கணக்கு காணவில்லை. தயவுசெய்து சூப்பர் அட்மின-ஐ தொடர்பு கொள்ளவும்."
+                        : "Admin account not found in database. Please contact the superadmin to create your admin account.",
+                      "error"
+                    );
+                    showScreen('screen-login');
                   }
                 }
               } catch (err) {
@@ -2074,8 +2130,16 @@
           if (appContainer) appContainer.scrollLeft = 0;
           if (document.body) document.body.scrollLeft = 0;
           if (document.documentElement) document.documentElement.scrollLeft = 0;
-          target.classList.add('active');
+          target.classList.add('active', 'screen-entering');
+          setTimeout(() => {
+            try {
+              if (target && target.classList.contains('screen-entering')) {
+                target.classList.remove('screen-entering');
+              }
+            } catch(e) {}
+          }, 240);
           currentScreen = screenId;
+          window.currentScreen = screenId;
 
           // Instant zero-lag transition: trigger map resize on next frame without blocking UI
           requestAnimationFrame(() => {
@@ -2104,36 +2168,55 @@
 
         try {
           if (screenId === 'screen-home') {
-            renderHomeScreen();
-            const settings = getSettings();
+            if (typeof renderHomeScreen === 'function') renderHomeScreen();
+            if (typeof renderCustomerHomeReviews === 'function') renderCustomerHomeReviews();
+            const settings = (typeof getSettings === 'function') ? getSettings() : {};
             if (settings.leaveMode && !sessionStorage.getItem('leave_popup_shown')) {
               sessionStorage.setItem('leave_popup_shown', 'true');
-              showCustomAlert(
-                currentLang === 'ta' ? "🌴 விடுமுறை அறிவிப்பு" : "🌴 Holiday / Leave Notice",
-                settings.leaveNotice || (currentLang === 'ta' ? "மன்னிக்கவும்! கடை தற்காலிகமாக விடுமுறையில் உள்ளது. ஆர்டர் செய்ய இயலாது." : "Sorry, the shop is currently closed on holiday. Ordering is temporarily paused.")
-              );
+              if (typeof showCustomAlert === 'function') {
+                showCustomAlert(
+                  currentLang === 'ta' ? "🌴 விடுமுறை அறிவிப்பு" : "🌴 Holiday / Leave Notice",
+                  settings.leaveNotice || (currentLang === 'ta' ? "மன்னிக்கவும்! கடை தற்காலிகமாக விடுமுறையில் உள்ளது. ஆர்டர் செய்ய இயலாது." : "Sorry, the shop is currently closed on holiday. Ordering is temporarily paused.")
+                );
+              }
             }
           } else if (screenId === 'screen-login') {
-            try { enterCustomerLogin(); } catch(e) {}
-            prefillLoginCredentials();
+            try {
+              if (typeof switchAuthRole === 'function') {
+                switchAuthRole(window._currentAuthRole || 'customer');
+              } else if (typeof enterCustomerLogin === 'function') {
+                enterCustomerLogin();
+              }
+            } catch(e) {}
+            if (typeof prefillLoginCredentials === 'function') prefillLoginCredentials();
           } else if (screenId === 'screen-register') {
             const storedRef = sessionStorage.getItem('ek_referred_by_code');
             if (storedRef && document.getElementById('reg-referral')) {
               document.getElementById('reg-referral').value = storedRef;
             }
           } else if (screenId === 'screen-cart') {
-            renderCartScreen();
+            if (typeof renderCartScreen === 'function') renderCartScreen();
           } else if (screenId === 'screen-track') {
-            renderTrackerScreen();
+            if (typeof renderTrackerScreen === 'function') renderTrackerScreen();
           } else if (screenId === 'screen-profile') {
-            renderProfileScreen();
+            const custSession = typeof getActiveSession === 'function' ? getActiveSession() : null;
+            if (!custSession || !custSession.loggedIn) {
+              if (typeof showToast === 'function') {
+                showToast(typeof currentLang !== 'undefined' && currentLang === 'ta' ? "சுயவிவரத்தை அணுக முதலில் உள்நுழையவும்!" : "Please login to view profile!", "info");
+              }
+              showScreen('screen-login');
+              return;
+            }
+            if (typeof renderProfileScreen === 'function') renderProfileScreen();
           } else if (screenId === 'screen-admin') {
-            renderAdminDashboard();
-            initSectionCollapse('categories', 'collapsed');
-            initSectionCollapse('carousel', 'collapsed');
-            initSectionCollapse('upi-config', 'collapsed');
+            if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+            if (typeof initSectionCollapse === 'function') {
+              initSectionCollapse('categories', 'collapsed');
+              initSectionCollapse('carousel', 'collapsed');
+              initSectionCollapse('upi-config', 'collapsed');
+            }
           } else if (screenId === 'screen-delivery') {
-            renderDeliveryScreen();
+            if (typeof renderDeliveryScreen === 'function') renderDeliveryScreen();
           } else if (screenId === 'screen-lyo-ai') {
             try {
               if (typeof initLyoAiChat === 'function') initLyoAiChat();
@@ -2167,6 +2250,19 @@
             }
           } else if (screenId === 'screen-offers') {
             updateClaimBoxState();
+          } else if (screenId === 'screen-register') {
+            try {
+              if (typeof initRegAddressSync === 'function') initRegAddressSync();
+              if (typeof updateCombinedRegAddress === 'function') updateCombinedRegAddress();
+            } catch (e) {}
+          } else if (screenId === 'screen-login') {
+            try {
+              const phoneInput = document.getElementById('login-phone-input');
+              const identifierInput = document.getElementById('login-identifier');
+              if (phoneInput && identifierInput && identifierInput.value && !identifierInput.value.includes('@')) {
+                phoneInput.value = identifierInput.value;
+              }
+            } catch (e) {}
           }
         } catch (renderErr) {
           console.error(`[showScreen] Render failed for "${screenId}":`, renderErr);
@@ -2178,3 +2274,4 @@
         console.error('[showScreen] CRITICAL failure:', criticalErr);
       }
     }
+    window.showScreen = showScreen;

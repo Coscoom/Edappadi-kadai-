@@ -417,6 +417,10 @@
     }
 
     function utils_calcLatLonDistanceKm(lat1, lon1, lat2, lon2) {
+      if (typeof calculateDistanceKm === 'function') {
+        const d = calculateDistanceKm(lat1, lon1, lat2, lon2);
+        return d !== null ? d : 0;
+      }
       if (lat1 === null || lon1 === null || lat2 === null || lon2 === null) return 0;
       var R = 6371; // earth radius in km
       var dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1015,6 +1019,54 @@
       return false;
     }
 
+    window.clearOrderHistoryFilters = function() {
+      const searchInput = document.getElementById('track-orders-search');
+      if (searchInput) searchInput.value = '';
+      if (typeof setOrderHistoryStatusFilter === 'function') {
+        setOrderHistoryStatusFilter('all');
+      } else {
+        selectedOrderHistoryStatusFilter = 'all';
+        renderTrackerScreen();
+      }
+    };
+
+    function getOrdersEmptyStateHtml(isFiltered = false) {
+      const isTa = typeof currentLang !== 'undefined' && currentLang === 'ta';
+      const title = isFiltered
+        ? (isTa ? 'ஆர்டர்கள் எதுவும் கிடைக்கவில்லை' : 'No Orders Found')
+        : (isTa ? 'கடந்த கால ஆர்டர்கள் எதுவும் இல்லை' : 'No Orders Found');
+      const subtitle = isFiltered
+        ? (isTa ? 'நீங்கள் தேர்ந்தெடுத்த வடிகட்டல் அல்லது தேடலுக்குரிய ஆர்டர்கள் எதுவும் இல்லை. வடிகட்டலை மாற்றவும் அல்லது புதிய ஆர்டர் செய்யவும்.' : 'We couldn\'t find any orders matching your search or status filter. Try clearing filters or explore our menu.')
+        : (isTa ? 'நீங்கள் இன்னும் எந்த ஆர்டரும் செய்யவில்லை. புதிய நாட்டுக்கோழி, ஆட்டுக்கறி மற்றும் மசாலாப் பொருட்களை வாங்க இப்போதே ஆர்டர் செய்யுங்கள்!' : 'You haven\'t placed any orders yet. Discover our premium fresh meats, authentic spices, and daily specials to place your first order!');
+
+      return `
+        <div class="orders-empty-card" data-testid="orders-empty-state">
+          <div class="empty-icon-bubble">
+            <span class="empty-floating-emoji">🧾</span>
+            <div class="empty-halo"></div>
+          </div>
+          <h3 class="empty-state-title">
+            ${title}
+          </h3>
+          <p class="empty-state-subtitle">
+            ${subtitle}
+          </p>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; width: 100%; margin-top: 6px;">
+            ${isFiltered ? `
+              <button onclick="clearOrderHistoryFilters()" class="btn" style="min-height: 48px; padding: 10px 18px; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.18); border-radius: 14px; color: #fff; font-size: 13px; font-weight: 750; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                🔄 ${isTa ? 'வடிகட்டலை நீக்கு' : 'Clear Filters'}
+              </button>
+            ` : ''}
+            <button onclick="showScreen('screen-home')" class="orders-empty-home-btn" data-testid="empty-orders-home-btn">
+              <span style="font-size: 16px;">🏠</span>
+              <span>${isTa ? 'முகப்புக்கு செல் / Start Shopping' : 'Back to Home / Explore Menu'}</span>
+              <span style="font-size: 14px;">➔</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
     function renderTrackerScreen() {
       const orders = getDataCached('ek_orders', []);
       let session = getActiveSession();
@@ -1023,7 +1075,29 @@
         session = { userId: "guest_tracker", loggedIn: true, phone: "" };
       }
 
-      if (!session) return;
+      const activeBox = document.getElementById('active-tracker-box');
+      const pastList = document.getElementById('past-orders-list');
+      if (!pastList) return;
+
+      if (!session) {
+        if (activeBox) activeBox.style.display = 'none';
+        if (typeof initLiveTrackerMap === 'function') initLiveTrackerMap(null);
+        pastList.innerHTML = `
+          <div class="card" style="text-align: center; padding: 24px 16px; border: 1.5px dashed rgba(245,158,11,0.3); background: rgba(24, 20, 16, 0.5); border-radius: 16px;">
+            <div style="font-size: 36px; margin-bottom: 8px;">🔍📦</div>
+            <h4 style="color: #fff; font-size: 15px; font-weight: 750; margin-bottom: 6px;">
+              ${typeof currentLang !== 'undefined' && currentLang === 'ta' ? 'நேரலை ஆர்டர் கண்காணிப்பு' : 'Live Order Tracking'}
+            </h4>
+            <p style="color: #94a3b8; font-size: 12px; margin-bottom: 16px; max-width: 280px; margin-left: auto; margin-right: auto; line-height: 1.4;">
+              ${typeof currentLang !== 'undefined' && currentLang === 'ta' ? 'மேலே உள்ள தேடல் கட்டத்தில் உங்கள் ஆர்டர் ஐடி-யை உள்ளிட்டு கண்காணிக்கவும். அல்லது உள்நுழையவும்.' : 'Enter your Order ID in the search box above to track your order, or login to view all your past orders.'}
+            </p>
+            <button onclick="showScreen('screen-login')" class="btn btn-primary" style="padding: 10px 20px; font-size: 13px; font-weight: 750; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: auto; margin: 0 auto;">
+              🔐 ${typeof currentLang !== 'undefined' && currentLang === 'ta' ? 'உள்நுழைக / Login' : 'Login to View History'}
+            </button>
+          </div>
+        `;
+        return;
+      }
 
       const deletedOrderIds = getDeletedOrderIds();
       const customerHiddenIds = getCustomerHiddenOrderIds();
@@ -1041,14 +1115,10 @@
         }
       }
 
-      const activeBox = document.getElementById('active-tracker-box');
-      const pastList = document.getElementById('past-orders-list');
-      if (!pastList) return;
-
       if (userOrders.length === 0) {
         activeBox.style.display = 'none';
         initLiveTrackerMap(null);
-        pastList.innerHTML = `<div class="card" style="text-align:center; padding:16px; color:var(--text-muted);">No orders registered in history! Checkout shop items.</div>`;
+        pastList.innerHTML = getOrdersEmptyStateHtml(false);
         return;
       }
 
@@ -1673,7 +1743,7 @@
         const stageBadgeVal = escapeHtml(o.orderStage || o.stage || displayStatus);
 
         const record = `
-          <div class="card" style="padding:10px 14px; margin-bottom:10px; cursor:pointer; background:#0c0d0f; border:1px solid rgba(255,255,255,0.08); border-radius:12px; box-sizing:border-box; ${trackingHighlightStyle}" onclick="openCustomerOrderDetail('${o.id}')">
+          <div class="card order-card card-interactive" style="padding:10px 14px; margin-bottom:10px; cursor:pointer; background:#0c0d0f; border:1px solid rgba(255,255,255,0.08); border-radius:12px; box-sizing:border-box; ${trackingHighlightStyle}" onclick="openCustomerOrderDetail('${o.id}')">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
               <div style="display:flex; align-items:center; gap:6px;">
                 <strong style="font-size:11.5px; color:#a1a1aa; font-family:'Poppins', sans-serif; font-weight:600; letter-spacing:0.5px;">${o.id}</strong>
@@ -1710,11 +1780,7 @@
       }
 
       if (renderedPastCount === 0) {
-        if (query || selectedOrderHistoryStatusFilter !== 'all') {
-          pastList.innerHTML = `<div class="card" style="text-align:center; padding:16px; color:var(--text-muted);">${currentLang === 'ta' ? 'தேடலுக்கான தகவல் எதுவும் இல்லை.' : 'No matching orders found.'}</div>`;
-        } else {
-          pastList.innerHTML = `<div class="card" style="text-align:center; padding:16px; color:var(--text-muted);">${currentLang === 'ta' ? 'கடந்த கால ஆர்டர்கள் எதுவும் இல்லை!' : 'No orders registered in history!'}</div>`;
-        }
+        pastList.innerHTML = getOrdersEmptyStateHtml(Boolean(query || selectedOrderHistoryStatusFilter !== 'all'));
       }
     }
 
@@ -3245,10 +3311,20 @@
 
     function renderProfileScreen() {
       const session = getActiveSession();
-      if (!session) return;
-
       const user = getActiveUser();
-      if (!user) return;
+
+      const guestBanner = document.getElementById('prof-guest-login-banner');
+      if (guestBanner) guestBanner.remove();
+
+      if (!session || !session.loggedIn || !user) {
+        if (typeof showToast === 'function') {
+          showToast(typeof currentLang !== 'undefined' && currentLang === 'ta' ? "சுயவிவரத்தை அணுக முதலில் உள்நுழையவும்!" : "Please login to view profile!", "info");
+        }
+        if (typeof showScreen === 'function') {
+          showScreen('screen-login');
+        }
+        return;
+      }
 
       const uName = user.name || session.name || (currentLang === 'ta' ? "வாடிக்கையாளர்" : "Customer");
       const uPhone = user.phone || session.phone || "";
@@ -3257,7 +3333,7 @@
       if (uPhone) {
         document.getElementById('prof-phone').innerText = `📞 +91 ${uPhone}`;
       } else {
-        document.getElementById('prof-phone').innerText = currentLang === 'ta' ? "📞 விருந்தினர் கணக்கு (Not Registered)" : "📞 Guest Account (Not Registered)";
+        document.getElementById('prof-phone').innerText = currentLang === 'ta' ? "📞 மொபைல் எண் சேர்க்கப்படவில்லை" : "📞 Mobile number not added";
       }
       document.getElementById('prof-avatar').innerText = uName.charAt(0).toUpperCase();
 
@@ -3418,6 +3494,7 @@
       }
 
       updateProfileGamification();
+      updateProfileEmailVerificationUI();
 
       if (typeof renderSavedAddressesList === 'function') {
         renderSavedAddressesList();
@@ -3557,6 +3634,136 @@ async function submitChangeEmail() {
     if (btn && typeof setButtonLoading === 'function') setButtonLoading(btn, false);
   }
 }
+
+function updateProfileEmailVerificationUI() {
+  const badgeEl = document.getElementById('prof-email-verified-badge');
+  const boxEl = document.getElementById('prof-email-unverified-box');
+  if (!badgeEl && !boxEl) return;
+
+  const session = typeof getActiveSession === 'function' ? getActiveSession() : null;
+  const user = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
+  const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
+
+  const userEmail = (user && user.email) || (session && session.email) || '';
+
+  if (!session || !session.loggedIn || !userEmail) {
+    if (badgeEl) badgeEl.style.display = 'none';
+    if (boxEl) boxEl.style.display = 'none';
+    return;
+  }
+
+  const isVerified = Boolean(user && user.emailVerified);
+
+  if (isVerified) {
+    if (badgeEl) {
+      badgeEl.style.display = 'inline-block';
+      badgeEl.style.background = 'rgba(16, 185, 129, 0.15)';
+      badgeEl.style.border = '1px solid rgba(16, 185, 129, 0.35)';
+      badgeEl.style.color = '#10b981';
+      badgeEl.innerText = isTa ? "✅ சரிபார்க்கப்பட்டது" : "✅ Verified";
+    }
+    if (boxEl) {
+      boxEl.style.display = 'none';
+    }
+  } else {
+    if (badgeEl) {
+      badgeEl.style.display = 'inline-block';
+      badgeEl.style.background = 'rgba(239, 68, 68, 0.15)';
+      badgeEl.style.border = '1px solid rgba(239, 68, 68, 0.35)';
+      badgeEl.style.color = '#ef4444';
+      badgeEl.innerText = isTa ? "⚠️ சரிபார்க்கப்படவில்லை" : "⚠️ Not Verified";
+    }
+    if (boxEl) {
+      boxEl.style.display = 'block';
+    }
+  }
+}
+window.updateProfileEmailVerificationUI = updateProfileEmailVerificationUI;
+
+async function resendProfileVerificationEmail() {
+  const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
+  try {
+    const user = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
+    if (!user || user.isAnonymous) {
+      showToast(isTa ? "பயனர் உள்நுழையவில்லை." : "Please sign in to verify email.", "warning");
+      return;
+    }
+    if (user.emailVerified) {
+      showToast(isTa ? "உங்கள் மின்னஞ்சல் ஏற்கனவே சரிபார்க்கப்பட்டது! ✓" : "Your email is already verified! ✓", "success");
+      updateProfileEmailVerificationUI();
+      return;
+    }
+    if (typeof user.sendEmailVerification === 'function') {
+      await user.sendEmailVerification();
+      showToast(
+        isTa
+          ? `சரிபார்ப்பு இணைப்பு ${user.email}-க்கு அனுப்பப்பட்டது! இன்பாக்ஸ் அல்லது ஸ்பேம் கோப்புறையை பார்க்கவும். 📩`
+          : `Verification link sent to ${user.email}! Please check your inbox or spam folder. 📩`,
+        "success"
+      );
+    } else {
+      showToast(isTa ? "சரிபார்ப்பு மின்னஞ்சல் அனுப்ப முடியவில்லை." : "Unable to send verification email.", "warning");
+    }
+  } catch (err) {
+    console.error("[Email Verification Resend]", err);
+    if (err && err.code === 'auth/too-many-requests') {
+      showToast(
+        isTa
+          ? "அதிகமுறை கோரிக்கை அனுப்பப்பட்டது. சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும்."
+          : "Too many requests. Please wait a moment before trying again.",
+        "warning"
+      );
+    } else {
+      showToast((err && err.message) || "Failed to send verification email.", "error");
+    }
+  }
+}
+window.resendProfileVerificationEmail = resendProfileVerificationEmail;
+
+async function checkEmailVerificationStatus() {
+  const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
+  try {
+    const user = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
+    if (!user || user.isAnonymous) {
+      showToast(isTa ? "பயனர் உள்நுழையவில்லை." : "Please sign in.", "warning");
+      return;
+    }
+    showToast(isTa ? "மின்னஞ்சல் நிலை சரிபார்க்கப்படுகிறது... ⏳" : "Checking verification status... ⏳", "info");
+    
+    // Reload user from Firebase to retrieve freshest emailVerified boolean
+    await user.reload();
+    const refreshedUser = firebase.auth().currentUser;
+
+    if (refreshedUser && refreshedUser.emailVerified) {
+      updateProfileEmailVerificationUI();
+      if (typeof showCustomAlert === 'function') {
+        showCustomAlert(
+          isTa ? "🎉 மின்னஞ்சல் சரிபார்க்கப்பட்டது!" : "🎉 Email Verified!",
+          isTa 
+            ? `உங்கள் மின்னஞ்சல் (${refreshedUser.email}) வெற்றிகரமாக சரிபார்க்கப்பட்டது. உங்கள் கணக்கு பாதுகாப்பானது!`
+            : `Your email (${refreshedUser.email}) has been successfully verified!`
+        );
+      }
+      showToast(isTa ? "மின்னஞ்சல் சரிபார்க்கப்பட்டது! ✓" : "Email verified! ✓", "success");
+    } else {
+      updateProfileEmailVerificationUI();
+      if (typeof showCustomAlert === 'function') {
+        showCustomAlert(
+          isTa ? "⚠️ மின்னஞ்சல் இன்னும் உறுதி செய்யப்படவில்லை" : "⚠️ Email Not Verified Yet",
+          isTa
+            ? `உங்கள் மின்னஞ்சல் இன்பாக்ஸ் அல்லது ஸ்பேம் (Spam) கோப்புறையில் வந்துள்ள சரிபார்ப்பு இணைப்பை (Verification Link) க்ளிக் செய்த பிறகு, இங்கே 'சரிபார்த்ததை உறுதி செய்' அழுத்தவும்.`
+            : `Please click the verification link in your inbox or spam folder, then tap 'Check' here again.`
+        );
+      } else {
+        showToast(isTa ? "மின்னஞ்சல் இன்னும் உறுதி செய்யப்படவில்லை. இன்பாக்ஸை சரிபார்க்கவும்." : "Email not verified yet. Check your inbox.", "warning");
+      }
+    }
+  } catch (err) {
+    console.error("[Check Email Verification]", err);
+    showToast((err && err.message) || "Failed to check verification status.", "error");
+  }
+}
+window.checkEmailVerificationStatus = checkEmailVerificationStatus;
 
 function saveProfileChanges() {
       const session = getActiveSession();
@@ -4246,9 +4453,14 @@ function saveProfileChanges() {
     let _trackerSearchTimer = null;
     function debouncedSearchTracker() {
       if (_trackerSearchTimer) clearTimeout(_trackerSearchTimer);
+      const input = document.getElementById('tracker-search-input');
+      if (input && !input.value.trim()) {
+        if (typeof renderTrackerScreen === 'function') renderTrackerScreen();
+        return;
+      }
       _trackerSearchTimer = setTimeout(() => {
         if (typeof renderTrackerScreen === 'function') renderTrackerScreen();
-      }, 200);
+      }, 100);
     }
     window.debouncedSearchTracker = debouncedSearchTracker;
 
@@ -4551,7 +4763,7 @@ function saveProfileChanges() {
       const ptrEl = document.getElementById('universal-pull-refresh');
       const statusText = document.getElementById('ptr-status-text');
       const subText = document.getElementById('ptr-sub-text');
-      const arrowIcon = ptrEl?.querySelector('.ptr-arrow-icon');
+      const arrowIcon = (ptrEl && typeof ptrEl.querySelector === 'function') ? ptrEl.querySelector('.ptr-arrow-icon') : null;
 
       let startY = 0;
       let startX = 0;

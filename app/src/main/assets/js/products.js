@@ -741,27 +741,31 @@
       const searchBox = document.getElementById('home-product-search');
       if (!searchBox) return;
 
+      const rawVal = searchBox.value || '';
       const clearBtn = document.getElementById('home-search-clear-btn');
       if (clearBtn) {
-        clearBtn.style.display = searchBox.value ? 'block' : 'none';
+        clearBtn.style.display = rawVal ? 'block' : 'none';
       }
 
       if (_homeSearchDebounceTimer) {
         clearTimeout(_homeSearchDebounceTimer);
       }
 
-      _homeSearchDebounceTimer = setTimeout(() => {
-        const query = searchBox.value.trim().toLowerCase();
-        const suggestionsDiv = document.getElementById('home-search-suggestions');
+      const query = rawVal.trim().toLowerCase();
+      const suggestionsDiv = document.getElementById('home-search-suggestions');
 
+      // Instant 0ms response when user clears the query
+      if (!query) {
+        if (suggestionsDiv) suggestionsDiv.style.display = 'none';
+        renderHomeScreenProducts();
+        return;
+      }
+
+      // 90ms responsive debounce matching Google RAIL standard for typing
+      _homeSearchDebounceTimer = setTimeout(() => {
         renderHomeScreenProducts();
 
         if (!suggestionsDiv) return;
-
-        if (!query) {
-          suggestionsDiv.style.display = 'none';
-          return;
-        }
 
         const products = getDataCached('ek_products', []).filter(p => !p.isHidden);
 
@@ -840,6 +844,22 @@
       renderHomeScreenProducts();
       openProductModalDetail(productId);
     }
+
+    function clearHomeSearchInput() {
+      const searchBox = document.getElementById('home-product-search') || document.getElementById('search-input');
+      if (searchBox) {
+        searchBox.value = '';
+      }
+      const clearBtn = document.getElementById('home-search-clear-btn');
+      if (clearBtn) clearBtn.style.display = 'none';
+      const suggestionsDiv = document.getElementById('home-search-suggestions');
+      if (suggestionsDiv) suggestionsDiv.style.display = 'none';
+      if (_homeSearchDebounceTimer) {
+        clearTimeout(_homeSearchDebounceTimer);
+      }
+      renderHomeScreenProducts();
+    }
+    window.clearHomeSearchInput = clearHomeSearchInput;
 
     let _homeRenderTimer = null;
     function scheduleHomeRender(force = false) {
@@ -1423,11 +1443,7 @@ function renderHomeScreen(forceReRender = false) {
       const custSession = getActiveSession();
       const guestBanner = document.getElementById('home-guest-banner');
       if (guestBanner) {
-        if (custSession && custSession.loggedIn) {
-          guestBanner.style.display = 'none';
-        } else {
-          guestBanner.style.display = 'block';
-        }
+        guestBanner.remove();
       }
 
       // Update Email Verification Reminder Banner
@@ -1482,6 +1498,14 @@ function renderHomeScreen(forceReRender = false) {
           elLeaveBanner.style.display = 'none';
         }
       }
+
+      try {
+        if (typeof renderCustomerHomeReviews === 'function') {
+          renderCustomerHomeReviews();
+        }
+      } catch (revErr) {
+        console.warn("renderCustomerHomeReviews error:", revErr);
+      }
     }
 
     function syncActiveCategoryPillScroll(catId) {
@@ -1510,6 +1534,10 @@ function renderHomeScreen(forceReRender = false) {
         syncActiveCategoryPillScroll(catId);
       }
     }
+    window.filterHomeProducts = filterHomeProducts;
+    window.filterCategory = function(catId) {
+      filterHomeProducts(catId || 'all');
+    };
 
     let homeSwipeStartX = 0;
     let homeSwipeStartY = 0;
@@ -1603,8 +1631,13 @@ function renderHomeScreen(forceReRender = false) {
     function setupHomeCategorySwipeListeners() {
       const homeScreen = document.getElementById('screen-home');
       if (!homeScreen) return;
-      if (homeScreen.dataset.swipeInitialized === 'true') return;
-      homeScreen.dataset.swipeInitialized = 'true';
+      if (homeScreen.dataset && homeScreen.dataset.swipeInitialized === 'true') return;
+      if (homeScreen.getAttribute && homeScreen.getAttribute('data-swipe-initialized') === 'true') return;
+      if (homeScreen.dataset) {
+        homeScreen.dataset.swipeInitialized = 'true';
+      } else if (homeScreen.setAttribute) {
+        homeScreen.setAttribute('data-swipe-initialized', 'true');
+      }
 
       function shouldIgnoreSwipeTarget(target) {
         if (!target) return false;
@@ -1614,7 +1647,7 @@ function renderHomeScreen(forceReRender = false) {
         return false;
       }
 
-      function onTouchStart(e) {
+      function onCategorySwipeTouchStart(e) {
         if (typeof currentScreen !== 'undefined' && currentScreen !== 'screen-home') return;
         if (e.target && shouldIgnoreSwipeTarget(e.target)) return;
         if (e.touches && e.touches.length === 1) {
@@ -1625,7 +1658,7 @@ function renderHomeScreen(forceReRender = false) {
         }
       }
 
-      function onTouchEnd(e) {
+      function onCategorySwipeTouchEnd(e) {
         if (!homeSwipePointerActive) return;
         homeSwipePointerActive = false;
         if (typeof currentScreen !== 'undefined' && currentScreen !== 'screen-home') return;
@@ -1653,8 +1686,8 @@ function renderHomeScreen(forceReRender = false) {
         }
       }
 
-      homeScreen.addEventListener('touchstart', onTouchStart, { passive: true });
-      homeScreen.addEventListener('touchend', onTouchEnd, { passive: true });
+      homeScreen.addEventListener('touchstart', onCategorySwipeTouchStart, { passive: true });
+      homeScreen.addEventListener('touchend', onCategorySwipeTouchEnd, { passive: true });
       homeScreen.addEventListener('touchcancel', () => { homeSwipePointerActive = false; }, { passive: true });
 
       // Support pointer down/up for desktop/emulator drag testing
@@ -2005,7 +2038,7 @@ function renderHomeScreen(forceReRender = false) {
                       </div>
                       <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top: auto; padding-top: 2px;">
                         <strong style="font-size:11.5px; color:var(--text-primary); font-weight: 700;">${getProductPriceText(p, currentLang)}</strong>
-                        <button class="btn btn-primary" style="width:auto !important; min-width:unset !important; min-height:28px !important; height:auto !important; padding:4px 10px !important; font-size:10.5px !important; font-weight:800; border-radius:12px !important; display:inline-flex; align-items:center; justify-content:center; gap:2px; backdrop-filter:blur(10px) !important; -webkit-backdrop-filter:blur(10px) !important; background: linear-gradient(135deg, #06b6d4 0%, #0d9488 100%) !important; border: 1px solid rgba(255, 255, 255, 0.3) !important; box-shadow: 0 4px 10px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important; color:#ffffff !important; text-shadow: 0 1px 1px rgba(0,0,0,0.15) !important;" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${pidStr}')">
+                        <button class="btn btn-primary" style="width:auto !important; min-width:unset !important; min-height:32px !important; height:auto !important; padding:5px 12px !important; font-size:11px !important; font-weight:800; border-radius:12px !important; display:inline-flex; align-items:center; justify-content:center; gap:3px; backdrop-filter:blur(10px) !important; -webkit-backdrop-filter:blur(10px) !important; background: linear-gradient(135deg, #06b6d4 0%, #0d9488 100%) !important; border: 1px solid rgba(255, 255, 255, 0.3) !important; box-shadow: 0 4px 10px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important; color:#ffffff !important; text-shadow: 0 1px 1px rgba(0,0,0,0.15) !important;" ${isOutOfStock ? 'disabled' : ''} onclick="openProductModalDetail('${pidStr}')">
                           <span>Buy ➔</span>
                         </button>
                       </div>
@@ -2616,6 +2649,17 @@ function renderHomeScreen(forceReRender = false) {
     }
 
     function openMapAddressPicker(targetId) {
+      if (targetId !== 'reg-address') {
+        const custSession = typeof getActiveSession === 'function' ? getActiveSession() : null;
+        if (!custSession || !custSession.loggedIn) {
+          if (typeof showToast === 'function') {
+            showToast(typeof currentLang !== 'undefined' && currentLang === 'ta' ? "முகவரியை தேர்ந்தெடுக்க முதலில் உள்நுழையவும்!" : "Please login to manage delivery address!", "warning");
+          }
+          if (typeof showScreen === 'function') showScreen('screen-login');
+          return;
+        }
+      }
+
       const targetInput = document.getElementById(targetId);
       if (!targetInput) return;
 
@@ -3036,7 +3080,9 @@ function renderHomeScreen(forceReRender = false) {
       if (!pickerMarker) return;
       const pos = pickerMarker.getLatLng();
       const addressText = document.getElementById('picker-address-text');
-      const addressVal = addressText ? addressText.innerText : `${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}`;
+      let addressVal = (addressText && addressText.innerText && !addressText.innerText.includes('Fetching') && !addressText.innerText.includes('🌀'))
+        ? addressText.innerText.trim()
+        : `${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}`;
 
       const targetInput = document.getElementById(targetId);
       if (targetInput) {
@@ -3046,6 +3092,58 @@ function renderHomeScreen(forceReRender = false) {
         targetInput.setAttribute('value', addressVal);
         targetInput.dispatchEvent(new Event('input', { bubbles: true }));
         targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      // Check for structured Registration fields
+      const regStreet = document.getElementById('reg-addr-street');
+      const regArea = document.getElementById('reg-addr-area');
+      const regCity = document.getElementById('reg-addr-city');
+      const regPincode = document.getElementById('reg-addr-pincode');
+      if (targetId === 'reg-address' || regStreet || regArea || regCity || regPincode) {
+        if (typeof parseAddressStringToFields === 'function') {
+          const parsed = parseAddressStringToFields(addressVal);
+          if (parsed.street && regStreet) regStreet.value = parsed.street;
+          if (parsed.area && regArea) regArea.value = parsed.area;
+          if (parsed.city && regCity) regCity.value = parsed.city;
+          if (parsed.pincode && regPincode) regPincode.value = parsed.pincode;
+        }
+        const regAddrEl = document.getElementById('reg-address');
+        if (regAddrEl) {
+          regAddrEl.value = addressVal;
+        }
+        const previewEl = document.getElementById('reg-address-preview-text');
+        if (previewEl) {
+          previewEl.innerText = `📍 ${addressVal}`;
+          if (previewEl.parentElement) previewEl.parentElement.style.display = 'block';
+        }
+      }
+
+      // Structured Address Editor fields (Profile / Cart)
+      const addrStreet = document.getElementById('addr-field-street');
+      const addrArea = document.getElementById('addr-field-area');
+      const addrCity = document.getElementById('addr-field-city');
+      const addrPincode = document.getElementById('addr-field-pincode');
+      if (targetId === 'editor-map-dummy-target' || addrStreet || addrArea) {
+        const modal = document.getElementById('simple-address-editor-modal');
+        if (modal) {
+          modal.setAttribute('data-lat', pos.lat);
+          modal.setAttribute('data-lng', pos.lng);
+        }
+        if (typeof parseAddressStringToFields === 'function') {
+          const parsed = parseAddressStringToFields(addressVal);
+          if (parsed.street && addrStreet) addrStreet.value = parsed.street;
+          if (parsed.area && addrArea) addrArea.value = parsed.area;
+          if (parsed.city && addrCity) addrCity.value = parsed.city;
+          if (parsed.pincode && addrPincode) addrPincode.value = parsed.pincode;
+        }
+      }
+
+      if (typeof window._onMapAddressConfirmed === 'function') {
+        try {
+          window._onMapAddressConfirmed({ address: addressVal, lat: pos.lat, lng: pos.lng });
+        } catch (cbErr) {
+          console.warn("[confirmMapAddress] Callback error:", cbErr);
+        }
       }
 
       if (targetId !== 'reg-address' && targetId !== 'editor-map-dummy-target' && typeof syncPrimaryUserAddress === 'function') {
@@ -3568,6 +3666,7 @@ function renderHomeScreen(forceReRender = false) {
       }
       return cutValue;
     }
+    window.getLocalizedPrepareText = getLocalizedPrepareText;
 
     function updateCutStyleSelector() {
       updateModalCutStyleLabels();
@@ -3639,10 +3738,10 @@ function renderHomeScreen(forceReRender = false) {
         const cut = String(item.cutStyle || 'Small Pieces');
         const note = String(item.specialNote || '').trim();
         const variant = String(item.variant || (item.englishName ? item.englishName.toLowerCase() : '')).trim();
-        const unitPrice = parseFloat(item.pricePerKg || item.price) || 0;
+        const unitPrice = parseFloat(item.pricePerKg) || parseFloat(item.unitPrice) || parseFloat(item.price) || 0;
         const key = `${pid}___${variant}___${unitPrice}___${cut}___${note}`;
         const unitStr = item.sellingUnit || item.unit || 'kg';
-        const isWeight = isUnitWeight ? isUnitWeight(unitStr) : !(unitStr === 'piece' || unitStr === 'packet' || unitStr === 'unit' || unitStr === 'box' || unitStr === 'bunch');
+        const isWeight = typeof isUnitWeight === 'function' ? isUnitWeight(unitStr) : !(unitStr === 'piece' || unitStr === 'packet' || unitStr === 'unit' || unitStr === 'box' || unitStr === 'bunch');
         const grams = Math.max(1, parseFloat(item.weightGrams) || 1);
         const totalPrice = isWeight
           ? Math.round((unitPrice / 1000) * grams)
@@ -3652,6 +3751,7 @@ function renderHomeScreen(forceReRender = false) {
           const existing = seenKeys.get(key);
           existing.weightGrams = grams; // update to latest selected weight
           existing.pricePerKg = unitPrice;
+          existing.unitPrice = unitPrice;
           existing.totalPrice = isWeight
             ? Math.round((unitPrice / 1000) * grams)
             : Math.round(unitPrice * grams);
@@ -3662,6 +3762,7 @@ function renderHomeScreen(forceReRender = false) {
             productId: pid,
             variant: variant,
             pricePerKg: unitPrice,
+            unitPrice: unitPrice,
             weightGrams: grams,
             unit: unitStr,
             sellingUnit: unitStr,
@@ -3962,7 +4063,9 @@ function renderHomeScreen(forceReRender = false) {
           extraInfoHtml += `<p style="font-size: 10px; color: #cbd5e1; font-style: italic; margin-top: 3px;">Note: ${escapeHtml(item.specialNote)}</p>`;
         }
 
-        const unitPriceStr = item.price ? ` • <span style="color: #64748b;">₹${item.price}/${item.unit || 'kg'}</span>` : '';
+        const unitLabel = typeof getUnitDisplay === 'function' ? getUnitDisplay(item.unit || item.sellingUnit || 'kg', currentLang === 'ta', 1) : (item.unit || 'kg');
+        const unitRate = parseFloat(item.pricePerKg) || parseFloat(item.unitPrice) || (item.totalPrice && item.weightGrams ? (typeof isUnitWeight === 'function' && isUnitWeight(item.unit || item.sellingUnit || 'kg') ? Math.round((item.totalPrice / item.weightGrams) * 1000) : Math.round(item.totalPrice / item.weightGrams)) : 0) || parseFloat(item.price) || 0;
+        const unitPriceStr = unitRate ? ` • <span style="color: #94a3b8; font-weight: 500;">₹${unitRate}/${unitLabel}</span>` : '';
         const subtitleText = `${displayQtyStr}${unitPriceStr}`;
 
         const itemCard = window.renderSharedCartItemCard({
@@ -4052,10 +4155,18 @@ function renderHomeScreen(forceReRender = false) {
           }
         }
 
+        const loyaltyCard = document.getElementById('cart-loyalty-card');
         const ptBal = document.getElementById('cart-loyalty-balance');
-        if (ptBal) ptBal.innerText = Math.round(user.loyaltyPoints);
         const ptVal = document.getElementById('cart-loyalty-value');
-        if (ptVal) ptVal.innerText = Math.round(user.loyaltyPoints / 10);
+        const currentPts = user.loyaltyPoints ? Math.max(0, Math.round(user.loyaltyPoints)) : 0;
+        if (ptBal) ptBal.innerText = currentPts;
+        if (ptVal) ptVal.innerText = Math.floor(currentPts / 10);
+        if (loyaltyCard) {
+          loyaltyCard.style.display = currentPts > 0 ? 'block' : 'none';
+        }
+      } else {
+        const loyaltyCard = document.getElementById('cart-loyalty-card');
+        if (loyaltyCard) loyaltyCard.style.display = 'none';
       }
 
       if (typeof renderAllAddressCards === 'function') {
@@ -4194,7 +4305,7 @@ function renderHomeScreen(forceReRender = false) {
         };
       }
 
-      const settings = getSettings();
+      const settings = (typeof getSettings === 'function' ? getSettings() : (typeof getData === 'function' ? getData('ek_settings', {}) : {})) || {};
       const currentCart = Array.isArray(cartItems) ? cartItems : (typeof cart !== 'undefined' ? cart : []);
 
       // 1. Calculate Delivery Fee strictly based on Customer & Restaurant Delivery Zone / Distance
@@ -4211,13 +4322,19 @@ function renderHomeScreen(forceReRender = false) {
       }
 
       // Check if freeship coupon is active
+      // Free delivery is granted strictly via verified Free Delivery offer coupons (e.g. FREEFRESH or custom freeship coupons).
+      // Loyalty points and order quantity never automatically grant free delivery.
       let isFreeDelivery = false;
       let freeDeliveryReason = null;
-      const couponObj = (window.appliedCouponData) || (appliedCouponCode && typeof getCoupons === 'function' ? getCoupons().find(x => x.code === appliedCouponCode) : null);
+      const allCoupons = (typeof getCoupons === 'function' ? getCoupons() : (typeof window.getCoupons === 'function' ? window.getCoupons() : (typeof getData === 'function' ? getData('ek_coupons', []) : []))) || [];
+      const couponObj = (window.appliedCouponData) || (appliedCouponCode && Array.isArray(allCoupons) ? allCoupons.find(x => x.code === appliedCouponCode) : null);
       if (appliedCouponCode && couponObj && couponObj.type === 'freeship') {
-        isFreeDelivery = true;
-        freeDeliveryReason = `Free Delivery Coupon (${appliedCouponCode})`;
-        deliveryFee = 0;
+        const minReq = parseFloat(couponObj.minAmount) || 0;
+        if (numericSubtotal >= minReq) {
+          isFreeDelivery = true;
+          freeDeliveryReason = `Free Delivery Coupon (${appliedCouponCode})`;
+          deliveryFee = 0;
+        }
       }
 
       // 2. Loyalty / Wallet Points Discount:
@@ -4228,16 +4345,28 @@ function renderHomeScreen(forceReRender = false) {
         loyaltyDiscount = Math.min(maxPointsDiscount, numericSubtotal);
       }
 
-      // 3. Coupon Discount: ONLY apply server-returned discount (reject client-only calculation)
+      // 3. Coupon Discount:
       let couponDiscount = 0;
       if (appliedCouponCode) {
-        if (typeof window.appliedCouponServerDiscount === 'number' && window.appliedCouponServerDiscount > 0 && window.appliedCouponServerCode === appliedCouponCode) {
+        if (couponObj) {
+          if (couponObj.type === 'percentage') {
+            const perc = parseFloat(couponObj.rate) || 0;
+            couponDiscount = Math.round((numericSubtotal * perc) / 100);
+          } else if (couponObj.type === 'fixed') {
+            couponDiscount = parseFloat(couponObj.rate) || 0;
+          } else if (couponObj.type === 'freeship') {
+            couponDiscount = 0;
+          }
+          const maxRemainingSubtotal = Math.max(0, numericSubtotal - loyaltyDiscount);
+          couponDiscount = Math.min(maxRemainingSubtotal, couponDiscount);
+          couponDiscount = Math.max(0, couponDiscount);
+          window.appliedCouponServerDiscount = couponDiscount;
+        } else if (typeof window.appliedCouponServerDiscount === 'number' && window.appliedCouponServerDiscount > 0 && window.appliedCouponServerCode === appliedCouponCode) {
           couponDiscount = window.appliedCouponServerDiscount;
           const maxRemainingSubtotal = Math.max(0, numericSubtotal - loyaltyDiscount);
           couponDiscount = Math.min(maxRemainingSubtotal, couponDiscount);
           couponDiscount = Math.max(0, couponDiscount);
         } else {
-          // Reject client-only coupon calculation
           couponDiscount = 0;
         }
       }
@@ -4258,6 +4387,7 @@ function renderHomeScreen(forceReRender = false) {
         zoneName: zoneName
       };
     }
+    window.calculateOrderFinancials = calculateOrderFinancials;
 
     function recalculateBill() {
       let subtotal = cart.reduce((acc, curr) => acc + curr.totalPrice, 0);
@@ -4428,23 +4558,22 @@ function renderHomeScreen(forceReRender = false) {
     }
 
     function updateEmailVerificationBanner() {
+      // Ensure banner on home screen is permanently removed / hidden per user request
       const banner = document.getElementById('home-email-unverified-banner');
-      if (!banner) return;
-      try {
-        const user = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
-        const session = typeof getActiveSession === 'function' ? getActiveSession() : null;
-        if (user && !user.isAnonymous && user.email && user.emailVerified === false && session && session.loggedIn) {
-          banner.style.display = 'block';
-        } else {
-          banner.style.display = 'none';
-        }
-      } catch (e) {
+      if (banner) {
         banner.style.display = 'none';
+      }
+      // Delegate to profile email verification UI
+      if (typeof updateProfileEmailVerificationUI === 'function') {
+        try { updateProfileEmailVerificationUI(); } catch (e) {}
       }
     }
     window.updateEmailVerificationBanner = updateEmailVerificationBanner;
 
     async function resendVerificationEmail() {
+      if (typeof resendProfileVerificationEmail === 'function') {
+        return resendProfileVerificationEmail();
+      }
       try {
         const user = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
         if (user && typeof user.sendEmailVerification === 'function') {
@@ -4452,14 +4581,19 @@ function renderHomeScreen(forceReRender = false) {
           if (typeof showToast === 'function') {
             showToast(
               typeof currentLang !== 'undefined' && currentLang === 'ta'
-                ? "சரிபார்ப்பு மின்னஞ்சல் மீண்டும் அனுப்பப்பட்டது!"
+                ? "சரிபார்ப்பு மின்னஞ்சல் அனுப்பப்பட்டது! உங்கள் இன்பாக்ஸை சரிபார்க்கவும். ✉️"
                 : "Verification email resent — please check your inbox.",
               "success"
             );
           }
         } else {
           if (typeof showToast === 'function') {
-            showToast("Unable to send verification email.", "warning");
+            showToast(
+              typeof currentLang !== 'undefined' && currentLang === 'ta'
+                ? "சரிபார்ப்பு மின்னஞ்சலை அனுப்ப முடியவில்லை."
+                : "Unable to send verification email.",
+              "warning"
+            );
           }
         }
       } catch (err) {
@@ -4470,3 +4604,19 @@ function renderHomeScreen(forceReRender = false) {
       }
     }
     window.resendVerificationEmail = resendVerificationEmail;
+
+    // Explicit Window Bindings for Products & Cart actions
+    if (typeof window !== 'undefined') {
+      if (typeof filterHomeProducts === 'function') window.filterHomeProducts = filterHomeProducts;
+      if (typeof calculateOrderFinancials === 'function') window.calculateOrderFinancials = calculateOrderFinancials;
+      if (typeof recalculateBill === 'function') window.recalculateBill = recalculateBill;
+      if (typeof renderCartScreen === 'function') window.renderCartScreen = renderCartScreen;
+      if (typeof adjustCartItemWeight === 'function') window.adjustCartItemWeight = adjustCartItemWeight;
+      if (typeof removeFromCart === 'function') window.removeFromCart = removeFromCart;
+      if (typeof clearCart === 'function') window.clearCart = clearCart;
+      if (typeof updateCartItemCutStyle === 'function') window.updateCartItemCutStyle = updateCartItemCutStyle;
+      if (typeof toggleFreeGreeneryGift === 'function') window.toggleFreeGreeneryGift = toggleFreeGreeneryGift;
+      if (typeof addToCart === 'function') window.addToCart = addToCart;
+      if (typeof saveCart === 'function') window.saveCart = saveCart;
+      if (typeof sanitizeCart === 'function') window.sanitizeCart = sanitizeCart;
+    }

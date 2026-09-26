@@ -10,6 +10,7 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
+import java.util.concurrent.ConcurrentHashMap
 
 object CryptoHelper {
     private const val TAG = "CryptoHelper"
@@ -18,6 +19,17 @@ object CryptoHelper {
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
     private const val IV_SEPARATOR = "]"
     private const val XOR_KEY = "LYO_EDAPPADI_KADAI_SECURE_KEY_2026_9876"
+
+    // High performance in-memory LRU cache for decrypted strings to deliver sub-millisecond response time
+    private val memoryDecryptedCache = ConcurrentHashMap<String, String>(64)
+
+    fun invalidateMemoryCache(key: String? = null) {
+        if (key != null) {
+            memoryDecryptedCache.remove(key)
+        } else {
+            memoryDecryptedCache.clear()
+        }
+    }
 
     init {
         initKey()
@@ -80,7 +92,9 @@ object CryptoHelper {
             val ivString = Base64.encodeToString(iv, Base64.NO_WRAP)
             val encryptedString = Base64.encodeToString(encryptedBytes, Base64.NO_WRAP)
             
-            return "$ivString$IV_SEPARATOR$encryptedString"
+            val cipherText = "$ivString$IV_SEPARATOR$encryptedString"
+            memoryDecryptedCache[cipherText] = plainText
+            return cipherText
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Encryption failed", e)
             return ""
@@ -92,12 +106,22 @@ object CryptoHelper {
      */
     fun decrypt(context: Context, key: String, encryptedData: String): String {
         if (encryptedData.isEmpty()) return ""
+
+        // Instant sub-millisecond memory cache hit
+        val cached = memoryDecryptedCache[encryptedData]
+        if (cached != null) {
+            return cached
+        }
         
         // Check if this is Keystore-encrypted
         val parts = encryptedData.split(IV_SEPARATOR)
         if (parts.size != 2) {
             // It might be plaintext JSON or legacy XOR JSON
-            return handleLegacyOrPlaintext(context, key, encryptedData)
+            val res = handleLegacyOrPlaintext(context, key, encryptedData)
+            if (res.isNotEmpty()) {
+                memoryDecryptedCache[encryptedData] = res
+            }
+            return res
         }
 
         try {
@@ -110,9 +134,12 @@ object CryptoHelper {
             cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
             
             val decryptedBytes = cipher.doFinal(encryptedBytes)
-            return String(decryptedBytes, Charsets.UTF_8)
+            val decryptedStr = String(decryptedBytes, Charsets.UTF_8)
+            memoryDecryptedCache[encryptedData] = decryptedStr
+            return decryptedStr
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Decryption failed for key '$key'. Clearing corrupted cache.", e)
+            memoryDecryptedCache.remove(encryptedData)
             // Clear corrupted key automatically as requested
             try {
                 val sharedPreferences = context.getSharedPreferences("EdappadiKadaiPrefs", Context.MODE_PRIVATE)

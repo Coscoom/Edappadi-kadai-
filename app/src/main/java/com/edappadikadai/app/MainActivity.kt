@@ -89,12 +89,33 @@ class MainActivity : ComponentActivity() {
                 onComplete?.invoke()
             }
         }
+
+        fun isHardwareRenderNodeMissing(): Boolean {
+            return try {
+                val isEmulator = android.os.Build.FINGERPRINT.startsWith("generic")
+                    || android.os.Build.FINGERPRINT.startsWith("unknown")
+                    || android.os.Build.MODEL.contains("google_sdk")
+                    || android.os.Build.MODEL.contains("Emulator")
+                    || android.os.Build.MODEL.contains("Android SDK built for x86")
+                    || android.os.Build.MANUFACTURER.contains("Genymotion")
+                    || android.os.Build.HARDWARE.contains("goldfish")
+                    || android.os.Build.HARDWARE.contains("ranchu")
+                    || (android.os.Build.BRAND.startsWith("generic") && android.os.Build.DEVICE.startsWith("generic"))
+                    || "google_sdk" == android.os.Build.PRODUCT
+
+                val driDir = java.io.File("/dev/dri")
+                val hasRenderNode = driDir.exists() && driDir.listFiles()?.any { it.name.startsWith("renderD") } == true
+                isEmulator || !hasRenderNode
+            } catch (e: Exception) {
+                true
+            }
+        }
     }
 
     val isAppLoadedState = androidx.compose.runtime.mutableStateOf(false)
     val hasLoadFailedState = androidx.compose.runtime.mutableStateOf(false)
     val webViewRecreateKey = androidx.compose.runtime.mutableStateOf(0)
-    val isSoftwareRenderingFallback = androidx.compose.runtime.mutableStateOf(false)
+    val isSoftwareRenderingFallback = androidx.compose.runtime.mutableStateOf(isHardwareRenderNodeMissing())
     private var renderCrashCount = 0
     private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var integrityCheckRunnable: Runnable? = null
@@ -344,7 +365,15 @@ class MainActivity : ComponentActivity() {
             }
         }
         
-        val status = if (resultCode == Activity.RESULT_OK) {
+        var isExplicitSuccessInText = false
+        if (responseText.isNotEmpty()) {
+            val lower = responseText.lowercase()
+            if (lower.contains("status=success") || lower.contains("status=completed") || lower.contains("status=approved") || lower.contains("responsecode=00") || lower.contains("responsecode=0")) {
+                isExplicitSuccessInText = true
+            }
+        }
+
+        val status = if (resultCode == Activity.RESULT_OK || isExplicitSuccessInText) {
             if (responseText.isNotEmpty()) {
                 responseText
             } else {
@@ -462,36 +491,25 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        EdappadiApplication.configureMesaEnvironment()
         currentInstance = this
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Ensure window hardware acceleration is maintained for Jetpack Compose
+        try {
+            window.setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+            )
+        } catch (e: Exception) {
+            // Ignore
+        }
+
         handleIntentForFcm(intent)
 
-        // Pre-create WebView cache directories to prevent Chromium from logging directory-missing errors
-        try {
-            val webViewDir = java.io.File(cacheDir, "WebView/Default")
-            if (!webViewDir.exists()) {
-                webViewDir.mkdirs()
-            }
-            val httpCacheDir = java.io.File(webViewDir, "HTTP Cache")
-            if (!httpCacheDir.exists()) {
-                httpCacheDir.mkdirs()
-            }
-            val codeCacheDir = java.io.File(httpCacheDir, "Code Cache")
-            if (!codeCacheDir.exists()) {
-                codeCacheDir.mkdirs()
-            }
-            val jsCacheDir = java.io.File(codeCacheDir, "js")
-            if (!jsCacheDir.exists()) {
-                jsCacheDir.mkdirs()
-            }
-            val wasmCacheDir = java.io.File(codeCacheDir, "wasm")
-            if (!wasmCacheDir.exists()) {
-                wasmCacheDir.mkdirs()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        // Pre-create and secure WebView cache directories with full read/write/execute permissions
+        EdappadiApplication.ensureWebViewCacheDirectories(this)
 
         // Notification permission is requested gracefully on-demand from JavaScript via AndroidStorage.requestNotificationPermission()
 
@@ -628,11 +646,10 @@ class MainActivity : ComponentActivity() {
                                         isVerticalScrollBarEnabled = false
                                         isHorizontalScrollBarEnabled = false
                                         overScrollMode = android.view.View.OVER_SCROLL_NEVER
-                                        isDrawingCacheEnabled = false
                                         setBackgroundColor(android.graphics.Color.parseColor("#0a0a0a"))
 
-                                        // Gracefully fallback to software rendering layer if hardware driver/mesa encounters issues
-                                        if (isSoftwareRenderingFallback.value) {
+                                        // Gracefully fallback to software rendering layer if hardware driver/mesa encounters issues or rendernode is absent
+                                        if (isSoftwareRenderingFallback.value || isHardwareRenderNodeMissing()) {
                                             setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
                                         } else {
                                             setLayerType(android.view.View.LAYER_TYPE_NONE, null)
@@ -646,10 +663,15 @@ class MainActivity : ComponentActivity() {
                                             setGeolocationEnabled(true)
                                             allowFileAccess = true
                                             allowContentAccess = true
+                                            @Suppress("DEPRECATION")
+                                            allowFileAccessFromFileURLs = true
+                                            @Suppress("DEPRECATION")
+                                            allowUniversalAccessFromFileURLs = true
                                             mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
                                             useWideViewPort = true
                                             loadWithOverviewMode = true
-                                            cacheMode = WebSettings.LOAD_NO_CACHE
+                                            cacheMode = WebSettings.LOAD_DEFAULT
+                                            offscreenPreRaster = !isSoftwareRenderingFallback.value && !isHardwareRenderNodeMissing()
                                             loadsImagesAutomatically = true
                                             setSupportZoom(false)
                                             builtInZoomControls = false
@@ -657,6 +679,9 @@ class MainActivity : ComponentActivity() {
                                             defaultTextEncodingName = "UTF-8"
                                             textZoom = 100
                                         }
+
+                                        // Ensure cache directory permissions without wiping active simple backend files
+                                        EdappadiApplication.ensureWebViewCacheDirectories(context)
 
                                         // Handle native intent actions (tel, whatsapp, intents, maps)
                                         webViewClient = object : WebViewClient() {
@@ -734,46 +759,36 @@ class MainActivity : ComponentActivity() {
 
                                         override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                                             if (url == null) return false
-                                            if (url.startsWith("file:///")) {
+                                            if (url.startsWith("file:///android_asset/")) {
                                                 return false
                                             }
-                                            
-                                            val isSpecialScheme = !url.startsWith("http://") && !url.startsWith("https://")
-                                                    || url.contains("google.com/maps")
-                                                    || url.contains("maps.google")
-                                                    || url.contains("wa.me")
-                                                    || url.startsWith("whatsapp:")
-                                                    || url.startsWith("tel:")
 
-                                            if (isSpecialScheme) {
-                                                try {
-                                                    val intent = if (url.startsWith("intent:")) {
-                                                        val parsed = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
-                                                        val fallback = parsed.getStringExtra("browser_fallback_url")
-                                                        if (fallback != null && fallback.isNotEmpty()) {
-                                                            Intent(Intent.ACTION_VIEW, Uri.parse(fallback))
-                                                        } else {
-                                                            parsed
-                                                        }
+                                            try {
+                                                val intent = if (url.startsWith("intent:")) {
+                                                    val parsed = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                                                    val fallback = parsed.getStringExtra("browser_fallback_url")
+                                                    if (fallback != null && fallback.isNotEmpty()) {
+                                                        Intent(Intent.ACTION_VIEW, Uri.parse(fallback))
                                                     } else {
-                                                        Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                        parsed
                                                     }
-                                                    context.startActivity(intent)
-                                                    return true
-                                                } catch (e: Exception) {
-                                                    e.printStackTrace()
-                                                    // Fallback to basic map or external browser link opening
-                                                    if (url.contains("google.com/maps") || url.contains("maps.google")) {
-                                                        try {
-                                                            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                                            context.startActivity(browserIntent)
-                                                            return true
-                                                        } catch (e2: Exception) {}
-                                                    }
-                                                    return true // Suppress the crash / bad web view schemes
+                                                } else {
+                                                    Intent(Intent.ACTION_VIEW, Uri.parse(url))
                                                 }
+                                                context.startActivity(intent)
+                                                return true
+                                            } catch (e: Exception) {
+                                                e.printStackTrace()
+                                                // Fallback for standard web links if special handler fails
+                                                if (url.startsWith("http://") || url.startsWith("https://")) {
+                                                    try {
+                                                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                        context.startActivity(browserIntent)
+                                                        return true
+                                                    } catch (e2: Exception) {}
+                                                }
+                                                return true // Suppress crash and never allow loading remote web pages inside the WebView
                                             }
-                                            return false
                                         }
                                     }
 
@@ -808,9 +823,19 @@ class MainActivity : ComponentActivity() {
 
                                         override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean {
                                             if (consoleMessage != null) {
-                                                val logMsg = "[JS Console] ${consoleMessage.message()} (Line: ${consoleMessage.lineNumber()}, Source: ${consoleMessage.sourceId()})"
+                                                val msg = consoleMessage.message() ?: ""
+                                                val logMsg = "[JS Console] $msg (Line: ${consoleMessage.lineNumber()}, Source: ${consoleMessage.sourceId()})"
                                                 if (consoleMessage.messageLevel() == android.webkit.ConsoleMessage.MessageLevel.ERROR) {
-                                                    android.util.Log.e("WebViewConsole", logMsg)
+                                                    val isExpectedAuthOrValidationNotice = msg.contains("auth/invalid-credential", ignoreCase = true) ||
+                                                            msg.contains("auth/wrong-password", ignoreCase = true) ||
+                                                            msg.contains("auth/user-not-found", ignoreCase = true) ||
+                                                            msg.contains("auth/invalid-login-credentials", ignoreCase = true) ||
+                                                            msg.contains("auth/too-many-requests", ignoreCase = true)
+                                                    if (isExpectedAuthOrValidationNotice) {
+                                                        android.util.Log.w("WebViewConsole", logMsg)
+                                                    } else {
+                                                        android.util.Log.e("WebViewConsole", logMsg)
+                                                    }
                                                 } else if (consoleMessage.messageLevel() == android.webkit.ConsoleMessage.MessageLevel.WARNING) {
                                                     android.util.Log.w("WebViewConsole", logMsg)
                                                 } else {
@@ -863,8 +888,7 @@ class MainActivity : ComponentActivity() {
 
                                     addJavascriptInterface(WebAppInterface(context), "AndroidStorage")
 
-                                    clearCache(true)
-                                    loadUrl("file:///android_asset/index.html")
+                                    loadUrl("file:///android_asset/index.html?v=" + BuildConfig.VERSION_NAME + "_" + BuildConfig.VERSION_CODE)
                                     scheduleIntegrityCheck()
                                 }
                             }
@@ -1026,6 +1050,7 @@ class MainActivity : ComponentActivity() {
                     put("title", title)
                     put("body", body)
                     for (key in extras.keySet()) {
+                        @Suppress("DEPRECATION")
                         val value = extras.get(key)
                         if (value != null) {
                             put(key, value.toString())
@@ -1243,11 +1268,7 @@ class MainActivity : ComponentActivity() {
         fun getAppVersionCode(): Int = BuildConfig.VERSION_CODE
 
         @JavascriptInterface
-        fun getGeminiApiKey(): String {
-            // Secure server-side Cloud Function proxy is used for AI requests.
-            // Avoid exposing sensitive API keys to WebView / JavaScript environment.
-            return ""
-        }
+        fun getAppVersionName(): String = BuildConfig.VERSION_NAME
 
         @JavascriptInterface
         fun startUpiPayment(upiUri: String): Boolean {
@@ -1475,39 +1496,106 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun nativeReverseGeocode(lat: Double, lng: Double): String {
             return try {
-                if (!android.location.Geocoder.isPresent()) {
-                    return ""
+                if (android.location.Geocoder.isPresent()) {
+                    val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+                    @Suppress("DEPRECATION")
+                    val addresses = geocoder.getFromLocation(lat, lng, 1)
+                    if (!addresses.isNullOrEmpty()) {
+                        val addr = addresses[0]
+                        val sb = StringBuilder()
+                        for (i in 0..addr.maxAddressLineIndex) {
+                            if (i > 0) sb.append(", ")
+                            sb.append(addr.getAddressLine(i))
+                        }
+                        val fullAddress = sb.toString().ifEmpty {
+                            listOfNotNull(addr.featureName, addr.thoroughfare, addr.subLocality, addr.locality, addr.adminArea, addr.postalCode)
+                                .filter { it.isNotBlank() }
+                                .joinToString(", ")
+                        }
+                        val json = org.json.JSONObject().apply {
+                            put("displayName", fullAddress)
+                            put("street", addr.thoroughfare ?: "")
+                            put("area", addr.subLocality ?: addr.locality ?: "")
+                            put("city", addr.locality ?: addr.subAdminArea ?: "")
+                            put("postalCode", addr.postalCode ?: "")
+                            put("lat", lat)
+                            put("lng", lng)
+                            put("latitude", lat)
+                            put("longitude", lng)
+                        }
+                        return json.toString()
+                    }
                 }
-                val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
-                @Suppress("DEPRECATION")
-                val addresses = geocoder.getFromLocation(lat, lng, 1)
-                if (!addresses.isNullOrEmpty()) {
-                    val addr = addresses[0]
-                    val sb = StringBuilder()
-                    for (i in 0..addr.maxAddressLineIndex) {
-                        if (i > 0) sb.append(", ")
-                        sb.append(addr.getAddressLine(i))
+
+                // Fallback 1: High-accuracy OpenStreetMap Nominatim query with native User-Agent
+                try {
+                    val osmUrl = java.net.URL("https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&zoom=18&addressdetails=1")
+                    val osmConn = osmUrl.openConnection() as java.net.HttpURLConnection
+                    osmConn.connectTimeout = 4000
+                    osmConn.readTimeout = 4000
+                    osmConn.setRequestProperty("User-Agent", "EdappadiKadaiApp/9.0 (Android Native; Edappadi, Salem, Tamil Nadu; contact@edappadikadai.com)")
+                    osmConn.setRequestProperty("Accept", "application/json")
+                    if (osmConn.responseCode == 200) {
+                        val osmText = osmConn.inputStream.bufferedReader().use { it.readText() }
+                        val osmObj = org.json.JSONObject(osmText)
+                        val dispName = osmObj.optString("display_name", "")
+                        val addrObj = osmObj.optJSONObject("address")
+                        if (dispName.isNotBlank() && addrObj != null) {
+                            val road = addrObj.optString("road", addrObj.optString("residential", addrObj.optString("pedestrian", "")))
+                            val suburb = addrObj.optString("suburb", addrObj.optString("neighbourhood", addrObj.optString("village", addrObj.optString("hamlet", ""))))
+                            val cityTown = addrObj.optString("city", addrObj.optString("town", addrObj.optString("county", "Edappadi")))
+                            val pin = addrObj.optString("postcode", "637101")
+                            val json = org.json.JSONObject().apply {
+                                put("displayName", dispName)
+                                put("street", road)
+                                put("area", if (suburb.isNotBlank()) suburb else cityTown)
+                                put("city", cityTown)
+                                put("postalCode", pin)
+                                put("lat", lat)
+                                put("lng", lng)
+                                put("latitude", lat)
+                                put("longitude", lng)
+                            }
+                            return json.toString()
+                        }
                     }
-                    val fullAddress = sb.toString().ifEmpty {
-                        listOfNotNull(addr.featureName, addr.thoroughfare, addr.subLocality, addr.locality, addr.adminArea, addr.postalCode)
-                            .filter { it.isNotBlank() }
-                            .joinToString(", ")
-                    }
-                    val json = org.json.JSONObject().apply {
-                        put("displayName", fullAddress)
-                        put("street", addr.thoroughfare ?: "")
-                        put("area", addr.subLocality ?: addr.locality ?: "")
-                        put("city", addr.locality ?: addr.subAdminArea ?: "")
-                        put("postalCode", addr.postalCode ?: "")
-                        put("lat", lat)
-                        put("lng", lng)
-                        put("latitude", lat)
-                        put("longitude", lng)
-                    }
-                    json.toString()
-                } else {
-                    ""
+                } catch (osmE: Exception) {
+                    android.util.Log.w("GEOCODER", "Native OSM reverse geocode fallback failed: ${osmE.message}")
                 }
+
+                // Fallback 2: fast network reverse-geocode via BigDataCloud with custom User-Agent
+                try {
+                    val url = java.net.URL("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=$lat&longitude=$lng&localityLanguage=en")
+                    val conn = url.openConnection() as java.net.HttpURLConnection
+                    conn.connectTimeout = 3500
+                    conn.readTimeout = 3500
+                    conn.setRequestProperty("User-Agent", "EdappadiKadaiApp/1.0 (Android Native; Edappadi, Salem, Tamil Nadu)")
+                    if (conn.responseCode == 200) {
+                        val text = conn.inputStream.bufferedReader().use { it.readText() }
+                        val bdcJson = org.json.JSONObject(text)
+                        val locality = bdcJson.optString("locality", "")
+                        val city = bdcJson.optString("city", "Edappadi")
+                        val state = bdcJson.optString("principalSubdivision", "Tamil Nadu")
+                        val postcode = bdcJson.optString("postcode", "637101")
+                        val parts = listOf(locality, city, "Salem", state, postcode).filter { it.isNotBlank() }.distinct()
+                        val fullAddr = parts.joinToString(", ")
+                        val json = org.json.JSONObject().apply {
+                            put("displayName", if (fullAddr.isNotBlank()) fullAddr else "Edappadi, Salem, Tamil Nadu")
+                            put("street", locality)
+                            put("area", if (locality.isNotBlank()) locality else city)
+                            put("city", if (city.isNotBlank()) city else "Edappadi")
+                            put("postalCode", if (postcode.isNotBlank()) postcode else "637101")
+                            put("lat", lat)
+                            put("lng", lng)
+                            put("latitude", lat)
+                            put("longitude", lng)
+                        }
+                        return json.toString()
+                    }
+                } catch (netE: Exception) {
+                    android.util.Log.w("GEOCODER", "Native network geocoding fallback failed: ${netE.message}")
+                }
+                ""
             } catch (e: Exception) {
                 android.util.Log.w("GEOCODER", "Native reverse geocoding failed: ${e.message}")
                 ""
@@ -1561,6 +1649,9 @@ class MainActivity : ComponentActivity() {
                 try {
                     val printWebView = WebView(context)
                     printWebView.apply {
+                        if (isHardwareRenderNodeMissing()) {
+                            setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
+                        }
                         settings.apply {
                             javaScriptEnabled = true
                             domStorageEnabled = true

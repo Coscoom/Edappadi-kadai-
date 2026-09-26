@@ -130,11 +130,30 @@
       let apiKey = (config.apiKey || '').trim();
       let model = (config.model || '').trim();
 
+      // Auto-discover built-in Gemini API key if no custom key configured
+      if (!apiKey && typeof getBuiltinGeminiApiKey === 'function') {
+        const builtinKey = getBuiltinGeminiApiKey();
+        if (builtinKey && builtinKey.trim()) {
+          apiKey = builtinKey.trim();
+          provider = 'gemini';
+        }
+      }
+
       let primaryErr = null;
 
-      // 1. Primary: Server-side secure Cloud Function proxy (keeps API keys off client)
+      // 1. Direct Execution with Key (Gemini free tier or Custom Provider)
+      if (apiKey) {
+        try {
+          return await executeSingleAiCall(provider, apiKey, model, systemInstructions, conversationContents);
+        } catch (err) {
+          primaryErr = err;
+          console.warn(`[AI Orchestrator] Direct provider (${provider}) failed: HTTP ${err.status || 'N/A'} - ${err.message}.`);
+        }
+      }
+
+      // 2. Server-side Cloud Function proxy (if available)
       const aiCloudFn = typeof getCloudFunction === 'function' ? getCloudFunction('generateAiResponse') : null;
-      if (aiCloudFn && !apiKey) {
+      if (aiCloudFn) {
         try {
           const userPrompt = queryText || (conversationContents && conversationContents[0] && conversationContents[0].parts && conversationContents[0].parts[0] ? conversationContents[0].parts[0].text : '');
           const res = await aiCloudFn({
@@ -148,43 +167,63 @@
             return { text: res.data.text, provider: res.data.provider || provider };
           }
         } catch (serverErr) {
-          primaryErr = serverErr;
+          if (!primaryErr) primaryErr = serverErr;
           console.warn("[AI Orchestrator] Server Cloud Function proxy call failed:", serverErr.message || serverErr);
         }
       }
 
-      // 2. Custom client-side execution if a custom key was explicitly provided
-      if (apiKey) {
-        try {
-          return await executeSingleAiCall(provider, apiKey, model, systemInstructions, conversationContents);
-        } catch (err) {
-          primaryErr = err;
-          console.warn(`[AI Orchestrator] Custom provider (${provider}) failed: HTTP ${err.status || 'N/A'} - ${err.message}.`);
+      // 3. Resilient Free Open-Source Models (Qwen 2.5 & Mistral via open-source endpoints)
+      // Free inference, zero API key required, high multilingual Tamil & English accuracy
+      try {
+        const osRes = await callFreeOpenSourceAI(systemInstructions, conversationContents, queryText);
+        if (osRes && osRes.text) {
+          return osRes;
         }
-      }
-
-      // 3. Fallback to server Cloud Function if client key call failed
-      if (aiCloudFn && apiKey) {
-        try {
-          const userPrompt = queryText || '';
-          const res = await aiCloudFn({
-            prompt: userPrompt,
-            systemInstruction: systemInstructions || '',
-            contents: conversationContents || [],
-            model: model || '',
-            provider: provider || 'gemini'
-          });
-          if (res && res.data && res.data.text) {
-            return { text: res.data.text, provider: res.data.provider || provider };
-          }
-        } catch (serverErr) {
-          if (!primaryErr) primaryErr = serverErr;
-        }
+      } catch (osErr) {
+        console.warn("[AI Orchestrator] Free open-source fallback failed:", osErr.message);
       }
 
       const finalErr = primaryErr || new Error("AI_ORCHESTRATOR_ALL_PROVIDERS_FAILED");
       if (!finalErr.provider) finalErr.provider = provider;
       throw finalErr;
+    }
+
+    async function callFreeOpenSourceAI(systemInstructions, conversationContents, queryText) {
+      const openSourceModels = ['qwen', 'mistral'];
+      const messages = [
+        { role: 'system', content: systemInstructions || 'You are Lyo AI, an intelligent, helpful assistant for Edappadi Kadai store.' },
+        ...((conversationContents || []).map(c => ({
+          role: c.role === 'model' ? 'assistant' : 'user',
+          content: (c.parts && c.parts[0] ? (c.parts[0].text || c.parts[0]) : (typeof c.parts === 'string' ? c.parts : ''))
+        })))
+      ];
+      if (messages.length <= 1 && queryText) {
+        messages.push({ role: 'user', content: queryText });
+      }
+
+      for (const m of openSourceModels) {
+        try {
+          const res = await fetchWithTimeoutAndRetry('https://text.pollinations.ai/openai/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: m,
+              messages: messages,
+              temperature: 0.1
+            })
+          }, 1, 6000);
+          if (res && res.ok) {
+            const data = await res.json();
+            const txt = data?.choices?.[0]?.message?.content;
+            if (txt && txt.trim()) {
+              return { text: txt.trim(), provider: 'open-source-' + m };
+            }
+          }
+        } catch (err) {
+          console.warn(`[Lyo OpenSource AI] Model ${m} error:`, err.message);
+        }
+      }
+      throw new Error("OPEN_SOURCE_AI_UNAVAILABLE");
     }
 
     async function executeSingleAiCall(provider, cleanKey, cleanModel, systemInstructions, conversationContents) {
@@ -319,8 +358,13 @@
         return { text: replyText };
 
       } else {
-        // Default: Gemini
-        const geminiModels = [cleanModel || 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-flash-latest'];
+        // Free & fast Google Gemini models (zero quota drain, high speed & accuracy)
+        const geminiModels = [
+          cleanModel || 'gemini-2.5-flash',
+          'gemini-flash-latest',
+          'gemini-3.1-flash-lite-preview',
+          'gemini-3.5-flash'
+        ];
         let lastError = "";
         let lastStatus = 0;
         let lastDetails = "";
@@ -493,6 +537,19 @@
         if (typeof saveData === 'function') {
           saveData('ek_ai_offline_knowledge', knowledgeBase);
         }
+
+        // 1. Clear AI order parse cache on catalog sync so new products/prices take effect immediately
+        if (typeof _aiOrderParseCache !== 'undefined' && _aiOrderParseCache && typeof _aiOrderParseCache.clear === 'function') {
+          _aiOrderParseCache.clear();
+        }
+
+        // 2. Refresh dynamic NLU synonym dictionary with active products
+        if (typeof window !== 'undefined' && typeof window.getActiveNluDictionary === 'function') {
+          try {
+            window.getActiveNluDictionary(products);
+          } catch(e) {}
+        }
+
         return knowledgeBase;
       } catch (err) {
         console.warn('[AI Knowledge Base Sync] Error:', err);
@@ -500,6 +557,18 @@
       }
     }
     window.syncAiKnowledgeBase = syncAiKnowledgeBase;
+
+    // Automatic Realtime Sync Listeners for Lyo AI
+    if (typeof window !== 'undefined') {
+      window.addEventListener('ek-products-updated', function(e) {
+        const pList = (typeof getData === 'function' ? getData('ek_products', []) : []) || [];
+        syncAiKnowledgeBase(pList);
+      });
+      window.addEventListener('refresh-customer-catalog', function() {
+        const pList = (typeof getData === 'function' ? getData('ek_products', []) : []) || [];
+        syncAiKnowledgeBase(pList);
+      });
+    }
 
     // 2. Levenshtein Distance for Misspellings
     function getLevenshteinDistance(a, b) {
@@ -979,14 +1048,18 @@
       if (!queryText || !queryText.trim()) return [];
 
       let cleanQuery = normalizeSpokenTamilNumbers(queryText.trim());
-      // Replace conversational joiners with comma delimiters
-      cleanQuery = cleanQuery.replace(/\s+(?:மற்றும்|அப்புறம்|கூட|மேலும்|and|&|\+)\s+/gi, ', ');
+      // Clean conversational joiners and conjunctions
+      cleanQuery = cleanQuery.replace(/\s+(?:மற்றும்|அப்புறம்|கூட|மேலும்|அடுத்து|பின்பு|சேர்த்து|உடன்|and|&|\+)\s+/gi, ', ');
+      // Clean numbered or bulleted list prefixes (e.g. "1.", "2)", "3 -", "*", "•")
+      cleanQuery = cleanQuery.replace(/(?:^|\n|\r)\s*(?:\d+[\.\)\-]|[\*\•\-])\s*/g, '\n');
+      // Clean Tamil conjunction suffixes (e.g. "தக்காளியும் வெங்காயமும்" -> "தக்காளி , வெங்காயம்")
+      cleanQuery = cleanQuery.replace(/([^\s,;!?]+)(?:யும்|வும்|உம்)\b/gi, '$1, ');
 
       // If text contains newlines or commas, do initial line/comma split
-      const rawChunks = cleanQuery.replace(/\r/g, '').split(/[\n,]+/);
+      const rawChunks = cleanQuery.replace(/\r/g, '').split(/[\n,;]+/);
       const segmentedChunks = [];
 
-      // Gather product keywords dynamically from dictionary
+      // Gather product keywords dynamically from dictionary + full active catalog
       const activeDict = (typeof getActiveNluDictionary === 'function')
         ? getActiveNluDictionary()
         : ((typeof EK_BASE_SYNONYMS !== 'undefined') ? EK_BASE_SYNONYMS : {});
@@ -1001,7 +1074,23 @@
         }
       }
 
-      // Add common staples/vegetables to set
+      // Dynamically add all active store products from database/cache
+      const allCatalogProds = (typeof getData === 'function' ? getData('ek_products', []) : []) || [];
+      allCatalogProds.forEach(p => {
+        if (!p || p.isActive === false || p.isDeleted === true) return;
+        const en = (p.englishName || p.name || '').toLowerCase().trim();
+        const ta = (p.tamilName || '').toLowerCase().trim();
+        if (en && en.length >= 2) productKeywords.add(en);
+        if (ta && ta.length >= 2) productKeywords.add(ta);
+        if (Array.isArray(p.aliases)) {
+          p.aliases.forEach(a => {
+            const aClean = String(a || '').toLowerCase().trim();
+            if (aClean && aClean.length >= 2) productKeywords.add(aClean);
+          });
+        }
+      });
+
+      // Add common staples/vegetables to set as guaranteed fallbacks
       ['தக்காளி', 'முட்டை', 'பால்', 'முருங்கைக்காய்', 'முருங்கக்கா', 'வெங்காயம்', 'ஆட்டுக்கறி', 'சிக்கன்', 'மட்டன்'].forEach(k => productKeywords.add(k));
 
       // Sort longer phrases first to match compound phrases first
@@ -1043,7 +1132,8 @@
         }
 
         // Multi-product segmenting with quantity detachment
-        let pendingPrefix = '';
+        // Initialize pendingPrefix with any quantity preceding the first product
+        let pendingPrefix = text.substring(0, uniqueProds[0].start).trim();
         for (let i = 0; i < uniqueProds.length; i++) {
           const cur = uniqueProds[i];
           const next = uniqueProds[i + 1];
@@ -1062,7 +1152,7 @@
 
             if (qtys.length >= 2) {
               const lastQty = qtys[qtys.length - 1];
-              if (rawSlice.length - lastQty.end <= 10) {
+              if (rawSlice.length - lastQty.end <= 15) {
                 pendingPrefix = lastQty.text;
                 rawSlice = rawSlice.substring(0, lastQty.start).trim();
               }
@@ -1284,8 +1374,8 @@
       const cleanKey = (apiKey || '').trim();
       const cleanModel = (model || '').trim();
 
-      // Pre-filter catalog for AI parser call (scalability for 600-700+ products):
-      // Include products with token/substring overlap with user query + top popular products baseline
+      // Pre-filter catalog for AI parser call (scalability for multi-item grocery lists):
+      // Include all products with token/substring overlap with user query + top popular products baseline
       const queryTokens = (queryText || '')
         .toLowerCase()
         .replace(/[^\w\s\u0B80-\u0BFF]/g, ' ')
@@ -1293,26 +1383,26 @@
         .filter(t => t.length >= 2);
 
       const filteredAiProducts = (() => {
-        if (!activeProducts || activeProducts.length <= 40) return activeProducts || [];
+        if (!activeProducts || activeProducts.length <= 60) return activeProducts || [];
         const matchedSet = new Set();
         const selected = [];
 
-        // 1. Products matching user query terms in English or Tamil
+        // 1. Products matching user query terms in English or Tamil or keywords
         activeProducts.forEach(p => {
           const en = (p.englishName || '').toLowerCase();
           const ta = (p.tamilName || '').toLowerCase();
           const pTerms = (p.searchKeywords || []).map(k => String(k).toLowerCase());
-          const isMatch = queryTokens.some(token => en.includes(token) || ta.includes(token) || pTerms.some(t => t.includes(token)));
+          const isMatch = queryTokens.some(token => en.includes(token) || ta.includes(token) || pTerms.some(t => t.includes(token)) || token.includes(en) || token.includes(ta));
           if (isMatch) {
             matchedSet.add(p.id || p.englishName);
             selected.push(p);
           }
         });
 
-        // 2. Baseline popular/frequently ordered products (up to 30) for fallback/vague queries
+        // 2. Baseline popular/frequently ordered products (up to 40) for fallback/vague queries
         const baselinePopular = [...activeProducts]
           .sort((a, b) => (b.orderCount || b.salesCount || b.rating || 0) - (a.orderCount || a.salesCount || a.rating || 0))
-          .slice(0, 30);
+          .slice(0, 40);
 
         baselinePopular.forEach(p => {
           const key = p.id || p.englishName;
@@ -1322,17 +1412,22 @@
           }
         });
 
-        return selected.length > 0 ? selected : activeProducts.slice(0, 50);
+        return selected.length > 0 ? selected : activeProducts.slice(0, 60);
       })();
 
       const productCatalogList = filteredAiProducts.map(p => {
         const u = p.sellingUnit || p.unit || 'kg';
         return `- ${p.englishName} (${p.tamilName || ''}): price ${p.pricePerKg || p.price || 0}/${u} [sellingUnit: ${u}]`;
       }).join('\n');
-      const systemPrompt = `You are an ultra-fast, production-grade AI Commerce Order Parser for Edappadi Kadai store. Your sole job is to parse customer shopping lists written in Tamil, English, or Tanglish into structured items matching our product catalog.
+      const systemPrompt = `You are an ultra-fast, production-grade AI Commerce Order Parser for Edappadi Kadai store. Your sole job is to audit and parse customer shopping lists written in Tamil, English, or Tanglish into structured items matching our product catalog.
 
 STRICT CATALOG LIST:
 ${productCatalogList}
+
+CRITICAL MULTI-ITEM AUDITING MANDATE:
+- The customer may request single or multiple items (e.g. 2, 5, 10, or 20+ items in a single message).
+- You MUST audit and extract EVERY SINGLE requested product from the user query. Do NOT drop, omit, summarize, or truncate any item.
+- Distinctively parse each product with its exact requested quantity, unit, or rupee amount.
 
 EXTRACTION RULES:
 1. Product Name: Match closest product from catalog (English or Tamil).
@@ -1365,8 +1460,12 @@ Return ONLY a JSON array of objects. Do NOT include markdown blocks or commentar
       let rawText = "";
       try {
         if (cleanKey) {
-          const geminiModels = [cleanModel || 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-flash-latest'];
-          let geminiSuccess = false;
+          const geminiModels = [
+            cleanModel || 'gemini-2.5-flash',
+            'gemini-flash-latest',
+            'gemini-3.1-flash-lite-preview',
+            'gemini-3.5-flash'
+          ];
           for (const m of geminiModels) {
             try {
               const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${cleanKey}`;
@@ -1378,12 +1477,11 @@ Return ONLY a JSON array of objects. Do NOT include markdown blocks or commentar
                   contents: [{ role: 'user', parts: [{ text: queryText }] }],
                   generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
                 })
-              }, 1, 6000);
+              }, 1, 5000);
               if (response.ok) {
                 const data = await response.json();
                 rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
                 if (rawText) {
-                  geminiSuccess = true;
                   break;
                 }
               }
@@ -1392,13 +1490,33 @@ Return ONLY a JSON array of objects. Do NOT include markdown blocks or commentar
             }
           }
         } else {
+          // Use server-side Cloud Function proxy if no client-side custom key is provided
+          const aiCloudFn = typeof getCloudFunction === 'function' ? getCloudFunction('generateAiResponse') : null;
+          if (aiCloudFn) {
+            try {
+              const res = await aiCloudFn({
+                prompt: queryText,
+                systemInstruction: systemPrompt,
+                contents: [{ role: 'user', parts: [{ text: queryText }] }],
+                responseMimeType: "application/json",
+                provider: 'gemini'
+              });
+              if (res && res.data && res.data.text) {
+                rawText = res.data.text;
+              }
+            } catch (cfErr) {
+              console.warn("parseOrderWithAI Cloud Function proxy call failed:", cfErr.message || cfErr);
+            }
+          }
+        }
+        if (!rawText) {
           try {
             const aiRes = await callAIProvider(systemPrompt, [{ role: 'user', parts: [{ text: queryText }] }], queryText);
             if (aiRes && aiRes.text) {
               rawText = aiRes.text;
             }
           } catch (callErr) {
-            console.warn("parseOrderWithAI server proxy call skipped/failed:", callErr.message);
+            console.warn("parseOrderWithAI fallback call skipped/failed:", callErr.message);
           }
         }
         if (rawText) {
@@ -1437,6 +1555,7 @@ const LYO_INTENTS = {
   PRODUCT_RECOMMENDATION: "PRODUCT_RECOMMENDATION",
   ORDER_TRACKING: "ORDER_TRACKING",
   ORDER_STATUS: "ORDER_STATUS",
+  WALLET_POINTS: "WALLET_POINTS",
   CUSTOMER_SUPPORT: "CUSTOMER_SUPPORT",
   APPLICATION_FEATURES: "APPLICATION_FEATURES",
   AI_QUESTIONS: "AI_QUESTIONS",
@@ -1458,10 +1577,11 @@ Your sole job is to analyze user messages written in Tamil, English, or Tanglish
 
 STRICT INTENT CATEGORIES:
 - SHOPPING_REQUEST: User is explicitly ordering items, adding products to cart, or providing a shopping list with quantities/weights/amounts to buy (e.g., "500g Chicken", "2kg Tomatoes", "Add 2 Mutton", "buy eggs", "100 rupees chicken", "1kg arisi", "30 muttai", "தக்காளி 2 கிலோ போடு").
+- WALLET_POINTS: User is asking about their wallet, loyalty points, wallet balance, cash balance, loyalty rewards (e.g., "என் வாலட்", "வாலட் பேலன்ஸ்", "பாயிண்ட்ஸ் எவ்வளவு", "my wallet balance", "how many points", "wallet status", "wallet points", "என் வாலெட்").
+- ORDER_TRACKING: Asking where their order is, tracking active order, order status, order delivery time (e.g., "Where is my order?", "Order status", "When will my delivery arrive?", "ஆர்டர் எங்கே?", "ஆர்டர் நிலை", "என்னுடைய ஆர்டர்", "my order status").
+- ORDER_STATUS: Asking status of order (same as ORDER_TRACKING).
 - PRODUCT_SEARCH: Asking if a product is available, inquiring about prices or stock without explicitly adding to cart (e.g., "Do you have fresh fish?", "Is mutton available?", "Do you sell milk?").
 - PRODUCT_RECOMMENDATION: Asking for recommendations, top items, suggestions (e.g., "What is good today?", "Suggest meat for biryani", "What are best sellers?").
-- ORDER_TRACKING: Asking where their order is, tracking active order, order status (e.g., "Where is my order?", "Order status", "When will my delivery arrive?", "எனது ஆர்டர் எங்கே?").
-- ORDER_STATUS: Asking status of order (same as ORDER_TRACKING).
 - CUSTOMER_SUPPORT: Asking for support, phone number, help, reporting an issue (e.g., "Customer care number", "I need help", "How to contact support?").
 - APPLICATION_FEATURES: Asking about features of this application, how app works (e.g., "What are the features of this application?", "What can this app do?", "How to use this app?").
 - AI_QUESTIONS: Asking about Lyo AI, who built it, what AI does (e.g., "What is Lyo AI?", "Tell me about your AI", "Who are you?", "Are you AI?").
@@ -1476,8 +1596,10 @@ STRICT INTENT CATEGORIES:
 - GENERAL_QUESTIONS: Any other general question or conversation.
 
 CRITICAL DIRECTIVES:
-1. NEVER classify a question ("where is my order", "what is Lyo AI", "what features...", "do you have...") as SHOPPING_REQUEST.
-2. ONLY classify as SHOPPING_REQUEST if the user is explicitly placing an order, adding items to cart, or providing item quantities/units to purchase.
+1. NEVER classify a question or status inquiry ("where is my order", "ஆர்டர் எங்கே", "ஆர்டர் நிலை", "என் வாலட்", "வாலட் பேலன்ஸ்", "wallet balance", "what is Lyo AI", "do you have...") as SHOPPING_REQUEST.
+2. If the user asks about wallet, points, or balance, classify ONLY as WALLET_POINTS.
+3. If the user asks about order status or tracking, classify ONLY as ORDER_TRACKING.
+4. ONLY classify as SHOPPING_REQUEST if the user is explicitly placing an order, adding items to cart, or providing item quantities/units to purchase.
 
 JSON OUTPUT FORMAT (JSON ONLY, NO MARKDOWN):
 {
@@ -1494,12 +1616,58 @@ async function classifyLyoUserIntent(queryText, activeProducts) {
   }
 
   const lowerQ = queryText.toLowerCase().trim();
-  const isExplicitNonShopping = (
+
+  // Instant Check: Wallet / Loyalty Points Inquiry
+  const isExplicitWalletQuery = (
+    lowerQ.includes("wallet") || lowerQ.includes("வாலட்") || lowerQ.includes("வாலெட்") ||
+    lowerQ.includes("points") || lowerQ.includes("புள்ளிகள்") || lowerQ.includes("பாயிண்ட்") ||
+    lowerQ.includes("loyalty") || lowerQ.includes("என் பேலன்ஸ்") || lowerQ.includes("balance") ||
+    lowerQ.includes("என் வாலட்") || lowerQ.includes("என் வாலெட்") || lowerQ.includes("வாலட் பணம்") ||
+    lowerQ.includes("வாலட் இருப்பு") || lowerQ.includes("my wallet") || lowerQ.includes("wallet balance")
+  );
+
+  // Instant Check: Order Status / Tracking Inquiry
+  const isExplicitOrderTrackingQuery = (
     lowerQ.includes("where is my order") || lowerQ.includes("track order") || lowerQ.includes("order status") ||
-    lowerQ.includes("my order") || lowerQ.includes("ஆர்டர் எங்கே") || lowerQ.includes("டிராக்") ||
+    lowerQ.includes("my order") || lowerQ.includes("where is order") || lowerQ.includes("track my order") ||
+    lowerQ.includes("order tracking") || lowerQ.includes("order details") ||
+    lowerQ.includes("ஆர்டர் எங்கே") || lowerQ.includes("ஆர்டர் எங்க") || lowerQ.includes("ஆர்டர் எங்கு") ||
+    lowerQ.includes("ஆர்டர் நிலை") || lowerQ.includes("ஆர்டர் நிலவரம்") || lowerQ.includes("ஆர்டர் ஸ்டேட்டஸ்") ||
+    lowerQ.includes("ஆர்டர் விவரம்") || lowerQ.includes("ஆர்டர் என்ன ஆச்சு") || lowerQ.includes("ஆர்டர் எப்போ வரும்") ||
+    lowerQ.includes("என் ஆர்டர்") || lowerQ.includes("என்னுடைய ஆர்டர்") || lowerQ.includes("ஆடர் நிலை") ||
+    lowerQ.includes("ஆடர் எங்கே") || lowerQ.includes("ஆடர் எங்க") ||
+    lowerQ.includes("டெலிவரி எப்போது") || lowerQ.includes("டிராக்") || lowerQ.includes("டிராக்கிங்") ||
+    lowerQ.includes("ஆர்டரை டிராக்") || lowerQ.includes("when will my order")
+  );
+
+  // Instant Check: Coupons / Offers Inquiry
+  const isExplicitCouponQuery = (
+    lowerQ.includes("coupon") || lowerQ.includes("coupons") || lowerQ.includes("கூப்பன்") ||
+    lowerQ.includes("கூப்பட") || lowerQ.includes("கூப்பன்கள்") || lowerQ.includes("கூப்பன்கள்னு") ||
+    lowerQ.includes("சலுகை") || lowerQ.includes("ஆஃபர்") || lowerQ.includes("offer") ||
+    lowerQ.includes("offers") || lowerQ.includes("discount") || lowerQ.includes("தள்ளுபடி") ||
+    lowerQ.includes("promo") || lowerQ.includes("இன்றைய கூப்பன்") || lowerQ.includes("இன்றைய ஆஃபர்")
+  );
+
+  if (isExplicitWalletQuery) {
+    return { intent: "WALLET_POINTS", confidence: 1.0 };
+  }
+
+  if (isExplicitOrderTrackingQuery) {
+    return { intent: "ORDER_TRACKING", confidence: 1.0 };
+  }
+
+  if (isExplicitCouponQuery) {
+    return { intent: "COUPONS", confidence: 1.0 };
+  }
+
+  const isExplicitNonShopping = (
     lowerQ.includes("store location") || lowerQ.includes("shop open") || lowerQ.includes("shop timing") ||
     lowerQ.includes("what is lyo") || lowerQ.includes("who are you") || lowerQ.includes("app feature") ||
-    lowerQ.includes("customer care") || lowerQ.includes("coupon") || lowerQ.includes("delivery fee")
+    lowerQ.includes("customer care") || lowerQ.includes("coupon") || lowerQ.includes("coupons") ||
+    lowerQ.includes("கூப்பன்") || lowerQ.includes("கூப்பட") || lowerQ.includes("சலுகை") ||
+    lowerQ.includes("offer") || lowerQ.includes("delivery fee") || lowerQ.includes("டெலிவரி கட்டணம்") ||
+    lowerQ.includes("help") || lowerQ.includes("உதவி") || lowerQ.includes("whatsapp") || lowerQ.includes("வாட்ஸ்அப்")
   );
 
   const hasNumbersOrUnits = /(\d+|இருபது|பத்து|ஐம்பது|நூறு|இரண்டு|ரெண்டு|ரண்டு|ஒன்று|ஒன்னு|மூன்று|மூனு|நான்கு|நாலு|ஐந்து|அஞ்சு|ஆறு|ஏழு|எட்டு|ஒன்பது|kg|kilo|கிலோ|g|gm|gram|கிராம்|l|litre|லிட்டர்|ml|pcs|piece|pieces|பீஸ்|பாக்கெட்|pkt|rupees|rs|ரூபாய்|₹)/i.test(lowerQ);
@@ -1546,17 +1714,33 @@ function classifyUserIntentFallback(queryText, activeProducts = []) {
   if (!queryText) return { intent: "GREETINGS", confidence: 0.9 };
   const q = queryText.toLowerCase().trim();
 
-  // 1. Order Tracking / Order Status
+  // 1. Wallet / Loyalty Points / Balance (Priority Check)
+  if (
+    q.includes("wallet") || q.includes("points") || q.includes("வாலட்") || q.includes("வாலெட்") ||
+    q.includes("புள்ளிகள்") || q.includes("loyalty") || q.includes("பாயிண்ட்") || q.includes("என் பேலன்ஸ்") ||
+    q.includes("balance") || q.includes("என் வாலட்") || q.includes("என் வாலெட்") || q.includes("வாலட் பணம்") ||
+    q.includes("வாலட் இருப்பு") || q.includes("my wallet") || q.includes("wallet balance")
+  ) {
+    return { intent: "WALLET_POINTS", confidence: 0.99 };
+  }
+
+  // 2. Order Tracking / Order Status (Priority Check)
   if (
     q.includes("where is my order") || q.includes("track order") || q.includes("order status") ||
     q.includes("my order") || q.includes("where is order") || q.includes("order tracking") ||
-    q.includes("ஆர்டர் எங்கே") || q.includes("டிராக்") || q.includes("ஆர்டர் ஸ்டேட்டஸ்") ||
-    q.includes("டெலிவரி எப்போது") || q.includes("track my order") || q.includes("when will my order")
+    q.includes("order details") ||
+    q.includes("ஆர்டர் எங்கே") || q.includes("ஆர்டர் எங்க") || q.includes("ஆர்டர் எங்கு") ||
+    q.includes("ஆர்டர் நிலை") || q.includes("ஆர்டர் நிலவரம்") || q.includes("ஆர்டர் ஸ்டேட்டஸ்") ||
+    q.includes("ஆர்டர் விவரம்") || q.includes("ஆர்டர் என்ன ஆச்சு") || q.includes("ஆர்டர் எப்போ வரும்") ||
+    q.includes("என் ஆர்டர்") || q.includes("என்னுடைய ஆர்டர்") || q.includes("ஆடர் நிலை") ||
+    q.includes("ஆடர் எங்கே") || q.includes("ஆடர் எங்க") ||
+    q.includes("டெலிவரி எப்போது") || q.includes("டிராக்") || q.includes("டிராக்கிங்") ||
+    q.includes("ஆர்டரை டிராக்") || q.includes("track my order") || q.includes("when will my order")
   ) {
-    return { intent: "ORDER_TRACKING", confidence: 0.98 };
+    return { intent: "ORDER_TRACKING", confidence: 0.99 };
   }
 
-  // 2. Application Features
+  // 3. Application Features
   if (
     q.includes("feature") || q.includes("features") || q.includes("app feature") ||
     q.includes("application feature") || q.includes("what can this app") || q.includes("how app works") ||
@@ -1566,7 +1750,7 @@ function classifyUserIntentFallback(queryText, activeProducts = []) {
     return { intent: "APPLICATION_FEATURES", confidence: 0.98 };
   }
 
-  // 3. AI Questions
+  // 4. AI Questions
   if (
     q.includes("lyo ai") || q.includes("what is lyo") || q.includes("about lyo") ||
     q.includes("who are you") || q.includes("your ai") || q.includes("tell me about your ai") ||
@@ -1576,7 +1760,7 @@ function classifyUserIntentFallback(queryText, activeProducts = []) {
     return { intent: "AI_QUESTIONS", confidence: 0.98 };
   }
 
-  // 4. Greetings
+  // 5. Greetings
   if (
     q === "hi" || q === "hello" || q === "hey" || q.includes("good morning") ||
     q.includes("good afternoon") || q.includes("good evening") || q.includes("vanakkam") ||
@@ -1585,7 +1769,7 @@ function classifyUserIntentFallback(queryText, activeProducts = []) {
     return { intent: "GREETINGS", confidence: 0.95 };
   }
 
-  // 5. Customer Support / Help
+  // 6. Customer Support / Help
   if (
     q.includes("customer care") || q.includes("customer support") || q.includes("help") ||
     q.includes("contact") || q.includes("phone number") || q.includes("call support") ||
@@ -1594,13 +1778,39 @@ function classifyUserIntentFallback(queryText, activeProducts = []) {
     return { intent: "CUSTOMER_SUPPORT", confidence: 0.95 };
   }
 
+  // 7. Recipe / Cooking Ingredients
+  if (
+    q.includes("recipe") || q.includes("biryani") || q.includes("briyani") || q.includes("பிரியாணி") ||
+    q.includes("குழம்பு") || q.includes("curry") || q.includes("sukka") || q.includes("சுக்கா") ||
+    q.includes("வறுவல்") || q.includes("fry") || q.includes("gravy") || q.includes("ingredients") ||
+    q.includes("தேவையான பொருட்கள்") || q.includes("சமையல்") || q.includes("செய்ய பொருட்கள்")
+  ) {
+    return { intent: "RECIPE_QUERY", confidence: 0.96 };
+  }
+
+  // 8. Live Price Check
+  if (
+    q.includes("விலை என்ன") || q.includes("எவ்வளவு விலை") || q.includes("என்ன ரேட்") ||
+    q.includes("விலை விவரம்") || q.includes("price of") || q.includes("rate of") || q.includes("cost of")
+  ) {
+    return { intent: "PRICE_CHECK", confidence: 0.95 };
+  }
+
+  // 5d. WhatsApp Store Support
+  if (
+    q.includes("whatsapp") || q.includes("வாட்ஸ்அப்") || q.includes("வாட்ஸ்அப் உதவி")
+  ) {
+    return { intent: "WHATSAPP_SUPPORT", confidence: 0.96 };
+  }
+
   // 6. Coupons / Offers
   if (
     q.includes("coupon") || q.includes("coupons") || q.includes("offer") ||
-    q.includes("discount") || q.includes("promo") || q.includes("promo code") ||
-    q.includes("கூப்பன்") || q.includes("சலுகை") || q.includes("தள்ளுபடி")
+    q.includes("offers") || q.includes("discount") || q.includes("promo") || q.includes("promo code") ||
+    q.includes("கூப்பன்") || q.includes("கூப்பட") || q.includes("கூப்பன்கள்") ||
+    q.includes("கூப்பன்கள்னு") || q.includes("சலுகை") || q.includes("ஆஃபர்") || q.includes("தள்ளுபடி")
   ) {
-    return { intent: "COUPONS", confidence: 0.95 };
+    return { intent: "COUPONS", confidence: 0.99 };
   }
 
   // 7. Delivery Info
@@ -1671,32 +1881,292 @@ function classifyUserIntentFallback(queryText, activeProducts = []) {
   return { intent: "GENERAL_QUESTIONS", confidence: 0.80 };
 }
 
+const LYO_RECIPE_BUNDLES = {
+  chicken_biryani: {
+    nameTa: "சிக்கன் பிரியாணி செய்முறை தொகுப்பு",
+    nameEn: "Chicken Biryani Recipe Bundle",
+    items: [
+      { query: "சிக்கன்", qty: 1, unit: "kg" },
+      { query: "வெங்காயம்", qty: 0.5, unit: "kg" },
+      { query: "தக்காளி", qty: 0.5, unit: "kg" },
+      { query: "முட்டை", qty: 4, unit: "piece" }
+    ]
+  },
+  mutton_sukka: {
+    nameTa: "மட்டன் சுக்கா செய்முறை தொகுப்பு",
+    nameEn: "Mutton Sukka Recipe Bundle",
+    items: [
+      { query: "மட்டன்", qty: 0.5, unit: "kg" },
+      { query: "வெங்காயம்", qty: 0.5, unit: "kg" }
+    ]
+  },
+  chicken_curry: {
+    nameTa: "சிக்கன் குழம்பு செய்முறை தொகுப்பு",
+    nameEn: "Chicken Curry Recipe Bundle",
+    items: [
+      { query: "சிக்கன்", qty: 1, unit: "kg" },
+      { query: "வெங்காயம்", qty: 0.5, unit: "kg" },
+      { query: "தக்காளி", qty: 0.5, unit: "kg" }
+    ]
+  },
+  fish_curry: {
+    nameTa: "மீன் குழம்பு செய்முறை தொகுப்பு",
+    nameEn: "Fish Curry Recipe Bundle",
+    items: [
+      { query: "மீன்", qty: 0.5, unit: "kg" },
+      { query: "தக்காளி", qty: 0.5, unit: "kg" },
+      { query: "வெங்காயம்", qty: 0.25, unit: "kg" }
+    ]
+  },
+  egg_curry: {
+    nameTa: "முட்டை மசாலா / குழம்பு தொகுப்பு",
+    nameEn: "Egg Curry Recipe Bundle",
+    items: [
+      { query: "முட்டை", qty: 6, unit: "piece" },
+      { query: "வெங்காயம்", qty: 0.5, unit: "kg" },
+      { query: "தக்காளி", qty: 0.5, unit: "kg" }
+    ]
+  }
+};
+
+window.addRecipeBundleToLyoCart = function(recipeKey) {
+  const bundle = LYO_RECIPE_BUNDLES[recipeKey];
+  if (!bundle) return;
+  const activeProducts = (typeof getData === 'function') ? getData('ek_products', []) : [];
+  let activeProposalMsg = (typeof getActiveLyoProposalMsg === 'function') ? getActiveLyoProposalMsg() : null;
+  const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (!activeProposalMsg) {
+    const proposalId = 'prop_' + Date.now();
+    activeProposalMsg = {
+      id: 'msg_a_' + Date.now(),
+      role: 'assistant',
+      isProposal: true,
+      text: '',
+      time: nowStr,
+      proposalId: proposalId,
+      items: [],
+      deliveryCharge: (typeof computeLyoDeliveryCharge === 'function') ? computeLyoDeliveryCharge(0, []) : 15,
+      deliveryZone: 'Edappadi Mini Ward (Town Core)',
+      isTyping: false
+    };
+    if (typeof _lyoChatMessages !== 'undefined') {
+      _lyoChatMessages.push(activeProposalMsg);
+    }
+  }
+
+  let addedNames = [];
+
+  bundle.items.forEach(bItem => {
+    const matchResult = (typeof matchProductWithConfidence === 'function') ? matchProductWithConfidence(bItem.query, activeProducts) : null;
+    if (matchResult && matchResult.product) {
+      const prod = matchResult.product;
+      const realSellingUnit = String(prod.sellingUnit || prod.unit || bItem.unit || 'kg').toLowerCase().trim();
+      const isPieceProduct = !(typeof isUnitWeight === 'function' ? isUnitWeight(realSellingUnit) : realSellingUnit.includes('kg') || realSellingUnit.includes('g'));
+
+      const calcInput = {
+        rawQtyVal: bItem.qty,
+        amountType: isPieceProduct ? 'COUNT_PIECES' : (bItem.unit === 'g' ? 'WEIGHT_GRAMS' : 'WEIGHT_KG'),
+        unit: realSellingUnit
+      };
+      const details = (typeof calculateLyoItemDetails === 'function') ? calculateLyoItemDetails(prod, calcInput) : {
+        displayQty: `${bItem.qty} ${realSellingUnit}`,
+        selectorQty: `${bItem.qty} ${realSellingUnit}`,
+        rawQty: bItem.qty,
+        itemTotal: Math.round(Number(prod.pricePerKg || prod.price || 50) * bItem.qty)
+      };
+
+      const existingItem = activeProposalMsg.items.find(it => it.productId === prod.id);
+      if (existingItem) {
+        existingItem.rawQty = (existingItem.rawQty || 0) + details.rawQty;
+        existingItem.itemTotal = (existingItem.itemTotal || 0) + details.itemTotal;
+        existingItem.displayQty = `${existingItem.rawQty} ${realSellingUnit}`;
+        existingItem.selectorQty = existingItem.displayQty;
+      } else {
+        activeProposalMsg.items.push({
+          id: 'it_' + prod.id + '_' + Date.now(),
+          productId: prod.id,
+          name: prod.englishName || prod.name,
+          tamilName: prod.tamilName || '',
+          displayQty: details.displayQty,
+          selectorQty: details.selectorQty,
+          rawQty: details.rawQty,
+          unit: realSellingUnit,
+          itemTotal: details.itemTotal,
+          unitPrice: Number(prod.pricePerKg || prod.sellingPrice || prod.price || 40),
+          price: Number(prod.pricePerKg || prod.sellingPrice || prod.price || 40),
+          imageUrl: prod.imageUrl || prod.image || '',
+          isFreeDeliveryEligible: prod.isFreeDeliveryEligible === true
+        });
+      }
+      addedNames.push(`• **${prod.tamilName || prod.englishName}** (${details.displayQty} - ₹${details.itemTotal})`);
+    }
+  });
+
+  const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
+  const bTitle = isTa ? bundle.nameTa : bundle.nameEn;
+  activeProposalMsg.text = `🎉 **${bTitle}** கார்ட்டில் சேர்க்கப்பட்டது! 🥩🥦\n\n${addedNames.join('\n')}\n\nசெக்-அவுட் செய்ய கீழேயுள்ள **Place Order** பொத்தானை அழுத்தவும்!`;
+
+  if (typeof syncLyoToManualCart === 'function') syncLyoToManualCart();
+  if (typeof persistLyoChatMessages === 'function') persistLyoChatMessages();
+  if (typeof renderLyoAiChat === 'function') renderLyoAiChat();
+  if (typeof updateLyoDraftCartBar === 'function') updateLyoDraftCartBar();
+  if (typeof updateCartBadge === 'function') updateCartBadge();
+  if (typeof updateCartUI === 'function') updateCartUI();
+
+  const chatContainer = document.getElementById('lyo-ai-messages');
+  if (chatContainer) {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  if (typeof showToast === 'function') {
+    showToast(`🎉 ${bTitle} சேர்க்கப்பட்டது!`, 'success');
+  }
+};
+
 function getNonShoppingResponse(intent, queryText, aiResponseText, activeProducts = []) {
   let text = aiResponseText || "";
   let actionHtml = "";
 
   switch (intent) {
+    case "RECIPE_QUERY": {
+      const q = (queryText || '').toLowerCase();
+      let selectedBundleKey = "chicken_biryani";
+      let recipeTitle = "சிக்கன் பிரியாணி (Chicken Biryani)";
+      if (q.includes("மட்டன்") || q.includes("mutton") || q.includes("sukka") || q.includes("சுக்கா")) {
+        selectedBundleKey = "mutton_sukka";
+        recipeTitle = "மட்டன் சுக்கா (Mutton Sukka)";
+      } else if (q.includes("மீன்") || q.includes("fish")) {
+        selectedBundleKey = "fish_curry";
+        recipeTitle = "மீன் குழம்பு (Fish Curry)";
+      } else if (q.includes("முட்டை") || q.includes("egg")) {
+        selectedBundleKey = "egg_curry";
+        recipeTitle = "முட்டை மசாலா / குழம்பு (Egg Curry)";
+      } else if (q.includes("சிக்கன் குழம்பு") || q.includes("chicken curry") || q.includes("gravy")) {
+        selectedBundleKey = "chicken_curry";
+        recipeTitle = "சிக்கன் குழம்பு (Chicken Curry)";
+      }
+
+      const bundle = LYO_RECIPE_BUNDLES[selectedBundleKey];
+      const itemsList = bundle.items.map(bi => {
+        const matched = (activeProducts || []).find(p => (p.englishName + ' ' + (p.tamilName||'')).toLowerCase().includes(bi.query.toLowerCase()));
+        const pPrice = matched ? `₹${matched.pricePerKg || matched.price}/${matched.unit || 'kg'}` : '';
+        return `• **${bi.query}** (${bi.qty} ${bi.unit}) ${pPrice ? `- ${pPrice}` : ''}`;
+      }).join('\n');
+
+      text = text || `🍲 **${recipeTitle} செய்ய தேவையான பொருட்கள் (Fresh Recipe Bundle):**\n\n` +
+        itemsList +
+        `\n\nஇந்த அனைத்துப் பொருட்களையும் உடனடியாக கார்ட்டில் சேர்க்க கீழேயுள்ள பொத்தானை அழுத்தவும்! 🛒✨`;
+
+      actionHtml = `
+        <button type="button" onclick="addRecipeBundleToLyoCart('${selectedBundleKey}')" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; color: #fff; font-weight: 800; font-size: 12px; padding: 9px 15px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(245,158,11,0.35);">
+          🍲 இந்த பொருட்களை கார்ட்டில் சேர் (+ Add Bundle to Cart)
+        </button>
+      `;
+      break;
+    }
+
+    case "WALLET_POINTS": {
+      const activeUser = (typeof getActiveUser === 'function') ? getActiveUser() : null;
+      if (activeUser) {
+        const pts = activeUser.walletPoints || activeUser.loyaltyPoints || 0;
+        const ptsValue = Math.round(pts / 10);
+        text = text || `💰 **உங்கள் லாயல்டி வாலட் (Loyalty Wallet):**\n` +
+          `• பயனர்: **${activeUser.name || activeUser.phone}**\n` +
+          `• இருப்பு புள்ளிகள்: **${pts} Points**\n` +
+          `• பண மதிப்பு: **₹${ptsValue}**\n\n` +
+          `நீங்கள் ஆர்டர் செய்யும்போது இந்த புள்ளிகளைப் பயன்படுத்தி தள்ளுபடி பெறலாம்!`;
+        actionHtml = `<button type="button" onclick="if(typeof showScreen==='function') showScreen('screen-cart');" style="background: rgba(168,85,247,0.18); border: 1.5px solid #a855f7; color: #d8b4fe; font-weight: 700; font-size: 11.5px; padding: 8px 14px; border-radius: 10px; cursor: pointer;">🛍️ கார்ட்டில் பயன்படுத்த செல் (Go to Cart)</button>`;
+      } else {
+        text = text || `💰 **உங்கள் லாயல்டி வாலட் (Loyalty Wallet):**\n` +
+          `வாலட் புள்ளிகளைப் பார்க்கவும் பயன்படுத்தவும் தயவுசெய்து உள்நுழையவும்!`;
+        actionHtml = `<button type="button" onclick="if(typeof showScreen==='function') showScreen('screen-login');" style="background: #10b981; border: none; color: #fff; font-weight: 700; font-size: 11.5px; padding: 8px 14px; border-radius: 10px; cursor: pointer;">🔐 உள்நுழைக / Login</button>`;
+      }
+      break;
+    }
+
+    case "PRICE_CHECK": {
+      const q = (queryText || '').toLowerCase();
+      const matched = (activeProducts || []).filter(p => {
+        const nameEn = (p.englishName || '').toLowerCase();
+        const nameTa = (p.tamilName || '').toLowerCase();
+        const cat = (p.category || '').toLowerCase();
+        return q.split(' ').some(w => w.length > 2 && (nameEn.includes(w) || nameTa.includes(w) || cat.includes(w)));
+      });
+
+      if (matched.length > 0) {
+        text = text || `🏷️ **நேரலை விலை விவரம் (Current Store Prices):**\n\n` +
+          matched.slice(0, 4).map(p => {
+            const dName = p.tamilName ? `${p.tamilName} (${p.englishName})` : p.englishName;
+            const unit = p.sellingUnit || p.unit || 'kg';
+            return `• **${dName}**: ₹${p.pricePerKg || p.price || 0} / ${unit}`;
+          }).join('\n') +
+          `\n\nகார்ட்டில் சேர்க்க பொத்தானைத் தொடவும்:`;
+
+        actionHtml = `<div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">` +
+          matched.slice(0, 3).map(p => {
+            const dName = p.tamilName || p.englishName;
+            const unit = p.sellingUnit || p.unit || 'kg';
+            return `<button type="button" onclick="sendQuickLyoQuery('1 ${unit} ${p.englishName}')" style="background: rgba(16,185,129,0.15); border: 1px solid #10b981; color: #6ee7b7; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 8px; cursor: pointer;">➕ 1 ${unit} ${dName}</button>`;
+          }).join('') +
+          `</div>`;
+      } else {
+        text = text || `🏷️ கடையில் உள்ள முன்னணி பொருட்களின் விலைகள்:\n` +
+          (activeProducts || []).slice(0, 4).map(p => `• **${p.tamilName || p.englishName}**: ₹${p.pricePerKg || p.price}/${p.sellingUnit || p.unit || 'kg'}`).join('\n');
+      }
+      break;
+    }
+
+    case "WHATSAPP_SUPPORT": {
+      const fallbackSettings = (typeof getSettings === 'function') ? getSettings() : ((typeof getData === 'function') ? getData('ek_settings', {}) : {});
+      const storePhone = (fallbackSettings && fallbackSettings.supportPhone) ? fallbackSettings.supportPhone.replace(/\D/g, '') : '9876543210';
+      text = text || `📱 **எடப்பாடி கடை வாட்ஸ்அப் உதவி (WhatsApp Support):**\n` +
+        `உங்களுக்கு ஏதேனும் சிறப்பு கட் ஸ்டைல் தேவைப்பட்டாலோ அல்லது உதவி தேவைப்பட்டாலோ கடைக்கு நேரடியாக வாட்ஸ்அப் செய்தி அனுப்பலாம்!`;
+      actionHtml = `<a href="https://wa.me/91${storePhone}?text=வணக்கம்,%20எடப்பாடி%20கடை%20செயலி%20மூலம்%20தொடர்புகொள்கிறேன்" target="_blank" style="text-decoration: none; background: #25D366; color: #fff; font-weight: 800; font-size: 12px; padding: 9px 15px; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(37,211,102,0.35);">
+        <span style="font-size: 15px;">💬</span> வாட்ஸ்அப் செய்தி அனுப்பு / Chat on WhatsApp
+      </a>`;
+      break;
+    }
+
     case "ORDER_TRACKING":
     case "ORDER_STATUS": {
       const orders = (typeof getData === 'function') ? getData('ek_orders', []) : [];
       const activeUser = (typeof getActiveUser === 'function') ? getActiveUser() : null;
       const userOrders = activeUser
-        ? orders.filter(o => o.userId === activeUser.uid || o.userPhone === activeUser.phone)
+        ? orders.filter(o => o.userId === activeUser.uid || o.userPhone === activeUser.phone || o.customerPhone === activeUser.phone)
         : orders;
-      const latestOrder = userOrders.length > 0 ? userOrders[userOrders.length - 1] : orders[orders.length - 1];
+      const latestOrder = userOrders.length > 0 ? userOrders[userOrders.length - 1] : (orders.length > 0 ? orders[orders.length - 1] : null);
 
       if (latestOrder) {
-        text = text || `📦 **ஆர்டர் நிலவரம் (Order Status):**\n` +
-          `• ஆர்டர் எண்: #${latestOrder.orderId || latestOrder.id}\n` +
-          `• தற்போதைய நிலை: **${latestOrder.status || 'Placed'}**\n` +
-          `• மொத்த தொகை: ₹${latestOrder.totalAmount || latestOrder.grandTotal || 0}\n` +
-          `• விநியோக முகவரி: ${latestOrder.deliveryZone || 'Edappadi Core'}`;
+        const orderNum = latestOrder.orderId || latestOrder.id || 'N/A';
+        const rawStatus = (latestOrder.status || latestOrder.orderStage || 'Placed').toLowerCase();
+        let statusDisplay = 'ஆர்டர் பெறப்பட்டது (Placed)';
+        if (rawStatus.includes('accept') || rawStatus.includes('confirm')) statusDisplay = 'உறுதி செய்யப்பட்டது (Confirmed) ⏳';
+        else if (rawStatus.includes('prep') || rawStatus.includes('pack')) statusDisplay = 'தயாரிக்கப்படுகிறது (Preparing) 🔪';
+        else if (rawStatus.includes('dispatch') || rawStatus.includes('out') || rawStatus.includes('transit')) statusDisplay = 'டெலிவரிக்கு புறப்பட்டது (Out for Delivery) 🛵';
+        else if (rawStatus.includes('deliver')) statusDisplay = 'டெலிவரி செய்யப்பட்டது (Delivered) ✅';
+        else if (rawStatus.includes('cancel')) statusDisplay = 'ரத்து செய்யப்பட்டது (Cancelled) ❌';
+
+        const itemsList = Array.isArray(latestOrder.items) && latestOrder.items.length > 0
+          ? latestOrder.items.slice(0, 3).map(it => `  • ${it.tamilName || it.name || it.englishName || 'பொருள்'} (${it.quantity || it.displayQty || it.qty || 1})`).join('\n')
+          : '';
+
+        text = `📦 **உங்கள் ஆர்டர் நிலவரம் (Order Status):**\n\n` +
+          `• **ஆர்டர் எண்**: #${orderNum}\n` +
+          `• **தற்போதைய நிலை**: **${statusDisplay}**\n` +
+          `• **மொத்த தொகை**: ₹${latestOrder.totalAmount || latestOrder.grandTotal || 0}\n` +
+          (itemsList ? `• **ஆர்டர் செய்யப்பட்ட பொருட்கள்**:\n${itemsList}\n` : '') +
+          `• **டெலிவரி முகவரி**: ${latestOrder.deliveryAddress || latestOrder.deliveryZone || 'எடப்பாடி பகுதி'}\n\n` +
+          `நேரலை வரைபடம் மற்றும் டெலிவரி பாய் நகர்வை உடனுக்குடன் காண கீழேயுள்ள பொத்தானைத் தொடவும்!`;
+
+        const targetId = latestOrder.id || latestOrder.orderId || '';
+        actionHtml = `<button type="button" onclick="if(typeof selectedTrackOrderId !== 'undefined') selectedTrackOrderId='${targetId}'; if(typeof showScreen==='function') showScreen('screen-track'); if(typeof renderTrackerScreen==='function') renderTrackerScreen();" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: #fff; font-weight: 700; font-size: 12px; padding: 10px 16px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 3px 10px rgba(16,185,129,0.35);">🚚 நேரலை ஆர்டர் கண்காணிப்பு (Live Tracker)</button>`;
       } else {
-        text = text || `📦 **ஆர்டர் நிலவரம் (Order Status):**\n` +
-          `தற்போது உங்களிடம் செயலில் உள்ள ஆர்டர்கள் எதுவும் இல்லை.\n` +
-          `நீங்கள் ஆர்டர் செய்தவுடன், நேரலை டிராக்கிங் மூலம் அதன் நிலவரத்தைக் கண்காணிக்கலாம்!`;
+        text = `📦 **ஆர்டர் நிலவரம் (Order Status):**\n\n` +
+          `தற்போது உங்களிடம் செயலில் உள்ள ஆர்டர்கள் எதுவும் இல்லை.\n\n` +
+          `நீங்கள் ஆர்டர் செய்தவுடன், அதன் நிலவரத்தை இங்கேயே நேரலையாகக் கண்காணிக்கலாம்! ஏதேனும் புதிய பொருட்களை ஆர்டர் செய்ய விரும்பினால் '1kg Chicken' அல்லது '2kg Tomato' என இங்கு பதிவிடலாம்.`;
+        actionHtml = `<button type="button" onclick="if(typeof showScreen==='function') showScreen('screen-track');" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: #fff; font-weight: 700; font-size: 11.5px; padding: 8px 14px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(16,185,129,0.3);">🚚 ஆர்டர் டிராக்கர் பக்கம் செல்</button>`;
       }
-      actionHtml = `<button type="button" onclick="if(typeof showScreen==='function') showScreen('screen-track');" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: #fff; font-weight: 700; font-size: 11.5px; padding: 8px 14px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(16,185,129,0.3);">🚚 நேரலை ஆர்டர் கண்காணிப்பு (Live Tracker)</button>`;
       break;
     }
 
@@ -1722,7 +2192,7 @@ function getNonShoppingResponse(intent, queryText, aiResponseText, activeProduct
     }
 
     case "GREETINGS": {
-      text = text || `வணக்கம்! Good day! 🌸 எக்ஸ்பிரஸ் கிச்சன் Lyo AI உங்களை வரவேற்கிறது! இன்று உங்களுக்கு என்ன காய்கறி அல்லது கறி வகைகள் வேண்டும்?`;
+      text = text || `வணக்கம்! Good day! 🌸 எடப்பாடி கடை Lyo AI உங்களை வரவேற்கிறது! இன்று உங்களுக்கு என்ன காய்கறி அல்லது கறி வகைகள் வேண்டும்?`;
       break;
     }
 
@@ -1749,7 +2219,7 @@ function getNonShoppingResponse(intent, queryText, aiResponseText, activeProduct
     case "DELIVERY": {
       text = text || `🚚 **டெலிவரி தகவல்கள் (Delivery Info):**\n` +
         `• எடப்பாடி டவுன் கோர்: ₹15 டெலிவரி கட்டணம்\n` +
-        `• ₹299-க்கு மேல் ஆர்டர் செய்தால் இலவச டெலிவரி (FREE Delivery above ₹299)!\n` +
+        `• இலவச டெலிவரி ஆஃபர்: **FREEFRESH** கூப்பனைப் பயன்படுத்தி ₹299-க்கு மேல் ஆர்டர் செய்தால் இலவச டெலிவரி பெறலாம்!\n` +
         `• சராசரி டெலிவரி நேரம்: 20 முதல் 30 நிமிடங்கள்.`;
       break;
     }
@@ -1793,7 +2263,7 @@ function getNonShoppingResponse(intent, queryText, aiResponseText, activeProduct
     case "ACCOUNT": {
       text = text || `👤 **கணக்கு மற்றும் அமைப்புகள் (Account & Settings):**\n` +
         `உங்கள் விநியோக முகவரி, சுயவிவர விவரங்கள் மற்றும் கடவுச்சொல்லை மாற்ற சுயவிவரப் பக்கத்திற்குச் செல்லவும்.`;
-      actionHtml = `<button type="button" onclick="if(typeof showScreen==='function') showScreen('screen-user');" style="background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; color: #60a5fa; font-weight: 700; font-size: 11.5px; padding: 7px 12px; border-radius: 10px; cursor: pointer;">👤 சுயவிவரப் பக்கம் செல் (Open Profile)</button>`;
+      actionHtml = `<button type="button" onclick="if(typeof showScreen==='function') showScreen('screen-profile');" style="background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; color: #60a5fa; font-weight: 700; font-size: 11.5px; padding: 7px 12px; border-radius: 10px; cursor: pointer;">👤 சுயவிவரப் பக்கம் செல் (Open Profile)</button>`;
       break;
     }
 
@@ -1812,15 +2282,25 @@ function getNonShoppingResponse(intent, queryText, aiResponseText, activeProduct
   return { text, actionHtml };
 }
 
+function playLyoSpeech(rawText) {
+  if (!rawText || !('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const cleanText = rawText.replace(/<[^>]*>?/gm, '').replace(/[*_#•]/g, '').trim();
+    if (!cleanText) return;
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = (typeof currentLang !== 'undefined' && currentLang === 'en') ? 'en-IN' : 'ta-IN';
+    utterance.rate = 0.95;
+    window.speechSynthesis.speak(utterance);
+  } catch (e) {
+    console.warn("Lyo speech error:", e);
+  }
+}
+window.playLyoSpeech = playLyoSpeech;
+
 function speakLyoTextMessage(btnEl) {
   const text = btnEl ? btnEl.getAttribute('data-text') : '';
-  if (!text) return;
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text.replace(/[*_#•]/g, ''));
-    utterance.lang = (typeof currentLang !== 'undefined' && currentLang === 'ta') ? 'ta-IN' : 'en-US';
-    window.speechSynthesis.speak(utterance);
-  }
+  if (text) playLyoSpeech(text);
 }
 
 
@@ -1920,14 +2400,9 @@ function getActiveLyoProposalMsg() {
         if (dyn && typeof dyn.charge === 'number') {
           deliveryCharge = dyn.charge;
         }
-      } else {
-        const calc = (typeof LyoAiEngine !== 'undefined' && LyoAiEngine.DeliveryChargeCalculator)
-          ? LyoAiEngine.DeliveryChargeCalculator
-          : (typeof DeliveryChargeCalculator !== 'undefined' ? DeliveryChargeCalculator : null);
-        if (calc && typeof calc.calculateDelivery === 'function') {
-          const res = calc.calculateDelivery(subtotal, cartItems, settings);
-          if (typeof res.deliveryCharge === 'number') deliveryCharge = res.deliveryCharge;
-        }
+      } else if (typeof DeliveryChargeCalculator !== 'undefined' && DeliveryChargeCalculator && typeof DeliveryChargeCalculator.calculateDelivery === 'function') {
+        const res = DeliveryChargeCalculator.calculateDelivery(subtotal, cartItems, settings);
+        if (typeof res.deliveryCharge === 'number') deliveryCharge = res.deliveryCharge;
       }
       return Math.round(deliveryCharge);
     }
@@ -2000,6 +2475,189 @@ function getActiveLyoProposalMsg() {
       }
     }
 
+    function getLyoAiWelcomeMessage() {
+      const activeUser = (typeof getActiveUser === 'function') ? getActiveUser() : null;
+      const userName = activeUser ? (activeUser.name || activeUser.fullName || '') : '';
+      const hour = new Date().getHours();
+      let timeGreetingTa = "வணக்கம்";
+      let timeGreetingEn = "Hello";
+      if (hour < 12) {
+        timeGreetingTa = "இனிய காலை வணக்கம்";
+        timeGreetingEn = "Good Morning";
+      } else if (hour < 17) {
+        timeGreetingTa = "இனிய மதிய வணக்கம்";
+        timeGreetingEn = "Good Afternoon";
+      } else {
+        timeGreetingTa = "இனிய மாலை வணக்கம்";
+        timeGreetingEn = "Good Evening";
+      }
+
+      const userGreetingTa = userName ? `${timeGreetingTa}, ${userName} அவர்களே! 🌸` : `${timeGreetingTa}! 🌸`;
+      const userGreetingEn = userName ? `${timeGreetingEn}, ${userName}! 🌸` : `${timeGreetingEn}! 🌸`;
+
+      const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
+      const welcomeText = isTa
+        ? `${userGreetingTa}\n**எடப்பாடி கடை AI வர்த்தக உதவியாளருக்கு நல்வரவு!** 🛒✨\n\n🏪 கடை திறந்துள்ளது • ⚡ 30 நிமிட எக்ஸ்பிரஸ் டெலிவரி!\n\nபொருட்களின் பெயர் மற்றும் அளவை டைப் செய்யவும் அல்லது மைக் 🎤 மூலம் பேசவும் (எ.கா: *"1kg சிக்கன், 500g தக்காளி"*).\n\nகீழேயுள்ள விரைவுத் தேர்வுகளையும் பயன்படுத்தலாம்:`
+        : `${userGreetingEn}\n**Welcome to Edappadi Kadai AI Commerce Assistant!** 🛒✨\n\n🏪 Store Open • ⚡ 30-Min Express Delivery!\n\nType your list or tap the mic 🎤 to speak (e.g. *"1kg Chicken, 500g Tomato"*).\n\nYou can also tap the quick options below:`;
+
+      const welcomeActionHtml = `
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+          <button type="button" onclick="sendQuickLyoQuery('சிக்கன் பிரியாணி செய்ய பொருட்கள்')" style="background: rgba(245,158,11,0.18); border: 1px solid rgba(245,158,11,0.45); color: #fde047; padding: 6px 11px; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            🍲 பிரியாணி பொருட்கள்
+          </button>
+          <button type="button" onclick="sendQuickLyoQuery('இறைச்சி வகைகள் என்னென்ன இருக்கு?')" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.45); color: #6ee7b7; padding: 6px 11px; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            🥩 புதிய இறைச்சி
+          </button>
+          <button type="button" onclick="sendQuickLyoQuery('Order status')" style="background: rgba(59,130,246,0.18); border: 1px solid rgba(59,130,246,0.45); color: #93c5fd; padding: 6px 11px; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            📦 ஆர்டர் நிலவரம்
+          </button>
+          <button type="button" onclick="sendQuickLyoQuery('இன்றைய கூப்பன்கள்')" style="background: rgba(168,85,247,0.18); border: 1px solid rgba(168,85,247,0.45); color: #e9d5ff; padding: 6px 11px; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            🎟️ சலுகை கூப்பன்கள்
+          </button>
+          <button type="button" onclick="sendQuickLyoQuery('கடை வாட்ஸ்அப் உதவி')" style="background: rgba(34,197,94,0.18); border: 1px solid rgba(34,197,94,0.45); color: #86efac; padding: 6px 11px; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            📱 வாட்ஸ்அப் உதவி
+          </button>
+        </div>
+      `;
+
+      return {
+        id: 'msg_welcome_' + Date.now(),
+        role: 'assistant',
+        text: welcomeText,
+        actionHtml: welcomeActionHtml,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+    }
+    window.getLyoAiWelcomeMessage = getLyoAiWelcomeMessage;
+
+    function clearLyoChatHistory() {
+      _lyoChatMessages = [getLyoAiWelcomeMessage()];
+      persistLyoChatMessages();
+      renderLyoAiChat();
+      if (typeof showToast === 'function') {
+        const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
+        showToast(isTa ? "புதிய உரையாடல் துவங்கியது! ✨" : "New chat started! ✨", "info");
+      }
+    }
+    window.clearLyoChatHistory = clearLyoChatHistory;
+
+    let _lyoSpeechRec = null;
+    let _isLyoListening = false;
+
+    function toggleLyoVoiceInput() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
+        if (typeof showToast === 'function') {
+          showToast(isTa ? "உங்கள் உலாவியில் குரல் உள்ளீடு ஆதரிக்கப்படவில்லை." : "Voice recognition not supported on this browser.", "warning");
+        } else {
+          alert(isTa ? "உங்கள் உலாவியில் குரல் உள்ளீடு ஆதரிக்கப்படவில்லை." : "Voice recognition not supported on this browser.");
+        }
+        return;
+      }
+
+      const micBtn = document.getElementById('lyo-ai-mic-btn');
+      const waveBar = document.getElementById('lyo-ai-speech-waves');
+      const waveTxt = document.getElementById('voice-rec-status-txt');
+
+      if (_isLyoListening && _lyoSpeechRec) {
+        try { _lyoSpeechRec.stop(); } catch (e) {}
+        _isLyoListening = false;
+        if (micBtn) {
+          micBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+          micBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+          micBtn.innerHTML = '<span style="font-size: 16px;">🎤</span>';
+        }
+        if (waveBar) waveBar.style.display = 'none';
+        return;
+      }
+
+      try {
+        _lyoSpeechRec = new SpeechRecognition();
+        _lyoSpeechRec.continuous = false;
+        _lyoSpeechRec.interimResults = false;
+        _lyoSpeechRec.lang = (typeof currentLang !== 'undefined' && currentLang === 'ta') ? 'ta-IN' : 'en-IN';
+
+        _lyoSpeechRec.onstart = function() {
+          _isLyoListening = true;
+          if (micBtn) {
+            micBtn.style.background = 'rgba(239, 68, 68, 0.25)';
+            micBtn.style.borderColor = '#ef4444';
+            micBtn.innerHTML = '<span style="font-size: 16px;">🔴</span>';
+          }
+          if (waveBar) {
+            waveBar.style.display = 'flex';
+            if (waveTxt) {
+              waveTxt.textContent = (typeof currentLang !== 'undefined' && currentLang === 'ta')
+                ? "கேட்கிறது... தமிழில் பேசலாம் 🎙️"
+                : "Listening... speak now 🎙️";
+            }
+          }
+        };
+
+        _lyoSpeechRec.onresult = function(event) {
+          _isLyoListening = false;
+          if (micBtn) {
+            micBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+            micBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+            micBtn.innerHTML = '<span style="font-size: 16px;">🎤</span>';
+          }
+          if (waveBar) waveBar.style.display = 'none';
+
+          if (event.results && event.results.length > 0) {
+            const transcript = event.results[0][0].transcript;
+            if (transcript && transcript.trim()) {
+              const inputEl = document.getElementById('lyo-ai-input');
+              if (inputEl) {
+                inputEl.value = transcript.trim();
+                if (typeof autoGrowLyoInput === 'function') autoGrowLyoInput(inputEl);
+              }
+              if (typeof onLyoSendBtnClick === 'function') {
+                onLyoSendBtnClick();
+              }
+            }
+          }
+        };
+
+        _lyoSpeechRec.onerror = function(event) {
+          console.warn("[Lyo Speech Recognition Error]", event.error);
+          _isLyoListening = false;
+          if (micBtn) {
+            micBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+            micBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+            micBtn.innerHTML = '<span style="font-size: 16px;">🎤</span>';
+          }
+          if (waveBar) waveBar.style.display = 'none';
+          if (event.error !== 'no-speech' && typeof showToast === 'function') {
+            const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
+            showToast(isTa ? "குரல் கேட்கவில்லை, மீண்டும் முயற்சிக்கவும்." : "Could not recognize voice, please try again.", "info");
+          }
+        };
+
+        _lyoSpeechRec.onend = function() {
+          _isLyoListening = false;
+          if (micBtn) {
+            micBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+            micBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+            micBtn.innerHTML = '<span style="font-size: 16px;">🎤</span>';
+          }
+          if (waveBar) waveBar.style.display = 'none';
+        };
+
+        _lyoSpeechRec.start();
+      } catch (err) {
+        console.error("[Lyo Speech Recognition Exception]", err);
+        _isLyoListening = false;
+        if (micBtn) {
+          micBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+          micBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+          micBtn.innerHTML = '<span style="font-size: 16px;">🎤</span>';
+        }
+        if (waveBar) waveBar.style.display = 'none';
+      }
+    }
+    window.toggleLyoVoiceInput = toggleLyoVoiceInput;
+
     function initLyoAiChat() {
       const msgContainer = document.getElementById('lyo-ai-messages');
       if (!msgContainer) return;
@@ -2013,16 +2671,7 @@ function getActiveLyoProposalMsg() {
           cart = existingCart;
           syncManualToLyoCart();
         } else {
-          _lyoChatMessages = [
-            {
-              id: 'msg_welcome_' + Date.now(),
-              role: 'assistant',
-              text: currentLang === 'ta'
-                ? 'வணக்கம்! எடப்பாடி கடை AI வர்த்தக உதவியாளருக்கு நல்வரவு. 🛒✨ உங்கள் வணிகப் பட்டியலைத் தட்டச்சு செய்யவும் (எ.கா. "500g Mutton, 1kg Chicken, 20 Tomato, 1L Milk, 30 Eggs").'
-                : 'Welcome to Edappadi Kadai AI Commerce Assistant! 🛒✨ Type your shopping list (e.g. "500g Mutton, 1kg Chicken, ₹20 Tomato, 1L Milk, 30 Eggs").',
-              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }
-          ];
+          _lyoChatMessages = [getLyoAiWelcomeMessage()];
           persistLyoChatMessages();
         }
       }
@@ -2700,13 +3349,7 @@ function getActiveLyoProposalMsg() {
       let msg = (typeof _lyoChatMessages !== "undefined") ? _lyoChatMessages.find(m => m.proposalId === proposalId || m.id === proposalId) : null;
       if (!msg) msg = (typeof getActiveLyoProposalMsg === "function") ? getActiveLyoProposalMsg() : null;
       const textToSpeak = msg ? msg.text : "வணக்கம்! எக்ஸ்பிரஸ் கிச்சன் Lyo AI உங்களுக்கு சேவை செய்ய தயார்.";
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(textToSpeak.replace(/<[^>]*>?/gm, ""));
-        utterance.lang = (typeof currentLang !== "undefined" && currentLang === "en") ? "en-IN" : "ta-IN";
-        utterance.rate = 0.95;
-        window.speechSynthesis.speak(utterance);
-      }
+      playLyoSpeech(textToSpeak);
     }
     window.speakLyoMessage = speakLyoMessage;
 
@@ -3137,8 +3780,8 @@ async function onLyoSendBtnClick() {
       null
     );
     if (!intentResult) {
-      console.warn(`[Lyo AI Pipeline] Intent classification timed out (>5s). Falling back to SHOPPING_REQUEST.`);
-      intentResult = { intent: "SHOPPING_REQUEST", confidence: 0.95 };
+      console.warn(`[Lyo AI Pipeline] Intent classification timed out (>5s). Falling back to semantic classifier.`);
+      intentResult = classifyUserIntentFallback(queryText, activeProducts) || { intent: "GENERAL_QUESTIONS", confidence: 0.9 };
     }
     const stage1Duration = (performance.now() - stage1Start).toFixed(1);
     console.log(`[Lyo AI Pipeline] Intent Detected: ${intentResult.intent} (took ${stage1Duration}ms)`);
@@ -3403,6 +4046,14 @@ async function onLyoSendBtnClick() {
         });
         console.log(`[Lyo AI Pipeline] Proposal Generated: Intelligent Ambiguous Clarification Prompt with Direct Resolution Buttons`);
       } else if (activeProposalMsg.items.length > 0 && itemsChangedThisTurn) {
+        if (ambiguousItems.length > 0) {
+          const amb = ambiguousItems[0];
+          activeProposalMsg.lowConfidenceChoices = (amb.candidates || []).map(c => ({
+            product: c,
+            rawQtyVal: amb.rawQtyVal,
+            amountType: amb.amountType
+          }));
+        }
         const itemSummaryList = activeProposalMsg.items.map(it => `• **${it.tamilName || it.name}** (${it.displayQty} - ₹${it.itemTotal})`).join('\n');
         let headerText = "நன்றி! உங்கள் கட்டளைப்படி பொருட்கள் கார்ட்டில் சேர்க்கப்பட்டன! 🥩🛒\n\n";
         let mainText = `${headerText}${itemSummaryList}`;
@@ -3492,4 +4143,16 @@ async function onLyoSendBtnClick() {
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
   }
+}
+
+// Explicit Window Bindings for Lyo AI UI Actions
+if (typeof window !== 'undefined') {
+  if (typeof toggleGmailPassVisibility === 'function') window.toggleGmailPassVisibility = toggleGmailPassVisibility;
+  if (typeof saveAdminEmailOtpConfig === 'function') window.saveAdminEmailOtpConfig = saveAdminEmailOtpConfig;
+  if (typeof testAdminAiKey === 'function') window.testAdminAiKey = testAdminAiKey;
+  if (typeof sendQuickLyoQuery === 'function') window.sendQuickLyoQuery = sendQuickLyoQuery;
+  if (typeof toggleLyoAiLang === 'function') window.toggleLyoAiLang = toggleLyoAiLang;
+  if (typeof clearLyoAiCart === 'function') window.clearLyoAiCart = clearLyoAiCart;
+  if (typeof checkoutLyoAiOrder === 'function') window.checkoutLyoAiOrder = checkoutLyoAiOrder;
+  if (typeof onLyoSendBtnClick === 'function') window.onLyoSendBtnClick = onLyoSendBtnClick;
 }

@@ -37,7 +37,7 @@ service cloud.firestore {
              currentData.get('assignedTo', null) == nextData.get('assignedTo', null) &&
              currentData.get('riderUid', null) == nextData.get('riderUid', null) &&
              currentData.get('paymentStatus', '') == nextData.get('paymentStatus', '') &&
-             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt', 'cancellationReason', 'cancelReason', 'userNotes', 'feedbackComment', 'feedbackRating', 'riderRating', 'riderFeedback', 'updatedAt', 'rating', 'feedbackSubmittedAt']) &&
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt', 'cancellationReason', 'cancelReason', 'userNotes', 'feedbackComment', 'feedbackRating', 'riderRating', 'riderFeedback', 'updatedAt', 'rating', 'feedbackSubmittedAt', 'deliveryLatitude', 'deliveryLongitude', 'needsManualLocationPin', 'notes', 'aiResolved', 'aiResolutionTimestamp']) &&
              (
                currentData.status == nextData.status ||
                (currentData.status == 'pending' && (nextData.status == 'cancelled' || nextData.status == 'CANCELLED'))
@@ -95,15 +95,21 @@ service cloud.firestore {
 
     // Orders: customers can create and read/update own (safe fields only), admin can do everything, riders can read assigned and operational update
     match /ek_orders/{orderId} {
-      allow get: if isAdmin() || (isRider() && isRiderAssignedToOrder(resource.data)) || (isAuthenticated() && (resource.data.userId == request.auth.uid || resource.data.customerId == request.auth.uid));
+      allow get: if isAdmin() || resource == null || (isRider() && isRiderAssignedToOrder(resource.data)) || (isAuthenticated() && (resource.data.userId == request.auth.uid || resource.data.customerId == request.auth.uid));
       allow list: if isAdmin() || (isRider() && isRiderAssignedToOrder(resource.data)) || (isAuthenticated() && (resource.data.userId == request.auth.uid || resource.data.customerId == request.auth.uid));
       allow create: if isAuthenticated() && (
         isAdmin() ||
         (
-          (request.resource.data.userId == request.auth.uid || request.resource.data.customerId == request.auth.uid) &&
+          (request.resource.data.userId == request.auth.uid || request.resource.data.customerId == request.auth.uid || request.resource.data.get('customerPhone', '') != '') &&
           request.resource.data.get('stockDeducted', false) == false &&
-          request.resource.data.get('status', 'pending') in ['pending', 'PENDING', 'placed', 'PLACED'] &&
-          (!('paymentStatus' in request.resource.data) || request.resource.data.paymentStatus != 'PAID' || request.resource.data.get('paymentMethod', '') in ['COD', 'CASH_ON_DELIVERY', 'cod', 'cash_on_delivery'])
+          request.resource.data.get('status', 'pending') in ['pending', 'PENDING', 'placed', 'PLACED', 'payment_pending_verification'] &&
+          (
+            !('paymentStatus' in request.resource.data) ||
+            request.resource.data.paymentStatus != 'PAID' ||
+            request.resource.data.get('paymentMethod', '') in ['COD', 'CASH_ON_DELIVERY', 'cod', 'cash_on_delivery', 'Cash on Delivery (COD)'] ||
+            request.resource.data.get('paymentMethod', '').matches('.*UPI.*') ||
+            request.resource.data.get('paymentMethod', '').matches('.*COD.*')
+          )
         )
       );
       allow update: if isAdmin() || 
@@ -119,10 +125,10 @@ service cloud.firestore {
 
     // Users: allow owner or admin to read/write profiles to secure customer PII
     match /ek_users/{userId} {
-      allow get: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow get: if isAdmin() || resource == null || (isAuthenticated() && request.auth.uid == userId);
       allow list: if isAdmin();
       allow create: if isAuthenticated() && request.auth.uid == userId && (!request.resource.data.keys().hasAny(['role', 'isAdmin', 'isRider']) || request.resource.data.get('role', 'customer') == 'customer');
-      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isAdmin', 'isRider', 'active', 'isActive', 'isBlocked', 'disabled', 'tier']));
+      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isAdmin', 'isRider', 'active', 'isActive', 'isBlocked', 'disabled']));
       allow delete: if isAdmin();
     }
 

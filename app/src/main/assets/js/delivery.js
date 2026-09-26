@@ -2,6 +2,8 @@
 // RIDER & DELIVERY MANAGEMENT SYSTEM
 // ==========================================
 
+currentDeliveryFilter = window.currentDeliveryFilter = window.currentDeliveryFilter || 'assigned';
+
 function updateRiderLiveLocation() {
       const session = getData('ek_delivery_session', null);
       if (!session) return;
@@ -462,7 +464,7 @@ function updateRiderLiveLocation() {
         }
 
         const itemsList = o.items.map(i => {
-          const prep = getLocalizedPrepareText(i.cutStyle, i.category, true);
+          const prep = (typeof getLocalizedPrepareText === 'function') ? getLocalizedPrepareText(i.cutStyle, i.category, true) : (i.cutStyle || '');
           const prepStr = prep ? ` [${prep}]` : '';
           return `• ${i.englishName || i.tamilName} - <strong>${getFormattedItemQty(i, currentLang)}</strong>${prepStr}`;
         }).join('<br>');
@@ -611,7 +613,7 @@ function updateRiderLiveLocation() {
 
               <div style="display:flex; gap:8px; margin-bottom:10px;">
                 <a href="tel:${o.customerPhone}" class="btn" style="flex:1; min-height:40px; height:auto; border-radius:10px; background:#1a73e8; border:none; color:#fff; font-size:13px; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; padding: 8px 12px; white-space: nowrap; box-shadow:0 3px 8px rgba(26,115,232,0.25);" onclick="event.stopPropagation();">📞 Call</a>
-                <a href="https://wa.me/${formatIndianPhoneForWhatsApp(o.customerPhone)}?text=${encodeURIComponent('Hello ' + o.customerName + ', your order (' + o.id + ') from Edappadi Chicken & Mutton is out for delivery! 🏍️💨')}" target="_blank" class="btn" style="flex:1; min-height:40px; height:auto; border-radius:10px; background:#25D366; border:none; color:#fff; font-size:13px; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; padding: 8px 12px; white-space: nowrap; box-shadow:0 3px 8px rgba(37,211,102,0.25);" onclick="event.stopPropagation();">💬 WA</a>
+                <a href="https://wa.me/${typeof formatIndianPhoneForWhatsApp === 'function' ? formatIndianPhoneForWhatsApp(o.customerPhone) : String(o.customerPhone || '').replace(/\D/g, '')}?text=${encodeURIComponent('Hello ' + o.customerName + ', your order (' + o.id + ') from Edappadi Chicken & Mutton is out for delivery! 🏍️💨')}" target="_blank" class="btn" style="flex:1; min-height:40px; height:auto; border-radius:10px; background:#25D366; border:none; color:#fff; font-size:13px; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; padding: 8px 12px; white-space: nowrap; box-shadow:0 3px 8px rgba(37,211,102,0.25);" onclick="event.stopPropagation();">💬 WA</a>
                 <button onclick="event.stopPropagation(); openGoogleMapsNavigation('${o.id}')" class="btn" style="flex:1; min-height:40px; height:auto; border-radius:10px; background:#FFA500; border:none; color:#000; font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px; padding: 8px 12px; white-space: nowrap; box-shadow:0 3px 8px rgba(255,165,0,0.25); cursor:pointer;">📍 Map</button>
               </div>
 
@@ -1040,11 +1042,16 @@ function updateRiderLiveLocation() {
 
             const currentOrders = getData('ek_orders', []);
             const currentIdx = currentOrders.findIndex(o => o.id === orderId);
-            if (currentIdx !== -1 && currentOrders[currentIdx].status !== nextStatus) {
-              console.warn(`[Correction] Local status reverted to ${currentOrders[currentIdx].status}. Resetting back to ${nextStatus}.`);
-              currentOrders[currentIdx].status = nextStatus;
-              saveData('ek_orders', currentOrders);
-              renderDeliveryScreen();
+            if (currentIdx !== -1) {
+              const statusRanks = { pending: 1, confirmed: 2, preparing: 3, ready: 4, delivering: 5, delivered: 6, cancelled: 7, rejected: 7 };
+              const curRank = statusRanks[currentOrders[currentIdx].status] || 0;
+              const nextRank = statusRanks[nextStatus] || 0;
+              if (curRank < nextRank) {
+                console.warn(`[Correction] Local status was ${currentOrders[currentIdx].status}. Upgrading to ${nextStatus}.`);
+                currentOrders[currentIdx].status = nextStatus;
+                saveData('ek_orders', currentOrders);
+                renderDeliveryScreen();
+              }
             }
           })
           .catch(err => {
@@ -1870,7 +1877,12 @@ function updateRiderLiveLocation() {
                 user.tier = computeLoyaltyTier(user.loyaltyPoints);
                 users[userIdx] = user;
                 saveData('ek_users', users);
-                db.collection('ek_users').doc(user.id).set(user).catch(err => console.error(err));
+                if (typeof db !== 'undefined' && db) {
+                  const authUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
+                  if (authUser && !authUser.isAnonymous) {
+                    db.collection('ek_users').doc(user.id).set(user, { merge: true }).catch(err => console.warn("Notice: Firestore user sync skipped:", err?.message || err));
+                  }
+                }
               }
 
               window.locallyModifiedOrders = window.locallyModifiedOrders || {};
@@ -1975,6 +1987,9 @@ function updateRiderLiveLocation() {
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       const d = R * c; // Distance in km
       return parseFloat(d.toFixed(2));
+    }
+    if (typeof window !== 'undefined') {
+      window.calculateDistanceKm = calculateDistanceKm;
     }
 
     function getDeliveryZones() {
@@ -2454,7 +2469,7 @@ function updateRiderLiveLocation() {
       if (easyChatBtn) {
         easyChatBtn.onclick = () => {
           const phone = order.customerPhone || "9042681532";
-          const formattedPhone = formatIndianPhoneForWhatsApp(phone);
+          const formattedPhone = typeof formatIndianPhoneForWhatsApp === 'function' ? formatIndianPhoneForWhatsApp(phone) : String(phone || '').replace(/\D/g, '');
           window.open(`https://wa.me/${formattedPhone}`, '_blank');
         };
       }

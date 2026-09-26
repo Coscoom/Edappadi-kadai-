@@ -107,6 +107,23 @@
           if (targetId !== 'reg-address' && targetId !== 'editor-map-dummy-target' && typeof syncPrimaryUserAddress === 'function') {
             syncPrimaryUserAddress(finalAddr, lat, lng);
           }
+
+          if (targetId === 'reg-address') {
+            const regStreet = document.getElementById('reg-addr-street');
+            const regArea = document.getElementById('reg-addr-area');
+            const regCity = document.getElementById('reg-addr-city');
+            const regPincode = document.getElementById('reg-addr-pincode');
+            if (typeof parseAddressStringToFields === 'function') {
+              const parsed = parseAddressStringToFields(finalAddr);
+              if (parsed.street && regStreet) regStreet.value = parsed.street;
+              if (parsed.area && regArea) regArea.value = parsed.area;
+              if (parsed.city && regCity) regCity.value = parsed.city;
+              if (parsed.pincode && regPincode) regPincode.value = parsed.pincode;
+            }
+            if (typeof updateCombinedRegAddress === 'function') {
+              updateCombinedRegAddress();
+            }
+          }
         } catch (err) {
           console.warn("Geocoding failed completely, using fallback:", err);
         }
@@ -139,6 +156,19 @@
       const btn = (typeof event !== 'undefined' && event && event.target) ? event.target.closest('button, .btn, .btn-cart-primary') : document.querySelector('.btn-cart-primary, button[onclick*="placeOrder"]');
       if (btn && typeof setButtonLoading === 'function') setButtonLoading(btn, true);
       try {
+        const custSession = typeof getActiveSession === 'function' ? getActiveSession() : null;
+        if (!custSession || !custSession.loggedIn) {
+          showToast(
+            typeof currentLang !== 'undefined' && currentLang === 'ta'
+              ? "ஆர்டர் செய்ய முதலில் லாகின் அல்லது பதிவு செய்து கொள்ளவும்!"
+              : "Please login or register to place your order!",
+            "warning"
+          );
+          if (btn && typeof setButtonLoading === 'function') setButtonLoading(btn, false);
+          showScreen('screen-login');
+          return;
+        }
+
         const settings = getSettings();
         if (settings.leaveMode) {
           showCustomAlert(
@@ -467,6 +497,18 @@
     }, 15000);
 
     async function actualPlaceOrder() {
+      const custSession = typeof getActiveSession === 'function' ? getActiveSession() : null;
+      if (!custSession || !custSession.loggedIn) {
+        showToast(
+          typeof currentLang !== 'undefined' && currentLang === 'ta'
+            ? "ஆர்டர் செய்ய முதலில் லாகின் அல்லது பதிவு செய்து கொள்ளவும்!"
+            : "Please login or register to place your order!",
+          "warning"
+        );
+        showScreen('screen-login');
+        return;
+      }
+
       if (window.isPlacingOrder) {
         console.warn("[Checkout Lock] An order is already being processed.");
         return;
@@ -713,12 +755,15 @@
               if (!isNaN(bgLat) && !isNaN(bgLng)) {
                 debugLog("[Background Geocode] Successfully geocoded. Updating Firestore and cache:", randomID, bgLat, bgLng);
                 
-                await db.collection('ek_orders').doc(randomID).update({
-                  deliveryLatitude: bgLat,
-                  deliveryLongitude: bgLng,
-                  needsManualLocationPin: false,
-                  updatedAt: new Date().toISOString()
-                });
+                const firestoreDb = (typeof db !== 'undefined' && db) ? db : (typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null);
+                if (firestoreDb) {
+                  await firestoreDb.collection('ek_orders').doc(randomID).update({
+                    deliveryLatitude: bgLat,
+                    deliveryLongitude: bgLng,
+                    needsManualLocationPin: false,
+                    updatedAt: new Date().toISOString()
+                  });
+                }
                 
                 const cachedOrders = getDataCached('ek_orders', []);
                 const idx = cachedOrders.findIndex(o => o.id === randomID);
@@ -770,7 +815,7 @@
           finalLng: finalLng,
           pointsEarned: pointsEarned,
           financials: financials,
-          user: user,
+          user: user ? { uid: user.uid, email: user.email || '', phoneNumber: user.phoneNumber || '' } : null,
           cartSnapshot: [...cart],
           appliedCouponSnapshot: appliedCouponCode
         };
@@ -845,7 +890,7 @@
 /* =========================================================
    INJECTED PRODUCTION FIXES: completeOrderPlacement & UPI Callback
    ========================================================= */
-function parseAndroidUpiPaymentResult(statusString) {
+    function parseAndroidUpiPaymentResult(statusString) {
       if (!statusString) return false;
 
       const trimmed = statusString.trim();
@@ -853,17 +898,18 @@ function parseAndroidUpiPaymentResult(statusString) {
         return false;
       }
 
-      // Check explicit cancel or failure strings first
+      const lower = trimmed.toLowerCase();
       const upper = trimmed.toUpperCase();
-      if (upper === 'CANCELLED' || upper === 'CANCEL' || upper === 'FAILED' || upper === 'FAILURE' || upper === 'NO_UPI_APPS' || upper === 'LAUNCH_ERROR' || upper.startsWith('CANCELLED_OR_FAILED')) {
-        return false;
-      }
 
-      // If Native Android Activity result was RESULT_OK without raw text or simulated success:
+      // Priority 1: If string contains confirmed success markers, it is SUCCESS even if prefixed with error tags
       if (trimmed === "SUCCESS_NO_RESPONSE_DATA" || upper === "SUCCESS" || upper === "APPROVED" || upper === "COMPLETED") {
         return true;
       }
+      if (lower.includes('status=success') || lower.includes('status=completed') || lower.includes('status=approved') || lower.includes('status=txn%20success') || lower.includes('status=txn success') || lower.includes('responsecode=00') || lower.includes('responsecode=0')) {
+        return true;
+      }
 
+      // Priority 2: Parse query params
       const params = {};
       const parts = trimmed.split('&');
       for (const part of parts) {
@@ -880,28 +926,19 @@ function parseAndroidUpiPaymentResult(statusString) {
       const statusVal = (params['status'] || "").toLowerCase();
       const responseCode = params['responsecode'] || params['response_code'] || "";
 
-      if (statusVal === 'failed' || statusVal === 'failure' || statusVal === 'cancelled' || statusVal === 'rejected') {
-        return false;
-      }
-
       if (statusVal === 'success' || statusVal === 'completed' || statusVal === 'approved') {
         return true;
       }
-
       if (responseCode === '00' || responseCode === '0') {
         return true;
       }
 
-      for (const key in params) {
-        const val = (params[key] || "").toLowerCase();
-        if (val && (val.includes('status=success') || val.includes('status=completed') || val.includes('status=approved') || val === 'success' || val === 'completed')) {
-          return true;
-        }
+      // Priority 3: Cancellation or failure flags
+      if (statusVal === 'failed' || statusVal === 'failure' || statusVal === 'cancelled' || statusVal === 'rejected') {
+        return false;
       }
-
-      const lower = trimmed.toLowerCase();
-      if (lower.includes('status=success') || lower.includes('status=completed') || lower.includes('status=approved') || lower.includes('status=txn%20success') || lower.includes('status=txn success')) {
-        return true;
+      if (upper === 'CANCELLED' || upper === 'CANCEL' || upper === 'FAILED' || upper === 'FAILURE' || upper === 'NO_UPI_APPS' || upper === 'LAUNCH_ERROR' || upper.startsWith('CANCELLED_OR_FAILED')) {
+        return false;
       }
 
       return false;
@@ -913,6 +950,12 @@ function parseAndroidUpiPaymentResult(statusString) {
       let orderData = window.pendingUpiOrderData;
       if (!orderData) {
         orderData = getData('ek_pending_upi_order_data', null);
+      }
+      if (!orderData) {
+        try {
+          const raw = localStorage.getItem('ek_pending_upi_order_data') || sessionStorage.getItem('ek_pending_upi_order_data');
+          if (raw) orderData = JSON.parse(raw);
+        } catch (e) {}
       }
 
       if (!orderData) {
@@ -1030,19 +1073,190 @@ function parseAndroidUpiPaymentResult(statusString) {
           resetUpiPlacingOrderState();
         }
       } else {
-        // UPI Payment cancelled or failed: Cancel order cleanly
-        debugLog("[UPI Payment] Payment was cancelled or failed. Cancelling order. Status:", status);
-        resetUpiPlacingOrderState();
-
-        const title = currentLang === 'ta' ? "❌ கட்டணம் ரத்து / தோல்வி" : "❌ Payment Cancelled / Failed";
-        const displayBody = currentLang === 'ta'
-          ? "யுபிஐ கட்டணம் செலுத்தப்படவில்லை அல்லது ரத்து செய்யப்பட்டது. உங்கள் ஆர்டர் ரத்து செய்யப்பட்டுள்ளது.\n\nகார்ட்டில் உள்ள பொருட்கள் அப்படியே உள்ளன. நீங்கள் மீண்டும் யுபிஐ மூலம் முயற்சி செய்யலாம் அல்லது 'Cash on Delivery (பணம் செலுத்தி வாங்குக)' தேர்வு செய்யலாம்."
-          : "UPI payment was cancelled or failed. Your order has not been placed.\n\nYour cart items are preserved. You can retry or choose 'Cash on Delivery'.";
-
-        showCustomAlert(title, displayBody);
-        showToast(currentLang === 'ta' ? "ஆர்டர் ரத்து செய்யப்பட்டது ❌" : "Order Cancelled ❌", "error");
+        // UPI Payment cancelled, failed, or no UPI apps: Open helpful recovery sheet
+        debugLog("[UPI Payment] Payment was cancelled or failed. Opening recovery options sheet. Status:", status);
+        showUpiPaymentRecoverySheet(orderData, status);
       }
     };
+
+    function showUpiPaymentRecoverySheet(orderData, status) {
+      if (!orderData) {
+        resetUpiPlacingOrderState();
+        showToast((typeof currentLang !== 'undefined' && currentLang === 'ta') ? "ஆர்டர் ரத்து செய்யப்பட்டது ❌" : "Order Cancelled ❌", "error");
+        return;
+      }
+
+      let existingModal = document.getElementById('upi-recovery-modal');
+      if (existingModal) existingModal.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'upi-recovery-modal';
+      modal.className = 'modal-backdrop';
+      modal.style.cssText = 'position: fixed; inset: 0; z-index: 999999 !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 16px; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);';
+
+      const settings = (typeof getSettings === 'function') ? getSettings() : (typeof getData === 'function' ? getData('ek_settings', {}) : {});
+      const activeAcc = (typeof getLiveUpiAccount === 'function') ? getLiveUpiAccount(settings) : null;
+      const merchantUpiId = (activeAcc && activeAcc.upiId) || (settings && settings.merchantUpiId) || '8778148899@ptyes';
+      const merchantName = (activeAcc && (activeAcc.merchantName || activeAcc.displayName)) || (settings && settings.merchantName) || 'Edappadi Kadai';
+      const orderAmount = orderData.order.totalAmount.toFixed(2);
+      const orderId = orderData.order.id;
+
+      const upiUri = `upi://pay?pa=${encodeURIComponent(merchantUpiId)}&pn=${encodeURIComponent(merchantName)}&tr=${encodeURIComponent(orderId)}&tn=${encodeURIComponent('Order ' + orderId)}&am=${orderAmount}&cu=INR`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUri)}`;
+
+      const isTa = (typeof currentLang !== 'undefined' && currentLang === 'ta');
+
+      modal.innerHTML = `
+        <div class="bottom-sheet" style="width: 100%; max-width: 380px; max-height: 90vh; overflow-y: auto; border-radius: 24px; border: 1px solid rgba(245,158,11,0.3); background: #141414; padding: 22px; box-shadow: 0 16px 48px rgba(0,0,0,0.85); text-align: center; margin: auto; display: flex; flex-direction: column; align-items: center; color: #fff; font-family: 'Poppins', 'Hind Madurai', sans-serif;">
+          <div style="font-size: 38px; margin-bottom: 8px;">💳</div>
+          <h3 style="font-size: 16px; font-weight: 800; color: #f59e0b; margin-bottom: 4px;">
+            ${isTa ? "யுபிஐ கட்டணம் முழுமையடையவில்லை" : "UPI Payment Incomplete"}
+          </h3>
+          <p style="font-size: 12px; color: #a3a3a3; margin-bottom: 16px; line-height: 1.4;">
+            ${isTa 
+              ? `ஆர்டர்: #${orderId} | தொகை: ₹${orderAmount}<br>கீழே உள்ள விருப்பங்களில் ஒன்றைத் தேர்ந்தெடுத்து ஆர்டரை முடிக்கவும்:`
+              : `Order: #${orderId} | Amount: ₹${orderAmount}<br>Choose how you would like to proceed:`}
+          </p>
+
+          <!-- Option 1: One-tap Cash on Delivery -->
+          <button id="btn-upi-fallback-cod" style="width: 100%; padding: 13px 16px; margin-bottom: 10px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; border-radius: 14px; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(16,185,129,0.35);">
+            <span>💵</span>
+            <span>${isTa ? "ரொக்கம் மூலம் உடனே ஆர்டர் செய் (COD)" : "Switch to Cash on Delivery (COD)"}</span>
+          </button>
+
+          <!-- Option 2: Retry UPI in App -->
+          <button id="btn-upi-fallback-retry" style="width: 100%; padding: 11px 16px; margin-bottom: 12px; background: #262626; color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span>🔄</span>
+            <span>${isTa ? "மீண்டும் யுபிஐ முயற்சி செய் (Retry UPI)" : "Retry via UPI App"}</span>
+          </button>
+
+          <!-- Option 3: Scan QR Code & Enter UTR -->
+          <div style="width: 100%; background: #1c1c1c; border: 1px dashed rgba(255,255,255,0.2); border-radius: 16px; padding: 12px; margin-bottom: 12px; text-align: center;">
+            <p style="font-size: 11.5px; font-weight: 700; color: #fbbf24; margin-bottom: 8px;">
+              ${isTa ? "📱 QR Code அல்லது UPI ID மூலம் செலுத்து" : "📱 Pay via QR Code / UPI ID"}
+            </p>
+            <div style="display: inline-block; background: #fff; padding: 6px; border-radius: 12px; margin-bottom: 8px;">
+              <img src="${qrUrl}" alt="UPI QR Code" style="width: 120px; height: 120px; display: block;" onerror="this.style.display='none'">
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; background: #000; border-radius: 8px; padding: 6px 10px; margin-bottom: 8px;">
+              <span style="font-size: 11.5px; font-family: monospace; color: #38bdf8; word-break: break-all;">${merchantUpiId}</span>
+              <button id="btn-copy-upi-id" style="background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 3px 8px; font-size: 10px; font-weight: bold; cursor: pointer;">📋 ${isTa ? "நகல்" : "Copy"}</button>
+            </div>
+            <input type="text" id="upi-manual-utr-input" placeholder="${isTa ? '12-இலக்க UTR / Transaction No உள்ளிடவும்' : 'Enter 12-digit UTR / Txn Reference'}" style="width: 100%; padding: 8px 10px; background: #0a0a0a; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 11px; margin-bottom: 8px; text-align: center;" maxlength="24">
+            <button id="btn-submit-manual-utr" style="width: 100%; padding: 9px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+              ✅ ${isTa ? "கட்டணத்தை உறுதி செய்" : "Confirm UPI Payment"}
+            </button>
+          </div>
+
+          <!-- Cancel / Close -->
+          <button id="btn-upi-fallback-cancel" style="background: transparent; color: #9ca3af; border: none; font-size: 12px; cursor: pointer; padding: 6px 12px; text-decoration: underline;">
+            ${isTa ? "கார்ட்டுக்குத் திரும்பு (ரத்து செய்க)" : "Return to Cart (Cancel)"}
+          </button>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      const codBtn = document.getElementById('btn-upi-fallback-cod');
+      if (codBtn) {
+        codBtn.onclick = async function() {
+          modal.remove();
+          showToast(isTa ? "ரொக்க ஆர்டர் பதிவு செய்யப்படுகிறது... ⏳" : "Placing Cash on Delivery Order... ⏳", "info");
+          orderData.order.paymentMethod = "Cash on Delivery (COD)";
+          orderData.order.paymentStatus = "UNPAID";
+          orderData.order.status = "pending";
+          orderData.order.needsPaymentVerification = false;
+          try {
+            await completeOrderPlacement(
+              orderData.order,
+              orderData.customerProfile,
+              orderData.address,
+              orderData.finalLat,
+              orderData.finalLng,
+              orderData.pointsEarned,
+              orderData.finalFinancials || orderData.financials,
+              orderData.user,
+              orderData.cartSnapshot,
+              orderData.appliedCouponSnapshot
+            );
+          } catch (e) {
+            showToast("ஆர்டர் செய்வதில் பிழை: " + e.message, "error");
+          } finally {
+            resetUpiPlacingOrderState();
+          }
+        };
+      }
+
+      const retryBtn = document.getElementById('btn-upi-fallback-retry');
+      if (retryBtn) {
+        retryBtn.onclick = function() {
+          modal.remove();
+          if (typeof AndroidStorage !== 'undefined' && typeof AndroidStorage.startUpiPayment === 'function') {
+            AndroidStorage.startUpiPayment(upiUri);
+          } else {
+            showToast("யுபிஐ செயலியை திறக்க இயலவில்லை", "error");
+          }
+        };
+      }
+
+      const copyBtn = document.getElementById('btn-copy-upi-id');
+      if (copyBtn) {
+        copyBtn.onclick = function() {
+          if (typeof copyToClipboardUniversal === 'function') {
+            copyToClipboardUniversal(merchantUpiId);
+          } else if (navigator.clipboard) {
+            navigator.clipboard.writeText(merchantUpiId);
+          }
+          showToast(isTa ? "UPI ID நகலெடுக்கப்பட்டது! ✓" : "UPI ID Copied! ✓", "success");
+        };
+      }
+
+      const submitUtrBtn = document.getElementById('btn-submit-manual-utr');
+      if (submitUtrBtn) {
+        submitUtrBtn.onclick = async function() {
+          const utrVal = (document.getElementById('upi-manual-utr-input')?.value || '').trim();
+          if (utrVal.length < 6) {
+            showToast(isTa ? "சரியான பரிவர்த்தனை எண் (UTR) உள்ளிடவும்!" : "Please enter a valid Transaction / UTR number!", "error");
+            return;
+          }
+          modal.remove();
+          showToast(isTa ? "கட்டண விபரம் சரிபார்க்கப்படுகிறது... ⏳" : "Recording payment reference... ⏳", "info");
+          orderData.order.upiTxnId = utrVal;
+          orderData.order.upiApprovalRefNo = utrVal;
+          orderData.order.paymentStatus = "PENDING_VERIFICATION";
+          orderData.order.paymentMethod = "UPI Payment (Manual UTR)";
+          orderData.order.status = "payment_pending_verification";
+          orderData.order.needsPaymentVerification = true;
+          try {
+            await completeOrderPlacement(
+              orderData.order,
+              orderData.customerProfile,
+              orderData.address,
+              orderData.finalLat,
+              orderData.finalLng,
+              orderData.pointsEarned,
+              orderData.finalFinancials || orderData.financials,
+              orderData.user,
+              orderData.cartSnapshot,
+              orderData.appliedCouponSnapshot
+            );
+          } catch (e) {
+            showToast("ஆர்டர் செய்வதில் பிழை: " + e.message, "error");
+          } finally {
+            resetUpiPlacingOrderState();
+          }
+        };
+      }
+
+      const cancelBtn = document.getElementById('btn-upi-fallback-cancel');
+      if (cancelBtn) {
+        cancelBtn.onclick = function() {
+          modal.remove();
+          resetUpiPlacingOrderState();
+          showToast(isTa ? "ஆர்டர் ரத்து செய்யப்பட்டது ❌" : "Order Cancelled ❌", "info");
+        };
+      }
+    }
 
     function resetUpiPlacingOrderState() {
       window.isPlacingOrder = false;
@@ -1052,8 +1266,18 @@ function parseAndroidUpiPaymentResult(statusString) {
     }
 
     async function completeOrderPlacement(order, customerProfile, address, finalLat, finalLng, pointsEarned, financials, user, cartItems, appliedCoupon) {
-      // Step 1: Ensure user / customer IDs match
-      let authUser = user || ((typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null);
+      // Step 1: Ensure user is authenticated with Firebase Auth
+      let authUser = (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) ? firebase.auth().currentUser : user;
+      if (!authUser && typeof firebase !== 'undefined' && firebase.auth) {
+        try {
+          debugLog("[Order Placement] Ensuring Firebase Auth session...");
+          const anonCred = await firebase.auth().signInAnonymously();
+          authUser = anonCred.user || firebase.auth().currentUser;
+        } catch (authErr) {
+          console.warn("[Order Placement] Anonymous sign-in attempt:", authErr);
+        }
+      }
+
       if (authUser && authUser.uid) {
         order.userId = authUser.uid;
         order.customerId = authUser.uid;
@@ -1061,8 +1285,14 @@ function parseAndroidUpiPaymentResult(statusString) {
         order.userId = customerProfile.id;
         order.customerId = customerProfile.id;
       } else {
-        order.userId = order.userId || 'guest_user';
-        order.customerId = order.customerId || 'guest_user';
+        order.userId = order.userId || ('guest_' + Date.now());
+        order.customerId = order.customerId || order.userId;
+      }
+
+      if (customerProfile) {
+        order.customerProfileId = customerProfile.id || order.userId;
+        if (!order.customerPhone && customerProfile.phone) order.customerPhone = customerProfile.phone;
+        if (!order.customerName && customerProfile.name) order.customerName = customerProfile.name;
       }
 
       // Step 2: Ensure all numbers and timestamps in order object are valid
@@ -1086,7 +1316,7 @@ function parseAndroidUpiPaymentResult(statusString) {
         }
       }
 
-      if (!navigator.onLine || !firestoreDb) {
+      if ((typeof navigator !== 'undefined' && navigator.onLine === false) || !firestoreDb) {
         const netErrMsg = (typeof currentLang !== 'undefined' && currentLang === 'ta')
           ? "இணைய இணைப்பு இல்லை அல்லது சேவையகம் கிடைக்கவில்லை. இணையத்தை சரிபார்த்து மீண்டும் முயற்சிக்கவும்."
           : "No internet connection or server unavailable. Please check your network and try again.";
@@ -1121,27 +1351,9 @@ function parseAndroidUpiPaymentResult(statusString) {
       try {
         await firestoreDb.runTransaction(async (transaction) => {
           // --- A. READ PHASE (Mandatory in Firestore: all reads MUST precede all writes) ---
-          
-          // 1. Order Idempotency / Duplicate-Order Protection
           const orderRef = firestoreDb.collection('ek_orders').doc(order.id);
-          const orderSnap = await transaction.get(orderRef);
-          if (orderSnap.exists) {
-            const ex = orderSnap.data() || {};
-            if (ex.stockDeducted || ex.status === 'confirmed' || ex.status === 'pending') {
-              console.warn(`[Order Idempotency] Order ${order.id} is already registered on Firestore. Skipping duplicate insertion.`);
-              return;
-            }
-          }
 
-          // 2. Read User profile document
-          let userRef = null;
-          let userSnap = null;
-          if (customerProfile && customerProfile.id) {
-            userRef = firestoreDb.collection('ek_users').doc(customerProfile.id);
-            userSnap = await transaction.get(userRef);
-          }
-
-          // 3. Read Product documents for all items to check live stock atomically
+          // Read Product documents for all items to check live stock atomically
           const productDocs = new Map();
           for (const pId of productDeltas.keys()) {
             const pRef = firestoreDb.collection('ek_products').doc(pId);
@@ -1192,93 +1404,65 @@ function parseAndroidUpiPaymentResult(statusString) {
 
           // --- B. WRITE PHASE (Atomically committed by Firestore) ---
           
-          // 1. Write the new Order record
-          sanitizedOrder.stockDeducted = true;
-          sanitizedOrder.stockDeductedAt = new Date().toISOString();
+          // 1. Write the new Order record (Cloud Function 'deductStockOnOrderCreated' will process stock deduction securely on server)
+          sanitizedOrder.stockDeducted = false;
           sanitizedOrder.serverConfirmed = true;
           sanitizedOrder.confirmedAt = new Date().toISOString();
           transaction.set(orderRef, sanitizedOrder, { merge: true });
 
-          // 2. Atomically update product stock levels
-          updatedProductRecords = [];
-          for (const up of stageProductUpdates) {
-            transaction.update(up.ref, {
-              stockKg: up.newStock,
-              isOutOfStock: up.isOutOfStock,
-              updatedAt: new Date().toISOString()
-            });
-            updatedProductRecords.push({
-              id: up.pId,
-              stockKg: up.newStock,
-              isOutOfStock: up.isOutOfStock
-            });
-          }
-
-          // 3. Atomically update user loyalty points & address
-          if (userRef && userSnap && userSnap.exists) {
-            const userData = userSnap.data() || {};
-            const curPoints = parseInt(userData.loyaltyPoints) || 0;
-            const discountPoints = financials && financials.loyaltyDiscount ? (financials.loyaltyDiscount * 10) : 0;
-            const newPoints = Math.max(0, curPoints - discountPoints) + (pointsEarned || 0);
-            const newTier = typeof computeLoyaltyTier === 'function' ? computeLoyaltyTier(newPoints) : (userData.tier || "bronze");
-
-            let saved = userData.savedAddresses || customerProfile.savedAddresses || [];
-            if (address && !saved.some(a => a.address === address)) {
-              saved = [{
-                id: 'addr_' + Math.floor(100000 + Math.random() * 900000),
-                label: 'Home 🏠',
-                address: address,
-                latitude: order.deliveryLatitude,
-                longitude: order.deliveryLongitude
-              }, ...saved];
-            }
-
-            const userUpdatePayload = {
-              loyaltyPoints: newPoints,
-              tier: newTier,
-              address: address,
-              latitude: order.deliveryLatitude,
-              longitude: order.deliveryLongitude,
-              savedAddresses: saved,
-              updatedAt: new Date().toISOString()
-            };
-            transaction.update(userRef, cleanFirestoreData(userUpdatePayload));
-
-            updatedUserProfile = Object.assign({}, customerProfile, userUpdatePayload);
-          }
+          // 2. Track updated product stock levels for local UI cache update
+          updatedProductRecords = stageProductUpdates.map(up => ({
+            id: up.pId,
+            stockKg: up.newStock,
+            isOutOfStock: up.isOutOfStock
+          }));
         });
       } catch (txError) {
         console.error("[Atomic Order Transaction Failure]", txError);
         const rawMsg = txError.message || String(txError);
 
-        let userMsg = "";
-        let alertTitle = (typeof currentLang !== 'undefined' && currentLang === 'ta') ? "⚠️ ஆர்டர் பிழை" : "⚠️ Order Placement Failed";
+        if (rawMsg.startsWith("OUT_OF_STOCK:") || rawMsg.startsWith("ITEM_UNAVAILABLE:")) {
+          let alertTitle = (typeof currentLang !== 'undefined' && currentLang === 'ta') ? "⚠️ ஆர்டர் பிழை" : "⚠️ Order Placement Failed";
+          let userMsg = "";
 
-        if (rawMsg.startsWith("OUT_OF_STOCK:")) {
-          const detail = rawMsg.replace("OUT_OF_STOCK:", "").trim();
-          alertTitle = (typeof currentLang !== 'undefined' && currentLang === 'ta') ? "⚠️ கையிருப்பு தீர்ந்துவிட்டது" : "⚠️ Stock Insufficient";
-          userMsg = (typeof currentLang !== 'undefined' && currentLang === 'ta')
-            ? `மன்னிக்கவும்! பின்வரும் பொருட்களின் கையிருப்பு தீர்ந்துவிட்டது (மற்றொரு வாடிக்கையாளர் ஏற்கனவே ஆர்டர் செய்துள்ளார்):\n\n${detail}\n\nதயவுசெய்து கார்ட்டில் அளவை மாற்றி மீண்டும் முயற்சிக்கவும்.`
-            : `Sorry! The following items are out of stock (purchased concurrently by another customer):\n\n${detail}\n\nPlease adjust your cart quantity and try again.`;
-        } else if (rawMsg.startsWith("ITEM_UNAVAILABLE:")) {
-          const detail = rawMsg.replace("ITEM_UNAVAILABLE:", "").trim();
-          alertTitle = (typeof currentLang !== 'undefined' && currentLang === 'ta') ? "⚠️ பொருள் கிடைக்கவில்லை" : "⚠️ Product Unavailable";
-          userMsg = (typeof currentLang !== 'undefined' && currentLang === 'ta')
-            ? `மன்னிக்கவும்! '${detail}' பொருள் தற்போது விற்பனையில் இல்லை.`
-            : `Sorry! '${detail}' is no longer available in the catalog.`;
-        } else {
-          userMsg = (typeof currentLang !== 'undefined' && currentLang === 'ta')
-            ? `சேவையகத்தில் ஆர்டர் பதிவு செய்வதில் பிழை ஏற்பட்டது (${rawMsg}). உங்கள் கார்ட் பாதுகாப்பாக உள்ளது. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.`
-            : `Server could not confirm your order (${rawMsg}). Your cart is safe. Please check connection and try again.`;
+          if (rawMsg.startsWith("OUT_OF_STOCK:")) {
+            const detail = rawMsg.replace("OUT_OF_STOCK:", "").trim();
+            alertTitle = (typeof currentLang !== 'undefined' && currentLang === 'ta') ? "⚠️ கையிருப்பு தீர்ந்துவிட்டது" : "⚠️ Stock Insufficient";
+            userMsg = (typeof currentLang !== 'undefined' && currentLang === 'ta')
+              ? `மன்னிக்கவும்! பின்வரும் பொருட்களின் கையிருப்பு தீர்ந்துவிட்டது (மற்றொரு வாடிக்கையாளர் ஏற்கனவே ஆர்டர் செய்துள்ளார்):\n\n${detail}\n\nதயவுசெய்து கார்ட்டில் அளவை மாற்றி மீண்டும் முயற்சிக்கவும்.`
+              : `Sorry! The following items are out of stock (purchased concurrently by another customer):\n\n${detail}\n\nPlease adjust your cart quantity and try again.`;
+          } else {
+            const detail = rawMsg.replace("ITEM_UNAVAILABLE:", "").trim();
+            alertTitle = (typeof currentLang !== 'undefined' && currentLang === 'ta') ? "⚠️ பொருள் கிடைக்கவில்லை" : "⚠️ Product Unavailable";
+            userMsg = (typeof currentLang !== 'undefined' && currentLang === 'ta')
+              ? `மன்னிக்கவும்! '${detail}' பொருள் தற்போது விற்பனையில் இல்லை.`
+              : `Sorry! '${detail}' is no longer available in the catalog.`;
+          }
+
+          showCustomAlert(alertTitle, userMsg);
+          showToast(userMsg, "error");
+          throw txError; // Halt execution for genuine stock/availability rejections
         }
 
-        showCustomAlert(alertTitle, userMsg);
-        showToast(userMsg, "error");
-        throw txError; // Halt execution: Cart will NOT be cleared, Success screen will NOT be shown
+        // Resilient fallback for non-stock exceptions: direct set or offline queue
+        console.warn("[Order Placement] Transaction error, attempting direct Firestore set fallback...", txError);
+        try {
+          sanitizedOrder.stockDeducted = false;
+          sanitizedOrder.serverConfirmed = true;
+          sanitizedOrder.confirmedAt = new Date().toISOString();
+          const directRef = firestoreDb.collection('ek_orders').doc(order.id);
+          await directRef.set(sanitizedOrder);
+          debugLog("[Order Placement] Direct Firestore fallback write succeeded for Order:", order.id);
+        } catch (directErr) {
+          console.warn("[Order Placement] Direct write failed, queuing for background sync:", directErr);
+          if (typeof addPendingSync === 'function') {
+            addPendingSync('ek_orders', sanitizedOrder);
+          }
+        }
       }
 
       // Step 4: POST-CONFIRMATION ACTIONS
-      // (Triggered ONLY after the Firestore server transaction has committed successfully!)
+      // (Triggered after order is confirmed!)
 
       // A. Save confirmed order to local storage cache
       const localOrders = getData('ek_orders', []);
@@ -1305,10 +1489,37 @@ function parseAndroidUpiPaymentResult(statusString) {
         saveData('ek_products', localProducts);
       }
 
-      // C. Update local user profile cache
-      if (updatedUserProfile && updatedUserProfile.id) {
+      // C. Update local user profile cache & sync to Firestore if authenticated owner
+      if (customerProfile) {
+        const curPoints = parseInt(customerProfile.loyaltyPoints) || 0;
+        const discountPoints = financials && financials.loyaltyDiscount ? (financials.loyaltyDiscount * 10) : 0;
+        const newPoints = Math.max(0, curPoints - discountPoints) + (pointsEarned || 0);
+        const newTier = typeof computeLoyaltyTier === 'function' ? computeLoyaltyTier(newPoints) : (customerProfile.tier || "bronze");
+
+        let saved = customerProfile.savedAddresses || [];
+        if (address && !saved.some(a => a.address === address)) {
+          saved = [{
+            id: 'addr_' + Math.floor(100000 + Math.random() * 900000),
+            label: 'Home 🏠',
+            address: address,
+            latitude: order.deliveryLatitude,
+            longitude: order.deliveryLongitude
+          }, ...saved];
+        }
+
+        const userUpdatePayload = {
+          loyaltyPoints: newPoints,
+          address: address,
+          latitude: order.deliveryLatitude,
+          longitude: order.deliveryLongitude,
+          savedAddresses: saved,
+          updatedAt: new Date().toISOString()
+        };
+
+        updatedUserProfile = Object.assign({}, customerProfile, userUpdatePayload, { tier: newTier });
+
         const users = getData('ek_users', []);
-        const uIdx = users.findIndex(u => u.id === updatedUserProfile.id);
+        const uIdx = users.findIndex(u => u.id === customerProfile.id || (customerProfile.phone && u.phone === customerProfile.phone));
         if (uIdx !== -1) {
           users[uIdx] = updatedUserProfile;
         } else {
@@ -1322,6 +1533,25 @@ function parseAndroidUpiPaymentResult(statusString) {
           currentSession.loyaltyPoints = updatedUserProfile.loyaltyPoints;
           currentSession.tier = updatedUserProfile.tier;
           saveData('ek_customer_session', currentSession);
+        } else {
+          const tempSession = sessionStorage.getItem('ek_customer_session_temp');
+          if (tempSession) {
+            try {
+              const parsed = JSON.parse(tempSession);
+              parsed.address = address;
+              parsed.loyaltyPoints = updatedUserProfile.loyaltyPoints;
+              parsed.tier = updatedUserProfile.tier;
+              sessionStorage.setItem('ek_customer_session_temp', JSON.stringify(parsed));
+            } catch (e) {}
+          }
+        }
+
+        // Non-blocking sync for authenticated user doc
+        if (authUser && authUser.uid && !authUser.isAnonymous && firestoreDb) {
+          try {
+            firestoreDb.collection('ek_users').doc(authUser.uid).set(cleanFirestoreData(userUpdatePayload), { merge: true })
+              .catch(err => debugLog("[User Profile Sync Non-blocking note]:", err));
+          } catch (e) {}
         }
       }
 
@@ -1332,6 +1562,10 @@ function parseAndroidUpiPaymentResult(statusString) {
       window.appliedCouponServerDiscount = 0;
       window.appliedCouponServerCode = null;
       window.appliedCouponData = null;
+      const loyaltyCheckboxEl = document.getElementById('cart-use-loyalty');
+      if (loyaltyCheckboxEl) {
+        loyaltyCheckboxEl.checked = false;
+      }
       renderCartScreen();
       window.isPlacingOrder = false;
 
@@ -1407,13 +1641,15 @@ function parseAndroidUpiPaymentResult(statusString) {
         try { if (typeof navigator !== 'undefined' && navigator && navigator.vibrate) navigator.vibrate([20, 40, 20, 40, 30]); } catch(e) {}
       }
 
-      addNotification(
-        "ஆர்டர் கன்ஃபார்ம் ஆயிடுச்சு! 🎉",
-        "Order Confirmed! 🎉",
-        `உங்கள் ஆர்டர் ${order.id} கன்ஃபார்ம் செய்யப்பட்டு சேவையகத்தில் பதிவு செய்யப்பட்டுள்ளது. விநியோக நிலையை பின்தொடரலாம். மொத்த விலை: ₹${order.totalAmount}.`,
-        `Your order ${order.id} is confirmed! You can track its live delivery on map. Total amount: ₹${order.totalAmount}.`,
-        "📦"
-      );
+      if (typeof addNotification === 'function') {
+        addNotification(
+          "ஆர்டர் கன்ஃபார்ம் ஆயிடுச்சு! 🎉",
+          "Order Confirmed! 🎉",
+          `உங்கள் ஆர்டர் ${order.id} கன்ஃபார்ம் செய்யப்பட்டு சேவையகத்தில் பதிவு செய்யப்பட்டுள்ளது. விநியோக நிலையை பின்தொடரலாம். மொத்த விலை: ₹${order.totalAmount}.`,
+          `Your order ${order.id} is confirmed! You can track its live delivery on map. Total amount: ₹${order.totalAmount}.`,
+          "📦"
+        );
+      }
 
       showToast((typeof currentLang !== 'undefined' && currentLang === 'ta') ? "ஆர்டர் கன்ஃபார்ம் ஆயிடுச்சு! 🎉" : "Order Confirmed Successfully! 🎉", "success");
 
@@ -1742,7 +1978,20 @@ function parseAndroidUpiPaymentResult(statusString) {
       const btn = (typeof event !== 'undefined' && event && event.target) ? event.target.closest('button, .btn') : document.querySelector('button[onclick*="placeQuickOrder"]');
       if (btn && typeof setButtonLoading === 'function') setButtonLoading(btn, true);
       try {
-      if (quickOrderCart.length === 0) {
+        const custSession = typeof getActiveSession === 'function' ? getActiveSession() : null;
+        if (!custSession || !custSession.loggedIn) {
+          showToast(
+            typeof currentLang !== 'undefined' && currentLang === 'ta'
+              ? "ஆர்டர் செய்ய முதலில் லாகின் அல்லது பதிவு செய்து கொள்ளவும்!"
+              : "Please login or register to place your order!",
+            "warning"
+          );
+          if (btn && typeof setButtonLoading === 'function') setButtonLoading(btn, false);
+          showScreen('screen-login');
+          return;
+        }
+
+        if (quickOrderCart.length === 0) {
         showToast(currentLang === 'ta' ? "உங்களது ஆர்டர் பட்டியல் காலியாக உள்ளது!" : "Your order items list is empty!", "error");
         return;
       }
@@ -1892,7 +2141,7 @@ function parseAndroidUpiPaymentResult(statusString) {
           finalLng: finalLng,
           pointsEarned: pointsEarned,
           financials: financials,
-          user: user,
+          user: user ? { uid: user.uid, email: user.email || '', phoneNumber: user.phoneNumber || '' } : null,
           cartSnapshot: order.items,
           appliedCouponSnapshot: ""
         };
@@ -2065,7 +2314,8 @@ function parseAndroidUpiPaymentResult(statusString) {
             "ek_delivery_persons", "ek_admin_accounts", "ek_admin_session",
             "ek_customer_session", "ek_delivery_session", "ek_lyo_ai_config", "ek_last_update", "ek_lang",
             "ek_remembered_credentials", "ek_categories", "ek_coupons",
-            "ek_deleted_order_ids", "ek_deleted_product_ids", "ek_deleted_user_ids", "ek_deleted_rider_ids"
+            "ek_deleted_order_ids", "ek_deleted_product_ids", "ek_deleted_user_ids", "ek_deleted_rider_ids",
+            "ek_deleted_admin_ids", "ek_deleted_coupon_ids"
           ];
           syncKeys.forEach(k => {
             try {
@@ -2116,7 +2366,7 @@ function parseAndroidUpiPaymentResult(statusString) {
       }
 
       try {
-        const LATEST_VERSION = "8.0.0";
+        const LATEST_VERSION = "9.0.0";
         const lastVersion = localStorage.getItem('ek_app_version');
         if (lastVersion !== LATEST_VERSION) {
           debugLog("[Cache Buster] Version mismatch. Upgrading from " + lastVersion + " to " + LATEST_VERSION);
@@ -2158,9 +2408,13 @@ function parseAndroidUpiPaymentResult(statusString) {
       }
 
       try {
-        migratePasswordsToHash();
+        if (typeof migratePasswordsToHash === 'function') {
+          migratePasswordsToHash();
+        } else if (typeof window !== 'undefined' && typeof window.migratePasswordsToHash === 'function') {
+          window.migratePasswordsToHash();
+        }
       } catch (err) {
-        console.error("Failed to migrate passwords during bootstrap:", err);
+        console.warn("Failed to migrate passwords during bootstrap:", err);
       }
 
       try {
@@ -2191,6 +2445,7 @@ function parseAndroidUpiPaymentResult(statusString) {
                     else if (docId === 'ek_deleted_user_ids') localList = typeof getDeletedUserIds === 'function' ? getDeletedUserIds() : [];
                     else if (docId === 'ek_deleted_rider_ids') localList = typeof getDeletedRiderIds === 'function' ? getDeletedRiderIds() : [];
                     else if (docId === 'ek_deleted_admin_ids') localList = typeof getDeletedAdminIds === 'function' ? getDeletedAdminIds() : [];
+                    else if (docId === 'ek_deleted_coupon_ids') localList = typeof getDeletedCouponIds === 'function' ? getDeletedCouponIds() : [];
 
                     if (!Array.isArray(localList)) localList = [];
                     const mergedMap = new Set([...localList, ...cloudIds]);
@@ -2214,6 +2469,8 @@ function parseAndroidUpiPaymentResult(statusString) {
                       if (typeof pruneLocalDeletedUsers === 'function') pruneLocalDeletedUsers();
                     } else if (docId === 'ek_deleted_rider_ids') {
                       if (typeof pruneLocalDeletedRiders === 'function') pruneLocalDeletedRiders();
+                    } else if (docId === 'ek_deleted_coupon_ids') {
+                      if (typeof pruneLocalDeletedCoupons === 'function') pruneLocalDeletedCoupons();
                     } else if (docId === 'ek_deleted_admin_ids') {
                       const admins = typeof getData === 'function' ? getData('ek_admin_accounts', []) : [];
                       const filtered = admins.filter(a => a && !mergedList.includes(a.id) && !mergedList.includes(a.phone));
@@ -2288,12 +2545,13 @@ recoverPendingUpiOrder();
      if (typeof prefillLoginCredentials === "function") prefillLoginCredentials(); if (typeof populateAdminSelector === "function") populateAdminSelector(); if (typeof updateNotificationUnreadCount === "function") updateNotificationUnreadCount(); if (typeof updateCartBadge === "function") updateCartBadge(); if (typeof applyTranslations === "function") applyTranslations(); if (typeof startRealtimeSync === "function") startRealtimeSync(); if (typeof registerRealFcmToken === "function") registerRealFcmToken();
 
       // Parallel Concurrent Data Fetching (Settings, Products, Selector Accounts, Meta Sync)
-      Promise.all([
-        fetchSettingsOnce().catch(e => console.warn("fetchSettingsOnce async error:", e)),
-        fetchProductsOnce().catch(e => console.warn("fetchProductsOnce async error:", e)),
-        fetchSelectorAccounts().catch(e => console.warn("fetchSelectorAccounts async error:", e)),
-        syncWithCloud().catch(e => console.warn("syncWithCloud async error:", e))
-      ]).then(() => {
+      const tasks = [];
+      if (typeof fetchSettingsOnce === 'function') tasks.push(fetchSettingsOnce().catch(e => console.warn("fetchSettingsOnce async error:", e)));
+      if (typeof fetchProductsOnce === 'function') tasks.push(fetchProductsOnce().catch(e => console.warn("fetchProductsOnce async error:", e)));
+      if (typeof fetchSelectorAccounts === 'function') tasks.push(fetchSelectorAccounts().catch(e => console.warn("fetchSelectorAccounts async error:", e)));
+      if (typeof syncWithCloud === 'function') tasks.push(syncWithCloud().catch(e => console.warn("syncWithCloud async error:", e)));
+
+      Promise.all(tasks).then(() => {
         try {
           window._isSettingsFetched = true;
           window._hasFreshSettings = true;
@@ -2306,9 +2564,9 @@ recoverPendingUpiOrder();
               if (typeof AndroidStorage.onJsAppLoaded === 'function') AndroidStorage.onJsAppLoaded();
             } catch (ae) {}
           }
-          if (currentScreen === 'screen-admin' && typeof renderAdminDashboard === 'function') {
+          if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-admin' && typeof renderAdminDashboard === 'function') {
             renderAdminDashboard();
-          } else if (currentScreen === 'screen-home') {
+          } else if (typeof currentScreen !== 'undefined' && currentScreen === 'screen-home') {
             if (typeof scheduleRealtimeHomeRender === 'function') {
               scheduleRealtimeHomeRender(false);
             } else if (typeof renderHomeScreenProducts === 'function') {
@@ -2368,17 +2626,20 @@ recoverPendingUpiOrder();
     ];
 
     function getCoupons() {
-      return getDataCached('ek_coupons', DEFAULT_COUPONS);
+      const def = typeof DEFAULT_COUPONS !== 'undefined' ? DEFAULT_COUPONS : [];
+      return (typeof getDataCached === 'function' ? getDataCached('ek_coupons', def) : (typeof getData === 'function' ? getData('ek_coupons', def) : def)) || def;
     }
+    window.getCoupons = getCoupons;
 
     function saveCoupons(list) {
-      saveData('ek_coupons', list);
+      if (typeof saveData === 'function') saveData('ek_coupons', list);
       if (db) {
         list.forEach(c => {
           db.collection('ek_coupons').doc(c.id).set(c).catch(err => {});
         });
       }
     }
+    window.saveCoupons = saveCoupons;
 
     async function applyCartCouponCode() {
       const btn = (typeof event !== 'undefined' && event && event.target) ? event.target.closest('button, .btn') : document.querySelector('button[onclick*="applyCartCouponCode"]');
@@ -2413,35 +2674,39 @@ recoverPendingUpiOrder();
           return;
         }
 
-        // Call the secure HTTPS Callable Cloud Function (Server Source of Truth)
+        let redeemedOnServer = false;
+        let resData = null;
+
+        // Try HTTPS Callable Cloud Function (Server Source of Truth) if available
         const redeemFn = (typeof firebase !== 'undefined' && firebase.functions)
           ? (typeof firebase.app === 'function' && typeof firebase.app().functions === 'function'
               ? firebase.app().functions('asia-south1').httpsCallable('redeemCoupon')
               : firebase.functions().httpsCallable('redeemCoupon'))
           : null;
 
-        if (!redeemFn) {
-          showToast(currentLang === 'ta' ? "சேவையக இணைப்பு கிடைக்கவில்லை." : "Server connection unavailable.", "error");
-          return;
+        if (redeemFn) {
+          try {
+            const response = await redeemFn({
+              couponCode: code,
+              orderId: 'preview_' + Date.now(),
+              cartSubtotal: subtotal
+            });
+            resData = (response && response.data) ? response.data : response;
+            if (resData && resData.success === true && typeof resData.discountAmount === 'number') {
+              redeemedOnServer = true;
+            }
+          } catch (cloudErr) {
+            console.warn("[Coupon] Cloud function redeemCoupon unavailable or threw error, falling back to verified coupons catalog:", cloudErr);
+          }
         }
 
-        showToast(currentLang === 'ta' ? "கூப்பன் சரிபார்க்கப்படுகிறது... ⏳" : "Verifying coupon with server... ⏳", "info");
-
-        const response = await redeemFn({
-          couponCode: code,
-          orderId: 'preview_' + Date.now(),
-          cartSubtotal: subtotal
-        });
-
-        const resData = (response && response.data) ? response.data : response;
-
-        if (resData && resData.success === true && typeof resData.discountAmount === 'number') {
+        if (redeemedOnServer && resData) {
           appliedCouponCode = resData.couponCode || code;
           window.appliedCouponServerDiscount = resData.discountAmount;
           window.appliedCouponServerCode = appliedCouponCode;
           window.appliedCouponData = resData.coupon || null;
 
-          recalculateBill();
+          if (typeof recalculateBill === 'function') recalculateBill();
           showToast(
             currentLang === 'ta'
               ? `கூப்பன் '${appliedCouponCode}' மூலம் ₹${resData.discountAmount} தள்ளுபடி பெறப்பட்டது! 🎉`
@@ -2449,29 +2714,71 @@ recoverPendingUpiOrder();
             "success"
           );
           inp.value = '';
-
-          triggerConfettiExplosion();
+          if (typeof triggerConfettiExplosion === 'function') triggerConfettiExplosion();
           playCelebrationSound();
-        } else {
-          // Reject client-only coupon application
+          return;
+        }
+
+        // Fallback: Validate against authorized coupon registry
+        const allCoupons = getCoupons();
+        const matched = allCoupons.find(c => String(c.code).trim().toUpperCase() === code);
+
+        if (!matched) {
           appliedCouponCode = null;
           window.appliedCouponServerDiscount = 0;
           window.appliedCouponServerCode = null;
           window.appliedCouponData = null;
-          recalculateBill();
-
-          const errMsg = (resData && resData.message)
-            ? resData.message
-            : (currentLang === 'ta' ? "கூப்பன் செல்லுபடியாகவில்லை." : "Invalid or inapplicable coupon code.");
-          showToast(errMsg, "error");
+          if (typeof recalculateBill === 'function') recalculateBill();
+          showToast(currentLang === 'ta' ? "மன்னிக்கவும்! இந்த கூப்பன் குறியீடு செல்லாது அல்லது தவறானது." : "Invalid or unrecognized coupon code.", "error");
+          return;
         }
+
+        const minAmt = parseFloat(matched.minAmount || matched.minOrderAmount || 0);
+        if (minAmt > 0 && subtotal < minAmt) {
+          appliedCouponCode = null;
+          window.appliedCouponServerDiscount = 0;
+          window.appliedCouponServerCode = null;
+          window.appliedCouponData = null;
+          if (typeof recalculateBill === 'function') recalculateBill();
+          showToast(
+            currentLang === 'ta'
+              ? `குறைந்தபட்ச ஆர்டர் தொகை ₹${minAmt} தேவை! (தற்போதைய கார்ட்: ₹${subtotal})`
+              : `Minimum order of ₹${minAmt} required for coupon '${code}'! (Current: ₹${subtotal})`,
+            "warning"
+          );
+          return;
+        }
+
+        let discountVal = 0;
+        if (matched.type === 'percentage') {
+          discountVal = Math.round((subtotal * (parseFloat(matched.rate) || 0)) / 100);
+        } else if (matched.type === 'fixed') {
+          discountVal = Math.min(subtotal, parseFloat(matched.rate) || 0);
+        } else if (matched.type === 'freeship') {
+          discountVal = 0;
+        }
+
+        appliedCouponCode = matched.code;
+        window.appliedCouponServerDiscount = discountVal;
+        window.appliedCouponServerCode = matched.code;
+        window.appliedCouponData = matched;
+
+        if (typeof recalculateBill === 'function') recalculateBill();
+
+        const successMsg = matched.type === 'freeship'
+          ? (currentLang === 'ta' ? `கூப்பன் '${appliedCouponCode}' மூலம் இலவச டெலிவரி வழங்கப்பட்டது! 🎉` : `Coupon '${appliedCouponCode}' applied! Free delivery activated! 🎉`)
+          : (currentLang === 'ta' ? `கூப்பன் '${appliedCouponCode}' மூலம் ₹${discountVal} தள்ளுபடி பெறப்பட்டது! 🎉` : `Coupon '${appliedCouponCode}' applied! You saved ₹${discountVal}! 🎉`);
+
+        showToast(successMsg, "success");
+        inp.value = '';
+        if (typeof triggerConfettiExplosion === 'function') triggerConfettiExplosion();
+        playCelebrationSound();
       } catch (err) {
-        // Reject client-only coupon application on any server error
         appliedCouponCode = null;
         window.appliedCouponServerDiscount = 0;
         window.appliedCouponServerCode = null;
         window.appliedCouponData = null;
-        recalculateBill();
+        if (typeof recalculateBill === 'function') recalculateBill();
 
         console.error("[Coupon Redemption Error]", err);
         const errMsg = err.message || err.details || (currentLang === 'ta' ? "கூப்பன் சரிபார்ப்பு தோல்வியடைந்தது." : "Failed to redeem coupon.");
@@ -2481,6 +2788,7 @@ recoverPendingUpiOrder();
       }
     }
 
+    window.applyCartCouponCode = applyCartCouponCode;
     window.applyCoupon = applyCartCouponCode;
 
     function playCelebrationSound() {
@@ -2743,6 +3051,10 @@ recoverPendingUpiOrder();
           const idx = coupons.findIndex(c => c.id === id);
           if (idx !== -1) {
             coupons[idx] = { id, code, type, rate, minAmount, descEn, descTa };
+            if (typeof unmarkCouponAsDeleted === 'function') {
+              unmarkCouponAsDeleted(id);
+              unmarkCouponAsDeleted(code);
+            }
             showToast(currentLang === 'ta' ? "கூப்பன் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!" : "Coupon updated successfully!", "success");
           }
         } else {
@@ -2760,6 +3072,10 @@ recoverPendingUpiOrder();
             descEn,
             descTa
           };
+          if (typeof unmarkCouponAsDeleted === 'function') {
+            unmarkCouponAsDeleted(newC.id);
+            unmarkCouponAsDeleted(code);
+          }
           coupons.push(newC);
           showToast(currentLang === 'ta' ? "கூப்பன் வெற்றிகரமாக சேர்க்கப்பட்டது!" : "Coupon added successfully!", "success");
         }
@@ -2809,7 +3125,22 @@ recoverPendingUpiOrder();
         msg,
         () => {
           let coupons = getCoupons();
+          const target = coupons.find(c => c.id === id);
           coupons = coupons.filter(c => c.id !== id);
+
+          // Mark as deleted in tombstone system to prevent sync recovery
+          if (typeof markCouponAsDeleted === 'function') {
+            markCouponAsDeleted(id);
+            if (target && target.code) {
+              markCouponAsDeleted(target.code);
+            }
+          }
+
+          // Also delete directly from Firestore collection if cloud db is available
+          if (typeof db !== 'undefined' && db && db.collection) {
+            db.collection('ek_coupons').doc(id).delete().catch(() => {});
+          }
+
           saveCoupons(coupons);
           renderAdminCoupons();
           showToast(currentLang === 'ta' ? "கூப்பன் வெற்றிகரமாக நீக்கப்பட்டது." : "Coupon was deleted successfully.", "success");
@@ -2971,13 +3302,15 @@ recoverPendingUpiOrder();
           user.tier = computeLoyaltyTier(user.loyaltyPoints);
           users[userIdx] = user;
 
-          addNotification(
-            "பரிந்துரை போனஸ்! 🎁",
-            "Referral Bonus Awarded! 🎁",
-            `உங்களை பரிந்துரைத்ததற்காக மற்றும் உங்கள் முதல் ஆர்டர் வெற்றிகரமாக முடிந்ததற்காக உங்களுக்கு ${awardAmount} லாயல்டி புள்ளிகள் உங்கள் கணக்கில் சேர்க்கப்பட்டுள்ளது!`,
-            `You have been awarded ${awardAmount} referral loyalty points because you joined via an invite link and completed your first order!`,
-            "🎁"
-          );
+          if (typeof addNotification === 'function') {
+            addNotification(
+              "பரிந்துரை போனஸ்! 🎁",
+              "Referral Bonus Awarded! 🎁",
+              `உங்களை பரிந்துரைத்ததற்காக மற்றும் உங்கள் முதல் ஆர்டர் வெற்றிகரமாக முடிந்ததற்காக உங்களுக்கு ${awardAmount} லாயல்டி புள்ளிகள் உங்கள் கணக்கில் சேர்க்கப்பட்டுள்ளது!`,
+              `You have been awarded ${awardAmount} referral loyalty points because you joined via an invite link and completed your first order!`,
+              "🎁"
+            );
+          }
 
           const referrerId = user.referredBy;
           const referrerIdx = users.findIndex(u => u.id === referrerId || u.id.replace('cust_', '').toUpperCase() === referrerId.replace('cust_', '').toUpperCase());
@@ -2989,13 +3322,15 @@ recoverPendingUpiOrder();
 
             debugLog(`[Referral System] Awarded ${awardAmount} points to referrer: ${referrer.name} (${referrer.id})`);
 
-            addNotification(
-              "பரிந்துரையாளர் போனஸ்! 👥",
-              "Companion Referral Bonus! 👥",
-              `உங்கள் நண்பர் ${user.name} முதல் ஆர்டரை முடித்துள்ளார்! உங்களுக்கு ${awardAmount} லாயல்டி புள்ளிகள் சேர்க்கப்பட்டுள்ளது.`,
-              `Your companion friend ${user.name} has completed their first order! You have been awarded ${awardAmount} referral points.`,
-              "👥"
-            );
+            if (typeof addNotification === 'function') {
+              addNotification(
+                "பரிந்துரையாளர் போனஸ்! 👥",
+                "Companion Referral Bonus! 👥",
+                `உங்கள் நண்பர் ${user.name} முதல் ஆர்டரை முடித்துள்ளார்! உங்களுக்கு ${awardAmount} லாயல்டி புள்ளிகள் சேர்க்கப்பட்டுள்ளது.`,
+                `Your companion friend ${user.name} has completed their first order! You have been awarded ${awardAmount} referral points.`,
+                "👥"
+              );
+            }
           } else {
             console.warn(`[Referral System] Referrer user not found in local users list for: ${referrerId}`);
           }
@@ -3003,14 +3338,14 @@ recoverPendingUpiOrder();
           saveData('ek_users', users);
 
           if (db) {
-            db.collection('ek_users').doc(user.id).set(user)
+            db.collection('ek_users').doc(user.id).set(user, { merge: true })
               .then(() => debugLog(`[Cloud Referral Sync] Referee updated`))
-              .catch(err => console.error(err));
+              .catch(err => console.warn("Referral sync notice:", err?.message || err));
 
             if (referrerIdx !== -1) {
-              db.collection('ek_users').doc(users[referrerIdx].id).set(users[referrerIdx])
+              db.collection('ek_users').doc(users[referrerIdx].id).set(users[referrerIdx], { merge: true })
                 .then(() => debugLog(`[Cloud Referral Sync] Referrer updated`))
-                .catch(err => console.error(err));
+                .catch(err => console.warn("Referrer sync notice:", err?.message || err));
             }
           }
 
@@ -3168,541 +3503,3 @@ recoverPendingUpiOrder();
       });
     }
 
-    let lyoAiChatHistory = [];
-    let lyoIsReplying = false;
-
-    // --- LYO AI COMMERCE ENGINE (10 MODULAR ARCHITECTURAL UNITS) ---
-    const LyoAiEngine = {
-      // 1. Shopping List Parser Engine
-      ShoppingListParser: {
-        parseInput(inputText) {
-          if (!inputText) return [];
-          if (typeof parseSingleItemText === 'function') {
-            const rawLines = inputText.replace(/மற்றும்/g, '\n').split(/[\n,]/);
-            const items = [];
-            rawLines.forEach(part => {
-              const parsed = parseSingleItemText(part);
-              if (parsed && parsed.productSearchTerm) {
-                items.push({
-                  product_name: parsed.productSearchTerm,
-                  raw_quantity_val: parsed.rawQtyVal,
-                  amount_type: parsed.amountType,
-                  unit: parsed.unit,
-                  originalLine: part
-                });
-              }
-            });
-            if (items.length > 0) return items;
-          }
-
-          const lines = inputText
-            .replace(/மற்றும்/g, '\n')
-            .replace(/,\s*/g, '\n')
-            .split('\n')
-            .map(l => l.trim())
-            .filter(l => l.length > 0);
-
-          const items = [];
-          for (const line of lines) {
-            let cleanLine = line.trim();
-            if (!cleanLine) continue;
-
-            let quantityVal = 1;
-            let amountType = "WEIGHT_KG";
-
-            const rupeeMatch = cleanLine.match(/(?:₹|rs\.?|rupees?|ரூபாய்)\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*(?:₹|rs\.?|rupees?|ரூபாய்)/i);
-            if (rupeeMatch) {
-              const val = parseFloat(rupeeMatch[1] || rupeeMatch[2]);
-              if (!isNaN(val)) {
-                quantityVal = val;
-                amountType = "RUPEES";
-                cleanLine = cleanLine.replace(/(?:₹|rs\.?|rupees?|ரூபாய்)\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?\s*(?:₹|rs\.?|rupees?|ரூபாய்)/gi, '').trim();
-              }
-            } else {
-              if (cleanLine.includes("அரை") || cleanLine.toLowerCase().includes("arai") || cleanLine.toLowerCase().includes("half") || cleanLine.includes("1/2")) {
-                quantityVal = 0.5;
-                amountType = "WEIGHT_KG";
-                cleanLine = cleanLine.replace(/அரை|arai|half|1\/2/gi, '').trim();
-              } else if (cleanLine.includes("கால்") || cleanLine.toLowerCase().includes("kal") || cleanLine.toLowerCase().includes("call") || cleanLine.toLowerCase().includes("quarter") || cleanLine.includes("1/4")) {
-                quantityVal = 0.25;
-                amountType = "WEIGHT_KG";
-                cleanLine = cleanLine.replace(/கால்|kal|call|quarter|1\/4/gi, '').trim();
-              } else if (cleanLine.includes("முக்கால்") || cleanLine.toLowerCase().includes("mukkai") || cleanLine.includes("3/4")) {
-                quantityVal = 0.75;
-                amountType = "WEIGHT_KG";
-                cleanLine = cleanLine.replace(/முக்கால்|mukkai|3\/4/gi, '').trim();
-              } else {
-                const qtyMatch = cleanLine.match(/^(\d+(?:\.\d+)?)\s*(kg|kilo|kilogram|g|gm|gram|grams|l|litre|litres|ml|pkt|packet|packets|pcs|piece|pieces|box|bunch|கிலோ|கிராம்|லிட்டர்|பாக்கெட்|முட்டை)?\s*(.*)$/i) ||
-                                 cleanLine.match(/(.*)\s+(\d+(?:\.\d+)?)\s*(kg|kilo|kilogram|g|gm|gram|grams|l|litre|litres|ml|pkt|packet|packets|pcs|piece|pieces|box|bunch|கிலோ|கிராம்|லிட்டர்|பாக்கெட்|முட்டை)?$/i);
-                if (qtyMatch) {
-                  let numStr = "";
-                  let uStr = "";
-                  let nameStr = "";
-
-                  if (qtyMatch[1] && !isNaN(parseFloat(qtyMatch[1]))) {
-                    numStr = qtyMatch[1];
-                    uStr = (qtyMatch[2] || "").toLowerCase();
-                    nameStr = qtyMatch[3] || "";
-                  } else if (qtyMatch[2] && !isNaN(parseFloat(qtyMatch[2]))) {
-                    nameStr = qtyMatch[1] || "";
-                    numStr = qtyMatch[2];
-                    uStr = (qtyMatch[3] || "").toLowerCase();
-                  }
-
-                  if (numStr) {
-                    const val = parseFloat(numStr);
-                    if (['g', 'gm', 'gram', 'grams', 'கிராம்', 'ml'].includes(uStr)) {
-                      quantityVal = val;
-                      amountType = "WEIGHT_GRAMS";
-                    } else if (['kg', 'kilo', 'kilogram', 'கிலோ', 'l', 'litre', 'litres', 'லிட்டர்'].includes(uStr)) {
-                      quantityVal = val;
-                      amountType = "WEIGHT_KG";
-                    } else if (['pcs', 'piece', 'pieces', 'pkt', 'packet', 'packets', 'box', 'bunch', 'பாக்கெட்', 'முட்டை'].includes(uStr)) {
-                      quantityVal = val;
-                      amountType = "COUNT_PIECES";
-                    } else {
-                      quantityVal = val;
-                      amountType = val > 15 ? "WEIGHT_GRAMS" : "WEIGHT_KG";
-                    }
-                    if (nameStr) cleanLine = nameStr.trim();
-                  }
-                }
-              }
-            }
-
-            cleanLine = cleanLine.replace(/kilo|kg|grams?|gm?|litres?|liter|packet|pcs|pieces/gi, '').trim();
-
-            if (cleanLine.length > 0) {
-              items.push({
-                product_name: cleanLine,
-                raw_quantity_val: quantityVal,
-                amount_type: amountType,
-                originalLine: line
-              });
-            }
-          }
-          return items;
-        }
-      },
-
-      // 2. Product Intelligence Engine
-      ProductIntelligenceEngine: {
-        synonymDictionary: (typeof window.getActiveNluDictionary === 'function')
-          ? window.getActiveNluDictionary()
-          : ((typeof window.EK_BASE_SYNONYMS !== 'undefined' && window.EK_BASE_SYNONYMS)
-            ? window.EK_BASE_SYNONYMS
-            : {
-                'mutton': ['mutton', 'lamb', 'goat', 'aattu', 'ஆட்டு', 'மட்டன்', 'muttan', 'goat mutton', 'aattu erachi', 'aattu keri', 'aattukari', 'aattukkari', 'ஆட்டுக்கறி', 'ஆட்டுக்கறி துண்டுகள்', 'aattu kari', 'ஆடு', 'aadu'],
-                'mutton_liver': ['mutton liver', 'eeral', 'liver', 'ஈரல்', 'மட்டன் ஈரல்', 'suvarotti', 'சுவரொட்டி', 'சுவரொட்டி ஈரல்', 'liver fry'],
-                'head_curry': ['head curry', 'goat head', 'thalaikkari', 'thalaikari', 'தலைக்கறி', 'தலைகறி', 'ஆட்டுத்தலை', 'ஆட்டு தலைக்கறி', 'ஆட்டுத் தலைக்கறி', 'ஆட்டுத்தலை கறி', 'ஆட்டுத்தலைக்கறி', 'goat head curry', 'head meat'],
-                'country_chicken': ['country chicken', 'nattu koli', 'nattu kozhi', 'naattu kozhi', 'naattu koli', 'nattukoli', 'nattu chicken', 'நாட்டுக்கோழி', 'நாட்டு கோழி', 'நாட்டுக்கறி', 'நாட்டு கோழிக்கறி', 'நாட்டு'],
-                'broiler_chicken': ['broiler chicken', 'broiler', 'farm chicken', 'பிராய்லர்', 'பிராய்லர் சிக்கன்', 'பிறாய்லர்', 'பிராய்லர் கோழி'],
-                'chicken': ['chicken', 'சிக்கன்', 'கோழி', 'koli', 'chiken', 'chickn', 'chikkan', 'chickin', 'கோழிக்கறி', 'chicken curry'],
-                'country_egg': ['country egg', 'country chicken egg', 'nattu muttai', 'naattu muttai', 'நாட்டுக்கோழி முட்டை', 'நாட்டு முட்டை'],
-                'egg': ['egg', 'eggs', 'muttai', 'muttas', 'முட்டை', 'முட்டைகள்', 'white egg', 'white eggs', 'farm egg', 'egg packet', 'muttai tray'],
-                'kadai': ['kadai', 'quail', 'காடை', 'காடைக்கறி'],
-                'fish': ['fish', 'meen', 'மீன்', 'vanjaram', 'nethili', 'katla', 'rohu', 'viral', 'வஞ்சரம்', 'நெத்திலி', 'கட்லா', 'ரோகு', 'விரால்'],
-                'prawn': ['prawn', 'prawns', 'eyera', 'iral', 'இறால்', 'இறால் மீன்'],
-                'crab': ['crab', 'nandu', 'நண்டு'],
-                'milk': ['milk', 'பால்', 'paal', 'pal', 'milk packet', 'paal packet', 'பசும்பால்'],
-                'curd': ['curd', 'தயிர்', 'thayir', 'curd packet'],
-                'paneer': ['paneer', 'பன்னீர்', 'பனீர்', 'panir'],
-                'ghee': ['ghee', 'நெய்', 'nei', 'neyy', 'ney', 'பசு நெய்'],
-                'butter': ['butter', 'vennai', 'வெண்ணெய்'],
-                'potato': ['potato', 'potatoes', 'உருளைக்கிழங்கு', 'உருளை கிழங்கு', 'உருளை', 'urulaikilangu', 'urulai', 'potatos'],
-                'onion': ['onion', 'onions', 'வெங்காயம்', 'vengayam', 'vengaym', 'vengaiyam', 'பெரிய வெங்காயம்'],
-                'small_onion': ['small onion', 'chinna vengayam', 'shallots', 'சின்ன வெங்காயம்', 'சாம்பார் வெங்காயம்'],
-                'tomato': ['tomato', 'thakkali', 'தக்காளி', 'takali', 'tomoto', 'tamato'],
-                'chilli': ['chilli', 'chili', 'மிளகாய்', 'milagai', 'green chilli', 'red chilli', 'பச்சை மிளகாய்'],
-                'coriander': ['coriander', 'கொத்தமல்லி', 'kothamalli', 'malli', 'koththamalli', 'coriander leaves'],
-                'pudina': ['mint', 'pudina', 'புதினா'],
-                'garlic': ['garlic', 'பூண்டு', 'poondhu', 'poondu'],
-                'ginger': ['ginger', 'இஞ்சி', 'inji'],
-                'lemon': ['lemon', 'lemons', 'எலுமிச்சை', 'elumichai'],
-                'sugar': ['sugar', 'சர்க்கரை', 'sarkarai', 'sakkarai'],
-                'salt': ['salt', 'உப்பு', 'uppu'],
-                'rice': ['rice', 'அரிசி', 'arisi', 'ponni rice'],
-                'dal': ['dal', 'பருப்பு', 'paruppu', 'toor dal', 'urad dal'],
-                'oil': ['oil', 'எண்ணெய்', 'ennai', 'ennay'],
-                'coconut_oil': ['coconut oil', 'theangai ennai', 'theangai enney', 'தேங்காய் எண்ணெய்'],
-                'gingelly_oil': ['gingelly oil', 'sesame oil', 'nallennai', 'nallenney', 'நல்லெண்ணெய்'],
-                'sunflower_oil': ['sunflower oil', 'சூரியகாந்தி எண்ணெய்']
-              }),
-
-        getTargetTerms(cleanQuery) {
-          let targetTerms = [cleanQuery];
-          const synDict = (typeof window.getActiveNluDictionary === 'function') 
-            ? window.getActiveNluDictionary() 
-            : ((typeof window.EK_BASE_SYNONYMS !== 'undefined') ? window.EK_BASE_SYNONYMS : this.synonymDictionary);
-          for (const [key, terms] of Object.entries(synDict)) {
-            if (cleanQuery.includes(key) || key.includes(cleanQuery) || (Array.isArray(terms) && terms.some(t => t === cleanQuery || cleanQuery.includes(t)))) {
-              if (Array.isArray(terms)) {
-                terms.forEach(t => { if (!targetTerms.includes(t)) targetTerms.push(t); });
-              }
-            }
-          }
-          return targetTerms;
-        }
-      },
-
-      // 3. Product Matching Engine
-      ProductMatchingEngine: {
-        matchProduct(query, activeProducts) {
-          if (!query || !activeProducts || activeProducts.length === 0) {
-            return { bestMatch: null, confidenceScore: 0, candidates: [], needsDisambiguation: false };
-          }
-          const rawClean = query.toLowerCase().trim();
-          const cleanQueryAlpha = rawClean.replace(/[^a-zA-Z0-9஀-௿\s]/g, '').trim();
-          if (!cleanQueryAlpha) {
-            return { bestMatch: null, confidenceScore: 0, candidates: [], needsDisambiguation: false };
-          }
-
-          const queryTokens = new Set(cleanQueryAlpha.split(/\s+/));
-          const SPECIFIC_MODIFIERS = {
-            'broiler': ['broiler', 'பிராய்லர்'],
-            'country': ['country', 'nattu', 'நாட்டு', 'சுவையான'],
-            'nattu': ['country', 'nattu', 'நாட்டு'],
-            'goat': ['goat', 'aattu', 'ஆட்டு', 'mutton', 'மட்டன்'],
-            'mutton': ['mutton', 'goat', 'aattu', 'ஆட்டு', 'மட்டன்'],
-            'tender': ['tender', 'சுடச்சுட'],
-            'cow': ['cow', 'pasu', 'பசு'],
-            'coconut': ['coconut', 'தேங்காய்'],
-            'groundnut': ['groundnut', 'கடலை'],
-            'sunflower': ['sunflower', 'சூரியகாந்தி'],
-            'white': ['white', 'பண்ணை'],
-            'brown': ['brown']
-          };
-
-          const scoredCandidates = [];
-
-          for (const product of activeProducts) {
-            const eng = (product.englishName || "").toLowerCase();
-            const tam = (product.tamilName || "").toLowerCase();
-            const cat = (product.category || "").toLowerCase();
-
-            const engAlpha = eng.replace(/[^a-zA-Z0-9\s]/g, '');
-            const tamAlpha = tam.replace(/[^஀-௿\s]/g, '');
-            const prodTokens = new Set([...engAlpha.split(/\s+/), ...tamAlpha.split(/\s+/)]);
-
-            let score = 0;
-
-            // Exact match boosts
-            if (engAlpha === cleanQueryAlpha || tamAlpha === cleanQueryAlpha) {
-              score += 1000;
-            } else if (engAlpha.includes(cleanQueryAlpha) || cleanQueryAlpha.includes(engAlpha)) {
-              score += 500;
-            }
-
-            // Token overlap
-            let overlapCount = 0;
-            queryTokens.forEach(t => {
-              if (prodTokens.has(t)) overlapCount++;
-            });
-            score += overlapCount * 150;
-
-            // Specific modifier checks
-            for (const [mod, modSynonyms] of Object.entries(SPECIFIC_MODIFIERS)) {
-              const queryHasMod = queryTokens.has(mod) || modSynonyms.some(s => cleanQueryAlpha.includes(s));
-              if (queryHasMod) {
-                const prodHasMod = modSynonyms.some(s => eng.includes(s) || tam.includes(s));
-                if (prodHasMod) {
-                  score += 300;
-                } else {
-                  score -= 250;
-                }
-              }
-            }
-
-            if (cat && queryTokens.has(cat)) {
-              score += 50;
-            }
-
-            if (score > 0) {
-              scoredCandidates.push({ product, score });
-            }
-          }
-
-          scoredCandidates.sort((a, b) => b.score - a.score);
-
-          if (scoredCandidates.length === 0) {
-            let bestFallback = null;
-            if (typeof findBestProductMatch === 'function') {
-              bestFallback = findBestProductMatch(query, activeProducts);
-            }
-            return {
-              bestMatch: bestFallback,
-              confidenceScore: bestFallback ? 50 : 0,
-              candidates: bestFallback ? [bestFallback] : [],
-              needsDisambiguation: false
-            };
-          }
-
-          const topMatch = scoredCandidates[0];
-          const secondMatch = scoredCandidates[1] || null;
-          const isLowConfidence = topMatch.score < 80;
-          const isCloseContender = secondMatch && (topMatch.score - secondMatch.score <= 30);
-          const needsDisambiguation = (isLowConfidence || isCloseContender) && scoredCandidates.length > 1;
-
-          return {
-            bestMatch: topMatch.product,
-            confidenceScore: topMatch.score,
-            candidates: scoredCandidates.slice(0, 4).map(c => c.product),
-            needsDisambiguation: needsDisambiguation
-          };
-        }
-      },
-      // 4. UnitQuantityConversionEngine
-      UnitQuantityConversionEngine: {
-        convertQuantity(rawVal, amountType, product) {
-          const unit = product.sellingUnit || product.unit || 'kg';
-          const isWeight = isUnitWeight ? isUnitWeight(unit) : !(unit === 'piece' || unit === 'packet' || unit === 'unit' || unit === 'box' || unit === 'bunch');
-
-          let weightGrams = 1000;
-          let quantity = 1;
-          let calculatedPrice = product.pricePerKg || 0;
-          let requestedDesc = "";
-
-          const val = parseFloat(rawVal) || 1;
-          const type = (amountType || "").toUpperCase();
-
-          if (type === "RUPEES" || (val > 15 && isWeight && !type.includes("WEIGHT") && !type.includes("COUNT"))) {
-            return LyoAiEngine.AmountBasedCalculationEngine.calculateByAmount(val, product);
-          } else if (type === "WEIGHT_GRAMS") {
-            weightGrams = val;
-            quantity = weightGrams / 1000;
-            calculatedPrice = Math.round((product.pricePerKg / 1000) * weightGrams);
-            requestedDesc = `${weightGrams}g`;
-          } else if (type === "WEIGHT_KG") {
-            weightGrams = Math.round(val * 1000);
-            quantity = val;
-            calculatedPrice = Math.round(product.pricePerKg * val);
-            requestedDesc = `${val} kg`;
-          } else if (type === "COUNT_PIECES" || !isWeight) {
-            quantity = val;
-            weightGrams = val;
-            calculatedPrice = Math.round(product.pricePerKg * val);
-            requestedDesc = `${val} ${product.unit || 'pcs'}`;
-          } else {
-            if (val <= 10) {
-              weightGrams = Math.round(val * 1000);
-              quantity = val;
-              calculatedPrice = Math.round(product.pricePerKg * val);
-              requestedDesc = `${val} kg`;
-            } else {
-              weightGrams = val;
-              calculatedPrice = Math.round((product.pricePerKg / 1000) * weightGrams);
-              requestedDesc = `${val}g`;
-            }
-          }
-
-          return { weightGrams, quantity, calculatedPrice, requestedDesc };
-        }
-      },
-
-      // 5. Amount-Based Calculation Engine
-      AmountBasedCalculationEngine: {
-        calculateByAmount(rupeeAmount, product) {
-          const unit = product.sellingUnit || product.unit || 'kg';
-          const isWeight = isUnitWeight ? isUnitWeight(unit) : !(unit === 'piece' || unit === 'packet' || unit === 'unit' || unit === 'box' || unit === 'bunch');
-
-          const calculatedPrice = Math.round(rupeeAmount);
-          let weightGrams = 1000;
-          let quantity = 1;
-
-          if (isWeight && product.pricePerKg > 0) {
-            weightGrams = Math.round((rupeeAmount / product.pricePerKg) * 1000);
-            quantity = weightGrams / 1000;
-          } else {
-            quantity = Math.max(1, Math.round(rupeeAmount / (product.pricePerKg || 1)));
-            weightGrams = quantity;
-          }
-
-          const requestedDesc = `₹${rupeeAmount} worth`;
-          return { weightGrams, quantity, calculatedPrice, requestedDesc };
-        }
-      },
-
-      // 6. Cart Builder Engine
-      CartBuilderEngine: {
-        buildCartItem(product, qtyData, meta = {}) {
-          const unit = product.sellingUnit || product.unit || 'kg';
-          return {
-            productId: product.id,
-            tamilName: product.tamilName || product.englishName,
-            englishName: product.englishName,
-            weightGrams: qtyData.weightGrams,
-            quantity: qtyData.quantity,
-            unit: product.unit || 'kg',
-            sellingUnit: unit,
-            cutStyle: 'Standard Fresh Cut',
-            category: product.category,
-            pricePerKg: product.pricePerKg,
-            imageUrl: product.imageUrl || '',
-            totalPrice: qtyData.calculatedPrice,
-            price: qtyData.calculatedPrice,
-            isFreeDeliveryEligible: Boolean(product.isFreeDeliveryEligible),
-            isSubstituted: meta.isSubstituted || false,
-            originalRequestedName: meta.originalRequestedName || '',
-            requestedDesc: qtyData.requestedDesc || ''
-          };
-        },
-
-        mergeIntoCart(currentCart, newItems) {
-          if (!Array.isArray(currentCart)) return newItems;
-          newItems.forEach(newItem => {
-            if (!newItem || !newItem.productId) return;
-            const idx = currentCart.findIndex(ci => String(ci.productId) === String(newItem.productId));
-            if (idx !== -1) {
-              const uStr = currentCart[idx].sellingUnit || currentCart[idx].unit || newItem.sellingUnit || newItem.unit || 'kg';
-              const isW = isUnitWeight ? isUnitWeight(uStr) : !(uStr === 'piece' || uStr === 'packet' || uStr === 'unit' || uStr === 'box' || uStr === 'bunch');
-              currentCart[idx].weightGrams = (parseFloat(currentCart[idx].weightGrams) || 1) + (parseFloat(newItem.weightGrams) || 1);
-              const uPrice = parseFloat(currentCart[idx].pricePerKg || currentCart[idx].price || newItem.pricePerKg) || 0;
-              currentCart[idx].pricePerKg = uPrice;
-              currentCart[idx].totalPrice = isW
-                ? Math.round((uPrice / 1000) * currentCart[idx].weightGrams)
-                : Math.round(uPrice * currentCart[idx].weightGrams);
-              currentCart[idx].price = currentCart[idx].totalPrice;
-            } else {
-              currentCart.push(newItem);
-            }
-          });
-          if (typeof sanitizeCart === 'function') {
-            return sanitizeCart(currentCart);
-          }
-          return currentCart;
-        }
-      },
-
-      // 7. Delivery Charge Calculator
-      DeliveryChargeCalculator: {
-        calculateDelivery(subtotal, cartItems, settings = {}) {
-          let deliveryCharge = (settings.deliveryCharge !== undefined && settings.deliveryCharge !== '' && !isNaN(Number(settings.deliveryCharge))) ? Number(settings.deliveryCharge) : 40;
-          let distance = null;
-          let zoneName = 'Flat Rate';
-
-          if (typeof getDynamicDeliveryCharge === 'function') {
-            const u = (typeof getActiveUser === 'function') ? getActiveUser() : null;
-            const dyn = getDynamicDeliveryCharge(subtotal, u);
-            if (dyn && typeof dyn.charge === 'number') {
-              deliveryCharge = dyn.charge;
-              distance = dyn.distance;
-              zoneName = dyn.zoneName;
-            }
-          }
-
-          return { deliveryCharge, distance, zoneName, isFreeDelivery: false, freeDeliveryReason: null };
-        }
-      },
-
-      // 8. Pricing & Offer Engine
-      PricingOfferEngine: {
-        calculatePricing(subtotal, cartItems = [], settings = {}) {
-          const { deliveryCharge } = LyoAiEngine.DeliveryChargeCalculator.calculateDelivery(subtotal, cartItems, settings);
-
-          let discount = 0;
-          if (subtotal >= 1000) {
-            discount = Math.round(subtotal * 0.05);
-          }
-
-          const finalPayable = Math.max(0, subtotal - discount) + deliveryCharge;
-          const minOrderAmount = parseInt(settings.minOrderAmount) || 0;
-          const meetsMinOrder = subtotal >= minOrderAmount;
-
-          return { subtotal, deliveryCharge, isFreeDelivery: false, freeDeliveryReason: null, discount, finalPayable, minOrderAmount, meetsMinOrder };
-        }
-      },
-
-      // 9. Gemini AI Orchestrator
-      GeminiAiOrchestrator: {
-        async orchestrateParse(inputText, activeProducts) {
-          let parsed = [];
-          if (typeof parseOrderWithAI === 'function') {
-            try {
-              parsed = await parseOrderWithAI(inputText, activeProducts);
-            } catch (err) {
-              console.warn("GeminiAiOrchestrator AI parse fallback:", err);
-            }
-          }
-          if (!parsed || parsed.length === 0) {
-            parsed = LyoAiEngine.ShoppingListParser.parseInput(inputText);
-          }
-          return parsed;
-        }
-      },
-
-      // 10. Error Recovery & Validation Engine
-      ErrorRecoveryValidationEngine: {
-        findClosestAlternativeProduct(unavailableProduct, activeProducts) {
-          if (!unavailableProduct || !activeProducts || activeProducts.length === 0) return null;
-          const targetCategory = (unavailableProduct.category || "").toLowerCase();
-          const availableInCat = activeProducts.filter(p => {
-            if (p.id === unavailableProduct.id) return false;
-            const isOutOfStock = p.isOutOfStock || (p.stockKg !== undefined && p.stockKg <= 0) || p.isAvailable === false;
-            if (isOutOfStock) return false;
-            return (p.category || "").toLowerCase() === targetCategory;
-          });
-          if (availableInCat.length > 0) return availableInCat[0];
-          const anyAvailable = activeProducts.filter(p => {
-            if (p.id === unavailableProduct.id) return false;
-            return !(p.isOutOfStock || (p.stockKg !== undefined && p.stockKg <= 0) || p.isAvailable === false);
-          });
-          return anyAvailable.length > 0 ? anyAvailable[0] : null;
-        },
-        validateAndRecover(parsedItems, activeProducts) {
-          const resolvedCartItems = [];
-          const unavailableNotes = [];
-          const disambiguationPrompts = [];
-
-          for (const item of parsedItems) {
-            const queryName = item.product_name || item.name || item.originalLine || "";
-            const matchResult = LyoAiEngine.ProductMatchingEngine.matchProduct(queryName, activeProducts);
-
-            if (matchResult.needsDisambiguation) {
-              disambiguationPrompts.push({
-                queryName,
-                rawVal: item.raw_quantity_val || 1,
-                amountType: item.amount_type || "WEIGHT_KG",
-                candidates: matchResult.candidates
-              });
-              continue;
-            }
-
-            let product = matchResult.bestMatch;
-            let isSubstituted = false;
-
-            if (!product) {
-              unavailableNotes.push(queryName);
-              continue;
-            }
-
-            const isOutOfStock = product.isOutOfStock || (product.stockKg !== undefined && product.stockKg <= 0) || product.isAvailable === false;
-            if (isOutOfStock) {
-              const altProduct = (typeof this.findClosestAlternativeProduct === 'function' ? this.findClosestAlternativeProduct(product, activeProducts) : null) || (typeof findClosestAlternativeProduct === 'function' ? findClosestAlternativeProduct(product, activeProducts) : null);
-              if (altProduct) {
-                isSubstituted = true;
-                product = altProduct;
-              } else {
-                unavailableNotes.push(`${product.englishName} (${currentLang === 'ta' ? 'ஸ்டாக்கில் இல்லை' : 'Out of Stock'})`);
-                continue;
-              }
-            }
-
-            const qtyData = LyoAiEngine.UnitQuantityConversionEngine.convertQuantity(
-              item.raw_quantity_val,
-              item.amount_type,
-              product
-            );
-
-            const cartItem = LyoAiEngine.CartBuilderEngine.buildCartItem(product, qtyData, {
-              isSubstituted,
-              originalRequestedName: queryName
-            });
-
-            resolvedCartItems.push(cartItem);
-          }
-
-          return { resolvedCartItems, unavailableNotes, disambiguationPrompts };
-        }
-      }
-    };
-    if (typeof window !== 'undefined') window.LyoAiEngine = LyoAiEngine;

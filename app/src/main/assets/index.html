@@ -26,7 +26,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
 
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=9.0.0">
 </head>
 <body>
 
@@ -60,7 +60,7 @@
           <div class="ptr-success-icon">✓</div>
         </div>
         <div class="ptr-label-box">
-          <span class="ptr-status-text" id="ptr-status-text">கீழே இழுக்கவும் / Pull down</span>
+          <span class="ptr-status-text" id="ptr-status-text">Pull down to refresh</span>
           <span class="ptr-sub-text" id="ptr-sub-text">Release to refresh</span>
         </div>
       </div>
@@ -86,7 +86,7 @@
           </svg>
           Edappadi Kadai Sync
         </div>
-        <div id="lyo-transit-subtitle" class="lyo-transit-subtitle">உணவுப் பட்டியலை லோட் செய்கிறது...</div>
+        <div id="lyo-transit-subtitle" class="lyo-transit-subtitle">Loading store items...</div>
         <div class="lyo-transit-progress-track">
           <div class="lyo-transit-progress-bar"></div>
         </div>
@@ -180,7 +180,7 @@
 
       <!-- Under the diagnostics container, a direct skip trigger button (visible after 2.5 seconds) -->
       <button id="splash-skip-btn" onclick="bypassSplashScreen()" style="display: none; background: rgba(245, 158, 11, 0.15); border: 1.1px solid var(--accent-orange); color: var(--accent-orange); padding: 8px 16px; border-radius: 20px; font-size: 11.5px; font-weight: 700; cursor: pointer; animation: nativeSlideUp 0.3s cubic-bezier(0.16,1,0.3,1); box-shadow: 0 4px 15px rgba(245,158,11,0.15); margin-bottom: 12px; z-index: 2000; align-self: center;">
-        Skip Splash Screen / நேரடியாக நுழை
+        Skip Splash Screen
       </button>
 
       <!-- Footer branding — subtle, bottom-anchored -->
@@ -192,6 +192,9 @@
     <!-- Independent fallback / bypass script -->
     <script>
       function navigateHome() {
+        if (typeof window.authNavigateHome === 'function') {
+          return window.authNavigateHome();
+        }
         try {
           if (typeof currentScreen !== 'undefined') {
             currentScreen = 'screen-home';
@@ -201,8 +204,6 @@
           } else if (typeof showScreen === 'function') {
             showScreen('screen-home');
           }
-
-          // Direct DOM safety guarantee to ensure immediate visual transition
           document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'screen-transitioning'));
           const homeEl = document.getElementById('screen-home');
           if (homeEl) {
@@ -220,12 +221,7 @@
             try { renderHomeScreen(); } catch(e) {}
           }
         } catch (err) {
-          console.error("navigateHome error:", err);
-          try {
-            if (typeof showScreen === 'function') {
-              showScreen('screen-home');
-            }
-          } catch(e) {}
+          console.error("navigateHome fallback error:", err);
         }
       }
       window.navigateHome = navigateHome;
@@ -329,16 +325,14 @@
 
       <!-- Text Heading -->
       <h2 style="color: var(--text-primary); font-size: 20px; font-weight: 900; text-align: center; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
-        அனுமதி தேவைகள்
+        Permissions Required
       </h2>
       <h3 style="color: var(--accent-orange); font-size: 13px; font-weight: 700; text-align: center; margin: 4px 0 0 0; letter-spacing: 1px;">
         APP PERMISSIONS REQUIRED
       </h3>
 
       <p style="color: var(--text-secondary); font-size: 12.5px; text-align: center; max-width: 310px; margin: 12px 0 28px 0; line-height: 1.5;">
-        எடப்பாடி கடை செயலியை சிறந்த முறையில் பயன்படுத்தவும், துல்லியமாக ஆர்டர் டெலிவரி செய்யவும் பின்வரும் அனுமதிகள் அவசியமாகும்.
-        <br>
-        <span style="font-size: 11px; color: var(--text-muted); display: inline-block; margin-top: 4px;">To provide accurate doorstep delivery and real-time status alerts, please grant the following permissions.</span>
+        To provide accurate doorstep delivery and real-time status alerts, please grant the following permissions.
       </p>
 
       <!-- Requirements Cards Grid -->
@@ -354,12 +348,11 @@
           </div>
           <div style="flex: 1;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 6px;">
-              <span style="color: var(--text-primary); font-size: 13.5px; font-weight: 800;">இருப்பிட அனுமதி (Location)</span>
-              <span id="badge-onboarding-location" style="background: rgba(231, 76, 60, 0.08); color: var(--accent-red); font-size: 10px; font-weight: 800; padding: 2.5px 8px; border-radius: 12px; border: 1px solid rgba(231, 76, 60, 0.15); white-space: nowrap;">அனுமதி தேவை</span>
+              <span style="color: var(--text-primary); font-size: 13.5px; font-weight: 800;">Location Permission</span>
+              <span id="badge-onboarding-location" style="background: rgba(231, 76, 60, 0.08); color: var(--accent-red); font-size: 10px; font-weight: 800; padding: 2.5px 8px; border-radius: 12px; border: 1px solid rgba(231, 76, 60, 0.15); white-space: nowrap;">Required</span>
             </div>
             <div style="color: var(--text-secondary); font-size: 11.5px; line-height: 1.45;">
-              உங்கள் வீட்டைக் கண்டறிந்து ஆர்டரைத் துல்லியமாக டெலிவரி செய்ய.
-              <span style="display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">To locate your address and deliver items directly to your doorstep.</span>
+              To locate your address and deliver items directly to your doorstep.
             </div>
           </div>
         </div>
@@ -374,12 +367,11 @@
           </div>
           <div style="flex: 1;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 6px;">
-              <span style="color: var(--text-primary); font-size: 13.5px; font-weight: 800;">அறிவிப்பு அனுமதி (Alerts)</span>
-              <span id="badge-onboarding-notification" style="background: rgba(231, 76, 60, 0.08); color: var(--accent-red); font-size: 10px; font-weight: 800; padding: 2.5px 8px; border-radius: 12px; border: 1px solid rgba(231, 76, 60, 0.15); white-space: nowrap;">அனுமதி தேவை</span>
+              <span style="color: var(--text-primary); font-size: 13.5px; font-weight: 800;">Notification Permission</span>
+              <span id="badge-onboarding-notification" style="background: rgba(231, 76, 60, 0.08); color: var(--accent-red); font-size: 10px; font-weight: 800; padding: 2.5px 8px; border-radius: 12px; border: 1px solid rgba(231, 76, 60, 0.15); white-space: nowrap;">Required</span>
             </div>
             <div style="color: var(--text-secondary); font-size: 11.5px; line-height: 1.45;">
-              உடனடி ஆர்டர் நிலை மாற்றங்கள் மற்றும் சலுகைகளைப் பெற.
-              <span style="display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">To receive live order status, dispatch alerts, and daily discount coupons.</span>
+              To receive live order status, dispatch alerts, and daily discount coupons.
             </div>
           </div>
         </div>
@@ -393,7 +385,7 @@
 
         <!-- MAIN CTA BUTTON -->
         <button id="onboarding-main-btn" onclick="handleOnboardingMainAction()" style="background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-dark)); color: #ffffff; border: none; padding: 15px 28px; width: 100%; border-radius: 30px; font-size: 14px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); text-transform: uppercase; letter-spacing: 0.5px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 8px;">
-          <span>அனுமதிகளை வழங்கு / Grant Permissions</span>
+          <span>Grant Permissions</span>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="9 18 15 12 9 6" />
           </svg>
@@ -401,7 +393,7 @@
 
         <!-- SECONDRY SKIP/BYPASS LINK -->
         <button onclick="skipOnboardingAndContinue()" style="background: transparent; border: none; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; padding: 8px; text-decoration: underline; opacity: 0.85;">
-          அனுமதி இல்லாமல் தொடரவும் / Skip for now
+          Skip for now
         </button>
 
       </div>
@@ -411,165 +403,256 @@
     </div>
 
     <!-- SCREEN 2: LOGIN PAGE -->
-    <div id="screen-login" class="screen no-nav" style="justify-content: flex-start; min-height: 100%; position: relative; max-width: 480px; margin: 0 auto;">
-      <!-- 3D Circular Back Button Header -->
-      <div style="display: flex; align-items: center; justify-content: flex-start; margin-bottom: 18px; padding-top: 4px; width: 100%; box-sizing: border-box; flex-shrink: 0; position: relative; z-index: 1000;">
+    <div id="screen-login" class="screen no-nav" style="justify-content: flex-start; min-height: 100%; position: relative; max-width: 440px; margin: 0 auto; padding: 12px 16px 100px 16px; box-sizing: border-box; overflow-y: auto !important; -webkit-overflow-scrolling: touch;">
+      <!-- Header Row with Back Button & Skip Button -->
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; width: 100%; box-sizing: border-box; flex-shrink: 0; position: relative; z-index: 1000;">
         <button type="button" id="btn-login-back" onclick="navigateHome()" class="auth-3d-back-btn" title="Back to Home" style="cursor: pointer; pointer-events: auto;">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
             <line x1="19" y1="12" x2="5" y2="12"></line>
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
         </button>
+
+        <span onclick="navigateHome()" class="auth-role-3d-pill" style="color: #10b981; border-color: rgba(16, 185, 129, 0.35); cursor: pointer; font-size: 11.5px; font-weight: 700; padding: 5px 14px; border-radius: 20px;">Skip ➔</span>
       </div>
 
-      <div style="position: absolute; top: 16px; right: 16px; display: none;">
-        <button class="btn btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;" onclick="toggleLang()">EN/தமிழ்</button>
-      </div>
+      <!-- Perfectly Centered Luxury Circular Brand Emblem Logo -->
+      <div class="login-brand-header">
+        <div class="login-brand-emblem-badge" style="width: 64px; height: 64px; margin-bottom: 6px;">
+          <svg viewBox="0 0 140 140" style="width: 58px; height: 58px; display: block; margin: auto;">
+            <!-- Outer delicate rings -->
+            <circle cx="70" cy="70" r="51" fill="none" stroke="#10b981" stroke-width="1.8" opacity="0.85"/>
+            <circle cx="70" cy="70" r="47" fill="none" stroke="#34d399" stroke-width="1" opacity="0.4" stroke-dasharray="3,2"/>
 
-      <!-- 3D Brand Logo & Header Section -->
-      <div style="text-align: center; margin-bottom: 20px; position: relative; z-index: 2;">
-        <div class="brand-logo-container">
-          <div class="brand-logo-card">
-            <div class="brand-logo-glow"></div>
-            <div class="brand-logo-ring"></div>
-            <div class="brand-logo-graphic" style="width: 110px; height: 110px;">
-              <svg viewBox="0 0 140 140" style="width: 100%; height: 100%; display: block;">
-                <!-- Inner Ring in light green -->
-                <circle cx="70" cy="70" r="48" fill="none" stroke="#10b981" stroke-width="1.2" opacity="0.35"/>
+            <defs>
+              <path id="textPath-edappadi-login-emblem" d="M 27,68 A 43,43 0 0,1 113,68" fill="none" />
+            </defs>
 
-                <!-- Outer double ring -->
-                <circle cx="70" cy="70" r="50" fill="none" stroke="#10b981" stroke-width="2" opacity="0.8"/>
+            <!-- Arched Text "EDAPPADI KADAI" -->
+            <text fill="#ffffff" font-family="'Poppins', sans-serif" font-size="9.5px" font-weight="900" letter-spacing="0.9px">
+              <textPath href="#textPath-edappadi-login-emblem" startOffset="50%" text-anchor="middle">EDAPPADI KADAI</textPath>
+            </text>
 
-                <defs>
-                  <path id="textPath-edappadi-login" d="M 28,68 A 43,43 0 0,1 112,68" fill="none" />
-                </defs>
+            <!-- Central Shopping Bag Group -->
+            <g transform="translate(49, 44) scale(0.6)">
+              <!-- Handles -->
+              <path d="M 12,18 C 12,5 58,5 58,18" stroke="#10b981" stroke-width="4.2" stroke-linecap="round" fill="none" />
+              <path d="M 15,18 C 15,8 55,8 55,18" stroke="#34d399" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7" />
 
-                <!-- Arched Text "EDAPPADI KADAI" -->
-                <text fill="#ffffff" font-family="'Poppins', sans-serif" font-size="9px" font-weight="900" letter-spacing="0.8px">
-                  <textPath href="#textPath-edappadi-login" startOffset="50%" text-anchor="middle">EDAPPADI KADAI</textPath>
-                </text>
+              <!-- Bag Body -->
+              <path d="M 6,20 L 64,20 C 69,20 71,23 70,27 L 61,64 C 60,69 56,72 51,72 L 19,72 C 14,72 10,69 9,64 L 0,27 C-1,23 1,20 6,20 Z" stroke="#10b981" stroke-width="4.5" stroke-linejoin="round" fill="rgba(16, 185, 129, 0.12)" />
 
-                <!-- Central Shopping Bag Group -->
-                <g transform="translate(49, 44) scale(0.6)">
-                  <!-- Handles -->
-                  <path d="M 12,18 C 12,6 58,6 58,18" stroke="#10b981" stroke-width="4" stroke-linecap="round" fill="none" />
-                  <path d="M 15,18 C 15,9 55,9 55,18" stroke="#10b981" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.6" />
+              <!-- Leaf / Arrow on bag -->
+              <path d="M 18,58 Q 30,46 48,34" stroke="#10b981" stroke-width="4.5" stroke-linecap="round" fill="none" />
+              <path d="M 40,34 L 48,34 L 48,42" stroke="#10b981" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+              <path d="M 18,58 C 18,58 13,44 26,42 C 26,42 28,52 18,58 Z" stroke="#34d399" stroke-width="2.2" fill="rgba(52, 211, 153, 0.25)" />
+            </g>
 
-                  <!-- Bag Body -->
-                  <path d="M 6,20 L 64,20 C 69,20 71,23 70,27 L 61,64 C 60,69 56,72 51,72 L 19,72 C 14,72 10,69 9,64 L 0,27 C-1,23 1,20 6,20 Z" stroke="#10b981" stroke-width="4.5" stroke-linejoin="round" fill="none" />
+            <!-- Under Bag Brand Name -->
+            <text x="70" y="98" text-anchor="middle" fill="#ffffff" font-family="'Poppins', sans-serif" font-size="9px" font-weight="800" letter-spacing="0.8px">PREMIUM FRESH</text>
 
-                  <!-- Leaf / Arrow on bag -->
-                  <path d="M 18,58 Q 30,46 48,34" stroke="#10b981" stroke-width="4.5" stroke-linecap="round" fill="none" />
-                  <path d="M 40,34 L 48,34 L 48,42" stroke="#10b981" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-                  <path d="M 18,58 C 18,58 13,44 26,42 C 26,42 28,52 18,58 Z" stroke="#10b981" stroke-width="2.2" fill="none" />
-                </g>
+            <!-- English subtext -->
+            <text x="70" y="110" text-anchor="middle" fill="#34d399" font-family="'Poppins', sans-serif" font-size="4.5px" font-weight="700" letter-spacing="0.7px">ONLINE GROCERY &amp; FOOD DELIVERY</text>
 
-                <!-- Under the Bag: "எடப்பாடி கடை" -->
-                <text x="70" y="100" text-anchor="middle" fill="#ffffff" font-family="'Hind Madurai', sans-serif" font-size="11px" font-weight="900" letter-spacing="0.5px">எடப்பாடி கடை</text>
-
-                <!-- Description in soft grey green -->
-                <text x="70" y="112" text-anchor="middle" fill="#9ca3af" font-family="'Poppins', sans-serif" font-size="4.2px" font-weight="700" letter-spacing="0.5px">ONLINE GROCERY & FOOD DELIVERY</text>
-
-                <!-- Sleek line and star decoration -->
-                <line x1="32" y1="120" x2="55" y2="120" stroke="#10b981" stroke-width="1.2" opacity="0.65" />
-                <polygon points="70,117.5 71,119.5 73.2,119.5 71.3,120.7 72,122.8 70,121.5 68,122.8 68.7,120.7 66.8,119.5 69,119.5" fill="#10b981" />
-                <line x1="85" y1="120" x2="108" y2="120" stroke="#10b981" stroke-width="1.2" opacity="0.65" />
-              </svg>
-            </div>
-          </div>
+            <!-- Star & accent line -->
+            <line x1="30" y1="120" x2="55" y2="120" stroke="#10b981" stroke-width="1.2" opacity="0.6" />
+            <polygon points="70,117 71.3,119.3 73.8,119.3 71.8,120.7 72.5,123.1 70,121.6 67.5,123.1 68.2,120.7 66.2,119.3 68.7,119.3" fill="#f59e0b" />
+            <line x1="85" y1="120" x2="110" y2="120" stroke="#10b981" stroke-width="1.2" opacity="0.6" />
+          </svg>
         </div>
-        <h2 class="auth-3d-title">Edappadi Kadai</h2>
-        <p class="auth-3d-subtitle">Premium Quality Meat & Veg Delivery</p>
+        <h2 style="font-family: 'Poppins', sans-serif; font-size: 19px; font-weight: 800; color: #ffffff; margin: 0 0 2px 0; letter-spacing: -0.3px; text-align: center;">Edappadi Kadai</h2>
+        <p style="font-family: 'Poppins', sans-serif; font-size: 11.5px; font-weight: 500; color: #94a3b8; margin: 0; text-align: center;">Fresh Meat, Chicken &amp; Daily Groceries</p>
       </div>
 
-      <!-- 3D New Customer Pill -->
-      <div class="auth-register-prompt-3d" onclick="showScreen('screen-register')">
-        <p class="auth-register-prompt-text">✨ New customer? Register Now →</p>
-      </div>
+      <!-- Clean Form Card -->
+      <!-- Clean Form Card -->
+      <div class="auth-3d-form-card" style="background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.2px solid rgba(255, 255, 255, 0.09); border-radius: 20px; padding: 20px 18px 22px 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.45); box-sizing: border-box; width: 100%;">
 
-      <!-- Quick Test Accounts section for instant mobile testing -->
-      <div id="quick-login-container" style="margin-bottom: 16px; display: none; background: rgba(255, 255, 255, 0.03); border: 1.5px dashed rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 12px; box-sizing: border-box; width: 100%;">
-        <p style="font-size: 11.5px; color: var(--accent-orange); font-weight: 700; margin: 0 0 8px 0; text-transform: uppercase; text-align: center; letter-spacing: 0.5px;">Quick Test Accounts (Tap to Login):</p>
-        <div id="quick-login-list" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-height: 120px; overflow-y: auto; padding: 2px;"></div>
-      </div>
+        <!-- Customer Sign In Header inside Card -->
+        <div id="customer-header-text" style="margin-bottom: 16px; text-align: center;">
+          <h3 id="customer-header-title" style="font-size: 17px; font-weight: 800; color: #ffffff; margin: 0 0 3px 0;">Sign In</h3>
+          <p id="customer-header-subtitle" style="font-size: 12px; color: #94a3b8; margin: 0;">Enter your 10-digit mobile number to continue</p>
+        </div>
 
-      <!-- 3D Glassmorphic Form Card -->
-      <div class="auth-3d-form-card">
-        <form id="login-form" onsubmit="handleLogin(event)">
-          <div class="form-group" id="login-identifier-wrapper">
-            <label>Email or Phone Number</label>
-            <input type="text" id="login-identifier" class="form-control" placeholder="Enter your registered phone or email" required>
+        <!-- Admin Role Portal Header Banner -->
+        <div id="admin-portal-banner" style="display: none; background: linear-gradient(135deg, rgba(234, 88, 12, 0.22) 0%, rgba(194, 65, 12, 0.15) 100%); border: 2px solid #f97316; border-radius: 14px; padding: 13px; margin-bottom: 14px; text-align: center; box-shadow: 0 6px 18px rgba(234, 88, 12, 0.25);">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span style="font-size: 18px;">👑</span>
+            <span style="color: #fb923c; font-weight: 800; font-size: 14px; letter-spacing: 0.5px;">ADMIN CONTROL PORTAL</span>
           </div>
+          <p style="color: #fed7aa; font-size: 11.5px; margin: 4px 0 0 0; font-weight: 500;">Authorized store manager &amp; owner login</p>
+        </div>
 
-          <div class="form-group" id="admin-selector-wrapper" style="display: none;">
-            <label style="color: #f59e0b; font-weight: 700; font-size: 11.5px; margin-bottom: 6px; display: block;">👑 Choose Admin Account</label>
-            <select id="admin-selector" class="form-control" style="font-weight: bold;" onchange="updateAdminPasswordFromSelection()">
-              <option value="8778148899">👑 Anantharaj (Super Admin)</option>
-              <option value="9999999998">📦 Karthick (Stock Manager)</option>
-              <option value="9999999997">🚚 Prakash (Dispatcher)</option>
-              <option value="9999999996">💵 Senthil (Billings)</option>
-              <option value="9999999995">⚡ Mani (Logistics)</option>
-            </select>
+        <!-- Superadmin Google Sign-In Card (Strictly for anantharajeinstein@gmail.com) -->
+        <div id="admin-google-card" style="display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.06) 100%); border: 1.5px solid #f59e0b; border-radius: 16px; padding: 16px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px;">
+            <span style="font-size: 20px;">👑</span>
+            <span style="color: #fbbf24; font-weight: 800; font-size: 13.5px; letter-spacing: 0.5px;">SUPERADMIN GOOGLE LOGIN</span>
           </div>
-
-          <div class="form-group" id="delivery-selector-wrapper" style="display: none;">
-            <label style="color: #f59e0b; font-weight: 700; font-size: 11.5px; margin-bottom: 6px; display: block;">🏍️ Choose Delivery Partner</label>
-            <select id="delivery-selector" class="form-control" style="font-weight: bold;" onchange="updateDeliveryPasswordFromSelection()">
-              <!-- Dynamically populated via JS -->
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Password</label>
-            <div style="position: relative; display: flex; align-items: center;">
-              <input type="password" id="login-password" class="form-control" placeholder="••••••" style="padding-right: 44px !important;" required>
-              <span class="auth-3d-eye-btn" onclick="togglePasswordVisibility('login-password', this)" title="Toggle Password">👁️</span>
-            </div>
-          </div>
-
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
-            <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: #cbd5e1; cursor: pointer; margin: 0; user-select: none;">
-              <input type="checkbox" id="login-remember" style="accent-color: #10b981; width: 16px; height: 16px;" checked>
-              <span>Remember Me</span>
-            </label>
-            <a href="#" id="link-forgot-password" onclick="openForgotPasswordModal(event); return false;" style="font-size: 12px; color: #ff9d2e; text-decoration: none; font-weight: 700; cursor: pointer;">Forgot Password?</a>
-          </div>
-
-          <button type="submit" class="btn-login-3d" id="btn-login-submit">
-            <span>Login</span>
-            <span style="font-size: 14px;">➔</span>
-          </button>
-
-          <!-- OR Divider -->
-          <div id="login-or-divider" style="display: flex; align-items: center; margin: 16px 0 12px 0; gap: 10px;">
-            <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
-            <span style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">அல்லது / OR</span>
-            <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
-          </div>
-
-          <!-- Google Login Button -->
-          <button type="button" id="btn-google-login" onclick="handleGoogleSignIn()" style="width: 100%; min-height: 46px; background: #ffffff; color: #1f2937; border: 1.5px solid #e5e7eb; border-radius: 14px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.25); transition: all 0.2s ease; font-family: 'Poppins', 'Hind Madurai', sans-serif;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+          <p style="color: #fef3c7; font-size: 11.5px; margin: 0 0 12px 0; line-height: 1.4;">
+            Direct Google 1-Click Access for authorized admin:<br>
+            <span style="font-weight: 800; color: #ffffff; background: rgba(0,0,0,0.35); padding: 3px 10px; border-radius: 6px; display: inline-block; margin-top: 4px; border: 1px dashed rgba(251, 191, 36, 0.5);">anantharajeinstein@gmail.com</span>
+          </p>
+          <button type="button" id="btn-admin-google-login" onclick="handleAdminGoogleLoginDirect()" style="width: 100%; min-height: 48px; background: #ffffff; color: #1f2937; border: none; border-radius: 12px; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35); transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
             <svg width="20" height="20" viewBox="0 0 48 48" style="flex-shrink: 0;">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
               <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
               <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            <span id="google-login-btn-text">Google மூலம் உள்நுழைக (Google Login)</span>
+            <span>Sign in as Admin with Google</span>
           </button>
+          <div style="display: flex; align-items: center; margin: 14px 0 6px 0; gap: 8px;">
+            <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
+            <span style="font-size: 10px; color: #fbbf24; font-weight: 700; text-transform: uppercase;">OR ADMIN CREDENTIALS</span>
+            <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
+          </div>
+        </div>
+
+        <!-- Delivery Partner Role Portal Header Banner -->
+        <div id="delivery-portal-banner" style="display: none; background: linear-gradient(135deg, rgba(2, 132, 199, 0.22) 0%, rgba(14, 165, 233, 0.15) 100%); border: 2px solid #38bdf8; border-radius: 14px; padding: 13px; margin-bottom: 16px; text-align: center; box-shadow: 0 6px 18px rgba(2, 132, 199, 0.25);">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span style="font-size: 18px;">🏍️</span>
+            <span style="color: #38bdf8; font-weight: 800; font-size: 14px; letter-spacing: 0.5px;">DELIVERY PARTNER PORTAL</span>
+          </div>
+          <p style="color: #bae6fd; font-size: 11.5px; margin: 4px 0 0 0; font-weight: 500;">Delivery rider &amp; fulfillment staff login</p>
+        </div>
+
+        <!-- CUSTOMER LOGIN FORM (2 Options: Mobile Number + Password OR Continue with Google) -->
+        <form id="login-form" onsubmit="handleLogin(event)">
+
+          <!-- Canonical Mobile Number Input -->
+          <div class="form-group" id="login-phone-wrapper" style="display: block; margin-bottom: 14px;">
+            <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 700; color: #f8fafc; font-size: 13px;">Mobile Number *</span>
+              <span style="font-size: 11px; color: #10b981; font-weight: 700;">🇮🇳 +91 India</span>
+            </label>
+            <div class="auth-phone-container">
+              <div class="auth-phone-badge">
+                <span>🇮🇳</span>
+                <span>+91</span>
+              </div>
+              <input type="tel" id="login-phone-input" class="auth-phone-input" placeholder="10-digit mobile number" maxlength="10" autocomplete="tel" oninput="handleLoginPhoneInput(this.value)">
+              <input type="hidden" id="login-otp-phone-input">
+            </div>
+          </div>
+
+          <!-- Admin Selector (When Admin Mode toggled) -->
+          <div class="form-group" id="admin-selector-wrapper" style="display: none; margin-bottom: 14px;">
+            <label style="color: #fbbf24; font-weight: 700; font-size: 13px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <span>👑 Choose Admin Account (Click Name):</span>
+              <span id="admin-count-badge" style="font-size: 11px; background: rgba(245, 158, 11, 0.15); color: #fbbf24; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.3); font-weight: 600;">Admins</span>
+            </label>
+            <div id="admin-cards-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; max-height: 220px; overflow-y: auto; padding-right: 2px;"></div>
+            <select id="admin-selector" class="form-control" style="font-weight: bold; border-color: rgba(245, 158, 11, 0.45); height: 48px; border-radius: 12px; background: rgba(30, 41, 59, 0.85); color: #ffffff;" onchange="updateAdminPasswordFromSelection()">
+            </select>
+          </div>
+
+          <!-- Delivery Selector (When Delivery Mode toggled) -->
+          <div class="form-group" id="delivery-selector-wrapper" style="display: none; margin-bottom: 14px;">
+            <label style="color: #38bdf8; font-weight: 700; font-size: 13px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <span>🏍️ Choose Delivery Partner (Click Name):</span>
+              <span id="delivery-partner-count-badge" style="font-size: 11px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: 600;">Riders</span>
+            </label>
+            <div id="delivery-partner-cards-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; max-height: 220px; overflow-y: auto; padding-right: 2px;"></div>
+            <select id="delivery-selector" class="form-control" style="font-weight: bold; border-color: rgba(14, 165, 233, 0.45); height: 48px; border-radius: 12px; background: rgba(30, 41, 59, 0.85); color: #ffffff;" onchange="updateDeliveryPasswordFromSelection()">
+            </select>
+          </div>
+
+          <!-- Password Input (Directly below Mobile Number or Selector) -->
+          <div class="form-group" id="login-password-wrapper" style="display: block; margin-bottom: 14px;">
+            <label id="login-password-label" style="font-weight: 700; color: #f8fafc; font-size: 13px; margin-bottom: 6px; display: block;">Password *</label>
+            <div style="position: relative; display: flex; align-items: center; width: 100%;">
+              <input type="password" id="login-password" class="form-control" placeholder="••••••••" style="width: 100%; height: 48px; border-radius: 12px; padding-right: 48px !important; box-sizing: border-box;">
+              <span class="auth-3d-eye-btn" onclick="togglePasswordVisibility('login-password', this)" title="Toggle Password">👁️</span>
+            </div>
+          </div>
+
+          <div id="login-remember-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: nowrap; gap: 8px;">
+            <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #cbd5e1; cursor: pointer; margin: 0; user-select: none;">
+              <input type="checkbox" id="login-remember" style="accent-color: #10b981; width: 16px; height: 16px; cursor: pointer;" checked>
+              <span>Remember Me</span>
+            </label>
+            <a href="#" id="link-forgot-password" onclick="openForgotPasswordModal(event); return false;" style="font-size: 12px; color: #10b981; text-decoration: none; font-weight: 700; cursor: pointer;">Forgot Password?</a>
+          </div>
+
+          <!-- Submit Button: Mobile + Password -->
+          <button type="submit" class="btn-auth-primary" id="btn-login-submit" style="display: flex; height: 48px; border-radius: 12px; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; width: 100%;">
+            <span>Sign In with Password</span>
+            <span style="font-size: 14px; margin-left: 6px;">➔</span>
+          </button>
+
+          <!-- Back to Customer Login button for Admin / Delivery modes -->
+          <div id="back-to-customer-wrapper" style="display: none; text-align: center; margin-top: 14px;">
+            <button type="button" onclick="switchAuthRole('customer')" style="background: rgba(255,255,255,0.08); border: 1.2px solid rgba(255,255,255,0.22); color: #f8fafc; padding: 10px 20px; border-radius: 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+              <span>←</span> <span>Back to Customer Sign In</span>
+            </button>
+          </div>
         </form>
+
+        <!-- OR Divider -->
+        <div id="login-or-divider" style="display: flex; align-items: center; margin: 14px 0 12px 0; gap: 10px;">
+          <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
+          <span style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">OR</span>
+          <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
+        </div>
+
+        <!-- Google Login Button -->
+        <button type="button" id="btn-google-login" onclick="handleGoogleSignIn()" style="width: 100%; min-height: 46px; background: #ffffff; color: #1f2937; border: 1.5px solid #e5e7eb; border-radius: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: all 0.2s ease; font-family: 'Poppins', sans-serif;">
+          <svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink: 0;">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          <span id="google-login-btn-text">Sign in with Google</span>
+        </button>
+
+        <!-- Sign Up Link Row -->
+        <div id="login-signup-link-row" style="text-align: center; margin-top: 14px;">
+          <span style="font-size: 12.5px; color: #94a3b8;">Don't have an account?</span>
+          <a href="#" onclick="showScreen('screen-register'); return false;" style="font-size: 12.5px; color: #10b981; font-weight: 700; text-decoration: none; margin-left: 5px;">Sign Up</a>
+        </div>
       </div>
 
-      <!-- Subtle, Minimalist Admin / Delivery Links at Bottom -->
-      <div class="auth-3d-role-switch-container">
-        <span id="btn-toggle-admin-mode" class="auth-role-subtle-link" onclick="toggleAdminLogin()">👑 Admin Login</span>
-        <span class="auth-role-subtle-divider">•</span>
-        <span id="btn-toggle-delivery-mode" class="auth-role-subtle-link" onclick="toggleDeliveryLogin()">🏍️ Delivery</span>
+      <!-- Discreet Admin & Delivery Single Line Link at Bottom (No boxes, minimal & clean) -->
+      <div id="auth-bottom-portal-links" style="width: 100%; margin-top: 24px; text-align: center; box-sizing: border-box;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; gap: 14px; font-size: 12px; color: #64748b;">
+          <a href="javascript:void(0)" id="btn-toggle-admin-mode" onclick="switchAuthRole('admin')" style="color: #94a3b8; text-decoration: none; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 6px; transition: color 0.2s;">
+            <span>👑</span>
+            <span>Admin</span>
+          </a>
+          <span style="color: rgba(255, 255, 255, 0.2); font-size: 11px;">•</span>
+          <a href="javascript:void(0)" id="btn-toggle-delivery-mode" onclick="switchAuthRole('delivery')" style="color: #94a3b8; text-decoration: none; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 6px; transition: color 0.2s;">
+            <span>🏍️</span>
+            <span>Delivery</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK MODAL FOR FIRST-TIME OTP CUSTOMER (NEVER CREATE DUMMY ACCOUNT) -->
+    <div id="modal-otp-new-customer" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 999999; justify-content: center; align-items: center; padding: 16px; backdrop-filter: blur(8px);">
+      <div style="background: #111827; border: 1.5px solid rgba(16, 185, 129, 0.4); border-radius: 20px; padding: 22px; max-width: 400px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.9);">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: #10b981; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 8px;">🎉</div>
+          <h3 style="color: #ffffff; font-size: 17px; font-weight: 800; margin: 0 0 4px 0;">Welcome to Edappadi Kadai!</h3>
+          <p style="color: #94a3b8; font-size: 12px; margin: 0;">Your mobile number is verified. Please enter your name to complete sign in:</p>
+        </div>
+        <form onsubmit="completeOtpNewCustomer(event)">
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="color: #f8fafc; font-size: 12.5px; font-weight: 700; margin-bottom: 6px; display: block;">Full Name *</label>
+            <input type="text" id="otp-new-customer-name" class="form-control" placeholder="e.g. Ramesh K" required style="height: 48px; border-radius: 12px; font-size: 14px;">
+          </div>
+          <button type="submit" id="btn-otp-new-customer-submit" class="btn-auth-primary" style="width: 100%; height: 48px; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span>Save &amp; Start Shopping 🎉</span>
+          </button>
+        </form>
       </div>
     </div>
 
     <!-- SCREEN 3: REGISTER PAGE -->
-    <div id="screen-register" class="screen no-nav" style="overflow-y: auto; max-width: 480px; margin: 0 auto;">
+    <div id="screen-register" class="screen no-nav" style="overflow-y: auto; max-width: 480px; margin: 0 auto; padding-bottom: 28px;">
       <!-- 3D Header Row -->
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding-top: 4px; position: relative; z-index: 1000;">
         <button type="button" id="btn-register-back" onclick="navigateHome()" class="auth-3d-back-btn" title="Back to Home" style="cursor: pointer; pointer-events: auto;">
@@ -578,108 +661,118 @@
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
         </button>
-        <span onclick="navigateHome()" class="auth-role-3d-pill" style="color: #10b981; border-color: rgba(16, 185, 129, 0.35); cursor: pointer;">Skip to Shop / முகப்பு ➔</span>
+        <span onclick="navigateHome()" class="auth-role-3d-pill" style="color: #10b981; border-color: rgba(16, 185, 129, 0.35); cursor: pointer; font-size: 11.5px; font-weight: 700; padding: 4px 12px;">Skip ➔</span>
       </div>
 
       <div style="margin-bottom: 16px;">
-        <h2 class="auth-3d-title">Create Account</h2>
-        <p class="auth-3d-subtitle">Join Edappadi Kadai & earn welcome discount points!</p>
+        <h2 class="auth-3d-title">Edappadi Kadai</h2>
+        <p class="auth-3d-subtitle">Create an account to order fresh groceries &amp; daily essentials!</p>
+      </div>
+
+      <!-- Modern Segmented Auth Navigation -->
+      <div class="auth-segmented-nav">
+        <button type="button" class="auth-segmented-btn" onclick="showScreen('screen-login')">
+          <span>🔑</span> <span>Sign In</span>
+        </button>
+        <button type="button" class="auth-segmented-btn active" onclick="showScreen('screen-register')">
+          <span>✨</span> <span>Create Account</span>
+        </button>
       </div>
 
       <div class="auth-3d-form-card">
-        <form id="register-form" onsubmit="handleRegister(event)">
-          <div class="form-group">
-            <label>Full Name *</label>
-            <input type="text" id="reg-name" class="form-control" placeholder="For example: Rajenthiran" required>
+        <form id="register-form" onsubmit="event.preventDefault();">
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label style="font-weight: 700; color: #f8fafc; font-size: 13px; margin-bottom: 6px; display: block;">Full Name *</label>
+            <input type="text" id="reg-name" class="form-control" placeholder="e.g. Rajenthiran K" required style="width: 100%; height: 48px; border-radius: 12px; box-sizing: border-box;">
           </div>
-          <div class="form-group">
-            <label>Phone Number (10 digits) *</label>
-            <input type="tel" id="reg-phone" class="form-control" placeholder="8778148899" pattern="\d{10}" title="Must be a 10-digit Indian mobile number" required>
-          </div>
-          <div class="form-group">
-            <label>Email Address * / மின்னஞ்சல் முகவரி *</label>
-            <input type="email" id="reg-email" class="form-control" placeholder="email@example.com" required>
-            <p style="font-size: 11px; color: var(--text-muted); margin-top: 5px; margin-bottom: 8px; line-height: 1.4;">
-              <span class="lang-en">Use an active email address that you can access. It is required for secure login and password recovery.</span>
-              <span class="lang-ta">நீங்கள் அணுகக்கூடிய சரியான மின்னஞ்சல் முகவரியை உள்ளிடுங்கள். பாதுகாப்பான உள்நுழைவு மற்றும் கடவுச்சொல் மீட்டமைப்பிற்கு இது அவசியம்.</span>
-            </p>
 
-            <!-- Bilingual Email-Security Notice Box -->
-            <div class="email-security-notice" style="margin-top: 10px; margin-bottom: 4px; padding: 12px; background: rgba(249, 115, 22, 0.06); border: 1.2px dashed rgba(249, 115, 22, 0.3); border-radius: 12px; font-size: 11.5px; line-height: 1.5; text-align: left;">
-              <div style="display: flex; align-items: flex-start; gap: 8px;">
-                <span style="font-size: 16px; line-height: 1.1; margin-top: 1px;">🔐</span>
-                <div style="flex: 1;">
-                  <p style="font-weight: 700; color: #f59e0b; margin: 0 0 4px 0;" class="lang-en">Important: Use Your Own Email</p>
-                  <p style="font-weight: 700; color: #f59e0b; margin: 0 0 4px 0;" class="lang-ta">முக்கியம்: உங்கள் சொந்த மின்னஞ்சலை பயன்படுத்துங்கள்</p>
-
-                  <p style="color: #cbd5e1; margin: 0; line-height: 1.4;" class="lang-en">Enter a valid email address that you can access. This email is required to log in securely and to reset your password later through the Forgot Password option.</p>
-                  <p style="color: #cbd5e1; margin: 0; line-height: 1.4;" class="lang-ta">நீங்கள் அணுகக்கூடிய சரியான மின்னஞ்சல் முகவரியை உள்ளிடுங்கள். பாதுகாப்பான உள்நுழைவு மற்றும் எதிர்காலத்தில் “கடவுச்சொல் மறந்துவிட்டதா?” மூலம் கடவுச்சொல்லை மீட்டமைக்க இந்த மின்னஞ்சல் அவசியம்.</p>
-                </div>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 700; color: #f8fafc; font-size: 13px;">Mobile Number *</span>
+              <span style="font-size: 11px; color: #10b981; font-weight: 700;">🇮🇳 +91 India</span>
+            </label>
+            <div class="auth-phone-container">
+              <div class="auth-phone-badge">
+                <span>🇮🇳</span>
+                <span>+91</span>
               </div>
+              <input type="tel" id="reg-phone" class="auth-phone-input" placeholder="10-digit mobile number" maxlength="10" pattern="\d{10}" title="10-digit Indian mobile number" required oninput="handleRegPhoneChanged(this.value)">
             </div>
           </div>
-          <div class="form-group">
-            <label>Delivery Address / விநியோக முகவரி *</label>
-            <textarea id="reg-address" class="form-control" rows="2" placeholder="House No, Street, Area, Edappadi, Salem - 637101" style="height: auto !important; padding: 10px 12px !important; width: 100%; box-sizing: border-box; resize: vertical; font-size: 13px; line-height: 1.4;" required></textarea>
-            <div style="display: flex; gap: 8px; margin-top: 8px; width: 100%; box-sizing: border-box;">
-              <button type="button" class="btn btn-secondary" onclick="openMapAddressPicker('reg-address')" style="background: rgba(249, 115, 22, 0.12); border: 1.2px solid rgba(249, 115, 22, 0.35); color: #f59e0b; flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11.5px; height: 38px; padding: 0 8px; font-weight: 700; cursor: pointer; border-radius: 10px; box-sizing: border-box;">
-                <span>🗺️</span> <span>Map Picker / வரைபடம்</span>
-              </button>
-              <button type="button" class="btn btn-secondary" onclick="autoDetectCoordinatesForTarget('reg-address', this)" style="background: rgba(16, 185, 129, 0.12); border: 1.2px solid rgba(16, 185, 129, 0.35); color: #10b981; flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11.5px; height: 38px; padding: 0 8px; font-weight: 700; cursor: pointer; border-radius: 10px; box-sizing: border-box;">
-                <span>🛰️</span> <span>Auto GPS / ஜிபிஎஸ்</span>
-              </button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Create Password (min 6 characters) *</label>
-            <div style="position: relative; display: flex; align-items: center;">
-              <input type="password" id="reg-password" class="form-control" placeholder="••••••" minlength="6" required style="padding-right: 44px !important;">
+
+          <!-- Password & Confirm Password (Directly below Mobile Number) -->
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label style="font-weight: 700; color: #f8fafc; font-size: 13px; margin-bottom: 6px; display: block;">Password *</label>
+            <div style="position: relative; display: flex; align-items: center; width: 100%;">
+              <input type="password" id="reg-password" class="form-control" placeholder="Minimum 6 characters" minlength="6" required style="width: 100%; height: 48px; border-radius: 12px; padding-right: 48px !important; box-sizing: border-box;">
               <span class="auth-3d-eye-btn" onclick="togglePasswordVisibility('reg-password', this)">👁️</span>
             </div>
           </div>
-          <div class="form-group">
-            <label>Confirm Password *</label>
-            <div style="position: relative; display: flex; align-items: center;">
-              <input type="password" id="reg-confirm" class="form-control" placeholder="••••••" minlength="6" required style="padding-right: 44px !important;">
+
+          <div class="form-group" style="margin-bottom: 18px;">
+            <label style="font-weight: 700; color: #f8fafc; font-size: 13px; margin-bottom: 6px; display: block;">Confirm Password *</label>
+            <div style="position: relative; display: flex; align-items: center; width: 100%;">
+              <input type="password" id="reg-confirm" class="form-control" placeholder="Re-enter password" minlength="6" required style="width: 100%; height: 48px; border-radius: 12px; padding-right: 48px !important; box-sizing: border-box;">
               <span class="auth-3d-eye-btn" onclick="togglePasswordVisibility('reg-confirm', this)">👁️</span>
             </div>
           </div>
-          <div class="form-group" style="margin-top: 10px;">
-            <label>Referral Code / பரிந்துரை குறியீடு (Optional)</label>
-            <input type="text" id="reg-referral" class="form-control" placeholder="e.g. CUST_12345 or 123456" style="text-transform: uppercase;">
-          </div>
-          <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #cbd5e1; cursor: pointer; margin-top: 8px;">
-              <input type="checkbox" id="reg-whatsapp" style="accent-color: #10b981; width: 16px; height: 16px;" checked> Subscribe to WhatsApp updates
-            </label>
-          </div>
 
-          <button type="submit" class="btn-login-3d" style="margin-top: 10px;">
-            <span>Create Account / கணக்கை உருவாக்கு ✓</span>
+          <!-- Get WhatsApp OTP Button -->
+          <button type="button" id="btn-send-reg-otp" class="btn-auth-primary whatsapp-mode" onclick="sendRegistrationOtp(false)" style="display: flex; height: 48px; border-radius: 12px; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; width: 100%; margin-bottom: 12px; background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);">
+            <span>💬 Get WhatsApp OTP</span>
+            <span style="font-size: 14px; margin-left: 6px;">➔</span>
           </button>
+
+          <!-- WhatsApp OTP Verification Box (Appears after clicking Get WhatsApp OTP) -->
+          <div id="reg-otp-box" class="reg-otp-verify-box" style="display: none; background: rgba(37, 211, 102, 0.08); border: 1.2px solid rgba(37, 211, 102, 0.35); border-radius: 14px; padding: 14px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span id="reg-otp-status-msg" style="font-size: 12px; color: #25D366; font-weight: 700;">Enter 6-Digit WhatsApp OTP:</span>
+              <span id="reg-otp-timer" style="font-size: 12px; color: #f59e0b; font-weight: 700;">⏳ 30s</span>
+            </div>
+            <div class="reg-otp-input-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+              <input type="tel" id="reg-otp-input" class="form-control" placeholder="6-digit OTP" maxlength="6" autocomplete="one-time-code" oninput="handleRegOtpInput(this.value)" style="height: 48px; letter-spacing: 6px; font-size: 18px; font-weight: 800; text-align: center; border-radius: 12px; flex: 1; box-sizing: border-box;">
+              <button type="button" id="btn-verify-reg-otp" class="btn-verify-otp" onclick="verifyRegistrationOtp()" style="height: 48px; padding: 0 16px; border-radius: 12px; background: #25D366; color: #000; font-weight: 800; font-size: 13px; border: none; cursor: pointer;">
+                Verify &amp; Create
+              </button>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+              <div style="display: flex; gap: 6px;">
+                <button type="button" onclick="openWhatsAppForRegOtp()" style="background: rgba(37, 211, 102, 0.15); border: 1px solid rgba(37, 211, 102, 0.4); border-radius: 6px; color: #25D366; font-size: 11px; font-weight: 700; padding: 4px 8px; cursor: pointer;">
+                  💬 Open WhatsApp
+                </button>
+                <button type="button" onclick="quickFillRegOtp()" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff; font-size: 11px; font-weight: 600; padding: 4px 8px; cursor: pointer;">
+                  ⚡ Auto-fill
+                </button>
+              </div>
+              <button type="button" id="btn-resend-reg-otp" onclick="sendRegistrationOtp(true)" style="background: none; border: none; color: #25D366; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;" disabled>
+                Resend OTP
+              </button>
+            </div>
+          </div>
+        </form>
 
           <!-- OR Divider -->
           <div style="display: flex; align-items: center; margin: 16px 0 12px 0; gap: 10px;">
             <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
-            <span style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">அல்லது / OR</span>
+            <span style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">OR</span>
             <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
           </div>
 
           <!-- Google Register Button -->
-          <button type="button" onclick="handleGoogleSignIn()" style="width: 100%; min-height: 46px; background: #ffffff; color: #1f2937; border: 1.5px solid #e5e7eb; border-radius: 14px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.25); transition: all 0.2s ease; font-family: 'Poppins', 'Hind Madurai', sans-serif;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+          <button type="button" onclick="handleGoogleSignIn()" style="width: 100%; min-height: 46px; background: #ffffff; color: #1f2937; border: 1.5px solid #e5e7eb; border-radius: 14px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.25); transition: all 0.2s ease; font-family: 'Poppins', sans-serif;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
             <svg width="20" height="20" viewBox="0 0 48 48" style="flex-shrink: 0;">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
               <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
               <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            <span>Google மூலம் விரைவாக பதிவு செய்க (Register with Google)</span>
+            <span>Sign up with Google</span>
           </button>
         </form>
       </div>
 
       <p style="text-align: center; margin-top: 16px; font-size: 12.5px; color: #94a3b8;">
-        Already have an account? <span onclick="showScreen('screen-login')" style="color: #f59e0b; font-weight: 700; cursor: pointer; text-decoration: underline;">Login Here</span>
+        Already have an account? <span onclick="showScreen('screen-login')" style="color: #10b981; font-weight: 700; cursor: pointer; text-decoration: underline;">Sign In</span>
       </p>
     </div>
 
@@ -726,26 +819,6 @@
         </h4>
         <p id="home-leave-banner-text" style="color: #ffffff; font-size: 12px; line-height: 1.5; margin: 0; font-weight: 500;"></p>
         <span style="display: inline-block; background: rgba(245,158,11,0.22); color: #f59e0b; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; margin-top: 10px; text-transform: uppercase; border: 1px solid rgba(245,158,11,0.15);">ஆர்டர் தற்காலிகமாக நிறுத்தப்பட்டுள்ளது / Ordering Paused</span>
-      </div>
-
-      <!-- Email Verification Reminder Banner -->
-      <div id="home-email-unverified-banner" style="display: none; background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%); border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 14px; padding: 10px 14px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
-            <div style="font-size: 20px; flex-shrink: 0;">✉️</div>
-            <div>
-              <div style="color: #fca5a5; font-size: 11.5px; font-weight: 700; line-height: 1.3;">
-                மின்னஞ்சல் சரிபார்க்கப்படவில்லை / Verify Email
-              </div>
-              <div style="color: rgba(255,255,255,0.85); font-size: 10.5px; line-height: 1.3; margin-top: 2px;">
-                கடவுச்சொல் மீட்புக்கு மின்னஞ்சலை சரிபார்க்கவும் / Please verify your email for password recovery.
-              </div>
-            </div>
-          </div>
-          <button type="button" onclick="resendVerificationEmail()" class="btn-ripple" style="background: rgba(239, 68, 68, 0.25); border: 1px solid #ef4444; color: #fff; font-size: 10px; font-weight: 700; padding: 5px 9px; border-radius: 8px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
-            மறுபடி அனுப்பு / Resend
-          </button>
-        </div>
       </div>
 
       <!-- Premium 3D Glassmorphic Auto-Sliding Carousel Wrapper -->
@@ -801,6 +874,35 @@
       <h4 style="font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase;">Our Available Stock</h4>
       <div id="home-product-grid">
         <!-- Populated by JS -->
+      </div>
+
+      <!-- MODERN CUSTOMER REVIEWS & TESTIMONIALS SECTION -->
+      <div id="customer-reviews-section" style="margin-top: 18px; margin-bottom: 14px;">
+        <!-- Header with Rating Badge and Write Review Action -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+          <div style="cursor: pointer;" onclick="openAllCustomerReviewsModal()">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif;">Customer Reviews</span>
+              <span style="background: rgba(245,158,11,0.18); border: 1px solid rgba(245,158,11,0.4); color: #f59e0b; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;">
+                ★ 4.9 (850+)
+              </span>
+            </div>
+            <p style="font-size: 10.5px; color: var(--text-muted); margin: 2px 0 0 0; font-family: 'Hind Madurai', sans-serif;">எடப்பாடி மக்களின் நம்பகமான நல்மதிப்புரைகள்</p>
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button type="button" onclick="openAllCustomerReviewsModal()" class="btn btn-secondary" style="width: auto; height: 32px; min-height: 32px; font-size: 10.5px; font-weight: 700; padding: 0 10px; border-radius: 9px; border-color: rgba(255,255,255,0.18); color: #e2e8f0; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+              <span>👁️</span> <span>View Reviews / காண்க</span>
+            </button>
+            <button type="button" onclick="openCustomerAddReviewModal()" class="btn" style="width: auto; height: 32px; min-height: 32px; font-size: 11px; font-weight: 750; padding: 0 12px; border-radius: 9px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none; display: flex; align-items: center; gap: 5px; box-shadow: 0 3px 10px rgba(16,185,129,0.3); cursor: pointer;">
+              <span>✍️</span> <span>Write</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Horizontal Swipeable Reviews Carousel -->
+        <div id="customer-home-reviews-scroller" class="scroller" style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+          <!-- Populated dynamically by renderCustomerHomeReviews() -->
+        </div>
       </div>
 
       <!-- 3D GLASS DIRECT WHATSAPP SUPPORT CHAT -->
@@ -1828,151 +1930,116 @@
       </div>
     </div>
 
-    <!-- FORGOT PASSWORD MODAL (PREMIUM DYNAMIC POPUP) -->
-    <div id="forgot-password-modal" class="modal-backdrop" onclick="hideForgotPasswordModal()" style="align-items: center; padding: 20px; display: none; z-index: 10005;">
-      <div style="background: #12161c; color: #ffffff; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 24px; width: 100%; max-width: 420px; padding: 22px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.85); display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+    <!-- FORGOT PASSWORD MODAL (WHATSAPP OTP PASSWORD RESET) -->
+    <div id="forgot-password-modal" class="modal-backdrop" onclick="hideForgotPasswordModal()" style="align-items: center; justify-content: center; padding: 20px; display: none; z-index: 10005;">
+      <div style="background: #111827; color: #ffffff; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 24px; width: 100%; max-width: 420px; padding: 22px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.85); display: flex; flex-direction: column; box-sizing: border-box;" onclick="event.stopPropagation()">
 
         <!-- Modal Header -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); display: flex; align-items: center; justify-content: center; font-size: 20px;">🔑</div>
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(37,211,102,0.15); border: 1px solid rgba(37,211,102,0.3); display: flex; align-items: center; justify-content: center; font-size: 20px;">🔑</div>
             <div>
-              <h3 style="font-size: 16px; font-weight: 700; color: var(--accent-orange); margin: 0; font-family: 'Poppins', 'Hind Madurai', sans-serif;" id="fp-title">கடவுச்சொல் மீட்பு / Forgot Password</h3>
-              <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0;" id="fp-subtitle">பதிவுசெய்த மொபைல் எண் அல்லது மின்னஞ்சலை உள்ளிடவும்.</p>
+              <h3 style="font-size: 16px; font-weight: 700; color: #ffffff; margin: 0; font-family: 'Poppins', sans-serif;" id="fp-title">Forgot Password</h3>
+              <p style="font-size: 11.5px; color: #94a3b8; margin: 2px 0 0 0;" id="fp-subtitle">Reset password securely via WhatsApp OTP</p>
             </div>
           </div>
-          <button onclick="hideForgotPasswordModal()" style="background: rgba(255,255,255,0.08); color: #cbd5e1; width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: all 0.2s ease;">×</button>
+          <button type="button" onclick="hideForgotPasswordModal()" style="background: rgba(255,255,255,0.08); color: #cbd5e1; width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: all 0.2s ease;">×</button>
         </div>
 
-        <!-- Dynamic Stages Container -->
-        <!-- STAGE 1: ENTER PHONE OR EMAIL -->
+        <!-- STAGE 1: ENTER MOBILE NUMBER -->
         <div id="fp-stage-1">
-          <div style="background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.2); padding: 14px; border-radius: 14px; margin-bottom: 14px;">
-            <p style="font-size: 11px; color: var(--accent-orange); font-weight: 700; text-transform: uppercase; margin: 0 0 8px 0; letter-spacing: 0.5px;">🔐 கணக்கு மீட்பு / Account Recovery</p>
-
-            <!-- Hidden inputs to maintain backward compatibility with any legacy selectors -->
-            <div style="display: none !important;">
-              <input type="tel" id="fp-phone-input" value="">
-              <input type="radio" name="fp-method" id="fp-method-link" value="gmail-link" checked>
-              <input type="radio" name="fp-method" id="fp-method-otp" value="gmail-otp">
-              <span id="fp-method-otp-title"></span>
-              <span id="fp-method-otp-desc"></span>
-              <span id="fp-method-link-title"></span>
-              <span id="fp-method-link-desc"></span>
-              <span id="fp-label-reset-method"></span>
+          <div style="margin-bottom: 16px;">
+            <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 700; color: #f8fafc; font-size: 13px;">Registered Mobile Number *</span>
+              <span style="font-size: 11px; color: #10b981; font-weight: 700;">🇮🇳 +91 India</span>
+            </label>
+            <div class="auth-phone-container">
+              <div class="auth-phone-badge">
+                <span>🇮🇳</span>
+                <span>+91</span>
+              </div>
+              <input type="tel" id="fp-phone-input" class="auth-phone-input" placeholder="10-digit mobile number" maxlength="10" autocomplete="tel">
             </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-              <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;" id="fp-label-email">பதிவுசெய்த மொபைல் எண் அல்லது மின்னஞ்சல்</label>
-              <input type="text" id="fp-email-input" class="form-control" placeholder="9876543210 அல்லது user@gmail.com" style="margin-top: 5px; padding: 11px 12px; font-size: 13.5px; border-radius: 10px; background: #0c1015; color: #fff; border: 1px solid rgba(255,255,255,0.15); width: 100%; box-sizing: border-box;" oninput="handleFpIdentifierInput(this.value)">
-            </div>
-
-            <div id="fp-account-hint" style="display: none; margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); font-size: 11.5px; color: #34d399;"></div>
           </div>
 
-          <!-- Main Action Button -->
-          <button class="btn btn-primary" onclick="sendForgotPasswordOtp()" id="fp-btn-send-otp" style="padding: 13px 16px; width:100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; border-radius: 12px; font-size: 13.5px; background: linear-gradient(135deg, #f59e0b, #ea580c); border: none; box-shadow: 0 4px 14px rgba(245,158,11,0.35); cursor: pointer; color: #fff;">
-            <span>🚀 கடவுச்சொல் மீட்டமைப்பு இணைப்பை அனுப்பு</span>
+          <!-- Send WhatsApp OTP Button -->
+          <button type="button" class="btn-auth-primary whatsapp-mode" onclick="sendForgotPasswordOtp(false)" id="fp-btn-send-otp" style="display: flex; height: 48px; border-radius: 12px; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; width: 100%; background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); border: none; cursor: pointer; color: #ffffff;">
+            <span>💬 Get WhatsApp OTP</span>
+            <span style="font-size: 14px; margin-left: 6px;">➔</span>
           </button>
 
-          <!-- Direct Store Help / WhatsApp & Call -->
-          <div style="margin-top: 14px; border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 12px;">
-            <p style="font-size: 11px; color: #94a3b8; margin: 0 0 8px 0; text-align: center; font-weight: 600;">மின்னஞ்சல் வசதி இல்லையா? கடை நிர்வாகியிடம் உடனடி உதவி பெற:</p>
-            <div style="display: flex; gap: 8px;">
-              <a id="fp-whatsapp-btn" href="javascript:void(0)" onclick="openFpWhatsAppHelp()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; background: #25D366; color: #ffffff; text-decoration: none; padding: 9px 10px; border-radius: 10px; font-size: 12px; font-weight: 700; box-shadow: 0 3px 10px rgba(37,211,102,0.25);">
-                <span>💬</span> WhatsApp
-              </a>
-              <a id="fp-call-btn" href="tel:8778148899" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; background: #0284c7; color: #ffffff; text-decoration: none; padding: 9px 10px; border-radius: 10px; font-size: 12px; font-weight: 700; box-shadow: 0 3px 10px rgba(2,132,199,0.25);">
-                <span>📞</span> Call: 8778148899
-              </a>
-            </div>
+          <div style="text-align: center; margin-top: 14px;">
+            <a href="#" onclick="hideForgotPasswordModal(); return false;" style="font-size: 12.5px; color: #94a3b8; text-decoration: none; font-weight: 600;">Remembered your password? <span style="color: #10b981; font-weight: 700;">Sign In</span></a>
           </div>
         </div>
 
         <!-- STAGE 2: LOADING PROGRESS -->
         <div id="fp-stage-loading" style="display: none; text-align: center; padding: 28px 10px;">
-          <div class="brand-logo-glow" style="display: inline-block; width: 54px; height: 54px; border: 3px solid rgba(245,158,11,0.2); border-top-color: var(--accent-orange); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px;"></div>
-          <h4 style="font-size: 15px; font-weight: 700; margin: 0 0 6px 0; color: #fff;" id="fp-loading-title">சரிபார்க்கப்படுகிறது...</h4>
-          <p style="font-size: 12px; color: var(--text-secondary); margin: 0;" id="fp-loading-msg">தயவுசெய்து சிறிது நேரம் காத்திருக்கவும்...</p>
+          <div class="brand-logo-glow" style="display: inline-block; width: 48px; height: 48px; border: 3px solid rgba(37,211,102,0.2); border-top-color: #25D366; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 14px;"></div>
+          <h4 style="font-size: 15px; font-weight: 700; margin: 0 0 6px 0; color: #fff;" id="fp-loading-title">Sending WhatsApp OTP...</h4>
+          <p style="font-size: 12px; color: #94a3b8; margin: 0;" id="fp-loading-msg">Connecting to WhatsApp. Please wait...</p>
         </div>
 
         <!-- STAGE 3: OTP VERIFICATION & NEW PASSWORD -->
-        <div id="fp-stage-otp" style="display: none; flex-direction: column; gap: 12px;">
-          <div style="background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.2); padding: 14px; border-radius: 14px; margin-bottom: 4px;">
-            <p style="font-size: 11px; color: #10b981; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">சரிபார்ப்பு / Verification</p>
-            <p style="font-size: 11.5px; color: var(--text-secondary); margin-bottom: 12px;" id="fp-otp-help-text">மின்னஞ்சலுக்கு அனுப்பப்பட்ட 6-இலக்க OTP குறியீட்டை உள்ளிடவும்.</p>
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
-              <button type="button" id="fp-resend-otp-btn" onclick="resendForgotPasswordOtp()" style="background: none; border: none; color: var(--accent-orange); font-size: 11px; font-weight: 600; cursor: pointer; padding: 2px 4px;">Resend OTP</button>
-            </div>
-            
-            <!-- 6-digit OTP container -->
-            <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 12px;">
-              <input type="text" maxlength="1" class="otp-box" oninput="onOtpInput(this, 0)" onkeydown="onOtpKeyDown(event, 0)" style="width: 40px; height: 40px; text-align: center; font-size: 18px; font-weight: bold; background: #0c1015; border: 1.5px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff;">
-              <input type="text" maxlength="1" class="otp-box" oninput="onOtpInput(this, 1)" onkeydown="onOtpKeyDown(event, 1)" style="width: 40px; height: 40px; text-align: center; font-size: 18px; font-weight: bold; background: #0c1015; border: 1.5px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff;">
-              <input type="text" maxlength="1" class="otp-box" oninput="onOtpInput(this, 2)" onkeydown="onOtpKeyDown(event, 2)" style="width: 40px; height: 40px; text-align: center; font-size: 18px; font-weight: bold; background: #0c1015; border: 1.5px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff;">
-              <input type="text" maxlength="1" class="otp-box" oninput="onOtpInput(this, 3)" onkeydown="onOtpKeyDown(event, 3)" style="width: 40px; height: 40px; text-align: center; font-size: 18px; font-weight: bold; background: #0c1015; border: 1.5px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff;">
-              <input type="text" maxlength="1" class="otp-box" oninput="onOtpInput(this, 4)" onkeydown="onOtpKeyDown(event, 4)" style="width: 40px; height: 40px; text-align: center; font-size: 18px; font-weight: bold; background: #0c1015; border: 1.5px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff;">
-              <input type="text" maxlength="1" class="otp-box" oninput="onOtpInput(this, 5)" onkeydown="onOtpKeyDown(event, 5)" style="width: 40px; height: 40px; text-align: center; font-size: 18px; font-weight: bold; background: #0c1015; border: 1.5px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff;">
-            </div>
-            
-            <div style="display: none !important;">
-              <input type="text" id="fp-otp-input" value="">
-            </div>
-
-            <!-- New Password fields -->
-            <div class="form-group" style="margin-bottom: 10px;">
-              <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">புதிய கடவுச்சொல் / New Password</label>
-              <div style="position: relative;">
-                <input type="password" id="fp-newpass-input" class="form-control" style="margin-top: 4px; padding: 10px; font-size: 13px; background: #0c1015; color:#fff;" placeholder="குறைந்தது 6 எழுத்துகள் (Min 6 chars)">
-                <span style="position: absolute; right: 14px; top: 12px; font-size: 16px; cursor: pointer; color: var(--text-muted);" onclick="togglePasswordVisibility('fp-newpass-input', this)">👁️</span>
+        <div id="fp-stage-otp" style="display: none; flex-direction: column; gap: 14px;">
+          <!-- Notification Pill -->
+          <div style="background: rgba(37, 211, 102, 0.08); border: 1.2px solid rgba(37, 211, 102, 0.35); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 16px;">💬</span>
+              <div>
+                <div style="font-size: 11px; color: #94a3b8;">OTP Sent to:</div>
+                <div id="fp-verified-phone-display" style="font-size: 13px; font-weight: 700; color: #25D366;">+91 ----------</div>
               </div>
             </div>
+            <button type="button" onclick="editFpPhoneNumber()" style="background: none; border: none; color: #38bdf8; font-size: 11.5px; font-weight: 700; cursor: pointer; text-decoration: underline;">Change</button>
+          </div>
 
-            <div class="form-group" style="margin-bottom: 0;">
-              <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">கடவுச்சொல் உறுதி / Confirm Password</label>
-              <div style="position: relative;">
-                <input type="password" id="fp-newpass-confirm-input" class="form-control" style="margin-top: 4px; padding: 10px; font-size: 13px; background: #0c1015; color:#fff;" placeholder="மீண்டும் உள்ளிடவும் (Retype password)">
-                <span style="position: absolute; right: 14px; top: 12px; font-size: 16px; cursor: pointer; color: var(--text-muted);" onclick="togglePasswordVisibility('fp-newpass-confirm-input', this)">👁️</span>
+          <!-- 6-digit WhatsApp OTP Input -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="font-weight: 700; color: #f8fafc; font-size: 13px; margin: 0;">6-Digit WhatsApp OTP *</label>
+              <span id="fp-otp-timer" style="font-size: 12px; color: #f59e0b; font-weight: 700;">⏳ 30s</span>
+            </div>
+            <input type="tel" id="fp-otp-input" class="form-control" placeholder="6-digit OTP" maxlength="6" autocomplete="one-time-code" style="height: 48px; letter-spacing: 6px; font-size: 18px; font-weight: 800; text-align: center; border-radius: 12px; box-sizing: border-box;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+              <div style="display: flex; gap: 6px;">
+                <button type="button" onclick="openWhatsAppForFpOtp()" style="background: rgba(37, 211, 102, 0.15); border: 1px solid rgba(37, 211, 102, 0.4); border-radius: 6px; color: #25D366; font-size: 11px; font-weight: 700; padding: 4px 8px; cursor: pointer;">
+                  💬 Open WhatsApp
+                </button>
+                <button type="button" onclick="quickFillFpOtp()" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff; font-size: 11px; font-weight: 600; padding: 4px 8px; cursor: pointer;">
+                  ⚡ Auto-fill
+                </button>
               </div>
+              <button type="button" id="fp-btn-resend-otp" onclick="sendForgotPasswordOtp(true)" style="background: none; border: none; color: #25D366; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;" disabled>
+                Resend OTP
+              </button>
+            </div>
+          </div>
+
+          <!-- New Password Input -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-weight: 700; color: #f8fafc; font-size: 13px; margin-bottom: 6px; display: block;">New Password *</label>
+            <div style="position: relative; display: flex; align-items: center; width: 100%;">
+              <input type="password" id="fp-newpass-input" class="form-control" placeholder="Minimum 6 characters" minlength="6" style="width: 100%; height: 48px; border-radius: 12px; padding-right: 48px !important; box-sizing: border-box;">
+              <span class="auth-3d-eye-btn" onclick="togglePasswordVisibility('fp-newpass-input', this)">👁️</span>
+            </div>
+          </div>
+
+          <!-- Confirm Password Input -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-weight: 700; color: #f8fafc; font-size: 13px; margin-bottom: 6px; display: block;">Confirm New Password *</label>
+            <div style="position: relative; display: flex; align-items: center; width: 100%;">
+              <input type="password" id="fp-newpass-confirm-input" class="form-control" placeholder="Re-enter new password" minlength="6" style="width: 100%; height: 48px; border-radius: 12px; padding-right: 48px !important; box-sizing: border-box;">
+              <span class="auth-3d-eye-btn" onclick="togglePasswordVisibility('fp-newpass-confirm-input', this)">👁️</span>
             </div>
           </div>
 
           <!-- Reset Button -->
-          <button class="btn btn-primary" onclick="verifyOtpAndResetPassword()" id="fp-btn-reset-confirm" style="padding: 13px; width:100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; border-radius: 12px; background: #10b981; border: none;">
-            <span>🔐 கடவுச்சொல்லை மாற்றுக / Update Password</span>
+          <button type="button" class="btn-auth-primary" onclick="verifyOtpAndResetPassword()" id="fp-btn-reset-confirm" style="height: 48px; border-radius: 12px; font-weight: 700; font-size: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; cursor: pointer; color: #ffffff; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span>🔐 Update Password &amp; Sign In</span>
           </button>
-
-          <!-- Resend OTP Action -->
-          <div style="text-align: center; margin-top: 4px;">
-            <button type="button" id="fp-btn-resend-otp" onclick="resendForgotPasswordOtp()" style="background: none; border: none; color: #10b981; font-size: 11.5px; font-weight: 600; cursor: pointer; padding: 6px 12px; border-radius: 8px;">
-              <span>🔄 Resend OTP / மீண்டும் OTP அனுப்புக</span>
-            </button>
-          </div>
         </div>
-
-        <!-- STAGE 4: RESET LINK SENT INFO -->
-        <div id="fp-stage-link" style="display: none; text-align: center; padding: 12px 6px;">
-          <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(16,185,129,0.12); border: 1.5px solid rgba(16,185,129,0.3); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 14px auto;" id="fp-success-icon">✉️</div>
-          <h4 style="font-size: 16px; font-weight: 800; color: #10b981; margin: 0 0 8px 0;" id="fp-link-title">மீட்டமைப்பு இணைப்பு அனுப்பப்பட்டது!</h4>
-          <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; margin-bottom: 16px; text-align: left;">
-            <p style="font-size: 12px; color: #e2e8f0; line-height: 1.6; margin: 0;" id="fp-link-text">
-              கடவுச்சொல் மீட்டமைப்பு இணைப்பு உங்கள் மின்னஞ்சலுக்கு வெற்றிகரமாக அனுப்பப்பட்டது.<br><br>தயவுசெய்து உங்கள் ஜிமெயில் <strong>இன்பாக்ஸ் (Inbox)</strong> அல்லது <strong>ஸ்பேம் (Spam)</strong> கோப்புறையைத் திறந்து, அங்கு வந்துள்ள இணைப்பைக் கிளிக் செய்து புதிய கடவுச்சொல்லை மாற்றிக் கொள்ளவும்.
-            </p>
-          </div>
-
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            <button class="btn" onclick="window.open('https://mail.google.com', '_blank')" style="background: rgba(66,133,244,0.15); color: #60a5fa; border: 1px solid rgba(66,133,244,0.3); padding: 11px; width: 100%; border-radius: 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-              <span>📩</span> ஜிமெயில் திறக்க / Open Gmail
-            </button>
-            <button class="btn btn-secondary" onclick="hideForgotPasswordModal()" style="padding: 11px; width: 100%; border-radius: 10px; font-size: 12.5px;" id="fp-btn-close-success">
-              உள்நுழைவு திரைக்குத் திரும்புக / Back to Login
-            </button>
-            <button type="button" onclick="switchToOtpStageManual()" style="background: none; border: none; color: #94a3b8; font-size: 11px; cursor: pointer; text-decoration: underline; margin-top: 4px;">
-              OTP குறியீடு உள்ளிட வேண்டுமா? / Have an OTP code?
-            </button>
-          </div>
-        </div>
-
       </div>
     </div>
 
@@ -2504,11 +2571,11 @@
         </div>
 
         <!-- Loyalty discount eligibility -->
-        <div class="card" style="background: #0f0f0f; border-color: rgba(245,158,11,0.2); margin-bottom: 12px; border-radius: 16px;">
+        <div id="cart-loyalty-card" class="card" style="background: #0f0f0f; border-color: rgba(245,158,11,0.2); margin-bottom: 12px; border-radius: 16px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
               <p style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Deduct Loyalty Wallet?</p>
-              <p style="font-size: 11px; color: var(--text-muted);">Points balance: <span id="cart-loyalty-balance">120</span> pts (Available discount: ₹<span id="cart-loyalty-value">12</span>)</p>
+              <p style="font-size: 11px; color: var(--text-muted);">Points balance: <span id="cart-loyalty-balance">0</span> pts (Available discount: ₹<span id="cart-loyalty-value">0</span>)</p>
             </div>
             <label tabindex="0" onkeydown="if(event.key === ' ' || event.key === 'Enter') { event.preventDefault(); document.getElementById('cart-use-loyalty').click(); }" style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; border-radius: 24px;" aria-label="Use loyalty wallet points balance">
               <input type="checkbox" id="cart-use-loyalty" style="opacity: 0; width: 0; height: 0;" onchange="recalculateBill()">
@@ -2885,7 +2952,21 @@
       </div>
 
       <div id="past-orders-list">
-        <!-- Populated by JS -->
+        <div class="orders-empty-card" data-testid="orders-empty-state">
+          <div class="empty-icon-bubble">
+            <span class="empty-floating-emoji">🧾</span>
+            <div class="empty-halo"></div>
+          </div>
+          <h3 class="empty-state-title">No Orders Found</h3>
+          <p class="empty-state-subtitle">You haven't placed any orders yet. Discover our premium fresh meats, authentic spices, and daily specials to place your first order!</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; width: 100%; margin-top: 6px;">
+            <button onclick="showScreen('screen-home')" class="orders-empty-home-btn" data-testid="empty-orders-home-btn">
+              <span style="font-size: 16px;">🏠</span>
+              <span>Back to Home / Explore Menu</span>
+              <span style="font-size: 14px;">➔</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2914,32 +2995,23 @@
 
       <!-- REDESIGNED PREMIUM QUICK ACTIONS -->
       <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; width: 100%; box-sizing: border-box;">
-        <h4 style="margin-bottom: 6px; font-size: 12px; text-transform: uppercase; color: var(--accent-orange); letter-spacing: 0.8px; font-family: 'Poppins', sans-serif; text-align: left; font-weight: 750;">Quick Actions</h4>
+        <h4 style="margin-bottom: 6px; font-size: 12px; text-transform: uppercase; color: var(--accent-orange); letter-spacing: 0.8px; font-family: 'Poppins', sans-serif; text-align: left; font-weight: 750;">Quick Actions / விரைவுச் சேவைகள்</h4>
 
-        <!-- Card 1: Edit Profile -->
-        <button type="button" onclick="scrollToEditProfile()" style="height: 52px; width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);" onmouseover="this.style.background='rgba(255, 255, 255, 0.06)'; this.style.borderColor='rgba(255, 255, 255, 0.15)';" onmouseout="this.style.background='rgba(255, 255, 255, 0.02)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='none'">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 18px; color: var(--accent-orange); width: 24px; text-align: center;">👤</span>
-            <span>Edit Profile</span>
-          </div>
-          <span style="color: #6b7280; font-size: 14px;">➔</span>
-        </button>
-
-        <!-- Card 2: Saved Addresses -->
+        <!-- Card 1: Saved Addresses -->
         <button type="button" onclick="openSimpleAddressEditor()" style="height: 52px; width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);" onmouseover="this.style.background='rgba(255, 255, 255, 0.06)'; this.style.borderColor='rgba(255, 255, 255, 0.15)';" onmouseout="this.style.background='rgba(255, 255, 255, 0.02)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='none'">
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="font-size: 18px; color: var(--accent-orange); width: 24px; text-align: center;">📍</span>
-            <span>Saved Addresses</span>
+            <span>Saved Addresses / முகவரிகள்</span>
           </div>
           <span style="color: #6b7280; font-size: 14px;">➔</span>
         </button>
 
-        <!-- Card 3: Contact Support -->
+        <!-- Card 2: Contact Support -->
         <a href="tel:8778148899" style="text-decoration: none; color: inherit; width: 100%; box-sizing: border-box;">
           <button type="button" style="height: 52px; width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);" onmouseover="this.style.background='rgba(255, 255, 255, 0.06)'; this.style.borderColor='rgba(255, 255, 255, 0.15)';" onmouseout="this.style.background='rgba(255, 255, 255, 0.02)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='none'">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <span style="font-size: 18px; color: var(--accent-orange); width: 24px; text-align: center;">📞</span>
-              <span>Contact Support</span>
+              <span style="font-size: 18px; color: #10b981; width: 24px; text-align: center;">📞</span>
+              <span>Contact Support / உதவிக்கு அழைக்க</span>
             </div>
             <span style="color: #6b7280; font-size: 14px;">➔</span>
           </button>
@@ -2948,9 +3020,12 @@
 
       <!-- FORM SECTION (Unified Edit Profile Card) -->
       <div class="card" id="edit-profile-card" style="margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.08); background: #0f172a; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 16px; box-sizing: border-box; width: 100%; transition: border-color 0.3s ease;">
-        <h4 style="color: #ffffff; font-size: 14px; font-weight: 850; margin: 0 0 4px 0; text-transform: uppercase; letter-spacing: 0.8px; font-family: 'Poppins', sans-serif;">
-          Edit Profile
-        </h4>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+          <h4 style="color: #ffffff; font-size: 14px; font-weight: 850; margin: 0; text-transform: uppercase; letter-spacing: 0.8px; font-family: 'Poppins', sans-serif;">
+            Edit Profile / சுயவிவரத் திருத்தம்
+          </h4>
+          <span style="font-size: 12px; color: var(--accent-orange);">✏️</span>
+        </div>
 
         <!-- Field 1: Name -->
         <div class="form-group" style="margin-bottom: 0; display: flex; flex-direction: column; gap: 6px;">
@@ -2968,10 +3043,38 @@
         </div>
         <!-- Field 2b: Email Address -->
         <div class="form-group" style="margin-bottom: 0; display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 12.5px; font-weight: 600; color: #9ca3af; font-family: 'Poppins', sans-serif;">Email Address</label>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-size: 12.5px; font-weight: 600; color: #9ca3af; font-family: 'Poppins', sans-serif;">Email Address</label>
+            <span id="prof-email-verified-badge" style="display: none; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px;"></span>
+          </div>
           <div style="display: flex; gap: 8px;">
             <input type="email" id="prof-edit-email" class="form-control" placeholder="Enter email address" style="font-size: 14px; height: 46px; padding: 0 16px; background: rgba(255, 255, 255, 0.02); border: 1.5px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; width: 100%; box-sizing: border-box; outline: none; transition: all 0.2s ease; -webkit-user-select: text; user-select: text;" onfocus="this.style.borderColor='var(--accent-orange)'; this.style.background='rgba(255, 255, 255, 0.04)';" onblur="this.style.borderColor='rgba(255, 255, 255, 0.08)'; this.style.background='rgba(255, 255, 255, 0.02)';" />
             <button type="button" onclick="openChangeEmailModal()" style="padding: 0 14px; height: 46px; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; color: var(--accent-orange); font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer;">✉️ Change</button>
+          </div>
+
+          <!-- Email Verification Status & Action Box in Profile -->
+          <div id="prof-email-unverified-box" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px dashed rgba(239, 68, 68, 0.35); border-radius: 12px; padding: 10px 12px; margin-top: 4px;">
+            <div style="display: flex; align-items: flex-start; gap: 8px;">
+              <span style="font-size: 16px; line-height: 1;">✉️</span>
+              <div style="flex: 1;">
+                <div style="color: #fca5a5; font-size: 11.5px; font-weight: 700; line-height: 1.3;">
+                  மின்னஞ்சல் சரிபார்க்கப்படவில்லை / Email Not Verified
+                </div>
+                <div style="color: rgba(255,255,255,0.75); font-size: 10.5px; line-height: 1.35; margin-top: 2px;">
+                  கடவுச்சொல் மீட்பு மற்றும் கணக்கு பாதுகாப்பிற்கு மின்னஞ்சலை சரிபார்க்கவும்.
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+              <button type="button" onclick="resendProfileVerificationEmail()" class="btn-ripple" style="flex: 1; height: 34px; background: rgba(239, 68, 68, 0.25); border: 1px solid #ef4444; color: #fff; font-size: 10.5px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                <span>📩</span>
+                <span>இணைப்பு அனுப்பு / Resend Link</span>
+              </button>
+              <button type="button" onclick="checkEmailVerificationStatus()" class="btn-ripple" style="flex: 1; height: 34px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; font-size: 10.5px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                <span>🔄</span>
+                <span>சரிபார்த்ததை உறுதி செய் / Check</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -3001,7 +3104,7 @@
 
         <!-- Save Button inside form (full width, height 52px, dark emerald gradient, rounded 16px, soft shadow) -->
         <button type="button" class="premium-btn btn-save-profile" onclick="saveProfileChanges()" style="width: 100%; height: 52px; background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important; border: none; border-radius: 16px; color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2); transition: all 0.2s ease; margin-top: 8px; box-sizing: border-box;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(16, 185, 129, 0.35)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(16, 185, 129, 0.2)';" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='none'">
-          <span>💾</span> <span>Save Changes</span>
+          <span>💾</span> <span>Save Changes / சேமிக்கவும்</span>
         </button>
       </div>
 
@@ -4144,7 +4247,7 @@
               <span>📱</span> <span>செயலி பதிப்பு மேலாண்மை / App Version Control</span>
             </span>
             <span style="font-size: 11px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 8px; border-radius: 8px; color: #f59e0b; font-weight: 800; text-transform: none;">
-              Installed: v8.0.0
+              Installed: v9.0.0
             </span>
           </h4>
           <p style="font-size: 11.5px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.45;">
@@ -4156,7 +4259,7 @@
               <label style="font-size: 11px; font-weight: 700; color: #f59e0b; display: block; margin-bottom: 4px;">
                 🔒 குறைந்தபட்ச கட்டாய பதிப்பு (Min Version)
               </label>
-              <input type="text" id="setting-min-app-version" class="form-control" value="8.0.0" placeholder="8.0.0" style="height: 38px; font-size: 13px; font-weight: 700; background: #000; border: 1.2px solid rgba(245, 158, 11, 0.4); color: #fff;" onchange="saveAdminSettings()">
+              <input type="text" id="setting-min-app-version" class="form-control" value="9.0.0" placeholder="9.0.0" style="height: 38px; font-size: 13px; font-weight: 700; background: #000; border: 1.2px solid rgba(245, 158, 11, 0.4); color: #fff;" onchange="saveAdminSettings()">
               <p style="font-size: 9.5px; color: var(--text-muted); margin-top: 4px;">இதைவிடக் குறைந்த பதிப்பு பயனர்களுக்கு Blocking Modal காட்டும்.</p>
             </div>
 
@@ -4164,7 +4267,7 @@
               <label style="font-size: 11px; font-weight: 700; color: #60a5fa; display: block; margin-bottom: 4px;">
                 💡 பரிந்துரைக்கப்படும் பதிப்பு (Recommended)
               </label>
-              <input type="text" id="setting-recommended-app-version" class="form-control" value="8.0.0" placeholder="8.0.0" style="height: 38px; font-size: 13px; font-weight: 700; background: #000; border: 1.2px solid rgba(59, 130, 246, 0.4); color: #fff;" onchange="saveAdminSettings()">
+              <input type="text" id="setting-recommended-app-version" class="form-control" value="9.0.0" placeholder="9.0.0" style="height: 38px; font-size: 13px; font-weight: 700; background: #000; border: 1.2px solid rgba(59, 130, 246, 0.4); color: #fff;" onchange="saveAdminSettings()">
               <p style="font-size: 9.5px; color: var(--text-muted); margin-top: 4px;">பயனர்களுக்கு தற்காலிக Update Banner காட்டும் (Dismissible).</p>
             </div>
           </div>
@@ -4506,28 +4609,78 @@
 
       </div>
 
-      <!-- ADMIN TAB 9: CUSTOMER REVIEWS & FEEDBACK -->
+      <!-- ADMIN TAB 9: CUSTOMER REVIEWS & REPUTATION HUB (NEW 2026 EDITION) -->
       <div id="admin-tab-reviews" class="admin-subtab-container" style="display: none;">
-        <div class="card" style="background: linear-gradient(135deg, rgba(20,20,20,0.6) 0%, rgba(10,10,10,0.95) 100%); border-color: var(--accent-orange); margin-bottom: 16px;">
-          <h4 style="color: var(--accent-orange); font-size: 14px; text-transform: uppercase; margin-bottom: 6px; font-weight:700;">⭐ Live Customer Reviews / வாடிக்கையாளர் விமர்சனங்கள்</h4>
-          <p style="font-size: 11.5px; color: var(--text-muted); margin: 0; line-height:1.4;">View local residents' feedback, stars, and comments submitted on their delivered orders in real-time.</p>
+        <!-- Header Command Card -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(30, 24, 16, 0.95) 0%, rgba(14, 16, 22, 0.98) 100%); border: 1.5px solid rgba(245, 158, 11, 0.35); margin-bottom: 16px; padding: 16px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px;">⭐</span>
+                <h3 style="color: #ffffff; font-size: 15px; font-weight: 800; margin: 0; font-family: 'Poppins', sans-serif;">Customer Reviews & Reputation Hub</h3>
+                <span style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.5); color: #f59e0b; font-size: 9.5px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">v2.0 PRO</span>
+              </div>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 4px 0 0 0; font-family: 'Hind Madurai', sans-serif;">வாடிக்கையாளர் மதிப்புரைகள், மதிப்பீடுகள் & நற்பெயர் மேலாண்மை மையம்</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; font-size: 11px; font-weight: 750; border-radius: 9px; padding: 0 12px; height: 34px; min-height: 34px; border: none; display: flex; align-items: center; gap: 5px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);" onclick="openAdminAddReviewModal()">
+                <span>➕</span>
+                <span>Add Review / புதிய விமர்சனம்</span>
+              </button>
+              <button type="button" class="btn btn-secondary" style="font-size: 11px; font-weight: 700; border-radius: 9px; padding: 0 10px; height: 34px; min-height: 34px; border-color: rgba(255,255,255,0.15);" onclick="renderAdminReviews(true)" title="Refresh Reviews">
+                <span>🔄 Sync</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-KPI REPUTATION TILES -->
+        <div class="review-kpi-grid" id="admin-reviews-kpi-grid">
+          <div class="review-kpi-card" style="--kpi-accent: #f59e0b;">
+            <div class="review-kpi-value" id="admin-kpi-avg-rating" style="color: #f59e0b;">4.9 ★</div>
+            <div class="review-kpi-label">Overall Rating / சராசரி</div>
+          </div>
+          <div class="review-kpi-card" style="--kpi-accent: #3b82f6;">
+            <div class="review-kpi-value" id="admin-kpi-total-reviews" style="color: #60a5fa;">0</div>
+            <div class="review-kpi-label">Total Reviews / மொத்தம்</div>
+          </div>
+          <div class="review-kpi-card" style="--kpi-accent: #10b981;">
+            <div class="review-kpi-value" id="admin-kpi-satisfaction-rate" style="color: #34d399;">98%</div>
+            <div class="review-kpi-label">Satisfaction / திருப்தி</div>
+          </div>
+          <div class="review-kpi-card" style="--kpi-accent: #a855f7;">
+            <div class="review-kpi-value" id="admin-kpi-replied-rate" style="color: #c084fc;">95%</div>
+            <div class="review-kpi-label">Replied / பதிலளிக்கப்பட்டது</div>
+          </div>
         </div>
 
         <!-- STARRATING DISTRIBUTION CHART CONTAINER -->
         <div id="admin-reviews-chart-container" style="margin-bottom: 16px;"></div>
 
-        <div style="display: flex; gap: 8px; margin-bottom: 14px;">
-          <select id="review-star-filter" class="form-control" style="width: auto; height: 38px; font-size: 12px; padding: 0 10px; background:#111; border:1px solid #222; border-radius:10px;" onchange="renderAdminReviews()">
-            <option value="all">⭐ All Ratings</option>
-            <option value="5">⭐⭐⭐⭐⭐ 5 Stars Only</option>
-            <option value="4">⭐⭐⭐⭐ & above</option>
-            <option value="3">⭐⭐⭐ & above</option>
-            <option value="1_2">⭐ 1-2 Stars Only</option>
-          </select>
-          <input type="text" id="review-search-input" class="form-control" style="flex: 1; height: 38px; font-size: 12px; padding: 0 10px; background:#111; border:1px solid #222; border-radius:10px;" placeholder="🔍 Search reviews or user name..." oninput="debouncedSearchReviews()">
+        <!-- FILTER CHIPS & SEARCH BAR -->
+        <div style="margin-bottom: 14px;">
+          <!-- Filter Chips -->
+          <div class="review-filter-chips" id="admin-review-filter-chips">
+            <button type="button" class="review-chip active" onclick="setAdminReviewFilter('all', this)">⭐ All Reviews</button>
+            <button type="button" class="review-chip" onclick="setAdminReviewFilter('5', this)">🌟 5 Stars</button>
+            <button type="button" class="review-chip" onclick="setAdminReviewFilter('4', this)">⭐ 4 Stars</button>
+            <button type="button" class="review-chip" onclick="setAdminReviewFilter('3', this)">⭐ 3 Stars</button>
+            <button type="button" class="review-chip" onclick="setAdminReviewFilter('1_2', this)">⚠️ Critical (1-2★)</button>
+            <button type="button" class="review-chip" onclick="setAdminReviewFilter('has_comment', this)">💬 With Comments</button>
+            <button type="button" class="review-chip" onclick="setAdminReviewFilter('featured', this)">📢 Featured on Home</button>
+            <button type="button" class="review-chip" onclick="setAdminReviewFilter('needs_reply', this)">⏳ Pending Reply</button>
+          </div>
+
+          <!-- Live Search Bar with Instant Reset -->
+          <div style="position: relative;">
+            <input type="text" id="review-search-input" class="form-control" style="width: 100%; height: 42px; font-size: 12.5px; padding: 0 40px 0 38px; background: rgba(18, 22, 30, 0.95); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; color: #fff;" placeholder="🔍 Search by customer name, phone, order #, or comments..." oninput="debouncedSearchReviews()">
+            <span style="position: absolute; left: 12px; top: 12px; font-size: 14px; opacity: 0.5;">🔍</span>
+            <button type="button" id="review-search-clear-btn" onclick="clearReviewSearch()" style="display: none; position: absolute; right: 10px; top: 10px; background: transparent; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 2px 6px;">✕</button>
+          </div>
         </div>
 
-        <div id="admin-reviews-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        <!-- REVIEWS LIST CONTAINER -->
+        <div id="admin-reviews-list" style="display: flex; flex-direction: column; gap: 14px;"></div>
       </div>
 
       <!-- ADMIN TAB 10: SYNCHRONIZATION DASHBOARD -->
@@ -4640,9 +4793,14 @@
             <span style="font-size: 9px; color: #10b981; font-weight: 600; line-height: 1; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;">Helper Online • எடப்பாடி கடை AI</span>
           </div>
         </div>
-        <button onclick="toggleLyoAiLang()" class="btn" style="width: auto; padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 8px; border: 1.2px solid rgba(245,158,11,0.35); background: rgba(245,158,11,0.06); color: var(--accent-orange); display: flex; align-items: center; gap: 4px; cursor: pointer; height: auto; min-height: auto; flex-shrink: 0;">
-          🌐 <span id="lyo-ai-lang-label">தமிழ் / EN</span>
-        </button>
+        <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+          <button onclick="clearLyoChatHistory()" title="புதிய அரட்டை / New Chat" class="btn" style="width: auto; padding: 5px 8px; font-size: 11px; font-weight: 700; border-radius: 8px; border: 1.2px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); color: #cbd5e1; display: flex; align-items: center; gap: 4px; cursor: pointer; height: auto; min-height: auto;">
+            <span>🔄</span> <span style="font-size: 10px;">Reset</span>
+          </button>
+          <button onclick="toggleLyoAiLang()" class="btn" style="width: auto; padding: 5px 10px; font-size: 11px; font-weight: 700; border-radius: 8px; border: 1.2px solid rgba(245,158,11,0.35); background: rgba(245,158,11,0.06); color: var(--accent-orange); display: flex; align-items: center; gap: 4px; cursor: pointer; height: auto; min-height: auto;">
+            🌐 <span id="lyo-ai-lang-label">தமிழ் / EN</span>
+          </button>
+        </div>
       </div>
 
       <!-- Real-time Location Pin & Delivery Charge calculation banner -->
@@ -4709,11 +4867,13 @@
           ✨ PRE-CALCULATED NEXT STEPS / SUGGESTIONS:
         </div>
         <div class="quick-chips-row" style="display: flex; gap: 6px; overflow-x: auto; padding: 0 12px; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex-shrink: 0; width: 100%; box-sizing: border-box;">
-          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('அரை கிலோ சிக்கன்')" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: #fff; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">🍗 சிக்கன் 1/2 Kg</button>
-          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('1 கிலோ தக்காளி')" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: #fff; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">🍅 தக்காளி 1 Kg</button>
-          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('Order status')" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: #fff; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">📦 ஆர்டர் ஸ்டேட்டஸ்</button>
-          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('App features')" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: #fff; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">✨ செயலி வசதி</button>
-          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('500g mutton, ₹20 tomato, 30 eggs')" style="background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.35); color: #fff; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Poppins', sans-serif;">📋 500g Mutton, ₹20 Tomato, 30 Eggs</button>
+          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('1 கிலோ சிக்கன்')" style="background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.4); color: #fff; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">🍗 சிக்கன் 1 Kg</button>
+          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('அரை கிலோ மட்டன்')" style="background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.4); color: #fff; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">🥩 மட்டன் 1/2 Kg</button>
+          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('சிக்கன் பிரியாணி செய்ய பொருட்கள்')" style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.45); color: #fef08a; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">🍲 பிரியாணி பொருட்கள்</button>
+          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('1 கிலோ தக்காளி, 1 கிலோ வெங்காயம்')" style="background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.4); color: #fff; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">🍅 தக்காளி & வெங்காயம்</button>
+          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('Order status')" style="background: rgba(59,130,246,0.14); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">📦 ஆர்டர் நிலவரம்</button>
+          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('இன்றைய கூப்பன்கள்')" style="background: rgba(245,158,11,0.14); border: 1px solid rgba(245,158,11,0.4); color: #fde047; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">🎟️ சலுகை கூப்பன்கள்</button>
+          <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('என் வாலட் பாயிண்ட்ஸ்')" style="background: rgba(168,85,247,0.14); border: 1px solid rgba(168,85,247,0.4); color: #d8b4fe; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">💰 என் வாலட்</button>
           <button type="button" class="quick-chip-btn" onclick="sendQuickLyoQuery('Clear cart')" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ff8080; border-radius: 12px; padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; font-family: 'Hind Madurai', sans-serif;">🗑️ Clear Cart</button>
         </div>
       </div>
@@ -4723,10 +4883,14 @@
         <div id="lyo-ai-compose-box" onclick="const input = document.getElementById('lyo-ai-input'); if(input) input.focus();" style="background: rgba(14,18,24,0.92); border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 24px; margin: 8px 12px; padding: 6px 8px 6px 14px; display: flex; align-items: center; gap: 8px; transition: all 0.15s ease; cursor: text;">
           
           <!-- Left: Text input, multi-line capable, expanding automatically -->
-          <textarea id="lyo-ai-input" rows="1" enterkeyhint="enter" onfocus="autoGrowLyoInput(this)" oninput="autoGrowLyoInput(this)" style="flex: 1; background: transparent; border: none !important; outline: none !important; box-shadow: none !important; color: #fff; font-size: 13.5px; resize: none; max-height: 160px; font-family: 'Poppins','Hind Madurai',sans-serif; line-height: 1.5; padding: 6px 0; margin: 0; min-height: 24px; box-sizing: border-box;" placeholder="Type or paste shopping list line by line (e.g. ₹200 Apple&#10;₹300 Chicken&#10;20 Eggs&#10;2 Litres Milk&#10;500ml Oil)..."></textarea>
+          <textarea id="lyo-ai-input" rows="1" enterkeyhint="enter" onfocus="autoGrowLyoInput(this)" oninput="autoGrowLyoInput(this)" style="flex: 1; background: transparent; border: none !important; outline: none !important; box-shadow: none !important; color: #fff; font-size: 13.5px; resize: none; max-height: 160px; font-family: 'Poppins','Hind Madurai',sans-serif; line-height: 1.5; padding: 6px 0; margin: 0; min-height: 24px; box-sizing: border-box;" placeholder="டைப் செய்யவும் அல்லது பேசவும் (எ.கா: 1kg சிக்கன், 500g தக்காளி)..."></textarea>
           
+          <!-- Voice Input Mic Button -->
+          <button id="lyo-ai-mic-btn" type="button" onclick="event.preventDefault(); event.stopPropagation(); toggleLyoVoiceInput();" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); border: 1.5px solid rgba(16, 185, 129, 0.4); color: #10b981; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0;" title="குரல் வழி ஆர்டர் / Voice Order">
+            <span style="font-size: 16px;">🎤</span>
+          </button>
+
           <!-- Right: Send button - orange/accent, prominent -->
-          
           <button id="lyo-ai-send-btn" type="button" onclick="event.preventDefault(); event.stopPropagation(); onLyoSendBtnClick();" style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-orange), #f59e0b); border: none; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(249,115,22,0.35); cursor: pointer; transition: opacity 0.2s, transform 0.2s; opacity: 0.9; flex-shrink: 0;" title="அனுப்பு / Send">
             <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;">
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
@@ -4735,6 +4899,175 @@
           
         </div>
       </form>
+    </div>
+
+    <!-- MODAL: ALL CUSTOMER REVIEWS & KRISHNAR VACHANAM SHOWCASE -->
+    <div id="all-customer-reviews-modal" class="modal-backdrop" onclick="closeAllCustomerReviewsModal()" style="display: none; align-items: flex-end; justify-content: center; z-index: 10020; padding: 0; background: rgba(0,0,0,0.85);">
+      <div style="background: linear-gradient(180deg, #181d26 0%, #0f1218 100%) !important; border-top: 2px solid rgba(245, 158, 11, 0.5); border-radius: 24px 24px 0 0; width: 100%; max-width: 520px; padding: 20px 16px 28px 16px; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); animation: bottomSheetEntrance 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); max-height: 88vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+        
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 22px;">⭐</span>
+            <div>
+              <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: #fff; font-family: 'Poppins', sans-serif;">Customer Reviews & Ratings</h3>
+              <p style="margin: 2px 0 0 0; font-size: 10.5px; color: var(--text-muted); font-family: 'Hind Madurai', sans-serif;">எடப்பாடி மக்களின் நல்மதிப்புரைகள் & மூத்த வாடிக்கையாளர் வசனங்கள்</p>
+            </div>
+          </div>
+          <button type="button" onclick="closeAllCustomerReviewsModal()" style="background: rgba(255,255,255,0.08); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer;">✕</button>
+        </div>
+
+        <!-- Reviews Scrollable Container -->
+        <div id="all-customer-reviews-list" style="flex: 1; overflow-y: auto; padding-right: 2px; -webkit-overflow-scrolling: touch;">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Footer Actions -->
+        <div style="display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
+          <button type="button" class="btn btn-secondary" style="flex: 1; height: 36px; font-size: 11.5px; font-weight: 700;" onclick="closeAllCustomerReviewsModal()">
+            Close / மூடு
+          </button>
+          <button type="button" class="btn" style="flex: 1.5; height: 36px; font-size: 11.5px; font-weight: 800; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none;" onclick="closeAllCustomerReviewsModal(); openCustomerAddReviewModal();">
+            ✍️ Write Review / எழுது
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MODAL: CUSTOMER WRITE REVIEW SHEET (2026 EDITION) -->
+    <div id="customer-write-review-modal" class="modal-backdrop" onclick="closeCustomerAddReviewModal()" style="display: none; align-items: flex-end; justify-content: center; z-index: 10020; padding: 0; background: rgba(0,0,0,0.75);">
+      <div style="background: linear-gradient(180deg, #181d26 0%, #0f1218 100%) !important; border-top: 2px solid rgba(245, 158, 11, 0.4); border-radius: 24px 24px 0 0; width: 100%; max-width: 500px; padding: 22px 20px 30px 20px; box-shadow: 0 -10px 40px rgba(0,0,0,0.7); animation: bottomSheetEntrance 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); max-height: 90vh; overflow-y: auto;" onclick="event.stopPropagation()">
+        
+        <!-- Modal Drag Indicator & Close -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px;">⭐</span>
+            <div>
+              <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: #fff; font-family: 'Poppins', sans-serif;">Rate Your Experience</h3>
+              <p style="margin: 2px 0 0 0; font-size: 10.5px; color: var(--text-muted); font-family: 'Hind Madurai', sans-serif;">உங்கள் கருத்து எடப்பாடி கடைக்கு மிகவும் முக்கியம்!</p>
+            </div>
+          </div>
+          <button type="button" onclick="closeCustomerAddReviewModal()" style="background: rgba(255,255,255,0.08); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer;">✕</button>
+        </div>
+
+        <!-- Big Interactive Star Rating Selector -->
+        <div style="text-align: center; margin: 16px 0;">
+          <div class="interactive-star-picker" id="cust-star-picker">
+            <span class="star-picker-item active" onclick="setCustomerReviewRating(1)">★</span>
+            <span class="star-picker-item active" onclick="setCustomerReviewRating(2)">★</span>
+            <span class="star-picker-item active" onclick="setCustomerReviewRating(3)">★</span>
+            <span class="star-picker-item active" onclick="setCustomerReviewRating(4)">★</span>
+            <span class="star-picker-item active" onclick="setCustomerReviewRating(5)">★</span>
+          </div>
+          <div id="cust-star-label" style="font-size: 13px; font-weight: 800; color: #f59e0b; margin-top: 4px; font-family: 'Poppins', sans-serif;">
+            🌟 Outstanding & Fresh! (அற்புதம் & பிரெஷ்!)
+          </div>
+          <input type="hidden" id="cust-selected-rating" value="5">
+        </div>
+
+        <!-- Quick Compliment Tags -->
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">Quick Tags / சிறப்பு அம்சங்கள்:</label>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="cust-review-tags-container">
+            <span class="review-chip active" onclick="toggleCustReviewTag(this, '🥩 Fresh Quality Meat')">🥩 Fresh Meat</span>
+            <span class="review-chip active" onclick="toggleCustReviewTag(this, '⚡ Fast 25-Min Delivery')">⚡ Fast Delivery</span>
+            <span class="review-chip" onclick="toggleCustReviewTag(this, '📦 Clean Packing')">📦 Clean Packing</span>
+            <span class="review-chip" onclick="toggleCustReviewTag(this, '💰 Best Market Price')">💰 Best Price</span>
+            <span class="review-chip" onclick="toggleCustReviewTag(this, '😊 Polite Rider')">😊 Polite Rider</span>
+            <span class="review-chip" onclick="toggleCustReviewTag(this, '🔪 Perfect Cut & Clean')">🔪 Perfect Cut</span>
+          </div>
+        </div>
+
+        <!-- Customer Info Fields -->
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <div style="flex: 1;">
+            <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">உங்கள் பெயர் / Your Name:</label>
+            <input type="text" id="cust-review-name" class="form-control" placeholder="e.g. Saravanan K." style="height: 38px; font-size: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #fff;">
+          </div>
+          <div style="flex: 1;">
+            <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">மொபைல் / Phone:</label>
+            <input type="tel" id="cust-review-phone" class="form-control" placeholder="10-digit mobile" maxlength="10" style="height: 38px; font-size: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #fff;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">பகுதி / Area (Optional):</label>
+          <input type="text" id="cust-review-area" class="form-control" placeholder="e.g. Kavandampatti / Edappadi Town / Vellandivalasai" style="height: 38px; font-size: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #fff;">
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">உங்கள் கருத்து / Your Comments:</label>
+          <textarea id="cust-review-comment" class="form-control" rows="3" placeholder="இறைச்சியின் தரம், சுவை மற்றும் டெலிவரி பற்றிய உங்கள் நல்மதிப்புரையை இங்கே எழுதவும்..." style="font-size: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #fff; resize: none;"></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="button" onclick="submitCustomerReview()" class="btn btn-primary" style="width: 100%; height: 44px; font-size: 13px; font-weight: 800; border-radius: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; box-shadow: 0 4px 14px rgba(16,185,129,0.35); display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>⭐</span>
+          <span>விமர்சனம் சமர்ப்பிக்கவும் / Submit Review</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL: ADMIN ADD / RECORD MANUAL REVIEW -->
+    <div id="admin-add-review-modal" class="modal-backdrop" onclick="closeAdminAddReviewModal()" style="display: none; align-items: center; justify-content: center; z-index: 10020; padding: 16px; background: rgba(0,0,0,0.8);">
+      <div style="background: linear-gradient(135deg, #181c24 0%, #10131a 100%) !important; border: 1.5px solid rgba(245, 158, 11, 0.4); border-radius: 18px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 10px 35px rgba(0,0,0,0.6); animation: bottomSheetEntrance 0.25s ease;" onclick="event.stopPropagation()">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">➕</span>
+            <h3 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #fff;">Add Store Review (Admin)</h3>
+          </div>
+          <button type="button" onclick="closeAdminAddReviewModal()" style="background: rgba(255,255,255,0.08); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer;">✕</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <div style="flex: 1.2;">
+            <label style="font-size: 10.5px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Customer Name:</label>
+            <input type="text" id="admin-new-rev-name" class="form-control" placeholder="e.g. Senthil Nathan" style="height: 36px; font-size: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff;">
+          </div>
+          <div style="flex: 1;">
+            <label style="font-size: 10.5px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Phone (Optional):</label>
+            <input type="tel" id="admin-new-rev-phone" class="form-control" placeholder="9842xxxxxx" maxlength="10" style="height: 36px; font-size: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff;">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <div style="flex: 1;">
+            <label style="font-size: 10.5px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Rating (Stars):</label>
+            <select id="admin-new-rev-rating" class="form-control" style="height: 36px; font-size: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff;">
+              <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+              <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+              <option value="3">⭐⭐⭐ 3 Stars</option>
+              <option value="2">⭐⭐ 2 Stars</option>
+              <option value="1">⭐ 1 Star</option>
+            </select>
+          </div>
+          <div style="flex: 1;">
+            <label style="font-size: 10.5px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Area / Town:</label>
+            <input type="text" id="admin-new-rev-area" class="form-control" placeholder="e.g. Edappadi Town" style="height: 36px; font-size: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+          <label style="font-size: 10.5px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Ordered Item(s):</label>
+          <input type="text" id="admin-new-rev-items" class="form-control" placeholder="e.g. Fresh Mutton 1kg, Country Chicken 500g" style="height: 36px; font-size: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff;">
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 10.5px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Feedback / Testimonial Comment:</label>
+          <textarea id="admin-new-rev-comment" class="form-control" rows="3" placeholder="Enter genuine customer comments or feedback..." style="font-size: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; resize: none;"></textarea>
+        </div>
+
+        <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="admin-new-rev-featured" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
+          <label for="admin-new-rev-featured" style="font-size: 11.5px; color: #fff; cursor: pointer;">🌟 Feature on Customer Home Screen</label>
+        </div>
+
+        <button type="button" onclick="submitAdminManualReview()" class="btn btn-primary" style="width: 100%; height: 40px; font-size: 12.5px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none;">
+          Save & Publish Review / சேமிக்க
+        </button>
+      </div>
     </div>
 
     <!-- GLOBAL BOTTOM NAVIGATION TAB BAR -->
@@ -4747,10 +5080,10 @@
         <span data-translate="home">Home</span>
       </a>
       <a class="nav-tab" id="nav-btn-cart" onclick="showTab('tab-cart')">
-        <div id="nav-cart-icon-wrapper" style="position: relative; display: flex; align-items: center; transition: transform 0.2s;">
+        <div id="nav-cart-icon-wrapper">
           <svg viewBox="0 0 24 24">
-            <circle cx="9" cy="21" r="1"/>
-            <circle cx="20" cy="21" r="1"/>
+            <circle cx="9" cy="20" r="1.6" fill="currentColor"/>
+            <circle cx="20" cy="20" r="1.6" fill="currentColor"/>
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <div id="tab-cart-badge" class="nav-badge" style="display: none;">0</div>
@@ -4786,18 +5119,18 @@
 
   </div>
 
-    <script src="js/nlu-dictionary.js"></script>
-    <script src="js/core.js"></script>
-    <script src="js/database.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/user.js"></script>
-    <script src="js/products.js"></script>
-    <script src="js/orders.js"></script>
-    <script src="js/delivery.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/admin.js"></script>
-    <script src="js/notifications.js"></script>
-    <script src="js/lyo-ai.js"></script>
+    <script src="js/nlu-dictionary.js?v=9.0.0"></script>
+    <script src="js/core.js?v=9.0.0"></script>
+    <script src="js/database.js?v=9.0.0"></script>
+    <script src="js/auth.js?v=9.0.0"></script>
+    <script src="js/user.js?v=9.0.0"></script>
+    <script src="js/products.js?v=9.0.0"></script>
+    <script src="js/orders.js?v=9.0.0"></script>
+    <script src="js/delivery.js?v=9.0.0"></script>
+    <script src="js/ui.js?v=9.0.0"></script>
+    <script src="js/admin.js?v=9.0.0"></script>
+    <script src="js/notifications.js?v=9.0.0"></script>
+    <script src="js/lyo-ai.js?v=9.0.0"></script>
 
 <script>
 async function initializeApplicationStartup() {
@@ -4819,6 +5152,33 @@ async function initializeApplicationStartup() {
     }
   } catch (e) {
     console.error("[STARTUP] Application bootstrap execution error:", e);
+  }
+
+  // Ensure bottom navigation buttons have bulletproof, zero-latency event listeners
+  try {
+    const navContainer = document.getElementById('app-bottom-nav');
+    if (navContainer && !navContainer._navBound) {
+      navContainer._navBound = true;
+      const handleNavEvent = function(e) {
+        const tab = e.target.closest('.nav-tab');
+        if (!tab) return;
+        const tabId = tab.id;
+        if (tabId === 'nav-btn-home') {
+          if (typeof showTab === 'function') showTab('tab-home');
+        } else if (tabId === 'nav-btn-cart') {
+          if (typeof showTab === 'function') showTab('tab-cart');
+        } else if (tabId === 'lyo-ai-nav-btn') {
+          if (typeof showTab === 'function') showTab('tab-lyo-ai');
+        } else if (tabId === 'nav-btn-track') {
+          if (typeof showTab === 'function') showTab('tab-track');
+        } else if (tabId === 'nav-btn-profile') {
+          if (typeof showTab === 'function') showTab('tab-profile');
+        }
+      };
+      navContainer.addEventListener('click', handleNavEvent);
+    }
+  } catch(e) {
+    console.warn("Bottom nav listener setup warning:", e);
   }
 }
 
@@ -4871,21 +5231,23 @@ function skipOnboardingAndContinue() {
 
 // --- 2. Home Search Handlers ---
 function clearHomeSearchInput() {
-  const input = document.getElementById("search-input") || document.getElementById("home-search-input");
+  const input = document.getElementById("home-product-search") || document.getElementById("search-input") || document.getElementById("home-search-input");
   if (input) {
     input.value = "";
     input.focus();
   }
   const clearBtn = document.getElementById("home-search-clear-btn");
   if (clearBtn) clearBtn.style.display = "none";
-  if (typeof filterProducts === "function") filterProducts("");
-  if (typeof renderProducts === "function") renderProducts();
-  if (typeof renderCategoryProducts === "function") renderCategoryProducts();
+  const suggestions = document.getElementById("home-search-suggestions");
+  if (suggestions) suggestions.style.display = "none";
+  if (typeof renderHomeScreenProducts === "function") renderHomeScreenProducts();
+  else if (typeof filterProducts === "function") filterProducts("");
+  else if (typeof renderProducts === "function") renderProducts();
 }
 
 // --- 3. Debounced Search Handlers ---
 let _searchDebounceTimers = {};
-function _debounceHelper(key, fn, delay = 300) {
+function _debounceHelper(key, fn, delay = 100) {
   if (_searchDebounceTimers[key]) clearTimeout(_searchDebounceTimers[key]);
   _searchDebounceTimers[key] = setTimeout(fn, delay);
 }
